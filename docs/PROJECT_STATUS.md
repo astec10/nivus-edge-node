@@ -34,6 +34,10 @@ A revalidação do host registrou Ubuntu 26.04.1 LTS, x86_64, 2 vCPUs, 3,2 GiB d
 
 No Ubuntu do notebook, bash -n passou para backup.sh e restore.sh, e restore.sh --help foi conferido em staging. Uma fixture isolada exercitou snapshot SQLite, troca atômica, quarentena de sidecars e rollback. backup.sh cria diretórios exclusivos mesmo quando backups ocorrem no mesmo segundo. Os arquivos continuam apenas em staging de revisão: nada foi instalado em /opt/nivus-compose/current nem executado contra o banco ativo. Faltam --check e o teste integrado de restore/rollback em clone descartável/VM.
 
+
+## Verificador de rollback para a VM (13/11/2026, 22:47 UTC)
+
+O script deploy/test-restore-rollback.sh foi adicionado para exercitar a recuperação automática sem mexer no notebook: exige detecção de virtualização, argumento explícito e duas confirmações; salva backup de segurança, exige backup escolhido com menos linhas de telemetria e força a falha do health após a troca. Depois confere o retorno dos serviços, health 200, 401, integridade SQLite e preservação do conteúdo anterior. bash -n e --help passaram em staging do notebook; uma fixture SQLite confirmou que o verificador aceita dados preservados com telemetria nova e rejeita dado de usuário alterado. O teste deliberado de 45 segundos ainda não foi executado. A rotina não foi instalada em /opt/nivus-compose/current.
 ## Resumo
 
 - A API modular passou em validação isolada e foi ativada em um notebook de teste x86_64, conforme saída do operador. O deploy confirmou health local e via HTTPS, resposta 401 para telemetria sem token e criou backup com rollback.

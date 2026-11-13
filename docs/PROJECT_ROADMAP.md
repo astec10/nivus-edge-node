@@ -35,7 +35,7 @@ Siga [`VM_VALIDATION.md`](VM_VALIDATION.md) como roteiro executável e registre 
 1. Validar instalação limpa em VM Ubuntu Server minimal x86_64, sem arquivos de staging ou segredos prévios.
 2. Registrar RAM livre, CPU, disco, espaço de build, portas, versões do Ubuntu/Docker/Compose e tempo de instalação.
 3. Reiniciar a VM e confirmar que API, painel, MQTT, worker, coletor, dados e endpoint descoberto voltam sozinhos.
-4. Criar backup, restaurar em cópia descartável e demonstrar rollback de uma atualização incompleta.
+4. Criar backup; usar `deploy/test-restore-rollback.sh` numa VM descartável para demonstrar rollback automático e depois testar uma restauração normal.
 5. Repetir em uma segunda versão de Ubuntu suportada e, depois, em hardware x86_64 diferente.
 6. Documentar erros recuperáveis, como falta de disco, portas ocupadas, falha APT e interrupção durante o bootstrap.
 

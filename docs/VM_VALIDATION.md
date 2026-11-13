@@ -94,11 +94,19 @@ O repositório agora inclui `deploy/restore.sh`. Primeiro teste somente a valida
 
 ```bash
 sudo ls -lt /var/backups/nivus-compose
-BACKUP_DIR=/var/backups/nivus-compose/20261113T000000Z
+BACKUP_DIR=/var/backups/nivus-compose/20261113T000000Z-XXXXXX
 sudo bash /opt/nivus-compose/current/deploy/restore.sh --check "$BACKUP_DIR"
 ```
 
-Substitua o valor de exemplo por um diretório listado por `backup.sh`. Para o teste real, crie um snapshot/clone descartável da VM, faça uma mudança de teste que crie dados identificáveis e gere um backup. Restaure o backup nesse clone, confirme que o dado anterior reapareceu, que o dado criado depois do backup desapareceu, e que health, 401, SQLite e coleta voltaram. O comando `sudo bash /opt/nivus-compose/current/deploy/restore.sh "$BACKUP_DIR"` exige confirmação digitada `RESTORE`, cria backup consistente antes de trocar a base e tenta rollback se a validação posterior falhar. Ele mantém `.env` e segredos atuais e restaura só o SQLite. Não execute a restauração no notebook em uso.
+Substitua o valor de exemplo por um diretório real listado por `backup.sh`; o nome termina com um sufixo aleatório. Para provar o rollback automático, use a VM descartável depois de snapshot, gere um backup, espere a contagem de telemetria avançar e rode:
+
+```bash
+sudo bash /opt/nivus-compose/current/deploy/test-restore-rollback.sh --i-understand-this-is-a-disposable-vm "$BACKUP_DIR"
+```
+
+O teste só funciona dentro de uma VM, faz um backup de segurança, exige as confirmações `VM-ROLLBACK-TEST` e `RESTORE`, simula uma falha de health por até 45 segundos e verifica o retorno do banco, dos serviços, health 200, `401` sem token e SQLite. O resultado esperado é uma falha de health simulada seguida de mensagem de rollback recuperado; os dados atuais precisam permanecer. Se não houver mais telemetria na base ativa do que no backup escolhido, espere a coleta e tente novamente. Este teste injeta uma falha deliberadamente e nunca deve ser rodado no notebook ativo.
+
+Depois, teste o caminho normal no mesmo ambiente descartável: `sudo bash /opt/nivus-compose/current/deploy/restore.sh "$BACKUP_DIR"`, digite `RESTORE`, confirme que a contagem volta ao ponto salvo e que a telemetria recomeça. O `restore.sh` cria outro backup consistente antes da troca e tenta rollback se a validação posterior falhar. Ele mantém `.env` e segredos atuais e restaura só o SQLite. Não execute a restauração nem o teste de falha no notebook em uso.
 
 Até passar nesse teste de integração em VM, a restauração automatizada está implementada e revisada, mas não declarada validada.
 
