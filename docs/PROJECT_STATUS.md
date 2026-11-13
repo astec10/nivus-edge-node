@@ -3,6 +3,19 @@
 Atualizado: 2026-11-13
 Licença escolhida: AGPL-3.0-only
 
+## Revalidação ao vivo (13/11/2026, 21:12 UTC)
+
+Checagem somente leitura via SSH no notebook de teste:
+
+- `nivus-compose-telemetry.service` estava `active/running`, com zero reinícios.
+- Os quatro containers candidatos (web, API, worker e MQTT) estavam em execução; API e MQTT marcados saudáveis pelo Docker.
+- `https://127.0.0.1:8443/health` respondeu HTTP 200 com `status: ok`.
+- `/api/telemetry` sem token respondeu HTTP 401.
+- O SQLite candidato passou `PRAGMA quick_check` (`ok`) e continuava recebendo telemetria.
+- O `docker compose ps` no usuário SSH não conseguiu ler `/opt/nivus-compose/current/.env`; os containers foram conferidos com `docker ps` e `docker inspect`, sem ler nem expor o arquivo de segredos.
+
+A página publicada em `/PROGRESS.html` ainda não contém esta revalidação. A cópia local e a página servida por HTTPS têm hashes diferentes; a atualização com backup/rollback está pendente. Nenhuma instalação limpa em VM foi iniciada: a compatibilidade Ubuntu amd64 ainda precisa dessa validação.
+
 ## Resumo
 
 - A API modular passou em validação isolada e foi ativada em um notebook de teste x86_64, conforme saída do operador. O deploy confirmou health local e via HTTPS, resposta 401 para telemetria sem token e criou backup com rollback.
