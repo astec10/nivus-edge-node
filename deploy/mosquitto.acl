@@ -1,0 +1,11 @@
+user nivus-api
+topic write nivus/edge/relay1
+
+user nivus-worker
+topic read nivus/edge/telemetry
+
+user nivus-agent
+topic write nivus/edge/telemetry
+
+user nivus-health
+topic read $SYS/broker/uptime

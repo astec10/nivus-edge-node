@@ -1,0 +1,33 @@
+[Unit]
+Description=Nivus host telemetry agent for the Docker Compose stack
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=nivus-telemetry
+Group=nivus-telemetry
+WorkingDirectory=/opt/nivus-compose/current
+EnvironmentFile=/etc/nivus-compose/telemetry.env
+LoadCredential=mqtt_agent_password:/etc/nivus-compose/secrets/mqtt_agent_password
+Environment=NIVUS_MQTT_PASSWORD_FILE=%d/mqtt_agent_password
+ExecStart=/opt/nivus-compose/venv/bin/python /opt/nivus-compose/current/telemetry/agent.py
+Restart=always
+RestartSec=5
+MemoryMax=64M
+CPUQuota=20%
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

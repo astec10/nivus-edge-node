@@ -1,0 +1,172 @@
+name: nivus-edge
+
+services:
+  api:
+    image: nivus-edge-api:local
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        NIVUS_RUNTIME_UID: ${NIVUS_RUNTIME_UID:-12001}
+        NIVUS_RUNTIME_GID: ${NIVUS_RUNTIME_GID:-12001}
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    environment:
+      NIVUS_DB_PATH: /data/nivus.db
+      NIVUS_JWT_SECRET_FILE: /run/secrets/jwt_secret
+      NIVUS_NODE_NAME: ${NIVUS_NODE_NAME:-nivus-edge-node}
+      NIVUS_CORS_ORIGINS: ${NIVUS_CORS_ORIGINS:-}
+      NIVUS_MQTT_BROKER: mqtt
+      NIVUS_MQTT_PORT: "1883"
+      NIVUS_MQTT_USERNAME: nivus-api
+      NIVUS_MQTT_PASSWORD_FILE: /run/secrets/mqtt_password
+      NIVUS_MQTT_ALLOWED_TOPICS: nivus/edge/relay1
+    secrets:
+      - jwt_secret
+      - source: mqtt_api_password
+        target: mqtt_password
+    volumes:
+      - ${NIVUS_DATA_DIR:-./data}:/data
+    networks:
+      - web_private
+      - mqtt_private
+    depends_on:
+      mqtt:
+        condition: service_healthy
+    mem_limit: ${NIVUS_API_MEMORY_LIMIT:-256m}
+    cpus: ${NIVUS_API_CPUS:-1.00}
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      interval: 30s
+      timeout: 4s
+      retries: 3
+      start_period: 20s
+    logging: &default_logging
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  worker:
+    image: nivus-edge-api:local
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        NIVUS_RUNTIME_UID: ${NIVUS_RUNTIME_UID:-12001}
+        NIVUS_RUNTIME_GID: ${NIVUS_RUNTIME_GID:-12001}
+    command: ["python", "mqtt_worker.py"]
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    environment:
+      NIVUS_DB_PATH: /data/nivus.db
+      NIVUS_MQTT_BROKER: mqtt
+      NIVUS_MQTT_PORT: "1883"
+      NIVUS_MQTT_USERNAME: nivus-worker
+      NIVUS_MQTT_PASSWORD_FILE: /run/secrets/mqtt_password
+      NIVUS_TELEMETRY_TOPIC: nivus/edge/telemetry
+    secrets:
+      - source: mqtt_worker_password
+        target: mqtt_password
+    volumes:
+      - ${NIVUS_DATA_DIR:-./data}:/data
+    networks: [mqtt_private]
+    depends_on:
+      mqtt:
+        condition: service_healthy
+    mem_limit: ${NIVUS_WORKER_MEMORY_LIMIT:-128m}
+    cpus: ${NIVUS_WORKER_CPUS:-0.50}
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    logging: *default_logging
+
+  mqtt:
+    image: eclipse-mosquitto:2@sha256:75d6662dee52c947dc9dd9c29f1d8d7ffef78ddaf38001caa09755681e8bbc98
+    user: "1883:1883"
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=8m
+    ports:
+      - "127.0.0.1:${NIVUS_MQTT_HOST_PORT:-1883}:1883"
+    volumes:
+      - ${NIVUS_MOSQUITTO_DATA_DIR:-./data/mosquitto}:/mosquitto/data
+      - ./deploy/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ${NIVUS_SECRET_DIR:-./secrets}/mosquitto_acl:/mosquitto/config/acl:ro
+    secrets:
+      - source: mosquitto_passwords
+        target: mosquitto_passwords
+      - source: mqtt_health_password
+        target: mqtt_health_password
+    networks: [mqtt_private]
+    mem_limit: ${NIVUS_MQTT_MEMORY_LIMIT:-64m}
+    cpus: ${NIVUS_MQTT_CPUS:-0.25}
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_sub -h 127.0.0.1 -p 1883 -u nivus-health -P \"$$(cat /run/secrets/mqtt_health_password)\" -t '$$SYS/broker/uptime' -C 1 -W 5 >/dev/null 2>&1"]
+      interval: 30s
+      timeout: 7s
+      retries: 3
+      start_period: 15s
+    logging: *default_logging
+
+  web:
+    image: nivus-edge-web:local
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    ports:
+      - "${NIVUS_BIND_ADDRESS:-0.0.0.0}:${NIVUS_HTTPS_PORT:-8443}:8443"
+    secrets:
+      - source: tls_cert
+        target: tls_cert
+      - source: tls_key
+        target: tls_key
+    networks: [web_private, edge_ingress]
+    depends_on:
+      api:
+        condition: service_healthy
+    mem_limit: ${NIVUS_WEB_MEMORY_LIMIT:-64m}
+    cpus: ${NIVUS_WEB_CPUS:-0.25}
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    logging: *default_logging
+
+networks:
+  web_private:
+    internal: true
+  mqtt_private:
+    internal: true
+  edge_ingress:
+    driver: bridge
+
+secrets:
+  jwt_secret:
+    file: ${NIVUS_SECRET_DIR:-./secrets}/jwt_secret
+  mqtt_api_password:
+    file: ${NIVUS_SECRET_DIR:-./secrets}/mqtt_api_password
+  mqtt_worker_password:
+    file: ${NIVUS_SECRET_DIR:-./secrets}/mqtt_worker_password
+  mqtt_health_password:
+    file: ${NIVUS_SECRET_DIR:-./secrets}/mqtt_health_password
+  mosquitto_passwords:
+    file: ${NIVUS_SECRET_DIR:-./secrets}/mosquitto_passwords
+  tls_cert:
+    file: ${NIVUS_SECRET_DIR:-./secrets}/tls.crt
+  tls_key:
+    file: ${NIVUS_SECRET_DIR:-./secrets}/tls.key
