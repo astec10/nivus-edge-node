@@ -6,11 +6,11 @@ Alvo de produto: Ubuntu Server minimal x86_64. Esta árvore foi preparada para r
 
 A API modular passou em verificação isolada e foi ativada em um notebook de teste em 13/11/2026. A ativação usou backup consistente do SQLite e dos fontes, e confirmou compilação Python, health da API, proteção de telemetria sem token e proxy HTTPS. Veja docs/PROJECT_STATUS.md.
 
-O frontend modular está organizado em componentes, compilado e ativado no Nginx do notebook com backup/rollback; health e assets foram conferidos, e o operador confirmou o login. A candidata Compose também passou por build e smoke test no notebook sem substituir os serviços systemd ativos. O fluxo de instalação/rollback numa máquina Ubuntu limpa ainda precisa de validação; esta árvore não é um release suportado.
+O frontend modular está organizado em componentes, compilado e ativado no Nginx do notebook com backup/rollback; health e assets foram conferidos, e o operador confirmou o login. A candidata Compose foi instalada em paralelo sem substituir os serviços antigos; health/HTTPS/401 passaram e a conta inicial foi criada. A verificação encontrou o coletor tentando uma porta localhost que não era publicada pela rede Docker interna. O reparo com backup/rollback e descoberta dinâmica do IP interno foi aplicado; o serviço está estável e as amostras cresceram de 9 para 12 em 15 segundos. Esta árvore continua candidata, não release suportado; instalação limpa, reboot e rollback ainda precisam de validação.
 
 ## Licença
 
-AGPL-3.0-only. Consulte [LICENSE](LICENSE). A candidata inclui aviso de licença e links para o código-fonte e a licença na interface; a nova build está staged para publicação no notebook. Dependências e assets de terceiros mantêm suas próprias licenças.
+AGPL-3.0-only. Consulte [LICENSE](LICENSE). A candidata inclui aviso de licença e links para o código-fonte e a licença na interface. Dependências e assets de terceiros mantêm suas próprias licenças.
 
 ## Estrutura
 

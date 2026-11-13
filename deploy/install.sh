@@ -98,12 +98,9 @@ fi
 if [[ ! -e "$CURRENT/.env" ]]; then
   HTTPS_PORT=8443
   while ss -H -ltn "sport = :$HTTPS_PORT" | grep -q .; do HTTPS_PORT=$((HTTPS_PORT + 1)); done
-  MQTT_HOST_PORT=1883
-  while ss -H -ltn "sport = :$MQTT_HOST_PORT" | grep -q .; do MQTT_HOST_PORT=$((MQTT_HOST_PORT + 1)); done
   printf '%s\n' \
     'NIVUS_BIND_ADDRESS=0.0.0.0' \
     "NIVUS_HTTPS_PORT=$HTTPS_PORT" \
-    "NIVUS_MQTT_HOST_PORT=$MQTT_HOST_PORT" \
     'NIVUS_NODE_NAME=nivus-edge-node' \
     'NIVUS_CORS_ORIGINS=' \
     "NIVUS_DATA_DIR=$DATA_ROOT/data" \
@@ -128,9 +125,9 @@ chmod 750 "$DATA_ROOT/data"
 python3 -m venv "$INSTALL_ROOT/venv"
 "$INSTALL_ROOT/venv/bin/python" -m pip install --no-cache-dir -r "$CURRENT/telemetry/requirements.txt"
 install -m 644 "$CURRENT/deploy/nivus-compose-telemetry.service" /etc/systemd/system/nivus-compose-telemetry.service
+chmod 0755 "$CURRENT/deploy/resolve-mqtt-endpoint.sh"
 cat > "$ETC_ROOT/telemetry.env" <<EOF
-NIVUS_MQTT_BROKER=127.0.0.1
-NIVUS_MQTT_PORT=$(sed -n 's/^NIVUS_MQTT_HOST_PORT=//p' "$CURRENT/.env")
+NIVUS_MQTT_PORT=1883
 NIVUS_MQTT_USERNAME=nivus-agent
 NIVUS_TELEMETRY_TOPIC=nivus/edge/telemetry
 NIVUS_NODE_NAME=nivus-edge-node
@@ -160,6 +157,6 @@ READY=1
 trap - ERR INT TERM
 printf '\nInstalação paralela concluída. O stack systemd/Nginx preexistente não foi alterado.\n'
 printf 'Painel HTTPS: https://<IP-do-host>:%s/\n' "$HTTPS_PORT"
-printf 'MQTT limitado ao loopback: 127.0.0.1:%s\n' "$(sed -n 's/^NIVUS_MQTT_HOST_PORT=//p' "$CURRENT/.env")"
+printf 'Broker MQTT: rede Docker privada, sem porta publicada no host.\n'
 printf 'Dados persistentes: %s\n' "$DATA_ROOT"
 printf 'Para parar apenas a candidata: sudo bash %s/deploy/stop-compose.sh\n' "$CURRENT"

@@ -19,7 +19,6 @@ require_env() {
 require_env NIVUS_BIND_ADDRESS 127.0.0.1
 require_env NIVUS_NODE_NAME compose-config-check
 require_env NIVUS_HTTPS_PORT 28443
-require_env NIVUS_MQTT_HOST_PORT 21883
 require_env NIVUS_DATA_DIR "$APP_DIR/data"
 require_env NIVUS_MOSQUITTO_DATA_DIR "$APP_DIR/mosquitto"
 require_env NIVUS_SECRET_DIR "$APP_DIR/secrets"
@@ -27,7 +26,7 @@ require_env NIVUS_SECRET_DIR "$APP_DIR/secrets"
 for command in docker openssl curl ss; do
   command -v "$command" >/dev/null 2>&1 || { echo "Comando ausente: $command" >&2; exit 2; }
 done
-if ss -H -ltn 'sport = :28443' | grep -q . || ss -H -ltn 'sport = :21883' | grep -q .; then
+if ss -H -ltn 'sport = :28443' | grep -q .; then
   echo "Porta de staging ocupada." >&2
   exit 2
 fi

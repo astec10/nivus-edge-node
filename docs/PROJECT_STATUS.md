@@ -8,9 +8,10 @@ Licença escolhida: AGPL-3.0-only
 - A API modular passou em validação isolada e foi ativada em um notebook de teste x86_64, conforme saída do operador. O deploy confirmou health local e via HTTPS, resposta 401 para telemetria sem token e criou backup com rollback.
 - O frontend React modular foi compilado, validado em staging e ativado no Nginx do notebook com backup e rollback rápido.
 - Após ativação, HTTPS serviu o index e o bundle JavaScript compilado; health passou e a API continuou respondendo 401 sem token. O operador confirmou que o login com a conta existente funcionou; nenhuma senha foi compartilhada.
-- A candidata Docker Compose passou por configuração, build e smoke test em staging. A tentativa de instalação paralela iniciou API/MQTT/painel e passou health HTTPS/401, mas foi revertida antes de concluir a criação do administrador; ainda não é um release suportado.
+- A candidata Docker Compose foi instalada em paralelo em 13/11/2026: API/MQTT/painel/worker estão em execução, health HTTPS passou, telemetria sem token respondeu 401 e o administrador `nivus` foi criado com PBKDF2. Os serviços systemd/Nginx anteriores continuam ativos.
 - A primeira execução do instalador parou antes de alterar o host porque chamou `systemd --version`; foi corrigida para consultar `systemctl --version` (systemd 259). A segunda tentativa parou durante o provisionamento do administrador. O código do instalador também foi endurecido para só remover o link `current` se esta execução tiver criado esse link.
-- Auditoria após rollback: `nivus-api`, `nivus-worker` e `nivus-telemetry` continuam ativos; somente Mosquitto original permanece no Docker. Containers e redes da candidata foram removidos, `current` está ausente, e o banco candidato está íntegro, com zero usuários e zero telemetrias. Segredos e diretório de dados da candidata foram preservados. O instalador corrigido passou `bash -n` remotamente; nova tentativa está pendente.
+- Depois do primeiro rollback, o instalador foi executado novamente e concluiu o provisionamento. A auditoria SSH confirmou `nivus-api`, `nivus-worker`, `nivus-telemetry` e Nginx antigos ativos, além dos quatro containers candidatos ativos; health HTTPS e HTTP 401 passaram. A conta candidata está armazenada com PBKDF2.
+- A verificação operacional encontrou uma falha real: o coletor tentava `127.0.0.1:1884`, enquanto o broker está numa rede Docker `internal`, sem porta publicada no host. Um script reversível instalou um resolver dinâmico por `ExecStartPre`, sem publicar MQTT nem expor a senha ao usuário do coletor. O serviço está ativo, com zero reinícios desde a correção; a contagem SQLite aumentou de 9 para 12 em 15 segundos e `quick_check` retornou `ok`.
 - O repositório público `astec10/nivus-edge-node` recebeu a candidata sanitizada de 65 arquivos sob AGPL-3.0-only no commit `fda4dfc7d5061c28dcdb6b3a7fe421e719bdef3c`. O README, LICENSE AGPL e o componente LegalNotice foram conferidos no branch `main`.
 - O aviso da interface AGPL foi compilado no notebook com `npm ci` e `npm run build`. O bundle contém `AGPL-3.0-only` e o link para o repositório; imagem `nivus-edge-web:agpl-candidate` mede 91.072.305 bytes. O bundler avisou que o JS minificado excede 500 kB. Frontend compilado e painel PROGRESS estão staged para os scripts Nginx de backup/rollback; a ativação ainda aguarda `sudo` no notebook.
 - A aplicação ativa continua em systemd/Nginx. O Compose foi validado somente em ambiente temporário isolado, sem alterar serviços ou banco do host.
@@ -32,14 +33,14 @@ Licença escolhida: AGPL-3.0-only
 
 ## Em andamento
 
-1. Publicar o frontend e o painel de progresso AGPL no Nginx existente, confirmando os backups, assets, health e 401.
-2. Repetir a instalação paralela com usuário/senha iniciais válidos e verificar HTTPS/401, coleta, recursos e preservação da instalação atual.
+1. Publicar a build React AGPL e o painel de progresso atualizado no Nginx com os scripts de backup/rollback.
+2. Confirmar login na candidata, persistência após reboot e instruções de backup/restauração.
 3. Revisar licenças das dependências e validar instalação/rollback numa instalação limpa Ubuntu amd64. O notebook de teste x86_64 não substitui uma instalação limpa independente.
 
 ## Depois
 
-- Validar instalação limpa e atualização em Ubuntu Server minimal x86_64 e medir consumo no CCE U25.
-- Revisar licenças de dependências e concluir a varredura final antes do primeiro push público.
+- Validar reboot, backup/restauração, instalação limpa e atualização em Ubuntu Server minimal x86_64 e medir consumo no CCE U25.
+- Revisar licenças de dependências e repetir a varredura de segredos antes de cada atualização pública.
 - Manter decisões críticas de atuadores dependentes de intertravamentos locais, sem permitir que uma IA ou detecção de imagem, sozinha, abra portão ou desligue circuito crítico.
 
 Nenhum suporte universal a hardware, serviço VPN, multi-nó ou automação física é declarado até existir implementação e teste documentados.

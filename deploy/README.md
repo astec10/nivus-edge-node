@@ -1,6 +1,6 @@
 # Instalação Docker paralela para Ubuntu
 
-Este stack é uma instalação candidata separada da execução systemd/Nginx já existente. O instalador não para nem substitui serviços anteriores. Ele usa HTTPS na porta 8443, MQTT em uma porta loopback livre, outro diretório de dados, segredos próprios e um serviço de telemetria com nome próprio.
+Este stack é uma instalação candidata separada da execução systemd/Nginx já existente. O instalador não para nem substitui serviços anteriores. Ele usa HTTPS na porta 8443, broker MQTT sem porta publicada no host, outro diretório de dados, segredos próprios e um serviço de telemetria com nome próprio.
 
 ## Pré-requisitos e alvo
 
@@ -23,6 +23,8 @@ O instalador cria segredos em /etc/nivus-compose/secrets, um certificado TLS aut
 
 O navegador avisará que o certificado é autoassinado. Não exponha a instalação diretamente à Internet.
 
+O broker e os serviços que o usam ficam numa rede Docker interna. O coletor do host resolve o IP atual do broker por um `ExecStartPre` privilegiado e grava somente esse endereço em `/run`; a senha continua sendo entregue como credencial systemd ao processo sem privilégios. Não altere o agente para conectar a um `localhost`/porta publicada: redes `internal` não publicam a porta MQTT no host. O helper é executado a cada início do coletor para acompanhar a recriação do container.
+
 ## Verificar, backup e parar
 
     sudo docker compose -f /opt/nivus-compose/current/docker-compose.yml ps
@@ -43,6 +45,7 @@ Este pacote descreve a candidata Compose e não inclui detalhes de implantação
 
 - Não importa SQLite nem altera os serviços ativos do host. A base começa vazia e pede a criação de um administrador.
 - O agente de telemetria fica no host para ler CPU/memória/disco do host sem montar a raiz do sistema em container.
+- O endereço interno do broker é descoberto dinamicamente antes de cada inicialização do coletor; a porta MQTT não é publicada no host.
 - Temperatura pode não estar disponível. Potência continua sendo estimativa, não medição elétrica.
 - O broker/ACL cobre agente, worker, health check e o tópico de relé existente. Sensores e atuadores externos precisam de usuários/tópicos próprios antes de conexão.
 - O painel atual não é ainda o painel multi-nó/domótico planejado.
@@ -53,6 +56,7 @@ Este pacote descreve a candidata Compose e não inclui detalhes de implantação
 
 - Build e smoke test foram repetidos com imagens base por digest e dependências Python fixadas. O último teste mediu 65,3 MiB agregados em repouso: API 40,6 MiB, worker 17,4 MiB, Mosquitto 2,9 MiB e Nginx 4,3 MiB. O uso varia com carga e não inclui memória temporária do build.
 - O primeiro smoke test revelou que uma rede Docker `internal` impede a publicação da porta HTTPS. A candidata foi corrigida com a rede bridge `edge_ingress`; somente o Nginx participa dela.
+- A primeira instalação paralela revelou que o broker MQTT em rede `internal` não aceita a porta publicada para o host. A candidata removida de staging não mostrou telemetria; o coletor systemd reiniciava ao tentar `127.0.0.1:1884`. Foi preparado um reparo com descoberta dinâmica do IP interno, backup/rollback e verificação de nova amostra, pendente de aplicação sudo.
 - O instalador gera senhas MQTT com a mesma imagem Mosquitto fixada por digest no Compose e exclui qualquer `.env` da pasta de staging ao criar a release, gerando uma configuração própria. O smoke test reutilizável prepara propriedade recursiva dos volumes de staging e usa um identificador por execução.
 - O smoke test passou após a correção, mas não valida criação interativa do administrador, login com credencial real, persistência após reboot, backup/restauração nem migração de dados existentes.
 - O instalador não foi executado numa instalação limpa nem ativado como stack permanente no notebook de teste. Não declare suporte a qualquer computador x86_64 até testar mais hardware e Ubuntu Server minimal.
