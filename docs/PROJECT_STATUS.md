@@ -11,8 +11,8 @@ Licença escolhida: AGPL-3.0-only
 - A candidata Docker Compose passou por configuração, build e smoke test em staging. A tentativa de instalação paralela iniciou API/MQTT/painel e passou health HTTPS/401, mas foi revertida antes de concluir a criação do administrador; ainda não é um release suportado.
 - A primeira execução do instalador parou antes de alterar o host porque chamou `systemd --version`; foi corrigida para consultar `systemctl --version` (systemd 259). A segunda tentativa parou durante o provisionamento do administrador. O código do instalador também foi endurecido para só remover o link `current` se esta execução tiver criado esse link.
 - Auditoria após rollback: `nivus-api`, `nivus-worker` e `nivus-telemetry` continuam ativos; somente Mosquitto original permanece no Docker. Containers e redes da candidata foram removidos, `current` está ausente, e o banco candidato está íntegro, com zero usuários e zero telemetrias. Segredos e diretório de dados da candidata foram preservados. O instalador corrigido passou `bash -n` remotamente; nova tentativa está pendente.
-- O repositório público `astec10/nivus-edge-node` foi criado com AGPL-3.0. O operador confirmou alinhar a candidata local para AGPL-3.0-only; nenhum código candidato foi enviado ainda.
-- O texto AGPL oficial e os metadados foram alinhados. Foi adicionado `frontend/src/components/LegalNotice.jsx` com aviso de ausência de garantia e links para o código-fonte/licença; ainda falta compilar e publicar essa versão do frontend e do painel PROGRESS.
+- O repositório público `astec10/nivus-edge-node` recebeu a candidata sanitizada de 65 arquivos sob AGPL-3.0-only no commit `fda4dfc7d5061c28dcdb6b3a7fe421e719bdef3c`. O README, LICENSE AGPL e o componente LegalNotice foram conferidos no branch `main`.
+- O aviso da interface AGPL foi compilado no notebook com `npm ci` e `npm run build`. O bundle contém `AGPL-3.0-only` e o link para o repositório; imagem `nivus-edge-web:agpl-candidate` mede 91.072.305 bytes. O bundler avisou que o JS minificado excede 500 kB. Frontend compilado e painel PROGRESS estão staged para os scripts Nginx de backup/rollback; a ativação ainda aguarda `sudo` no notebook.
 - A aplicação ativa continua em systemd/Nginx. O Compose foi validado somente em ambiente temporário isolado, sem alterar serviços ou banco do host.
 - O painel PROGRESS.html está publicado no Nginx do notebook e consulta o próprio HTML via HTTPS a cada 20 segundos; isso atualiza o registro após publicação de nova versão, mas não é telemetria remota ao vivo.
 - Multi-nó, automação residencial e IA local permanecem objetivos futuros.
@@ -32,9 +32,9 @@ Licença escolhida: AGPL-3.0-only
 
 ## Em andamento
 
-1. Compilar/publicar os avisos de interface AGPL-3.0-only, revisar dependências/licenças e enviar a candidata sanitizada para `astec10/nivus-edge-node`, já criado como público.
-2. Repetir a instalação paralela, completar a criação inicial do administrador e verificar HTTPS/401, coleta, recursos e preservação da instalação atual.
-3. Validar instalação e rollback numa instalação limpa Ubuntu amd64. O notebook de teste x86_64 não substitui uma instalação limpa independente.
+1. Publicar o frontend e o painel de progresso AGPL no Nginx existente, confirmando os backups, assets, health e 401.
+2. Repetir a instalação paralela com usuário/senha iniciais válidos e verificar HTTPS/401, coleta, recursos e preservação da instalação atual.
+3. Revisar licenças das dependências e validar instalação/rollback numa instalação limpa Ubuntu amd64. O notebook de teste x86_64 não substitui uma instalação limpa independente.
 
 ## Depois
 

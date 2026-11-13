@@ -10,7 +10,7 @@ O frontend modular está organizado em componentes, compilado e ativado no Nginx
 
 ## Licença
 
-AGPL-3.0-only. Consulte [LICENSE](LICENSE). Interfaces acessíveis pela rede oferecem acesso ao código-fonte correspondente e à licença. Dependências e assets de terceiros mantêm suas próprias licenças.
+AGPL-3.0-only. Consulte [LICENSE](LICENSE). A candidata inclui aviso de licença e links para o código-fonte e a licença na interface; a nova build está staged para publicação no notebook. Dependências e assets de terceiros mantêm suas próprias licenças.
 
 ## Estrutura
 
