@@ -10,8 +10,10 @@ if [[ ! -s "$DB" ]]; then
   exit 2
 fi
 STAMP=$(date -u +%Y%m%dT%H%M%SZ)
-DEST=/var/backups/nivus-compose/$STAMP
-install -d -m 700 "$DEST"
+BACKUP_ROOT=/var/backups/nivus-compose
+install -d -m 700 "$BACKUP_ROOT"
+DEST=$(mktemp -d "$BACKUP_ROOT/${STAMP}-XXXXXX")
+chmod 700 "$DEST"
 python3 - "$DB" "$DEST/nivus.sqlite3" <<'PY'
 import sqlite3, sys
 source = sqlite3.connect(sys.argv[1], timeout=30)

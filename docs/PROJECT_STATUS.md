@@ -24,9 +24,15 @@ O instalador agora exclui bancos SQLite, logs, chaves privadas, certificados pri
 
 A revalidação do host registrou Ubuntu 26.04.1 LTS, x86_64, 2 vCPUs, 3,2 GiB de RAM e 5,7 GiB de swap. Em três amostras, os quatro containers Compose ficaram perto de 71,7 MiB agregados (API ~42,5 MiB, worker ~18,0 MiB, web ~4,6 MiB, MQTT ~6,1 MiB). Os limites configurados somam 512 MiB, sem contar o agente de telemetria, serviços legados, cache do host e pico temporário de build. Leituras instantâneas de CPU variaram de 0,5% a 12,4%; não são um benchmark sustentado. Os serviços legados e Compose estavam ativos; health HTTPS 200 e API sem token 401 passaram. Esse resultado em repouso não define RAM mínima nem comprova compatibilidade com outros computadores.
 
-## Roteiro da VM preparado (13/11/2026, 21:21 UTC)
+## Roteiro e VM de teste (13/11/2026, 22:33 UTC)
 
-`docs/VM_VALIDATION.md` agora define preparação isolada da VM, instalação limpa, login/health/401, crescimento SQLite, reboot e geração de backup. Também deixa explícito que não existe ainda um restaurador automatizado e que o backup omite segredos; restauração permanece um critério pendente e não deve ser improvisada no host em uso. O usuário ainda não informou uma VM disponível ou conexão SSH para esse teste.
+`docs/VM_VALIDATION.md` define preparação isolada, instalação limpa, login/health/401, crescimento SQLite, reboot e backup. O operador confirmou Ubuntu 26.04.1 LTS amd64 no VirtualBox, com 4 vCPUs, 8 GB RAM, filesystem raiz de cerca de 24,44 GB e 16 MB de memória de vídeo virtual. A configuração oferece margem para a validação; o espaço livre será conferido antes do build. Os 16 MB são memória de exibição, não aceleração de IA. SSH e regra NAT ainda aguardam configuração; foi fornecido um procedimento restrito ao loopback do host.
+
+## Procedimento de restauração implementado (13/11/2026, 22:33 UTC)
+
+`deploy/restore.sh` foi criado para restauração no mesmo host. `--check` valida a origem/SQLite sem parar serviços. A execução interativa exige digitar `RESTORE`, requer a stack ativa, faz backup consistente prévio, para o coletor e os escritores, faz checkpoint/quarentena WAL/SHM, substitui o SQLite atomicamente e confere health/401. O trap tenta restaurar a cópia prévia se a troca ou validação falhar; `.env` e segredos atuais permanecem intactos.
+
+No Ubuntu do notebook, bash -n passou para backup.sh e restore.sh, e restore.sh --help foi conferido em staging. Uma fixture isolada exercitou snapshot SQLite, troca atômica, quarentena de sidecars e rollback. backup.sh cria diretórios exclusivos mesmo quando backups ocorrem no mesmo segundo. Os arquivos continuam apenas em staging de revisão: nada foi instalado em /opt/nivus-compose/current nem executado contra o banco ativo. Faltam --check e o teste integrado de restore/rollback em clone descartável/VM.
 
 ## Resumo
 

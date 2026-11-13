@@ -35,6 +35,7 @@ Preserve rotas, payloads, nomes de variáveis e comportamento existente durante 
 - Nunca conecte testes à base SQLite de produção nem reutilize chaves ou senhas reais.
 - Para testar Compose, configure os caminhos de dados e secrets para uma pasta temporária. Leia `deploy/README.md` antes de executar `deploy/verify-compose-staging.sh`: esse script remove arquivos de segredo da sua pasta de staging e deve rodar somente numa cópia isolada.
 - `deploy/install.sh` é um instalador candidato com privilégios de root. Não o execute num host com dados importantes; prefira uma VM Ubuntu descartável e faça snapshot antes.
+- `deploy/restore.sh` altera a base SQLite. Execute `--check` antes de qualquer uso e faça restauração real apenas num clone descartável da VM; nunca valide restore sobre a instalação ativa do notebook.
 
 ## 4. Implemente na fronteira correta
 

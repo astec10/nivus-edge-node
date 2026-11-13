@@ -37,6 +37,20 @@ Parar remove os containers e a rede temporária, mas mantém banco, estado do Mo
     sudo systemctl enable --now nivus-compose-telemetry.service
     cd /opt/nivus-compose/current && sudo docker compose up -d
 
+## Restaurar a base SQLite
+
+`backup.sh` cria um diretório exclusivo com sufixo aleatório, uma cópia SQLite consistente validada por `quick_check` e uma cópia do `.env` atual. Segredos JWT/MQTT e certificados ficam no diretório de segredos da instalação e não são sobrescritos pelo restore. O backup é local ao host; não é migração completa para outra máquina. Restrinja o acesso a `/var/backups/nivus-compose` e mantenha cópias externas protegidas se precisar resistir à falha do disco.
+
+Primeiro liste os diretórios de backup e valide a cópia desejada sem parar serviços. Troque o valor de exemplo pelo diretório mostrado pelo comando de backup:
+
+    sudo ls -lt /var/backups/nivus-compose
+    BACKUP_DIR=/var/backups/nivus-compose/20261113T000000Z-XXXXXX
+    sudo bash /opt/nivus-compose/current/deploy/restore.sh --check "$BACKUP_DIR"
+
+Para restaurar, rode `sudo bash /opt/nivus-compose/current/deploy/restore.sh "$BACKUP_DIR"` e digite `RESTORE` no terminal. O script exige que os quatro containers e o coletor estejam ativos, para antes os escritores da base, cria automaticamente outro backup consistente, preserva os sidecars WAL/SHM, instala a base de forma atômica, reinicia os escritores e verifica SQLite, HTTPS e `401` sem token. Se uma etapa falhar após trocar a base, tenta recuperar a cópia pré-restore e reinicia os serviços. O diretório pré-restore é mantido para recuperação manual.
+
+Teste restauração apenas numa VM descartável ou clone, depois de snapshot. A rotina ainda requer validação ponta a ponta numa instalação limpa antes de ser considerada pronta para produção.
+
 ## Interface modular no host existente
 
 Este pacote descreve a candidata Compose e não inclui detalhes de implantação do host de teste. A UI compilada passou em staging, mas ativá-la numa instalação Nginx existente depende do caminho de release, propriedade dos arquivos e backup/rollback específicos daquele host. Não copie os arquivos diretamente para o root em produção.

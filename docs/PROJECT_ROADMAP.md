@@ -12,7 +12,7 @@ O alvo de distribuição é Ubuntu Server minimal x86_64/amd64. “Alvo” não 
 
 **Fundação do nó de borda: funcionando numa instalação Ubuntu de teste.** A API modular, o painel, o broker, o worker e o coletor Compose foram instalados em paralelo no notebook CCE U25. Health HTTPS, autenticação, login, persistência SQLite e aumento contínuo de telemetria foram verificados. A instalação systemd/Nginx anterior permaneceu ativa. Veja [`PROJECT_STATUS.md`](PROJECT_STATUS.md) para evidência e limites.
 
-**Instalação portátil: em validação.** O Compose funciona nesse host, mas ainda não foi comprovado numa instalação Ubuntu limpa independente, após reboot, com restauração de backup ou em outra máquina x86_64. Não é ainda um release suportado para todos os computadores.
+**Instalação portátil: em validação.** O Compose funciona no CCE U25; `deploy/restore.sh` foi implementado e passou uma fixture das operações SQLite, mas o restore ponta a ponta ainda precisa de clone/VM. A VM Ubuntu 26.04.1 está instalada; SSH, instalação limpa, reboot, backup/restore integrado e outro hardware x86_64 seguem pendentes. Não é ainda um release suportado para todos os computadores.
 
 **Multi-nó, Home Assistant, Zigbee, sensores domésticos, vídeo, IA local, P2P e provedores comerciais: planejados.** O painel atual representa o nó instalado; não existe ainda um coordenador multi-nó ou scheduler de IA.
 
@@ -30,7 +30,7 @@ Critérios já observados: login funcional; API exige token; health HTTPS respon
 
 **Estado: próxima prioridade.**
 
-Siga [`VM_VALIDATION.md`](VM_VALIDATION.md) como roteiro executável e registre a evidência em [`PROJECT_STATUS.md`](PROJECT_STATUS.md). O roteiro explicita que backup existe, mas restauração automatizada ainda não.
+Siga [`VM_VALIDATION.md`](VM_VALIDATION.md) como roteiro executável e registre a evidência em [`PROJECT_STATUS.md`](PROJECT_STATUS.md). O script de restauração está implementado; só declare a etapa concluída após teste real em clone descartável com backup, restore, validação e rollback.
 
 1. Validar instalação limpa em VM Ubuntu Server minimal x86_64, sem arquivos de staging ou segredos prévios.
 2. Registrar RAM livre, CPU, disco, espaço de build, portas, versões do Ubuntu/Docker/Compose e tempo de instalação.
