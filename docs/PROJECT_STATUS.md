@@ -16,6 +16,7 @@ Licença escolhida: AGPL-3.0-only
 - O aviso AGPL foi compilado no notebook com `npm ci` e `npm run build`; a imagem `nivus-edge-web:agpl-candidate` mede 91.072.305 bytes. O bundle excede o aviso de 500 kB do Vite. Frontend e `/PROGRESS.html` foram publicados com backups e rollback. Os hashes SHA-256 da página e do JavaScript servidos por HTTPS correspondem aos artefatos staged; o bundle servido contém `AGPL-3.0-only` e o link correto para GitHub.
 - A aplicação ativa continua em systemd/Nginx. O Compose foi validado somente em ambiente temporário isolado, sem alterar serviços ou banco do host.
 - O painel PROGRESS.html está publicado no Nginx do notebook e consulta o próprio HTML via HTTPS a cada 20 segundos; isso atualiza o registro após publicação de nova versão, mas não é telemetria remota ao vivo.
+- O README, CONTRIBUTING e roadmap foram reorganizados para explicar objetivo, limites atuais, mapa dos módulos e passo a passo de contribuição. Um inventário de licenças foi gerado a partir dos 141 pacotes npm e 24 distribuições Python do build candidato; todos os registros npm têm licença declarada, mas a compatibilidade e os notices ainda precisam de revisão humana.
 - Multi-nó, automação residencial e IA local permanecem objetivos futuros.
 
 ## Feito
@@ -34,8 +35,8 @@ Licença escolhida: AGPL-3.0-only
 ## Em andamento
 
 1. Validar persistência após reboot, backup/restauração e operação prolongada no notebook.
-2. Revisar licenças das dependências e fazer auditoria técnica da candidata.
-3. Validar instalação/rollback numa instalação limpa Ubuntu amd64. O notebook de teste x86_64 não substitui uma instalação limpa independente.
+2. Concluir revisão de compatibilidade/notices de dependências e auditoria técnica da candidata.
+3. Validar instalação/rollback numa VM Ubuntu Server minimal amd64 limpa; depois repetir em hardware x86_64 diferente.
 
 ## Depois
 

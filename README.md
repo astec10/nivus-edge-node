@@ -1,31 +1,76 @@
-# Nivus Edge Node — cópia para revisão
+# Nivus Edge Node
 
-Alvo de produto: Ubuntu Server minimal x86_64. Esta árvore foi preparada para revisão técnica; ainda não é um release instalável.
+O Nivus é um projeto aberto para construir uma plataforma de borda local-first: primeiro coleta e organiza telemetria com segurança num computador Linux de baixo consumo; depois poderá integrar automação residencial, vários nós e processamento local ou distribuído.
 
-## Estado atual
+O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não significa compatibilidade comprovada com qualquer computador. Até agora, o stack Compose foi instalado e operado em paralelo num único notebook Ubuntu CCE U25. Uma instalação limpa independente, reboot, restauração e mais modelos de hardware ainda precisam de validação.
 
-A API modular passou em verificação isolada e foi ativada em um notebook de teste em 13/11/2026. A ativação usou backup consistente do SQLite e dos fontes, e confirmou compilação Python, health da API, proteção de telemetria sem token e proxy HTTPS. Veja docs/PROJECT_STATUS.md.
+## Estado do projeto
 
-O frontend modular está organizado em componentes, compilado e ativado no Nginx do notebook com backup/rollback; health, assets e aviso AGPL foram conferidos, e o operador confirmou o login. A candidata Compose foi instalada em paralelo sem substituir os serviços antigos; health/HTTPS/401 passaram, a conta inicial foi criada e o operador confirmou login. O coletor usa descoberta dinâmica do broker na rede Docker interna; está ativo sem reinícios e as amostras SQLite continuam crescendo. Esta árvore continua candidata, não release suportado; instalação limpa, reboot e backup/restauração ainda precisam de validação.
+### Já funciona no notebook de teste
+
+- API FastAPI separada em routers, schemas, dependências, segurança, banco e serviço MQTT.
+- Login com senha e JWT, senha armazenada com PBKDF2, papéis de usuário e endpoints protegidos. No momento, o acesso é por senha; chave USB e biometria não estão implementadas.
+- Painel React/Vite dividido em componentes, com login, telemetria, usuários e seções do dashboard.
+- SQLite persistente, ingestão MQTT e agente de telemetria do host.
+- Instalação Compose paralela com API, worker, Mosquitto e Nginx; HTTPS, backup e procedimento de rollback.
+- A candidata Compose passou health HTTPS, HTTP 401 sem token e login; o coletor publica telemetria continuamente. A instalação antiga systemd/Nginx continua separada e ativa.
+- A interface servida mostra os avisos AGPL e links para o código e a licença.
+
+### Ainda é plano
+
+- Descoberta, cadastro e telemetria de vários nós numa única tela.
+- Home Assistant, Zigbee, sensores residenciais, medidores, câmeras, interfone e integração com inversor/baterias.
+- Automação residencial real, VPN integrada ao produto e ações remotas em dispositivos.
+- Inferência local, consulta à biblioteca de PDFs, fila de trabalhos entre máquinas, transferência P2P e conectores para provedores comerciais com limites de uso.
+- Instalação limpa validada, reboot, atualização com rollback e matriz de hardware x86_64.
+
+Veja [docs/PROJECT_ROADMAP.md](docs/PROJECT_ROADMAP.md) para fases, entregáveis e critérios de conclusão; [docs/VISION.md](docs/VISION.md) registra a visão doméstica mais ampla. O estado verificado do notebook está em [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
+
+## Comece por aqui
+
+Se você quer entender ou modificar o código:
+
+1. Leia este README, [AGENTS.md](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md) e [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
+2. Leia [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) e [docs/DECISIONS.md](docs/DECISIONS.md) antes de mudar limites entre módulos ou contratos de API.
+3. Siga [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) para preparar backend, frontend e broker de desenvolvimento.
+4. Escolha uma tarefa pequena com resultado verificável. Não trate itens da visão ou do roadmap como recursos já implementados.
+5. Faça as verificações disponíveis para a área alterada, documente os resultados e atualize o estado/decisões se o comportamento mudou.
+
+O roteiro detalhado para contribuições está em [CONTRIBUTING.md](CONTRIBUTING.md). O pacote de instalação é candidato, não uma versão de produção: siga [deploy/README.md](deploy/README.md) e não use uma máquina com dados importantes como ambiente de teste.
+
+## Mapa do código
+
+| Caminho | Responsabilidade |
+| --- | --- |
+| `backend/main.py` | Composição da aplicação FastAPI e inicialização |
+| `backend/api/routers/` | Endpoints agrupados por domínio |
+| `backend/api/schemas.py` | Contratos e validação de dados |
+| `backend/api/dependencies.py` | Identidade e autorização das rotas |
+| `backend/database.py` | SQLite, conexões e migrações aditivas |
+| `backend/security.py` | Hash de senha, JWT e validações de segurança |
+| `backend/services/` e `backend/mqtt_worker.py` | Publicação MQTT e processamento de eventos |
+| `telemetry/agent.py` | Amostras de recursos do host e envio MQTT |
+| `frontend/src/components/` | Login e componentes visuais do dashboard |
+| `deploy/` | Compose, Nginx, Mosquitto, instalador candidato e operações |
+| `docs/` | Visão, arquitetura, decisões, configuração, roadmap e status |
+| `PROGRESS.html` | Página estática dos marcos; não lê a telemetria do host |
+
+## Instalação e execução
+
+O desenvolvimento local está descrito em [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md). A instalação Compose para teste está em [deploy/README.md](deploy/README.md); ela requer Ubuntu, Docker/Compose, privilégios administrativos e credenciais iniciais criadas no terminal. A API e o broker ficam em redes privadas do Compose; MQTT não é publicado no host. O painel HTTPS usa certificado autoassinado por padrão.
+
+Não há promessa de suporte a toda máquina x86_64 até validar Ubuntu minimal em instalações limpas e medir CPU, memória, armazenamento e periféricos. Veja os marcos pendentes antes de instalar fora do notebook de teste.
+
+## Segurança e limites
+
+- Não copie senhas, tokens, chaves, bancos, logs ou telemetria real para GitHub.
+- Acesso remoto de administração deve usar rede privada/VPN e regras restritas; não encaminhe painel ou SSH diretamente à Internet.
+- Comece integrações físicas em leitura e notificações. Um modelo de IA, reconhecimento facial ou leitura de placas não pode, sozinho, abrir portão, desarmar alarme ou desligar circuito crítico.
+- Comandos MQTT precisam de identidade, tópicos permitidos, confirmação, timeout e intertravamentos locais.
+- Câmeras, rostos, placas, áudio e presença exigem minimização, retenção limitada e controles de acesso.
+
+Leia [docs/VISION.md](docs/VISION.md) para requisitos físicos, automações e limites de segurança. O Nivus não substitui detectores certificados nem projeto/instalação elétrica profissional.
 
 ## Licença
 
-AGPL-3.0-only. Consulte [LICENSE](LICENSE). A candidata inclui aviso de licença e links para o código-fonte e a licença na interface. Dependências e assets de terceiros mantêm suas próprias licenças.
-
-## Estrutura
-
-- backend/: API modular FastAPI e serviço MQTT.
-- frontend/: extração React/Vite em componentes.
-- telemetry/: agente candidato de coleta.
-- docs/: visão, arquitetura, decisões, desenvolvimento e estado sem detalhes privados do notebook.
-- PROGRESS.html: registro de marcos. Não consome telemetria do notebook.
-
-## Regras
-
-Leia AGENTS.md e docs/PROJECT_STATUS.md antes de alterar. Não copie segredos, banco, logs ou endereços privados para GitHub. Preserve contratos existentes e faça cada alteração com validação/rollback. Não anuncie suporte a Ubuntu, arquitetura x86_64 genérica, multi-nó ou automação real até concluir testes de instalação e hardware.
-
-## Desenvolvimento e execução
-
-Consulte docs/DEVELOPMENT.md e deploy/README.md. Há um instalador candidato para teste; ele instala um stack separado, mas não foi executado em instalação limpa. Não o trate como release de produção. A validação no notebook usou portas/dados de staging e removeu os containers após o teste.
-
-Dependências Python e imagens base estão fixadas nas versões testadas; o frontend usa `package-lock.json` com `npm ci`. Para atualizar versões, faça a alteração deliberada e repita build e smoke test. Licença selecionada: AGPL-3.0-only, conforme decisão do operador. A interface oferece links para o código-fonte e a licença. A instalação limpa em Ubuntu ainda está pendente; veja docs/PROJECT_STATUS.md antes de tratar este pacote como release.
+O Nivus é distribuído sob **AGPL-3.0-only**; consulte [LICENSE](LICENSE). Dependências e assets mantêm suas próprias licenças. O inventário está em [docs/THIRD_PARTY_LICENSES.md](docs/THIRD_PARTY_LICENSES.md). Preserve os avisos e o acesso ao código correspondente quando modificar ou executar a interface pela rede.

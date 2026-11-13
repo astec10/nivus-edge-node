@@ -60,7 +60,14 @@ fi
 STAMP=$(date -u +%Y%m%dT%H%M%SZ)
 RELEASE_DIR="$RELEASES/$STAMP"
 install -d -m 755 "$RELEASE_DIR"
-tar -C "$SOURCE_ROOT" --exclude=.git --exclude=node_modules --exclude=.venv --exclude=venv --exclude=data --exclude=secrets --exclude=.env --exclude=dist -cf - . | tar -C "$RELEASE_DIR" -xf -
+tar -C "$SOURCE_ROOT" \
+  --exclude=.git --exclude=node_modules --exclude=.venv --exclude=venv \
+  --exclude=data --exclude=secrets --exclude=certs --exclude=usb-key --exclude=.ssh \
+  --exclude=work --exclude=logs --exclude=dist --exclude=build \
+  --exclude=__pycache__ --exclude='*.pyc' --exclude='*.pyo' --exclude='*.pyd' \
+  --exclude='*.log' --exclude='*.log.*' \
+  --exclude='.env*' --exclude='*.env' --exclude='*.env.*' \
+  -cf - . | tar -C "$RELEASE_DIR" -xf -
 if [[ -e "$RELEASE_DIR/.env" ]]; then
   echo "Arquivo .env foi copiado para a release; interrompendo sem iniciar serviços." >&2
   exit 2
