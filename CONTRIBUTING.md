@@ -10,6 +10,7 @@ Obrigado por ajudar no Nivus. O projeto está em desenvolvimento: diferencie rec
 4. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) e [`docs/DECISIONS.md`](docs/DECISIONS.md): fronteiras entre módulos e decisões em vigor.
 5. [`docs/PROJECT_ROADMAP.md`](docs/PROJECT_ROADMAP.md): objetivos, fases e critérios de conclusão.
 6. [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md): ambiente e comandos de desenvolvimento.
+7. Para mudanças de instalação/serviços, [`deploy/README.md`](deploy/README.md) e [`docs/VM_VALIDATION.md`](docs/VM_VALIDATION.md): teste em instalação Ubuntu isolada e limites atuais de backup/restore.
 
 Se os documentos discordarem, confirme o código e o status atuais. Corrija a documentação junto com a mudança; não transforme uma ideia do roadmap em uma afirmação de que a função já existe.
 

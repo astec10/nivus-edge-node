@@ -30,6 +30,8 @@ Critérios já observados: login funcional; API exige token; health HTTPS respon
 
 **Estado: próxima prioridade.**
 
+Siga [`VM_VALIDATION.md`](VM_VALIDATION.md) como roteiro executável e registre a evidência em [`PROJECT_STATUS.md`](PROJECT_STATUS.md). O roteiro explicita que backup existe, mas restauração automatizada ainda não.
+
 1. Validar instalação limpa em VM Ubuntu Server minimal x86_64, sem arquivos de staging ou segredos prévios.
 2. Registrar RAM livre, CPU, disco, espaço de build, portas, versões do Ubuntu/Docker/Compose e tempo de instalação.
 3. Reiniciar a VM e confirmar que API, painel, MQTT, worker, coletor, dados e endpoint descoberto voltam sozinhos.

@@ -20,6 +20,10 @@ A página publicada em `/PROGRESS.html` ainda não contém esta revalidação. A
 
 O instalador agora exclui bancos SQLite, logs, chaves privadas, certificados privados e arquivos de credenciais da cópia de release; após extrair o pacote, uma busca fail-closed interrompe a instalação se um desses artefatos ainda aparecer. `bash -n` passou no Ubuntu do notebook e um fixture isolado de tar incluiu somente o `README.md`, excluindo arquivos artificiais `.env`, SQLite, chaves, credenciais e logs. Esta correção foi validada em staging; não reinstala nem modifica os serviços ativos do notebook.
 
+## Roteiro da VM preparado (13/11/2026, 21:21 UTC)
+
+`docs/VM_VALIDATION.md` agora define preparação isolada da VM, instalação limpa, login/health/401, crescimento SQLite, reboot e geração de backup. Também deixa explícito que não existe ainda um restaurador automatizado e que o backup omite segredos; restauração permanece um critério pendente e não deve ser improvisada no host em uso. O usuário ainda não informou uma VM disponível ou conexão SSH para esse teste.
+
 ## Resumo
 
 - A API modular passou em validação isolada e foi ativada em um notebook de teste x86_64, conforme saída do operador. O deploy confirmou health local e via HTTPS, resposta 401 para telemetria sem token e criou backup com rollback.

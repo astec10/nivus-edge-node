@@ -36,7 +36,7 @@ Se você quer entender ou modificar o código:
 4. Escolha uma tarefa pequena com resultado verificável. Não trate itens da visão ou do roadmap como recursos já implementados.
 5. Faça as verificações disponíveis para a área alterada, documente os resultados e atualize o estado/decisões se o comportamento mudou.
 
-O roteiro detalhado para contribuições está em [CONTRIBUTING.md](CONTRIBUTING.md). O pacote de instalação é candidato, não uma versão de produção: siga [deploy/README.md](deploy/README.md) e não use uma máquina com dados importantes como ambiente de teste.
+O roteiro detalhado para contribuições está em [CONTRIBUTING.md](CONTRIBUTING.md). O pacote de instalação é candidato, não uma versão de produção: siga [deploy/README.md](deploy/README.md) e o [roteiro da VM Ubuntu limpa](docs/VM_VALIDATION.md); não use uma máquina com dados importantes como ambiente de teste.
 
 ## Mapa do código
 
