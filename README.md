@@ -6,7 +6,7 @@ Alvo de produto: Ubuntu Server minimal x86_64. Esta árvore foi preparada para r
 
 A API modular passou em verificação isolada e foi ativada em um notebook de teste em 13/11/2026. A ativação usou backup consistente do SQLite e dos fontes, e confirmou compilação Python, health da API, proteção de telemetria sem token e proxy HTTPS. Veja docs/PROJECT_STATUS.md.
 
-O frontend modular está organizado em componentes, compilado e ativado no Nginx do notebook com backup/rollback; health e assets foram conferidos, e o operador confirmou o login. A candidata Compose foi instalada em paralelo sem substituir os serviços antigos; health/HTTPS/401 passaram e a conta inicial foi criada. A verificação encontrou o coletor tentando uma porta localhost que não era publicada pela rede Docker interna. O reparo com backup/rollback e descoberta dinâmica do IP interno foi aplicado; o serviço está estável e as amostras cresceram de 9 para 12 em 15 segundos. Esta árvore continua candidata, não release suportado; instalação limpa, reboot e rollback ainda precisam de validação.
+O frontend modular está organizado em componentes, compilado e ativado no Nginx do notebook com backup/rollback; health, assets e aviso AGPL foram conferidos, e o operador confirmou o login. A candidata Compose foi instalada em paralelo sem substituir os serviços antigos; health/HTTPS/401 passaram, a conta inicial foi criada e o operador confirmou login. O coletor usa descoberta dinâmica do broker na rede Docker interna; está ativo sem reinícios e as amostras SQLite continuam crescendo. Esta árvore continua candidata, não release suportado; instalação limpa, reboot e backup/restauração ainda precisam de validação.
 
 ## Licença
 
