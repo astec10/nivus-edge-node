@@ -52,6 +52,10 @@ Este pacote descreve a candidata Compose e não inclui detalhes de implantação
 - Atualização automática com rollback de versão ainda não foi implementada; faça backup e preserve a release atual antes de atualizar.
 - Controlar Docker equivale a poder administrativo alto no host; não adicione usuários ao grupo docker sem compreender esse privilégio.
 
+## Medição ao vivo no CCE U25
+
+Em 13/11/2026, no Ubuntu 26.04.1 LTS x86_64 com 2 vCPUs e 3,2 GiB de RAM, três leituras do Docker mostraram aproximadamente 71,7 MiB agregados para os quatro containers da candidata (API ~42,5 MiB, worker ~18,0 MiB, web ~4,6 MiB e MQTT ~6,1 MiB). Os limites de memória do Compose totalizam 512 MiB; isso é um teto configurado, não o consumo observado. CPU instantânea variou de 0,5% a 12,4%, portanto não se apresenta como média de carga nem teste de estresse. O host também executa os serviços systemd/Nginx anteriores; build e pico de memória não foram medidos nesta leitura. Uma VM limpa ainda deve registrar seus próprios recursos e consumo.
+
 ## Validação e limitações atuais
 
 - Build e smoke test foram repetidos com imagens base por digest e dependências Python fixadas. O último teste mediu 65,3 MiB agregados em repouso: API 40,6 MiB, worker 17,4 MiB, Mosquitto 2,9 MiB e Nginx 4,3 MiB. O uso varia com carga e não inclui memória temporária do build.

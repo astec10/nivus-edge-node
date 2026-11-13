@@ -20,6 +20,10 @@ A atualização de `/PROGRESS.html` foi publicada em 13/11/2026 às 21:23 UTC. O
 
 O instalador agora exclui bancos SQLite, logs, chaves privadas, certificados privados e arquivos de credenciais da cópia de release; após extrair o pacote, uma busca fail-closed interrompe a instalação se um desses artefatos ainda aparecer. `bash -n` passou no Ubuntu do notebook e um fixture isolado de tar incluiu somente o `README.md`, excluindo arquivos artificiais `.env`, SQLite, chaves, credenciais e logs. Esta correção foi validada em staging; não reinstala nem modifica os serviços ativos do notebook.
 
+## Recursos observados no CCE U25 (13/11/2026, 21:26 UTC)
+
+A revalidação do host registrou Ubuntu 26.04.1 LTS, x86_64, 2 vCPUs, 3,2 GiB de RAM e 5,7 GiB de swap. Em três amostras, os quatro containers Compose ficaram perto de 71,7 MiB agregados (API ~42,5 MiB, worker ~18,0 MiB, web ~4,6 MiB, MQTT ~6,1 MiB). Os limites configurados somam 512 MiB, sem contar o agente de telemetria, serviços legados, cache do host e pico temporário de build. Leituras instantâneas de CPU variaram de 0,5% a 12,4%; não são um benchmark sustentado. Os serviços legados e Compose estavam ativos; health HTTPS 200 e API sem token 401 passaram. Esse resultado em repouso não define RAM mínima nem comprova compatibilidade com outros computadores.
+
 ## Roteiro da VM preparado (13/11/2026, 21:21 UTC)
 
 `docs/VM_VALIDATION.md` agora define preparação isolada da VM, instalação limpa, login/health/401, crescimento SQLite, reboot e geração de backup. Também deixa explícito que não existe ainda um restaurador automatizado e que o backup omite segredos; restauração permanece um critério pendente e não deve ser improvisada no host em uso. O usuário ainda não informou uma VM disponível ou conexão SSH para esse teste.
