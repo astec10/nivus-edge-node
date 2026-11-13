@@ -14,7 +14,7 @@ Checagem somente leitura via SSH no notebook de teste:
 - O SQLite candidato passou `PRAGMA quick_check` (`ok`); numa amostragem de 12 segundos, o número de linhas de telemetria aumentou de 327 para 329.
 - O `docker compose ps` no usuário SSH não conseguiu ler `/opt/nivus-compose/current/.env`; os containers foram conferidos com `docker ps` e `docker inspect`, sem ler nem expor o arquivo de segredos.
 
-A atualização de `/PROGRESS.html` foi publicada em 13/11/2026 às 21:23 UTC. O publicador confirmou sintaxe do Nginx, health HTTPS e `401` sem token; uma checagem SSH confirmou que o SHA-256 servido corresponde ao arquivo staged. O script criou backup antes da publicação. Nenhuma instalação limpa em VM foi iniciada: a compatibilidade Ubuntu amd64 ainda precisa dessa validação.
+A atualização de `/PROGRESS.html` foi publicada em 13/11/2026 às 21:32 UTC. O publicador confirmou sintaxe do Nginx, health HTTPS e `401` sem token; uma checagem SSH confirmou que o SHA-256 servido corresponde ao arquivo staged (`3fc96fb23193e2c48c3db893fb1c0e3dd021dff3af9238dbd6e71aa7a8a38ff3`). O script criou backup antes da publicação. Nenhuma instalação limpa em VM foi iniciada: a compatibilidade Ubuntu amd64 ainda precisa dessa validação.
 
 ## Correção do empacotamento do instalador (13/11/2026, 21:18 UTC)
 
