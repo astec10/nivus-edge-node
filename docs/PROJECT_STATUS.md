@@ -16,6 +16,10 @@ Checagem somente leitura via SSH no notebook de teste:
 
 A página publicada em `/PROGRESS.html` ainda não contém esta revalidação. A versão atual foi copiada para o staging do publicador e o SHA-256 staged/local confere; ainda falta executar o script privilegiado de publicação, que valida Nginx/HTTPS/401 e guarda rollback. Nenhuma instalação limpa em VM foi iniciada: a compatibilidade Ubuntu amd64 ainda precisa dessa validação.
 
+## Correção do empacotamento do instalador (13/11/2026, 21:18 UTC)
+
+O instalador agora exclui bancos SQLite, logs, chaves privadas, certificados privados e arquivos de credenciais da cópia de release; após extrair o pacote, uma busca fail-closed interrompe a instalação se um desses artefatos ainda aparecer. `bash -n` passou no Ubuntu do notebook e um fixture isolado de tar incluiu somente o `README.md`, excluindo arquivos artificiais `.env`, SQLite, chaves, credenciais e logs. Esta correção foi validada em staging; não reinstala nem modifica os serviços ativos do notebook.
+
 ## Resumo
 
 - A API modular passou em validação isolada e foi ativada em um notebook de teste x86_64, conforme saída do operador. O deploy confirmou health local e via HTTPS, resposta 401 para telemetria sem token e criou backup com rollback.

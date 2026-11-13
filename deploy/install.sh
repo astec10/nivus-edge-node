@@ -66,10 +66,23 @@ tar -C "$SOURCE_ROOT" \
   --exclude=work --exclude=logs --exclude=dist --exclude=build \
   --exclude=__pycache__ --exclude='*.pyc' --exclude='*.pyo' --exclude='*.pyd' \
   --exclude='*.log' --exclude='*.log.*' \
+  --exclude='*.db' --exclude='*.db-*' --exclude='*.sqlite' --exclude='*.sqlite-*' --exclude='*.sqlite3' --exclude='*.sqlite3-*' \
+  --exclude='*.pem' --exclude='*.key' --exclude='*.p12' --exclude='*.pfx' \
+  --exclude='id_rsa*' --exclude='id_ed25519*' --exclude='id_ecdsa*' --exclude='id_dsa*' \
+  --exclude=authorized_keys --exclude=known_hosts --exclude=credentials.json --exclude='service-account*.json' \
+  --exclude='secrets.*' --exclude='*_secret.*' \
   --exclude='.env*' --exclude='*.env' --exclude='*.env.*' \
   -cf - . | tar -C "$RELEASE_DIR" -xf -
-if [[ -e "$RELEASE_DIR/.env" ]]; then
-  echo "Arquivo .env foi copiado para a release; interrompendo sem iniciar serviços." >&2
+SENSITIVE_FILE=$(find "$RELEASE_DIR" -type f \( \
+  -name '.env' -o -name '.env.*' -o -name '*.env' -o -name '*.env.*' \
+  -o -name '*.db' -o -name '*.db-*' -o -name '*.sqlite' -o -name '*.sqlite-*' -o -name '*.sqlite3' -o -name '*.sqlite3-*' \
+  -o -name '*.pem' -o -name '*.key' -o -name '*.p12' -o -name '*.pfx' \
+  -o -name 'id_rsa*' -o -name 'id_ed25519*' -o -name 'id_ecdsa*' -o -name 'id_dsa*' \
+  -o -name 'authorized_keys' -o -name 'known_hosts' -o -name 'credentials.json' -o -name 'service-account*.json' \
+  -o -name 'secrets.*' -o -name '*_secret.*' \
+\) -print -quit)
+if [[ -n "$SENSITIVE_FILE" ]]; then
+  echo "Arquivo de dados ou credencial inesperado na release; interrompendo sem iniciar serviços." >&2
   exit 2
 fi
 ln -s "$RELEASE_DIR" "$CURRENT"
