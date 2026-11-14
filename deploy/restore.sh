@@ -114,8 +114,8 @@ RESTORE_COMPLETE=0
 TEMP_DB=
 
 start_writers() {
-  (cd "$APP" && docker compose start api worker)
-  systemctl start "$TELEMETRY_UNIT"
+  (cd "$APP" && docker compose start api worker) || return $?
+  systemctl start "$TELEMETRY_UNIT" || return $?
 }
 
 verify_runtime() {
@@ -135,10 +135,10 @@ verify_runtime() {
 
 quarantine_sidecars() {
   local destination="$1"
-  install -d -m 700 "$destination"
+  install -d -m 700 "$destination" || return $?
   for sidecar in "$DB-wal" "$DB-shm"; do
     if [[ -e "$sidecar" ]]; then
-      mv -- "$sidecar" "$destination/$(basename "$sidecar")"
+      mv -- "$sidecar" "$destination/$(basename "$sidecar")" || return $?
     fi
   done
 }
@@ -237,3 +237,4 @@ trap - ERR INT TERM
 echo "Restauração concluída; health HTTPS, 401, SQLite e coletor foram verificados."
 printf 'Banco restaurado de: %s\n' "$BACKUP_DIR"
 printf 'Backup automático pré-restauração: %s\n' "$PRE_RESTORE_DIR"
+
