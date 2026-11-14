@@ -24,7 +24,15 @@ systemctl status ssh --no-pager
 ss -lnt | grep ':22'
 ~~~
 
-Como o console confirmou Ubuntu 24.04.5 LTS e a unidade `ssh.service` está ausente, instale e ative OpenSSH:
+Nesta VM, o operador confirmou `systemctl is-active ssh` = `active`. A negociação SSH via NAT funcionou, mas ainda falta autorizar a chave pública temporária; nenhuma senha foi tentada. Confira a impressão digital no console local:
+
+~~~bash
+sudo ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
+~~~
+
+Ela deve coincidir com o fingerprint observado do host: `SHA256:l1f0aTbIJrVfJo5pU5DR9KmSJoY6FY5ynopjoPBwiIQ`. Só então autorize a chave pública temporária com a opção `restrict` na conta de teste. Nunca copie a chave privada.
+
+Se outra VM mostrar `Unit ssh.service could not be found`, instale e ative OpenSSH:
 
 ~~~bash
 sudo apt update
