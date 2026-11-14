@@ -60,6 +60,15 @@ if (($registeredVms -join "`n") -match ('"' + [regex]::Escape($VmName) + '"\s+\{
     throw "Já existe uma VM chamada $VmName. Nenhuma VM ou disco foi alterado."
 }
 
+$runningVms = & $vboxPath list runningvms
+if ($LASTEXITCODE -ne 0) {
+    throw 'Não foi possível verificar se já há VMs em execução.'
+}
+$runningVmLines = @($runningVms | Where-Object { $_ -match '^\s*"[^"]+"\s+\{' })
+if ($runningVmLines.Count -gt 0) {
+    throw 'Desligue as VMs em execução antes de criar a nova. Nenhuma VM ou disco foi alterado.'
+}
+
 $busyPort = Get-NetTCPConnection -State Listen -LocalPort $SshHostPort -ErrorAction SilentlyContinue
 if ($busyPort) {
     throw "A porta local $SshHostPort já está em uso. Escolha outra com -SshHostPort."
@@ -79,6 +88,10 @@ if ($hostRamGB -lt 6) {
 } else {
     $memoryMB = 2048
     Write-Warning 'Com menos de 8 GB no host, a instalação do Ubuntu pode funcionar, mas o teste Docker do Nivus pode ficar limitado por memória.'
+}
+$availableHostRamMB = [int]((Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory / 1024)
+if ($availableHostRamMB -lt ($memoryMB + 2048)) {
+    throw "Memória livre insuficiente no Windows: são necessários pelo menos $($memoryMB + 2048) MB livres para iniciar esta VM com margem para o host. Feche aplicativos e tente novamente."
 }
 
 $resolvedBase = [IO.Path]::GetFullPath($BaseFolder)

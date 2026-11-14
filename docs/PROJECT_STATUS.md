@@ -7,7 +7,7 @@ Licença escolhida: AGPL-3.0-only
 
 O operador relata que a VM VirtualBox `testev1` trava ao tentar alterar configurações. Em sessão anterior, o console mostrou mensagens de watchdog, CPU soft-lockup e stalls de RCU. A instalação do Nivus ainda não foi iniciada nessa VM; SSH/NAT também não foram habilitados. O notebook de teste continua separado.
 
-Para facilitar uma tentativa limpa, `deploy/windows/New-NivusTestVm.ps1` cria uma VM adicional, sem apagar ou alterar `testev1`: Ubuntu Server 24.04.5 amd64 com SHA-256 conferido, até 2 vCPUs, RAM ajustada à memória física do host, disco virtual dinâmico de 32 GB, 16 MB de vídeo e SSH NAT limitado ao loopback do Windows. O script e o roteiro foram preparados para revisão; ainda não foram executados no VirtualBox do operador. A instalação limpa, reboot, backup e restore continuam pendentes.
+Para facilitar uma tentativa limpa, `deploy/windows/New-NivusTestVm.ps1` cria uma VM adicional, sem apagar ou alterar `testev1`: Ubuntu Server 24.04.5 amd64 com SHA-256 conferido, até 2 vCPUs, RAM ajustada à memória física do host, disco virtual dinâmico de 32 GB, 16 MB de vídeo e SSH NAT limitado ao loopback do Windows. O script recusa iniciar com outra VM rodando ou sem RAM livre suficiente. O script e o roteiro foram preparados para revisão; ainda não foram executados no VirtualBox do operador. A instalação limpa, reboot, backup e restore continuam pendentes.
 
 ## Revalidação ao vivo (13/11/2026, 21:15 UTC)
 
