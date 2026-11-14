@@ -14,27 +14,25 @@ O operador confirmou uma VM `testev1` com Ubuntu 26.04.1 LTS amd64, 4 vCPUs, 8 G
 
 Para repetir o teste num ambiente previsível, o repositório fornece `deploy/windows/New-NivusTestVm.ps1`. Ele cria uma VM separada chamada `nivus-test-clean`, usa Ubuntu Server 24.04.5 LTS amd64, baixa a ISO oficial se ela ainda não existir e confere o SHA-256 antes de criar a VM. Atribui no máximo 2 vCPUs e ajusta a RAM conforme o host, cria um VDI dinâmico de 32 GB, mantém 16 MB de vídeo sem aceleração 3D e encaminha SSH somente por `127.0.0.1:2223`. Antes do download/criação, recusa se outra VM estiver em execução, a porta SSH estiver ocupada ou a RAM/disco livre forem insuficientes. O script não altera nem apaga `testev1` ou outras VMs.
 
-Na primeira tentativa automatizada, a ISO Ubuntu Server 24.04.5 foi verificada, mas o criador parou com E_ACCESSDENIED antes de alterar VMs. A VM nivus-test-clean foi então observada desligada; o Adaptador 1 está em NAT e sua janela de configurações está aberta. O arquivo .vbox confirma 2 vCPU, 4 GB RAM, 16 MB de vídeo virtual e ausência de encaminhamento SSH. A porta 127.0.0.1:2223 está fechada.
+Na primeira tentativa automatizada, a ISO Ubuntu Server 24.04.5 foi verificada, mas o criador parou com E_ACCESSDENIED antes de alterar VMs. A VM `nivus-test-clean` foi criada e está em execução. A configuração VirtualBox confirma 2 vCPU, 4 GB RAM, 16 MB de vídeo virtual, NAT e regra `nivus-ssh` em `127.0.0.1:2223` para guest:22. A captura do console confirma Ubuntu Server 24.04.5 LTS amd64. O perfil Ubuntu 24.10 exibido no gerenciador não descreve o sistema convidado instalado. O operador instalou/ativou OpenSSH e confirmou `systemctl is-active ssh` = `active`. O cliente Windows negociou SSH pelo encaminhamento; impressão digital de host observada: `SHA256:l1f0aTbIJrVfJo5pU5DR9KmSJoY6FY5ynopjoPBwiIQ`. A autenticação ainda responde `Permission denied (publickey,password)` porque a chave pública temporária não foi autorizada na VM; nenhuma senha foi tentada.
 
-O gerenciador mostra Ubuntu 24.10 (Oracular Oriole) como perfil de SO; isso não confirma a ISO/guest real. Se o guest for Ubuntu 24.10, não use-o como base do teste: essa versão encerrou o suporte em 10/07/2025 ([aviso oficial](https://lists.ubuntu.com/archives/ubuntu-security-announce/2025-July/009561.html)). Prefira Ubuntu Server 24.04.5 LTS, com suporte padrão até 31/05/2029 ([notas oficiais](https://documentation.ubuntu.com/release-notes/24.04/)). Depois de iniciar, confira cat /etc/os-release.
+Ubuntu Server 24.04.5 LTS tem suporte padrão até 31/05/2029 ([notas oficiais](https://documentation.ubuntu.com/release-notes/24.04/)). No console Ubuntu, rode:
 
-Com a VM desligada, clique em Configurações > Rede > Adaptador 1 > Avançado > Redirecionamento de Portas e adicione: nome nivus-ssh; protocolo TCP; IP do host 127.0.0.1; porta do host 2223; IP guest vazio; porta guest 22. Isso restringe SSH ao próprio Windows. Também é possível usar no PowerShell em que o VirtualBox está acessível:
-
-~~~powershell
-& "$env:ProgramFiles\Oracle\VirtualBox\VBoxManage.exe" modifyvm nivus-test-clean --natpf1 "nivus-ssh,tcp,127.0.0.1,2223,,22"
-Test-NetConnection 127.0.0.1 -Port 2223
+~~~bash
+cat /etc/os-release
+systemctl status ssh --no-pager
+ss -lnt | grep ':22'
 ~~~
 
-Salve a regra, inicie a VM e confirme no Ubuntu que openssh-server está instalado e ativo. Se o guest ainda não tiver SSH:
+Como o console confirmou Ubuntu 24.04.5 LTS e a unidade `ssh.service` está ausente, instale e ative OpenSSH:
 
 ~~~bash
 sudo apt update
 sudo apt install -y openssh-server
 sudo systemctl enable --now ssh
-sudo systemctl status ssh --no-pager
 ~~~
 
-Se a VM já estiver em execução, VBoxManage controlvm permite adicionar a mesma regra para a sessão atual. A automação não conseguiu controlar o VirtualBox devido ao nível de integridade superior; nenhuma configuração foi alterada automaticamente.
+Depois, do Windows, confirme SSH com `ssh -p 2223 ... 127.0.0.1`; confira a impressão digital antes de aceitar a chave do host. Autorize somente a chave pública temporária e preserve o acesso restrito à conta de teste. Não envie senha ou chave privada. O encaminhamento só escuta em 127.0.0.1; não exponha a porta à LAN ou à Internet.
 
 Somente se a VM `nivus-test-clean` ainda não existir, no PowerShell aberto na raiz do repositório execute o script. Se a ISO ainda não estiver em Downloads, ele baixa cerca de 3,8 GB do servidor oficial e verifica o hash antes de iniciar o VirtualBox:
 
