@@ -1,0 +1,38 @@
+name: Proposta de melhoria
+description: Proponha uma capacidade pequena e verificável.
+title: "feature: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Confira primeiro docs/VISION.md, docs/PROJECT_ROADMAP.md e
+        docs/MODULE_MAP.md. Uma capacidade planejada ainda não é parte do produto.
+  - type: textarea
+    id: need
+    attributes:
+      label: Necessidade
+      description: Quem precisa disso e qual problema concreto resolve?
+    validations:
+      required: true
+  - type: input
+    id: module
+    attributes:
+      label: Módulo proprietário
+      description: Indique o módulo ou proponha uma fronteira nova.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de aceite
+      description: Como uma pessoa consegue verificar que a mudança funciona?
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: Dados, segurança e recuperação
+      description: Descreva impacto em dados, rede, hardware e rollback.
+    validations:
+      required: true

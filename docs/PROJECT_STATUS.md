@@ -1,7 +1,31 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-14 15:03 UTC
+Atualizado: 2026-11-14 22:48 UTC
 Licença escolhida: AGPL-3.0-only
+
+## Organização funcional e árvore de dependências (14/11/2026)
+
+Foi preparado em staging docs/MODULE_MAP.md, com a árvore de responsabilidades existente, o fluxo de dependências em runtime, os módulos futuros e regras para mudanças em paralelo. README, AGENTS, CONTRIBUTING e ARCHITECTURE apontam para esse mapa. O catálogo autenticado de nós está descrito como próximo módulo independente; ainda não foi implementado.
+
+Este conjunto está sendo proposto no GitHub junto das correções do painel e da CI em PR #2. Não foi mesclado nem implantado no notebook. O estado da CI e a publicação do painel só serão atualizados após confirmação do GitHub e do host.
+
+## Cache de contexto e conhecimento técnico (14/11/2026)
+
+Foi preparado em staging o gerador tools/build_ai_context.py: ele reúne contexto oficial, organiza uma nota por conceito em temp/knowledge/notes/, cria JSONL e índice lexical de termos normalizados e monta temp/AI_CONTEXT_BUNDLE.md. /temp/ está ignorado pelo Git. A execução local foi conferida: três notas atômicas foram indexadas e uma busca lexical por `fastapi dependency` encontrou a nota de fronteiras da API. O índice representa termos normalizados, não IDs de tokens de um modelo. As notas são locais, exigem fonte, versão e data, não armazenam segredos e não substituem documentos oficiais. O cache continua fora do GitHub.
+
+## Skills alinhadas ao roadmap (14/11/2026)
+
+Foram criadas em staging onze skills Codex em codex-skills/: uma coordenadora, quatro para módulos e operações da base, cinco para capacidades futuras e uma para um fluxo externo opcional de desenvolvimento com IA. A skill de telemetria de hardware foi acrescentada após a falha observada na seleção de temperatura. docs/SKILL_MAP.md cruza as skills com as fases do projeto. A skill externa de desenvolvimento não é módulo do Nivus e não instala Hermes/OmniRoute no nó de borda. As skills não são módulos do produto. A publicação e a instalação pessoal pelo Codex estão em preparação.
+
+## Avaliação de automação externa com IA (14/11/2026)
+
+docs/AI_DEVELOPMENT_ORCHESTRATION.md registra a checagem das fontes oficiais de Hermes e OmniRoute. Os componentes documentam Discord, webhooks de GitHub/Jira, endpoint compatível com OpenAI e políticas de roteamento de modelos. Não foi confirmada a instalação específica mencionada por um comentarista do YouTube; o ciclo completo requer integração de ferramentas, controles de concorrência, sandbox, orçamento, retry e aprovação humana. Essa automação é uma opção de ferramenta de desenvolvimento externa ao runtime do Nivus e não altera o roadmap do nó de borda.
+
+## CI de recuperação e painel completo de marcos (14/11/2026, 15:34 UTC)
+
+O PR #2 testa instalação limpa numa VM Ubuntu 22.04 descartável, backup SQLite, falha de health simulada, rollback e restauração normal. Na execução mais recente, a instalação limpa passou, mas o job de recuperação não recebeu linhas MQTT: o systemd 249 registrou `%d/mqtt_agent_password` como specifier inválido na linha `Environment=`; o coletor iniciou sem senha e o broker rejeitou a autenticação. O smoke job também apontou que `tests/test_progress_ui.cjs` não estava no branch. Staging agora carrega o caminho da credencial via `$CREDENTIALS_DIRECTORY` no wrapper e inclui o arquivo do teste; nova execução da CI ainda está pendente. Esta execução usou somente runners descartáveis do GitHub; o notebook ativo não foi alterado.
+
+O painel de staging agora apresenta 42 marcos até a primeira versão completa: 17 concluídos, um em execução, um aguardando e 23 planejados. O filtro anterior ocultava o atributo hidden porque a regra .item { display: grid } prevalecia no CSS; a regra explícita .item[hidden] corrige isso. O filtro “Aguardando” agora tem um marco correspondente. Os contadores, estados acessíveis, cinco filtros e o botão de atualização manual foram verificados num harness DOM Node que confirmou busca da página e do JavaScript. A versão corrigida ainda não foi publicada no notebook nem conferida no navegador desse host.
 
 ## CI Ubuntu 22.04 aprovada (14/11/2026, 15:00 UTC)
 

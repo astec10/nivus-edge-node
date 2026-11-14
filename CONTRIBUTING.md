@@ -7,10 +7,12 @@ Obrigado por ajudar no Nivus. O projeto está em desenvolvimento: diferencie rec
 1. [`README.md`](README.md): resumo, estado e mapa de código.
 2. [`AGENTS.md`](AGENTS.md): regras de segurança e colaboração para agentes e pessoas.
 3. [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md): o que foi realmente verificado no notebook.
-4. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) e [`docs/DECISIONS.md`](docs/DECISIONS.md): fronteiras entre módulos e decisões em vigor.
-5. [`docs/PROJECT_ROADMAP.md`](docs/PROJECT_ROADMAP.md): objetivos, fases e critérios de conclusão.
-6. [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md): ambiente e comandos de desenvolvimento.
-7. Para mudanças de instalação/serviços, [`deploy/README.md`](deploy/README.md) e [`docs/VM_VALIDATION.md`](docs/VM_VALIDATION.md): teste em instalação Ubuntu isolada e limites atuais de backup/restore.
+4. [`docs/MODULE_MAP.md`](docs/MODULE_MAP.md): árvore funcional, dependências e estado dos módulos.
+5. [`docs/SKILL_MAP.md`](docs/SKILL_MAP.md): skills disponíveis e sua cobertura do roadmap.
+6. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) e [`docs/DECISIONS.md`](docs/DECISIONS.md): fronteiras entre módulos e decisões em vigor.
+7. [`docs/PROJECT_ROADMAP.md`](docs/PROJECT_ROADMAP.md): objetivos, fases e critérios de conclusão.
+8. [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md): ambiente e comandos de desenvolvimento.
+9. Para mudanças de instalação/serviços, [`deploy/README.md`](deploy/README.md) e [`docs/VM_VALIDATION.md`](docs/VM_VALIDATION.md): teste em instalação Ubuntu isolada e limites atuais de backup/restore.
 
 Se os documentos discordarem, confirme o código e o status atuais. Corrija a documentação junto com a mudança; não transforme uma ideia do roadmap em uma afirmação de que a função já existe.
 
@@ -25,6 +27,8 @@ Antes de editar, descreva o problema em poucas linhas, o comportamento esperado 
 - Interface: `frontend/src/`.
 - Instalação, redes, serviços e backup: `deploy/`.
 - Objetivos e decisões: `docs/`.
+
+Escolha a fronteira pelo [mapa de módulos](docs/MODULE_MAP.md). Em trabalho paralelo, mantenha PRs separados por função e coordene antes de editar arquivos compartilhados (`backend/main.py`, `backend/api/schemas.py`, `backend/database.py`, `docker-compose.yml` e ACL MQTT). Integre primeiro o contrato e depois as implementações dependentes; evite dependências circulares.
 
 Preserve rotas, payloads, nomes de variáveis e comportamento existente durante refatorações, a menos que a mudança inclua uma migração e documentação explícitas. Não misture uma extração estrutural com uma reformulação visual ou de produto.
 
@@ -79,3 +83,15 @@ Antes de enviar:
 - [ ] A validação corresponde ao alcance da afirmação feita.
 - [ ] Estado, configuração, licenças e rollback foram documentados.
 - [ ] Recursos de automação física não dependem apenas de uma previsão de IA.
+
+Não envie temp/knowledge/ nem temp/AI_CONTEXT_BUNDLE.md. São cache local, ignorado pelo Git; decisões duradouras devem ser registradas nos documentos oficiais.
+
+Para uma tarefa de código, selecione uma skill funcional de docs/SKILL_MAP.md quando ela melhorar o resultado. Skills não substituem a leitura do estado e do código atual.
+
+## 7. Automação de manutenção no GitHub
+
+O repositório acompanha atualizações semanais por Dependabot para Python, npm, imagens Docker, Docker Compose e GitHub Actions. Cada atualização chega como PR e precisa passar pela CI e pela revisão de uma pessoa; não habilite merge automático para dependências sem avaliar impacto e compatibilidade.
+
+O workflow CodeQL procura padrões de vulnerabilidade em Python, JavaScript/TypeScript e GitHub Actions em PRs, commits na `main` e uma agenda semanal. Um resultado limpo reduz riscos conhecidos, mas não prova segurança completa.
+
+Use os formulários de issue para descrever problema, módulo, critérios de aceite e evidência sanitizada. Use o modelo de PR para registrar escopo, validações reais, dados afetados e rollback. Esses recursos organizam contribuições e tarefas de IA; não instalam serviços no host Nivus nem substituem revisão humana.

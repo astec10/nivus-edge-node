@@ -24,16 +24,18 @@ O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não sign
 - Inferência local, consulta à biblioteca de PDFs, fila de trabalhos entre máquinas, transferência P2P e conectores para provedores comerciais com limites de uso.
 - Instalação limpa validada, reboot, atualização com rollback e matriz de hardware x86_64.
 
-Veja [docs/PROJECT_ROADMAP.md](docs/PROJECT_ROADMAP.md) para fases, entregáveis e critérios de conclusão; [docs/VISION.md](docs/VISION.md) registra a visão doméstica mais ampla. O estado verificado do notebook está em [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
+Veja [docs/PROJECT_ROADMAP.md](docs/PROJECT_ROADMAP.md) para fases, entregáveis e critérios de conclusão; [docs/VISION.md](docs/VISION.md) registra a visão doméstica mais ampla. O estado verificado do notebook está em [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md). O [mapa funcional e de dependências](docs/MODULE_MAP.md) separa módulos existentes e planejados. A cobertura das skills está em [docs/SKILL_MAP.md](docs/SKILL_MAP.md).
 
-O plano para evitar repetir a suíte completa em cada computador está em [docs/TEST_STRATEGY.md](docs/TEST_STRATEGY.md): CI numa VM Ubuntu limpa para cada alteração e uma matriz de seis plataformas físicas de referência (Intel e AMD, três faixas de geração) nos marcos de compatibilidade.
+O plano para não repetir a suíte completa em cada computador está em [docs/TEST_STRATEGY.md](docs/TEST_STRATEGY.md): CI numa VM Ubuntu limpa para cada alteração e uma matriz de seis plataformas físicas de referência (Intel e AMD, três faixas de geração) nos marcos de compatibilidade.
+
+Para reutilizar contexto e consultas técnicas de programação entre sessões, veja [docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md). O script tools/build_ai_context.py cria um índice lexical e um pacote local a partir dos documentos atuais e das notas atomizadas em temp/knowledge/; essa pasta é ignorada pelo Git.
 
 ## Comece por aqui
 
 Se você quer entender ou modificar o código:
 
 1. Leia este README, [AGENTS.md](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md) e [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
-2. Leia [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) e [docs/DECISIONS.md](docs/DECISIONS.md) antes de mudar limites entre módulos ou contratos de API.
+2. Leia [docs/MODULE_MAP.md](docs/MODULE_MAP.md), [docs/SKILL_MAP.md](docs/SKILL_MAP.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) e [docs/DECISIONS.md](docs/DECISIONS.md) antes de mudar limites entre módulos ou contratos de API.
 3. Siga [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) para preparar backend, frontend e broker de desenvolvimento.
 4. Escolha uma tarefa pequena com resultado verificável. Não trate itens da visão ou do roadmap como recursos já implementados.
 5. Faça as verificações disponíveis para a área alterada, documente os resultados e atualize o estado/decisões se o comportamento mudou.
@@ -72,6 +74,10 @@ Não há promessa de suporte a toda máquina x86_64 até validar Ubuntu minimal 
 - Câmeras, rostos, placas, áudio e presença exigem minimização, retenção limitada e controles de acesso.
 
 Leia [docs/VISION.md](docs/VISION.md) para requisitos físicos, automações e limites de segurança. O Nivus não substitui detectores certificados nem projeto/instalação elétrica profissional.
+
+## Manutenção do repositório
+
+O GitHub acompanha versões semanais de dependências e executa CodeQL no código. Issues e pull requests usam modelos que pedem módulo, escopo, critérios de aceite, evidências e rollback. Veja [CONTRIBUTING.md](CONTRIBUTING.md) antes de propor uma mudança. Dependabot abre propostas; uma pessoa deve revisar e aprovar cada atualização.
 
 ## Licença
 
