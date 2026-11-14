@@ -119,18 +119,27 @@ start_writers() {
 }
 
 verify_runtime() {
-  systemctl is-active --quiet "$TELEMETRY_UNIT" || return 1
-  for service in api worker mqtt web; do
-    local container_id
-    container_id=$(cd "$APP" && docker compose ps -q "$service") || return 1
-    [[ -n "$container_id" ]] || return 1
-    [[ $(docker inspect -f '{{.State.Running}}' "$container_id") == true ]] || return 1
+  local attempt service container_id containers_ok auth_status
+  for attempt in {1..45}; do
+    if systemctl is-active --quiet "$TELEMETRY_UNIT"; then
+      containers_ok=1
+      for service in api worker mqtt web; do
+        container_id=$(cd "$APP" && docker compose ps -q "$service") || { containers_ok=0; break; }
+        if [[ -z "$container_id" ]] || [[ $(docker inspect -f '{{.State.Running}}' "$container_id" 2>/dev/null) != true ]]; then
+          containers_ok=0
+          break
+        fi
+      done
+      if (( containers_ok )) && curl -kfsS --connect-timeout 2 --max-time 3 "https://127.0.0.1:$HTTPS_PORT/health" >/dev/null; then
+        auth_status=$(curl -k -sS --connect-timeout 2 --max-time 3 -o /dev/null -w '%{http_code}' "https://127.0.0.1:$HTTPS_PORT/api/telemetry") || auth_status=
+        if [[ "$auth_status" == 401 ]] && (cd "$APP" && docker compose exec -T api python -c 'import sqlite3; c=sqlite3.connect("file:/data/nivus.db?mode=ro", uri=True); r=c.execute("PRAGMA quick_check").fetchall(); assert r and all(x[0] == "ok" for x in r); c.close()'); then
+          return 0
+        fi
+      fi
+    fi
+    sleep 1
   done
-  curl -kfsS --connect-timeout 2 --max-time 4 "https://127.0.0.1:$HTTPS_PORT/health" >/dev/null || return 1
-  local auth_status
-  auth_status=$(curl -k -sS --connect-timeout 2 --max-time 4 -o /dev/null -w '%{http_code}' "https://127.0.0.1:$HTTPS_PORT/api/telemetry") || return 1
-  [[ "$auth_status" == 401 ]] || return 1
-  (cd "$APP" && docker compose exec -T api python -c 'import sqlite3; c=sqlite3.connect("file:/data/nivus.db?mode=ro", uri=True); r=c.execute("PRAGMA quick_check").fetchall(); assert r and all(x[0] == "ok" for x in r); c.close()') || return 1
+  return 1
 }
 
 quarantine_sidecars() {
@@ -217,20 +226,7 @@ TEMP_DB=
 
 (cd "$APP" && docker compose start api worker)
 systemctl start "$TELEMETRY_UNIT"
-
-health_ok=0
-for attempt in {1..45}; do
-  if curl -kfsS --connect-timeout 2 --max-time 4 "https://127.0.0.1:$HTTPS_PORT/health" >/dev/null; then
-    health_ok=1
-    break
-  fi
-  sleep 1
-done
-(( health_ok == 1 )) || fail "health HTTPS não respondeu depois da restauração"
-AUTH_STATUS=$(curl -k -sS --connect-timeout 2 --max-time 4 -o /dev/null -w '%{http_code}' "https://127.0.0.1:$HTTPS_PORT/api/telemetry")
-[[ "$AUTH_STATUS" == 401 ]] || fail "API não preservou a resposta 401 sem token"
-(cd "$APP" && docker compose exec -T api python -c 'import sqlite3; c=sqlite3.connect("file:/data/nivus.db?mode=ro", uri=True); r=c.execute("PRAGMA quick_check").fetchall(); assert r and all(x[0] == "ok" for x in r); c.close()')
-systemctl is-active --quiet "$TELEMETRY_UNIT"
+verify_runtime || fail "serviços, health HTTPS, 401 ou SQLite não passaram após a restauração"
 
 RESTORE_COMPLETE=1
 trap - ERR INT TERM
