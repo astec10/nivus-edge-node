@@ -1,17 +1,19 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-14 23:12 UTC
+Atualizado: 2026-11-14 23:45 UTC
 Licença escolhida: AGPL-3.0-only
 
 ## Organização funcional e árvore de dependências (14/11/2026)
 
-Foi preparado em staging docs/MODULE_MAP.md, com a árvore de responsabilidades existente, o fluxo de dependências em runtime, os módulos futuros e regras para mudanças em paralelo. README, AGENTS, CONTRIBUTING e ARCHITECTURE apontam para esse mapa. O catálogo autenticado de nós está descrito como próximo módulo independente; ainda não foi implementado.
-
-Este conjunto está sendo proposto no GitHub junto das correções do painel e da CI em PR #2. Não foi mesclado nem implantado no notebook. O estado da CI e a publicação do painel só serão atualizados após confirmação do GitHub e do host.
+docs/MODULE_MAP.md descreve a árvore funcional, o fluxo atual de dados e as dependências futuras. docs/AI_CONTEXT.md e docs/AI_WORKFLOW.md organizam o contexto entre sessões e definem o que pode ficar no cache local. Esses documentos, junto de README, AGENTS e CONTRIBUTING, estão sendo adicionados no PR #3, que permanece aberto. Eles não foram mesclados nem publicados no notebook.
 
 ## Cache de contexto e conhecimento técnico (14/11/2026)
 
-Foi preparado em staging o gerador tools/build_ai_context.py: ele reúne contexto oficial, organiza uma nota por conceito em temp/knowledge/notes/, cria JSONL e índice lexical de termos normalizados e monta temp/AI_CONTEXT_BUNDLE.md. /temp/ está ignorado pelo Git. A execução local foi conferida: três notas atômicas foram indexadas e uma busca lexical por `fastapi dependency` encontrou a nota de fronteiras da API. O índice representa termos normalizados, não IDs de tokens de um modelo. As notas são locais, exigem fonte, versão e data, não armazenam segredos e não substituem documentos oficiais. O cache continua fora do GitHub.
+docs/AI_WORKFLOW.md documenta a proposta de notas locais atomizadas por conceito, com fonte, versão/data e tags. A pasta /temp/ foi adicionada ao .gitignore. “Tokenizar” no contexto desta busca significa normalizar termos para índice lexical, não converter conteúdo em tokens específicos de um LLM. O branch público não contém tools/build_ai_context.py nem notas de conhecimento executáveis; não existe gerador publicado neste PR. O cache de desenvolvimento não é a biblioteca de conhecimento do produto e não deve conter segredos ou dados reais.
+
+## Catálogo de componentes open source (14/11/2026)
+
+docs/OPEN_SOURCE_COMPONENTS.md organiza opções pesquisadas para CI, sensores, backup, automação residencial, vídeo e IA, com links upstream, prioridade e limites de recursos/segurança. ShellCheck, actionlint e Ruff são sugeridos apenas para desenvolvimento/CI. Os demais componentes são candidatos para avaliação futura; nenhum foi instalado nem adicionado ao runtime.
 
 ## Skills alinhadas ao roadmap (14/11/2026)
 
@@ -29,31 +31,31 @@ O painel de staging apresenta 43 marcos até a primeira versão completa: 18 con
 
 O PR #4 também passou no smoke Compose do [run 43652755033](https://github.com/astec10/nivus-edge-node/actions/runs/43652755033). A correção térmica continua em revisão e não foi implantada no notebook.
 
+## Estado da VM local Hyper-V (2026-11-14 23:45 UTC)
+
+O operador informou que o Hyper-V está funcionando com Ubuntu 22.04 LTS e enviou uma imagem com sessão de desktop aberta. A configuração de rede do guest e um endereço privado foram informados na conversa. Até este registro, não houve acesso SSH verificado à VM nem instalação limpa, teste de reboot ou restore do Nivus nesse ambiente. Portanto, a validação local continua pendente. Uma execução da CI em VM descartável do GitHub não substitui esse teste. Nenhuma mudança foi feita na VM por este registro.
+
 ## CI Ubuntu 22.04 aprovada (14/11/2026, 15:00 UTC)
 
 O primeiro workflow público do GitHub Actions passou no [PR #1](https://github.com/astec10/nivus-edge-node/actions/runs/43607798466), usando runner Ubuntu 22.04.5 amd64. Sintaxe Bash/Python, validação Compose, build das imagens e smoke isolado passaram: painel/asset e health HTTPS responderam, telemetria sem token retornou 401, uma publicação MQTT chegou ao SQLite e `PRAGMA quick_check` retornou `ok`. Os containers mostraram cerca de 67 MiB agregados numa leitura instantânea (API 40,53; worker 17,36; MQTT 2,89; web 6,17 MiB); isso não é benchmark sustentado nem define RAM mínima.
 
 A CI prova o caminho de software no runner Linux virtual. Não valida BIOS, chipset, NIC, armazenamento, periféricos ou desempenho sustentado. A compatibilidade física planejada é uma amostra de seis computadores: Intel e AMD, cada um em três faixas de geração (antiga, intermediária e recente). A instalação limpa, reboot e teste completo de backup/restore/rollback na VM Hyper-V local continuam pendentes.
 
-## Comparador de rollback exercitado e VM limpa preparada (14/11/2026, 04:46 UTC)
+## Comparador de rollback exercitado e preparação histórica de VM descartável (14/11/2026, 04:46 UTC)
 
-O comparador Python embutido em `deploy/test-restore-rollback.sh` foi executado sem alteração contra quatro fixtures SQLite descartáveis: aceitou uma linha nova de telemetria mantendo todas as linhas anteriores, e rejeitou perda de usuário, alteração de esquema (índice) e alteração de configuração. O processo encerrou com limpeza do diretório temporário confirmada.
+O comparador Python de deploy/test-restore-rollback.sh foi executado sem alteração contra quatro fixtures SQLite descartáveis: aceitou uma linha nova de telemetria preservando as linhas anteriores e rejeitou perda de usuário, alteração de esquema e alteração de configuração.
 
-Na VM `nivus-test-clean`, a impressão digital SSH do guest foi conferida novamente (`SHA256:l1f0aTbIJrVfJo5pU5DR9KmSJoY6FY5ynopjoPBwiIQ`). A chave temporária entrou por autenticação somente de chave, e a entrada correspondente em `authorized_keys` foi confirmada com a opção `restrict`. O checkout público foi clonado em `/home/nivus/nivus-edge-node`, branch `main`, commit `5edc7e74968017af5731339cf44419830bf924ec`, árvore limpa. No próprio Ubuntu Server 24.04.5 LTS, `bash -n` passou nos três scripts de backup/restore e os modos `--help` de restore e rollback passaram.
+Naquela etapa, uma VM descartável VirtualBox com Ubuntu Server 24.04.5 LTS amd64 recebeu um clone limpo do repositório. Sintaxe Bash dos scripts e modos --help passaram no guest; Docker e Nivus ainda não tinham sido instalados. Esse registro é histórico e não descreve a VM Hyper-V atualmente apresentada pelo operador.
 
-A VM reporta x86_64, 4 CPUs online, 4.009.220 kB de memória e 27 GB livres em disco de 32 GB; uma visualização anterior do VirtualBox registrou 2 vCPUs, portanto a contagem de CPU atribuída ainda precisa ser reconciliada antes de qualquer benchmark. Docker e a instalação Nivus ainda estão ausentes. `sudo -n` não está habilitado; a instalação requer que o operador digite a senha administrativa e crie a conta inicial diretamente no terminal. Nenhuma instalação, banco ou serviço do notebook foi alterado.
-
-## Tentativa automatizada de criar VM limpa (14/11/2026, 01:42 UTC)
+## Tentativa automatizada de criar VM VirtualBox (histórico, 14/11/2026, 01:42 UTC)
 
 O operador relata que a VM VirtualBox `testev1` trava ao tentar alterar configurações. Em sessão anterior, o console mostrou mensagens de watchdog, CPU soft-lockup e stalls de RCU. A instalação do Nivus ainda não foi iniciada nessa VM; SSH/NAT também não foram habilitados. O notebook de teste continua separado.
 
 Para facilitar uma tentativa limpa, `deploy/windows/New-NivusTestVm.ps1` cria uma VM adicional, sem apagar ou alterar `testev1`: baixa a ISO oficial Ubuntu Server 24.04.5 amd64 quando necessário e confere o SHA-256, usa até 2 vCPUs, ajusta RAM à memória física do host, cria disco virtual dinâmico de 32 GB, mantém 16 MB de vídeo e limita SSH NAT ao loopback do Windows. O script recusa iniciar com outra VM rodando ou sem RAM/disco livres suficientes. A ISO oficial local foi conferida (4.080.486.400 bytes, SHA-256 correto). A execução do criador nesta sessão parou antes da criação: `VBoxManage list vms` retornou `E_ACCESSDENIED` ao inicializar a interface COM. Nenhuma VM foi criada nem modificada por essa tentativa. Instalação limpa, reboot, backup e restore continuam pendentes.
 
-## VM online; SSH ativo e NAT validado (14/11/2026, 04:18 UTC)
+## Estado anterior da VM VirtualBox (14/11/2026, 04:18 UTC)
 
-A captura do console confirma `nivus-test-clean` em execução com Ubuntu Server 24.04.5 LTS amd64. A configuração VirtualBox usa NAT e encaminha `127.0.0.1:2223` para a porta 22 do guest. O operador confirmou `systemctl is-active ssh` = `active`. A conexão do Windows ao encaminhamento completou negociação SSH com OpenSSH 9.6p1; a chave de host ED25519 observada foi `SHA256:l1f0aTbIJrVfJo5pU5DR9KmSJoY6FY5ynopjoPBwiIQ`.
-
-A autenticação ainda não foi autorizada: o cliente recebeu `Permission denied (publickey,password)`. Nenhuma senha foi tentada. Para habilitar análise remota, o operador precisa instalar na conta da VM somente a chave pública temporária, marcada com a opção `restrict`; a chave privada permanece no ambiente de desenvolvimento. Depois da autorização, conferir a identidade SSH e o escopo da conta. A instalação do Nivus, reboot e teste integrado de restore/rollback continuam pendentes. Nenhuma alteração foi aplicada ao notebook Nivus.
+Na etapa anterior, uma captura mostrava a VM descartável nivus-test-clean com Ubuntu Server 24.04.5 LTS amd64. O operador confirmou o serviço SSH ativo e o encaminhamento NAT do host para a porta 22 do guest. A autenticação por chave ainda falhava naquele momento; nenhuma senha foi tentada. Esse registro é histórico, refere-se ao VirtualBox e não comprova acesso ou instalação na VM Hyper-V atual.
 
 ## Verificação do procedimento de restore (14/11/2026, 04:27 UTC)
 

@@ -24,23 +24,23 @@ O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não sign
 - Inferência local, consulta à biblioteca de PDFs, fila de trabalhos entre máquinas, transferência P2P e conectores para provedores comerciais com limites de uso.
 - Instalação limpa validada, reboot, atualização com rollback e matriz de hardware x86_64.
 
-Veja [docs/PROJECT_ROADMAP.md](docs/PROJECT_ROADMAP.md) para fases, entregáveis e critérios de conclusão; [docs/VISION.md](docs/VISION.md) registra a visão doméstica mais ampla. O estado verificado do notebook está em [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md). O [mapa funcional e de dependências](docs/MODULE_MAP.md) separa módulos existentes e planejados. A cobertura das skills está em [docs/SKILL_MAP.md](docs/SKILL_MAP.md).
+Veja [docs/PROJECT_ROADMAP.md](docs/PROJECT_ROADMAP.md) para fases, entregáveis e critérios de conclusão; [docs/VISION.md](docs/VISION.md) registra a visão doméstica mais ampla. O estado verificado está em [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md). O [mapa funcional e de dependências](docs/MODULE_MAP.md) separa módulos existentes e planejados; [docs/AI_CONTEXT.md](docs/AI_CONTEXT.md) e [docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md) orientam sessões de IA e a passagem de contexto. A cobertura das skills está em [docs/SKILL_MAP.md](docs/SKILL_MAP.md).
 
 O plano para não repetir a suíte completa em cada computador está em [docs/TEST_STRATEGY.md](docs/TEST_STRATEGY.md): CI numa VM Ubuntu limpa para cada alteração e uma matriz de seis plataformas físicas de referência (Intel e AMD, três faixas de geração) nos marcos de compatibilidade.
 
-Para reutilizar contexto e consultas técnicas de programação entre sessões, veja [docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md). O script tools/build_ai_context.py cria um índice lexical e um pacote local a partir dos documentos atuais e das notas atomizadas em temp/knowledge/; essa pasta é ignorada pelo Git.
+Para reutilizar contexto e consultas técnicas de programação entre sessões, veja [docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md). O cache opcional em temp/ é local e ignorado pelo Git; este repositório ainda não inclui um gerador executável. Atomização significa dividir notas por conceito, e a busca lexical normaliza termos — isso não equivale à tokenização interna de um modelo. Decisões permanentes devem ficar nos documentos canônicos.
 
 ## Comece por aqui
 
 Se você quer entender ou modificar o código:
 
-1. Leia este README, [AGENTS.md](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md) e [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
+1. Leia este README, [AGENTS.md](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md), [docs/AI_CONTEXT.md](docs/AI_CONTEXT.md) e [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
 2. Leia [docs/MODULE_MAP.md](docs/MODULE_MAP.md), [docs/SKILL_MAP.md](docs/SKILL_MAP.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) e [docs/DECISIONS.md](docs/DECISIONS.md) antes de mudar limites entre módulos ou contratos de API.
 3. Siga [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) para preparar backend, frontend e broker de desenvolvimento.
 4. Escolha uma tarefa pequena com resultado verificável. Não trate itens da visão ou do roadmap como recursos já implementados.
 5. Faça as verificações disponíveis para a área alterada, documente os resultados e atualize o estado/decisões se o comportamento mudou.
 
-O roteiro detalhado para contribuições está em [CONTRIBUTING.md](CONTRIBUTING.md). O pacote de instalação é candidato, não uma versão de produção: siga [deploy/README.md](deploy/README.md) e o [roteiro da VM Ubuntu limpa](docs/VM_VALIDATION.md); não use uma máquina com dados importantes como ambiente de teste.
+O roteiro detalhado para contribuições está em [CONTRIBUTING.md](CONTRIBUTING.md). Consulte o [catálogo de componentes open source](docs/OPEN_SOURCE_COMPONENTS.md) para opções pesquisadas, estado de adoção e impactos; os itens listados são candidatos e não foram instalados. O pacote de instalação é candidato, não uma versão de produção: siga [deploy/README.md](deploy/README.md) e o [roteiro da VM Ubuntu limpa](docs/VM_VALIDATION.md); não use uma máquina com dados importantes como ambiente de teste.
 
 ## Mapa do código
 

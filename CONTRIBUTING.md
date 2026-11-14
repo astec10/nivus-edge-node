@@ -4,15 +4,18 @@ Obrigado por ajudar no Nivus. O projeto está em desenvolvimento: diferencie rec
 
 ## 1. Leia a documentação na ordem
 
-1. [`README.md`](README.md): resumo, estado e mapa de código.
-2. [`AGENTS.md`](AGENTS.md): regras de segurança e colaboração para agentes e pessoas.
-3. [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md): o que foi realmente verificado no notebook.
-4. [`docs/MODULE_MAP.md`](docs/MODULE_MAP.md): árvore funcional, dependências e estado dos módulos.
-5. [`docs/SKILL_MAP.md`](docs/SKILL_MAP.md): skills disponíveis e sua cobertura do roadmap.
-6. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) e [`docs/DECISIONS.md`](docs/DECISIONS.md): fronteiras entre módulos e decisões em vigor.
-7. [`docs/PROJECT_ROADMAP.md`](docs/PROJECT_ROADMAP.md): objetivos, fases e critérios de conclusão.
-8. [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md): ambiente e comandos de desenvolvimento.
-9. Para mudanças de instalação/serviços, [`deploy/README.md`](deploy/README.md) e [`docs/VM_VALIDATION.md`](docs/VM_VALIDATION.md): teste em instalação Ubuntu isolada e limites atuais de backup/restore.
+1. [`README.md`](README.md): objetivo, estado e instalação.
+2. [`AGENTS.md`](AGENTS.md): limites de segurança e colaboração.
+3. [`docs/AI_CONTEXT.md`](docs/AI_CONTEXT.md): contexto estável e fontes canônicas.
+4. [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md): evidências datadas, estado e pendências.
+5. [`docs/MODULE_MAP.md`](docs/MODULE_MAP.md): árvore funcional, dependências e estado dos módulos.
+6. [`docs/SKILL_MAP.md`](docs/SKILL_MAP.md): skills disponíveis e cobertura do roadmap.
+7. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) e [`docs/DECISIONS.md`](docs/DECISIONS.md): fronteiras e decisões vigentes.
+8. [`docs/PROJECT_ROADMAP.md`](docs/PROJECT_ROADMAP.md): objetivos, fases e critérios de conclusão.
+9. [`docs/AI_WORKFLOW.md`](docs/AI_WORKFLOW.md): fluxo de tarefa, cache local e passagem entre sessões.
+10. [`docs/OPEN_SOURCE_COMPONENTS.md`](docs/OPEN_SOURCE_COMPONENTS.md): componentes pesquisados, candidatos e limites.
+11. [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md): ambiente e comandos de desenvolvimento.
+12. Para instalação/serviços, [`deploy/README.md`](deploy/README.md) e [`docs/VM_VALIDATION.md`](docs/VM_VALIDATION.md): ambiente isolado e limites de backup/restore.
 
 Se os documentos discordarem, confirme o código e o status atuais. Corrija a documentação junto com a mudança; não transforme uma ideia do roadmap em uma afirmação de que a função já existe.
 
@@ -84,7 +87,7 @@ Antes de enviar:
 - [ ] Estado, configuração, licenças e rollback foram documentados.
 - [ ] Recursos de automação física não dependem apenas de uma previsão de IA.
 
-Não envie temp/knowledge/ nem temp/AI_CONTEXT_BUNDLE.md. São cache local, ignorado pelo Git; decisões duradouras devem ser registradas nos documentos oficiais.
+Não envie temp/ nem arquivos locais de contexto. O padrão do repositório ignora /temp/; confirme esse estado antes de adicionar arquivos. Decisões duradouras devem ser registradas nos documentos oficiais. O cache descrito em AI_WORKFLOW.md não é um recurso do runtime.
 
 Para uma tarefa de código, selecione uma skill funcional de docs/SKILL_MAP.md quando ela melhorar o resultado. Skills não substituem a leitura do estado e do código atual.
 
@@ -94,4 +97,4 @@ O repositório acompanha atualizações semanais por Dependabot para Python, npm
 
 O workflow CodeQL procura padrões de vulnerabilidade em Python, JavaScript/TypeScript e GitHub Actions em PRs, commits na `main` e uma agenda semanal. Um resultado limpo reduz riscos conhecidos, mas não prova segurança completa.
 
-Use os formulários de issue para descrever problema, módulo, critérios de aceite e evidência sanitizada. Use o modelo de PR para registrar escopo, validações reais, dados afetados e rollback. Esses recursos organizam contribuições e tarefas de IA; não instalam serviços no host Nivus nem substituem revisão humana.
+Use docs/OPEN_SOURCE_COMPONENTS.md antes de propor ferramenta ou API de terceiros; registrar licença, manutenção, recursos e plano de remoção. Use os formulários de issue para descrever problema, módulo, critérios de aceite e evidência sanitizada. Use o modelo de PR para registrar escopo, validações reais, dados afetados e rollback. Esses recursos organizam contribuições e tarefas de IA; não instalam serviços no host Nivus nem substituem revisão humana.
