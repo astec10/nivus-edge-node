@@ -9,13 +9,11 @@ O operador relata que a VM VirtualBox `testev1` trava ao tentar alterar configur
 
 Para facilitar uma tentativa limpa, `deploy/windows/New-NivusTestVm.ps1` cria uma VM adicional, sem apagar ou alterar `testev1`: baixa a ISO oficial Ubuntu Server 24.04.5 amd64 quando necessário e confere o SHA-256, usa até 2 vCPUs, ajusta RAM à memória física do host, cria disco virtual dinâmico de 32 GB, mantém 16 MB de vídeo e limita SSH NAT ao loopback do Windows. O script recusa iniciar com outra VM rodando ou sem RAM/disco livres suficientes. A ISO oficial local foi conferida (4.080.486.400 bytes, SHA-256 correto). A execução do criador nesta sessão parou antes da criação: `VBoxManage list vms` retornou `E_ACCESSDENIED` ao inicializar a interface COM. Nenhuma VM foi criada nem modificada por essa tentativa. Instalação limpa, reboot, backup e restore continuam pendentes.
 
-## VM limpa observada em execução (14/11/2026, 03:56 UTC)
+## Estado atual da VM limpa (14/11/2026, 04:07 UTC)
 
-Depois da tentativa automatizada acima, `nivus-test-clean` apareceu registrada e em execução no VirtualBox. A configuração `.vbox` confirma Ubuntu 24 amd64, 2 vCPU, 4096 MB RAM, 16 MB de memória de vídeo virtual e adaptador NAT. A instalação do guest e a disponibilidade do OpenSSH ainda não foram confirmadas.
+A tela do VirtualBox mostra nivus-test-clean como Desligada, com o diálogo Configurações > Rede aberto e o Adaptador 1 ligado a NAT. A regra SSH ainda não foi salva; a porta 127.0.0.1:2223 permanece fechada. A configuração .vbox confirma 2 vCPU, 4096 MB RAM e 16 MB de vídeo virtual. Não há arquivo .sav visível e o modo exato de desligamento não foi confirmado.
 
-A VM não tem regra NAT de encaminhamento SSH; `Test-NetConnection 127.0.0.1 -Port 2223` retornou falso. A automação não conseguiu controlar o VirtualBox porque o aplicativo está em nível de integridade superior e `VBoxManage` retorna `E_ACCESSDENIED`; nenhuma configuração foi alterada nesta revisão. O notebook Nivus e `testev1` permanecem intactos. Próximo passo: habilitar SSH somente em `127.0.0.1:2223`, confirmar o Ubuntu e OpenSSH, fazer snapshot e executar a instalação limpa, reboot, backup, restore e teste de rollback.
-
-O commit `09d213f` reforçou a propagação de erros internos em `restore.sh`; a nova versão aguarda validação de sintaxe e teste integrado em Ubuntu. O Git Bash do host Windows não iniciou por restrição de integridade, portanto não foi contado como validação.
+O gerenciador exibe Ubuntu 24.10 (Oracular Oriole) como perfil do sistema operacional; isso não comprova qual ISO/guest está instalado. Ubuntu 24.10 encerrou o suporte em 10/07/2025. Antes de testar o Nivus, confirme a versão real com /etc/os-release e use Ubuntu Server 24.04.5 LTS. Nenhum serviço ou banco do notebook foi alterado.
 
 ## Revalidação do host e da rotina de rollback (14/11/2026, 03:40 UTC)
 
