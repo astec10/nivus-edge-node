@@ -169,7 +169,7 @@ jobs:
           BACKUP_OUTPUT=$(sudo bash "$APP/deploy/backup.sh")
           printf '%s\n' "$BACKUP_OUTPUT"
           BACKUP_DIR=$(sed -n 's/^Backup SQLite consistente e configuração salvos em //p' <<<"$BACKUP_OUTPUT")
-          [[ -d "$BACKUP_DIR" && -s "$BACKUP_DIR/nivus.sqlite3" ]]
+          sudo test -d "$BACKUP_DIR" && sudo test -s "$BACKUP_DIR/nivus.sqlite3"
           sudo bash "$APP/deploy/restore.sh" --check "$BACKUP_DIR"
           BACKUP_COUNT=$(read_count "$BACKUP_DIR/nivus.sqlite3")
 
