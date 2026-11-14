@@ -187,6 +187,19 @@ jobs:
           EXPECT
           expect "$RUNNER_TEMP/test-rollback.expect" "$BACKUP_DIR"
 
+          # Add a disposable marker after the chosen snapshot. A successful normal
+          # restore must replace the current database with the earlier snapshot.
+          sudo python3 - "$DB" <<'PY'
+          import sqlite3, sys
+          connection = sqlite3.connect(sys.argv[1], timeout=30)
+          try:
+              connection.execute("CREATE TABLE nivus_ci_restore_probe (marker TEXT PRIMARY KEY)")
+              connection.execute("INSERT INTO nivus_ci_restore_probe VALUES ('must-disappear-after-restore')")
+              connection.commit()
+          finally:
+              connection.close()
+          PY
+
           cat > "$RUNNER_TEMP/normal-restore.expect" <<'EXPECT'
           log_user 1
           set timeout 900
@@ -201,6 +214,19 @@ jobs:
           exit [lindex $result 3]
           EXPECT
           expect "$RUNNER_TEMP/normal-restore.expect" "$BACKUP_DIR"
+
+          sudo python3 - "$DB" <<'PY'
+          import sqlite3, sys
+          connection = sqlite3.connect(sys.argv[1], timeout=30)
+          try:
+              marker = connection.execute(
+                  "SELECT name FROM sqlite_master WHERE type='table' AND name='nivus_ci_restore_probe'"
+              ).fetchone()
+              if marker:
+                  raise SystemExit("normal restore did not replace the post-snapshot CI marker")
+          finally:
+              connection.close()
+          PY
 
           sudo systemctl is-active --quiet "$TELEMETRY_UNIT"
           for service in api worker mqtt web; do
