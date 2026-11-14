@@ -87,8 +87,10 @@ cat > "$TEST_DIR/bin/curl" <<'EOF_CURL'
 for argument in "$@"; do
   case "$argument" in
     */health)
-      echo 'Falha de health simulada apenas para validar o rollback em VM.' >&2
-      exit 22
+      if [[ "${NIVUS_RESTORE_PHASE:-restore}" != rollback ]]; then
+        echo 'Falha de health simulada apenas para validar o rollback em VM.' >&2
+        exit 22
+      fi
       ;;
   esac
 done

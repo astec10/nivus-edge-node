@@ -9,6 +9,10 @@ O operador relata que a VM VirtualBox `testev1` trava ao tentar alterar configur
 
 Para facilitar uma tentativa limpa, `deploy/windows/New-NivusTestVm.ps1` cria uma VM adicional, sem apagar ou alterar `testev1`: Ubuntu Server 24.04.5 amd64 com SHA-256 conferido, até 2 vCPUs, RAM ajustada à memória física do host, disco virtual dinâmico de 32 GB, 16 MB de vídeo e SSH NAT limitado ao loopback do Windows. O script recusa iniciar com outra VM rodando ou sem RAM livre suficiente. O script e o roteiro foram preparados para revisão; ainda não foram executados no VirtualBox do operador. A instalação limpa, reboot, backup e restore continuam pendentes.
 
+## Revalidação do host e da rotina de rollback (14/11/2026, 03:30 UTC)
+
+Checagem somente leitura via SSH confirmou `nivus-compose-telemetry.service` ativo, zero reinícios, quatro containers candidatos em execução, health HTTPS 200 e API sem token 401. Os helpers `restore.sh` e `test-restore-rollback.sh` ainda não estão em `/opt/nivus-compose/current`; `sudo -n` não tem autorização para ler backups root, e nenhum backup foi aberto ou alterado. Os scripts revisados foram copiados somente para `/tmp/nivus-restore-review`; `bash -n` e `--help` passaram após endurecer a verificação de health do rollback. A integração de restore/rollback ainda depende da nova VM descartável.
+
 ## Revalidação ao vivo (13/11/2026, 21:15 UTC)
 
 Checagem somente leitura via SSH no notebook de teste:
@@ -36,9 +40,9 @@ A revalidação do host registrou Ubuntu 26.04.1 LTS, x86_64, 2 vCPUs, 3,2 GiB d
 
 ## Procedimento de restauração implementado (13/11/2026, 22:33 UTC)
 
-`deploy/restore.sh` foi criado para restauração no mesmo host. `--check` valida a origem/SQLite sem parar serviços. A execução interativa exige digitar `RESTORE`, requer a stack ativa, faz backup consistente prévio, para o coletor e os escritores, faz checkpoint/quarentena WAL/SHM, substitui o SQLite atomicamente e confere health/401. O trap tenta restaurar a cópia prévia se a troca ou validação falhar; `.env` e segredos atuais permanecem intactos.
+`deploy/restore.sh` foi criado para restauração no mesmo host. `--check` valida a origem/SQLite sem parar serviços. A execução interativa exige digitar `RESTORE`, requer a stack ativa, faz backup consistente prévio, para o coletor e os escritores, faz checkpoint/quarentena WAL/SHM, substitui o SQLite atomicamente e confere health/401. O trap tenta restaurar a cópia prévia se a troca ou validação falhar e agora só declara o rollback recuperado depois de validar SQLite, todos os containers, coletor, HTTPS 200 e API 401; `.env` e segredos atuais permanecem intactos.
 
-No Ubuntu do notebook, bash -n passou para backup.sh e restore.sh, e restore.sh --help foi conferido em staging. Uma fixture isolada exercitou snapshot SQLite, troca atômica, quarentena de sidecars e rollback. backup.sh cria diretórios exclusivos mesmo quando backups ocorrem no mesmo segundo. Os arquivos continuam apenas em staging de revisão: nada foi instalado em /opt/nivus-compose/current nem executado contra o banco ativo. Faltam --check e o teste integrado de restore/rollback em clone descartável/VM.
+No Ubuntu do notebook, a checagem de 14/11 repetiu `bash -n` em `backup.sh`, `restore.sh` e `test-restore-rollback.sh`, além de `--help`; uma fixture isolada anterior exercitou snapshot SQLite, troca atômica, quarentena de sidecars e rollback. `backup.sh` cria diretórios exclusivos mesmo quando backups ocorrem no mesmo segundo. Os arquivos continuam somente em staging (`/tmp/nivus-restore-review`): nada foi instalado em `/opt/nivus-compose/current` nem executado contra o banco ativo. Faltam `--check` e o teste integrado de restore/rollback em clone descartável/VM.
 
 
 ## Verificador de rollback para a VM (13/11/2026, 22:47 UTC)

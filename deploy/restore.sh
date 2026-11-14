@@ -118,6 +118,21 @@ start_writers() {
   systemctl start "$TELEMETRY_UNIT"
 }
 
+verify_runtime() {
+  systemctl is-active --quiet "$TELEMETRY_UNIT" || return 1
+  for service in api worker mqtt web; do
+    local container_id
+    container_id=$(cd "$APP" && docker compose ps -q "$service") || return 1
+    [[ -n "$container_id" ]] || return 1
+    [[ $(docker inspect -f '{{.State.Running}}' "$container_id") == true ]] || return 1
+  done
+  curl -kfsS --connect-timeout 2 --max-time 4 "https://127.0.0.1:$HTTPS_PORT/health" >/dev/null || return 1
+  local auth_status
+  auth_status=$(curl -k -sS --connect-timeout 2 --max-time 4 -o /dev/null -w '%{http_code}' "https://127.0.0.1:$HTTPS_PORT/api/telemetry") || return 1
+  [[ "$auth_status" == 401 ]] || return 1
+  (cd "$APP" && docker compose exec -T api python -c 'import sqlite3; c=sqlite3.connect("file:/data/nivus.db?mode=ro", uri=True); r=c.execute("PRAGMA quick_check").fetchall(); assert r and all(x[0] == "ok" for x in r); c.close()') || return 1
+}
+
 quarantine_sidecars() {
   local destination="$1"
   install -d -m 700 "$destination"
@@ -155,9 +170,14 @@ rollback_on_exit() {
     fi
   fi
   if (( rollback_status == 0 )); then start_writers || rollback_status=$?; fi
+  if (( rollback_status == 0 )); then
+    export NIVUS_RESTORE_PHASE=rollback
+    verify_runtime || rollback_status=$?
+    unset NIVUS_RESTORE_PHASE
+  fi
   if [[ -n "$TEMP_DB" && -e "$TEMP_DB" ]]; then rm -f -- "$TEMP_DB"; fi
   if (( rollback_status != 0 )); then
-    echo "ERRO: o rollback automático não conseguiu restaurar todos os serviços." >&2
+    echo "ERRO: a base anterior foi preservada, mas o rollback não passou na verificação completa de health e serviços." >&2
     [[ -n "$PRE_RESTORE_DIR" ]] && printf 'Backup anterior preservado em: %s\n' "$PRE_RESTORE_DIR" >&2
   else
     echo "Restauração falhou; base anterior e serviços foram recuperados." >&2

@@ -47,7 +47,7 @@ Primeiro liste os diretórios de backup e valide a cópia desejada sem parar ser
     BACKUP_DIR=/var/backups/nivus-compose/20261113T000000Z-XXXXXX
     sudo bash /opt/nivus-compose/current/deploy/restore.sh --check "$BACKUP_DIR"
 
-Para restaurar, rode `sudo bash /opt/nivus-compose/current/deploy/restore.sh "$BACKUP_DIR"` e digite `RESTORE` no terminal. O script exige que os quatro containers e o coletor estejam ativos, para antes os escritores da base, cria automaticamente outro backup consistente, preserva os sidecars WAL/SHM, instala a base de forma atômica, reinicia os escritores e verifica SQLite, HTTPS e `401` sem token. Se uma etapa falhar após trocar a base, tenta recuperar a cópia pré-restore e reinicia os serviços. O diretório pré-restore é mantido para recuperação manual.
+Para restaurar, rode `sudo bash /opt/nivus-compose/current/deploy/restore.sh "$BACKUP_DIR"` e digite `RESTORE` no terminal. O script exige que os quatro containers e o coletor estejam ativos, para antes os escritores da base, cria automaticamente outro backup consistente, preserva os sidecars WAL/SHM, instala a base de forma atômica, reinicia os escritores e verifica SQLite, HTTPS e `401` sem token. Se uma etapa falhar após trocar a base, tenta recuperar a cópia pré-restore e só informa recuperação concluída depois de verificar o banco, os quatro containers, o coletor, health HTTPS e `401`. O diretório pré-restore é mantido para recuperação manual; se a verificação do rollback falhar, o script informa a falha em vez de afirmar que o serviço recuperou.
 
 Para comprovar o caminho de falha e rollback automático, use somente numa VM descartável depois de criar um backup e deixar a telemetria avançar:
 
