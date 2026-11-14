@@ -12,13 +12,15 @@ Este roteiro valida uma instalação independente do Nivus Compose. A VM deve se
 
 O operador confirmou uma VM `testev1` com Ubuntu 26.04.1 LTS amd64, 4 vCPUs, 8 GB de RAM, filesystem raiz de cerca de 24,44 GB e 16 MB de memória de vídeo virtual. O vídeo é o adaptador de exibição, não VRAM para inferência. O operador relata que a VM trava ao tentar alterar configurações; numa sessão anterior o console também exibiu mensagens de watchdog/soft-lockup/RCU. Não instale o Nivus nela até resolver a estabilidade. Nenhum Nivus foi instalado nessa VM.
 
-Para repetir o teste num ambiente previsível, o repositório fornece `deploy/windows/New-NivusTestVm.ps1`. Ele cria uma VM separada chamada `nivus-test-clean`, usa Ubuntu Server 24.04.5 LTS amd64, confere o SHA-256 oficial da ISO, atribui no máximo 2 vCPUs e ajusta a RAM conforme o host, cria um VDI dinâmico de 32 GB, mantém 16 MB de vídeo sem aceleração 3D e encaminha SSH somente por `127.0.0.1:2223`. Antes de criar a VM, recusa se outra VM estiver em execução, a porta SSH estiver ocupada ou a RAM livre no Windows for insuficiente. O script não altera nem apaga `testev1` ou outras VMs. Ainda não foi executado no computador do operador.
+Para repetir o teste num ambiente previsível, o repositório fornece `deploy/windows/New-NivusTestVm.ps1`. Ele cria uma VM separada chamada `nivus-test-clean`, usa Ubuntu Server 24.04.5 LTS amd64, baixa a ISO oficial se ela ainda não existir e confere o SHA-256 antes de criar a VM. Atribui no máximo 2 vCPUs e ajusta a RAM conforme o host, cria um VDI dinâmico de 32 GB, mantém 16 MB de vídeo sem aceleração 3D e encaminha SSH somente por `127.0.0.1:2223`. Antes do download/criação, recusa se outra VM estiver em execução, a porta SSH estiver ocupada ou a RAM/disco livre forem insuficientes. O script não altera nem apaga `testev1` ou outras VMs. Ainda não foi executado no computador do operador.
 
-Baixe [Ubuntu Server 24.04.5 LTS amd64](https://releases.ubuntu.com/24.04/ubuntu-24.04.5-live-server-amd64.iso) e, no PowerShell aberto na raiz do repositório, execute:
+No PowerShell aberto na raiz do repositório, execute o script. Se a ISO ainda não estiver em Downloads, ele baixa cerca de 3,8 GB do servidor oficial e verifica o hash antes de iniciar o VirtualBox:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\deploy\windows\New-NivusTestVm.ps1 -IsoPath "$env:USERPROFILE\Downloads\ubuntu-24.04.5-live-server-amd64.iso"
+powershell -ExecutionPolicy Bypass -File .\deploy\windows\New-NivusTestVm.ps1
 ```
+
+O download também está disponível no site oficial do [Ubuntu Server 24.04.5 LTS amd64](https://releases.ubuntu.com/24.04/ubuntu-24.04.5-live-server-amd64.iso). Para usar uma ISO já salva em outro caminho, informe `-IsoPath "C:\caminho\ubuntu-24.04.5-live-server-amd64.iso"`.
 
 O `ExecutionPolicy Bypass` vale apenas para essa execução e não altera a política global do Windows. No instalador, escolha o disco virtual de 32 GB, Ubuntu Server minimal e a opção **OpenSSH server**; crie credenciais somente para a VM e não as compartilhe. Depois do primeiro boot, faça um snapshot no VirtualBox antes de instalar o Nivus.
 

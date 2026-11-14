@@ -1,7 +1,6 @@
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory = $true)]
-    [string]$IsoPath,
+    [string]$IsoPath = (Join-Path $env:USERPROFILE 'Downloads\ubuntu-24.04.5-live-server-amd64.iso'),
 
     [string]$VmName = 'nivus-test-clean',
 
@@ -15,20 +14,11 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $expectedIsoName = 'ubuntu-24.04.5-live-server-amd64.iso'
+$isoUrl = 'https://releases.ubuntu.com/24.04/ubuntu-24.04.5-live-server-amd64.iso'
 $expectedIsoSha256 = '97f3d7ffb032c3eb3b23d2c8be9cc76e60c2c1f2c0146ba5ba9fe01cafae0fd8'
 
 if ($VmName -notmatch '^[A-Za-z0-9._-]+$') {
     throw 'Use um nome de VM com letras, números, ponto, hífen ou sublinhado.'
-}
-
-$iso = (Resolve-Path -LiteralPath $IsoPath).Path
-if ([IO.Path]::GetFileName($iso) -ne $expectedIsoName) {
-    throw "Use a ISO oficial $expectedIsoName."
-}
-
-$actualIsoSha256 = (Get-FileHash -LiteralPath $iso -Algorithm SHA256).Hash.ToLowerInvariant()
-if ($actualIsoSha256 -ne $expectedIsoSha256) {
-    throw 'O SHA-256 da ISO não corresponde ao publicado pelo Ubuntu. A VM não foi criada.'
 }
 
 $vbox = Get-Command VBoxManage.exe -ErrorAction SilentlyContinue
@@ -108,8 +98,56 @@ if ($volume -and $volume.FreeSpace -lt 15GB) {
     throw 'O disco do host tem menos de 15 GB livres. Libere espaço antes de criar a VM.'
 }
 
+$iso = [IO.Path]::GetFullPath($IsoPath)
+if ([IO.Path]::GetFileName($iso) -ne $expectedIsoName) {
+    throw "Use a ISO oficial $expectedIsoName."
+}
+$isoFolder = Split-Path -Parent $iso
+New-Item -ItemType Directory -Force -Path $isoFolder | Out-Null
+$isoRoot = [IO.Path]::GetPathRoot($iso)
+$isoDriveId = $isoRoot.TrimEnd('\')
+$isoVolume = Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='$isoDriveId'"
+if ($isoVolume -and $isoVolume.FreeSpace -lt 5GB) {
+    throw 'O disco escolhido para a ISO precisa de pelo menos 5 GB livres.'
+}
+
+if (Test-Path -LiteralPath $iso -PathType Leaf) {
+    $actualIsoSha256 = (Get-FileHash -LiteralPath $iso -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($actualIsoSha256 -ne $expectedIsoSha256) {
+        throw 'A ISO já existe, mas o SHA-256 não confere. Ela foi preservada; corrija ou renomeie o arquivo antes de tentar novamente.'
+    }
+} else {
+    $partialIso = "$iso.partial"
+    if (Test-Path -LiteralPath $partialIso) {
+        throw "Download parcial já existe em $partialIso. Confira e remova esse arquivo antes de tentar novamente."
+    }
+    Write-Host "Baixando a ISO oficial (~3,8 GB) para $iso; o download pode levar algum tempo."
+    try {
+        $bitsTransfer = Get-Command Start-BitsTransfer -ErrorAction SilentlyContinue
+        if ($bitsTransfer) {
+            Start-BitsTransfer -Source $isoUrl -Destination $partialIso -ErrorAction Stop
+        } else {
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            $webClient = New-Object Net.WebClient
+            try { $webClient.DownloadFile($isoUrl, $partialIso) }
+            finally { $webClient.Dispose() }
+        }
+        $downloadSha256 = (Get-FileHash -LiteralPath $partialIso -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($downloadSha256 -ne $expectedIsoSha256) {
+            throw 'O SHA-256 do download não confere com o Ubuntu.'
+        }
+        Move-Item -LiteralPath $partialIso -Destination $iso
+        $actualIsoSha256 = $downloadSha256
+    } catch {
+        if (Test-Path -LiteralPath $partialIso) {
+            Remove-Item -LiteralPath $partialIso -Force -ErrorAction SilentlyContinue
+        }
+        throw "Falha ao baixar/verificar a ISO; nenhuma VM foi criada. $($_.Exception.Message)"
+    }
+}
+
 Write-Host "VM nova: $VmName"
-Write-Host "Ubuntu ISO: $expectedIsoName (SHA-256 conferido)"
+Write-Host "Ubuntu ISO: $expectedIsoName (SHA-256 $actualIsoSha256 conferido)"
 Write-Host "Recursos calculados para o host: $cpuCount vCPU, $memoryMB MB RAM, VDI dinâmico de 32 GB"
 Write-Host "SSH limitado ao host Windows: 127.0.0.1:$SshHostPort -> guest:22"
 Write-Host 'A VM existente testev1 e o notebook Nivus não serão alterados.'
