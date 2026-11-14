@@ -1,5 +1,4 @@
 import json
-import math
 import os
 import time
 from pathlib import Path
@@ -23,28 +22,7 @@ def _mqtt_password():
     return os.environ.get("NIVUS_MQTT_PASSWORD")
 TOPIC = os.environ.get("NIVUS_TELEMETRY_TOPIC", "nivus/edge/telemetry")
 NODE_NAME = os.environ.get("NIVUS_NODE_NAME", "nivus-edge-node")
-_temperature_warning_logged = False
-
-
-def get_cpu_temperature():
-    global _temperature_warning_logged
-    try:
-        sensors = psutil.sensors_temperatures()
-        for entries in sensors.values():
-            for entry in entries:
-                current = entry.current
-                if current is not None and math.isfinite(current):
-                    return round(current, 1)
-        with open("/sys/class/thermal/thermal_zone0/temp", "r", encoding="ascii") as stream:
-            current = int(stream.read().strip()) / 1000.0
-            if math.isfinite(current) and -40 <= current <= 150:
-                return round(current, 1)
-    except (OSError, ValueError, AttributeError):
-        pass
-    if not _temperature_warning_logged:
-        print("Sensor de temperatura indisponível; enviando N/A, sem inventar leitura.")
-        _temperature_warning_logged = True
-    return None
+from hardware_sensors import get_thermal_metrics
 
 
 def estimate_power_consumption_watts(cpu_percent):
@@ -75,7 +53,7 @@ def main():
                 "cpu_percent": cpu,
                 "memory_percent": psutil.virtual_memory().percent,
                 "disk_percent": psutil.disk_usage(DISK_PATH).percent,
-                "temperature": get_cpu_temperature(),
+                **get_thermal_metrics(),
                 "power_consumption": estimate_power_consumption_watts(cpu),
             }
             info = client.publish(TOPIC, json.dumps(payload), qos=1)

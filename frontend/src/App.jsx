@@ -120,6 +120,7 @@ function App() {
       
       const formattedData = telRes.data.map(item => ({
         ...item,
+        temperature: item.temperature_source ? item.temperature : null,
         time: new Date(item.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
       }));
 

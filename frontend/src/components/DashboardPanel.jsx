@@ -2,6 +2,10 @@ import React from 'react';
 import { Activity, Zap, Settings, Terminal } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
+const formatTemperature = (value) => (
+  typeof value === 'number' && Number.isFinite(value) ? `${value.toFixed(1)}°C` : 'N/D'
+);
+
 export default function DashboardPanel({ activeTab, error, latest, settings, setSettings, isAdmin, handleUpdateSetting, telemetry, controlMode, setControlMode, relayState, handleRelayToggle, systemLogs }) {
   return (
     <>
@@ -23,8 +27,29 @@ export default function DashboardPanel({ activeTab, error, latest, settings, set
               <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{latest ? `${latest.disk_percent}%` : 'N/A'}</div>
             </div>
             <div style={{ backgroundColor: '#1e293b', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
-              <span style={{ color: '#94a3b8' }}>Temperatura</span>
-              <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{latest ? `${latest.temperature}°C` : 'N/A'}</div>
+              <span style={{ color: '#94a3b8' }}>CPU / APU</span>
+              <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>
+                {formatTemperature(latest?.temperature_source ? latest.temperature : null)}
+              </div>
+              <small style={{ color: '#94a3b8' }}>{latest?.temperature_source || 'Fonte não identificada'}</small>
+            </div>
+            <div style={{ backgroundColor: '#1e293b', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
+              <span style={{ color: '#94a3b8' }}>Placa-mãe</span>
+              <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>
+                {formatTemperature(latest?.motherboard_temperature)}
+              </div>
+              <small style={{ color: '#94a3b8' }}>
+                {latest?.motherboard_temperature == null ? 'Sensor não exposto pelo SO/driver' : 'Leitura disponível'}
+              </small>
+            </div>
+            <div style={{ backgroundColor: '#1e293b', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
+              <span style={{ color: '#94a3b8' }}>GPU</span>
+              <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>
+                {formatTemperature(latest?.gpu_temperature)}
+              </div>
+              <small style={{ color: '#94a3b8' }}>
+                {latest?.gpu_temperature == null ? 'Sensor não exposto pelo SO/driver' : 'Leitura disponível'}
+              </small>
             </div>
             <div style={{ backgroundColor: '#1e293b', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
               <span style={{ color: '#94a3b8' }}>Energia</span>

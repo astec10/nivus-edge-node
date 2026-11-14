@@ -50,6 +50,17 @@ def on_message(client, userdata, msg):
         memory = _number(payload, "memory_percent", 0, 100)
         disk = _number(payload, "disk_percent", 0, 100)
         temperature = _number(payload, "temperature", -40, 150, nullable=True)
+        temperature_source = payload.get("temperature_source")
+        if temperature_source is not None and (
+            not isinstance(temperature_source, str)
+            or len(temperature_source) > 128
+            or any(ord(character) < 32 for character in temperature_source)
+        ):
+            raise ValueError("temperature_source")
+        motherboard_temperature = _number(
+            payload, "motherboard_temperature", -40, 150, nullable=True
+        )
+        gpu_temperature = _number(payload, "gpu_temperature", -40, 150, nullable=True)
         power = _number(payload, "power_consumption", 0, 1000, nullable=True)
 
         conn = get_db_connection()
@@ -60,9 +71,21 @@ def on_message(client, userdata, msg):
         previous = cursor.fetchone()
         cursor.execute(
             """INSERT INTO telemetry
-               (node, timestamp, cpu_percent, memory_percent, disk_percent, temperature, power_consumption)
-               VALUES (?, ?, ?, ?, ?, ?, ?)""",
-            (node, timestamp, cpu, memory, disk, temperature, power),
+               (node, timestamp, cpu_percent, memory_percent, disk_percent, temperature,
+                temperature_source, motherboard_temperature, gpu_temperature, power_consumption)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                node,
+                timestamp,
+                cpu,
+                memory,
+                disk,
+                temperature,
+                temperature_source,
+                motherboard_temperature,
+                gpu_temperature,
+                power,
+            ),
         )
         telemetry_id = cursor.lastrowid
 

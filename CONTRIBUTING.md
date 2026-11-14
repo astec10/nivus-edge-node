@@ -56,7 +56,7 @@ Use as ferramentas disponíveis na área alterada e informe exatamente o que exe
 - Compose: `docker compose config --quiet`, build e o smoke test isolado descrito em `deploy/README.md`.
 - Segurança: confira que rotas sensíveis exigem autenticação e papel correto; não imprima senhas, JWTs, cookies, `.env` ou conteúdo de banco nos logs.
 - Persistência: confirme que o banco e a configuração sobrevivem a recriação do container; documente backup, restauração e rollback.
-- Hardware: declare modelo, versão do Ubuntu, arquitetura, memória, portas e periféricos testados. Uma validação no CCE U25 não prova suporte a qualquer computador x86_64.
+- Hardware: declare modelo, versão do Ubuntu, arquitetura, memória e driver/label dos sensores. Não classifique zona ACPI genérica como CPU; sensor ausente ou ambíguo permanece nulo e aparece como N/D. Consulte [docs/HARDWARE_TELEMETRY.md](docs/HARDWARE_TELEMETRY.md). Uma validação no CCE U25 não prova suporte a qualquer computador x86_64.
 
 Não declare testes, build, deploy ou validação que não tenha executado. Se algo não pôde ser testado, registre como pendente.
 

@@ -52,10 +52,13 @@ O roteiro detalhado para contribuições está em [CONTRIBUTING.md](CONTRIBUTING
 | `backend/security.py` | Hash de senha, JWT e validações de segurança |
 | `backend/services/` e `backend/mqtt_worker.py` | Publicação MQTT e processamento de eventos |
 | `telemetry/agent.py` | Amostras de recursos do host e envio MQTT |
+| `telemetry/hardware_sensors.py` | Classificação de temperaturas CPU/APU, placa-mãe e GPU |
 | `frontend/src/components/` | Login e componentes visuais do dashboard |
 | `deploy/` | Compose, Nginx, Mosquitto, instalador candidato e operações |
 | `docs/` | Visão, arquitetura, decisões, configuração, roadmap e status |
 | `PROGRESS.html` | Página estática dos marcos; não lê a telemetria do host |
+
+A semântica, origem e limites das leituras térmicas estão em [docs/HARDWARE_TELEMETRY.md](docs/HARDWARE_TELEMETRY.md).
 
 ## Instalação e execução
 

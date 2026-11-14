@@ -3,6 +3,10 @@
 Atualizado: 2026-11-14 15:03 UTC
 Licença escolhida: AGPL-3.0-only
 
+## Correção de leitura térmica em revisão (14/11/2026)
+
+A análise do CCE U25 encontrou a causa da temperatura aparentemente fixa: o coletor anterior escolhia a primeira leitura de psutil, que era uma zona ACPI genérica (~29,8 °C), enquanto coretemp mostrava o pacote do Celeron 847 (~55 °C; chegou a ~61 °C sob carga curta). A proposta em revisão separa CPU/APU, placa-mãe e GPU, guarda driver/label da CPU e mantém sensores ambíguos ou indisponíveis como nulos. Neste host, placa-mãe e GPU não foram expostas pelo SO/driver e devem aparecer como N/D. O código ainda não está aplicado no notebook e esta observação não comprova suporte universal.
+
 ## CI Ubuntu 22.04 aprovada (14/11/2026, 15:00 UTC)
 
 O primeiro workflow público do GitHub Actions passou no [PR #1](https://github.com/astec10/nivus-edge-node/actions/runs/43607798466), usando runner Ubuntu 22.04.5 amd64. Sintaxe Bash/Python, validação Compose, build das imagens e smoke isolado passaram: painel/asset e health HTTPS responderam, telemetria sem token retornou 401, uma publicação MQTT chegou ao SQLite e `PRAGMA quick_check` retornou `ok`. Os containers mostraram cerca de 67 MiB agregados numa leitura instantânea (API 40,53; worker 17,36; MQTT 2,89; web 6,17 MiB); isso não é benchmark sustentado nem define RAM mínima.

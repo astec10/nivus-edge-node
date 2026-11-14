@@ -29,6 +29,9 @@ def init_db():
                 memory_percent REAL,
                 disk_percent REAL,
                 temperature REAL,
+                temperature_source TEXT,
+                motherboard_temperature REAL,
+                gpu_temperature REAL,
                 power_consumption REAL
             );
             CREATE TABLE IF NOT EXISTS actuator_audit (
@@ -68,6 +71,16 @@ def init_db():
         }
         if "telemetry_id" not in alert_columns:
             conn.execute("ALTER TABLE alerts_history ADD COLUMN telemetry_id INTEGER")
+        telemetry_columns = {
+            row["name"] for row in conn.execute("PRAGMA table_info(telemetry)")
+        }
+        for column, definition in (
+            ("temperature_source", "TEXT"),
+            ("motherboard_temperature", "REAL"),
+            ("gpu_temperature", "REAL"),
+        ):
+            if column not in telemetry_columns:
+                conn.execute(f"ALTER TABLE telemetry ADD COLUMN {column} {definition}")
         conn.execute(
             "CREATE UNIQUE INDEX IF NOT EXISTS uq_alert_telemetry_type "
             "ON alerts_history(telemetry_id, alert_type) WHERE telemetry_id IS NOT NULL"
