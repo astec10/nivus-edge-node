@@ -2,6 +2,8 @@
 
 Este roteiro valida uma instalação independente do Nivus Compose. A VM deve ser descartável e isolada; não execute os passos de instalação em um host com dados importantes.
 
+Para cada alteração de software, o workflow [Ubuntu VM validation](../.github/workflows/ubuntu-ci.yml) executa automaticamente checks e uma integração Compose numa VM Ubuntu 22.04 amd64 recém-criada ([documentação dos runners hospedados](https://docs.github.com/en/actions/how-tos/write-workflows/choose-where-workflows-run/choose-the-runner-for-a-job)). Esse fluxo reduz testes manuais repetidos, mas não substitui este roteiro para reboot/restauração nem a qualificação das seis plataformas físicas Intel/AMD descritas em [`TEST_STRATEGY.md`](TEST_STRATEGY.md). A VM local continua útil para depurar falhas de instalação, restaurar snapshots e medir um perfil específico; não é necessário criar uma VM para cada modelo de computador.
+
 ## 1. Preparar a VM
 
 - Ubuntu Server 22.04 LTS ou posterior, `amd64`/`x86_64`, com `systemd` 247 ou posterior.

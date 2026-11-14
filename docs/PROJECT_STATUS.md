@@ -1,7 +1,13 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-14 04:46 UTC
+Atualizado: 2026-11-14 15:03 UTC
 Licença escolhida: AGPL-3.0-only
+
+## CI Ubuntu 22.04 aprovada (14/11/2026, 15:00 UTC)
+
+O primeiro workflow público do GitHub Actions passou no [PR #1](https://github.com/astec10/nivus-edge-node/actions/runs/43607798466), usando runner Ubuntu 22.04.5 amd64. Sintaxe Bash/Python, validação Compose, build das imagens e smoke isolado passaram: painel/asset e health HTTPS responderam, telemetria sem token retornou 401, uma publicação MQTT chegou ao SQLite e `PRAGMA quick_check` retornou `ok`. Os containers mostraram cerca de 67 MiB agregados numa leitura instantânea (API 40,53; worker 17,36; MQTT 2,89; web 6,17 MiB); isso não é benchmark sustentado nem define RAM mínima.
+
+A CI prova o caminho de software no runner Linux virtual. Não valida BIOS, chipset, NIC, armazenamento, periféricos ou desempenho sustentado. A compatibilidade física planejada é uma amostra de seis computadores: Intel e AMD, cada um em três faixas de geração (antiga, intermediária e recente). A instalação limpa, reboot e teste completo de backup/restore/rollback na VM Hyper-V local continuam pendentes.
 
 ## Comparador de rollback exercitado e VM limpa preparada (14/11/2026, 04:46 UTC)
 

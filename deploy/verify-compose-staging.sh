@@ -142,9 +142,13 @@ done
 echo "sqlite_check_and_sample=$DB_RESULT"
 echo '===CANDIDATE_CONTAINER_RESOURCES==='
 docker stats --no-stream --format '{{.Name}} {{.MemUsage}} {{.CPUPerc}}' "$API_ID" "$MQTT_ID" "$WORKER_ID" "$WEB_ID"
-echo '===EXISTING_SERVICES_DURING_SMOKE==='
-systemctl is-active nivus-api nivus-worker nivus-telemetry
-curl -fsS --max-time 3 http://127.0.0.1:8000/health
-echo
-docker ps --filter name=^/nivus-mosquitto$ --format '{{.Names}} {{.Status}}'
+if [[ "${NIVUS_STAGING_REQUIRE_LEGACY_HOST:-1}" == "1" ]]; then
+  echo '===EXISTING_SERVICES_DURING_SMOKE==='
+  systemctl is-active nivus-api nivus-worker nivus-telemetry
+  curl -fsS --max-time 3 http://127.0.0.1:8000/health
+  echo
+  docker ps --filter name=^/nivus-mosquitto$ --format '{{.Names}} {{.Status}}'
+else
+  echo 'legacy_host_checks=skipped (isolated disposable runner)'
+fi
 echo 'COMPOSE_SMOKE=passed'
