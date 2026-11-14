@@ -53,7 +53,7 @@ Para comprovar o caminho de falha e rollback automático, use somente numa VM de
 
     sudo bash /opt/nivus-compose/current/deploy/test-restore-rollback.sh --i-understand-this-is-a-disposable-vm "$BACKUP_DIR"
 
-O teste recusa execução fora de uma VM, cria um backup de segurança e exige confirmações digitadas. Ele provoca uma falha de health após substituir temporariamente o SQLite; o health falso dura até 45 segundos. Resultado esperado: a restauração informa a falha simulada, recupera automaticamente o banco anterior e termina com health 200, telemetria sem token 401, SQLite íntegro e serviços ativos. O backup de segurança e o log são mantidos sob `/var/backups/nivus-compose`. Escolha um backup mais antigo cuja contagem de telemetria seja menor que a atual; o teste cancela antes da troca se não houver essa diferença.
+O teste recusa execução fora de uma VM, cria um backup de segurança e exige confirmações digitadas. Ele provoca uma falha de health após substituir temporariamente o SQLite; o health falso dura até 45 segundos. Resultado esperado: a restauração informa a falha simulada, recupera automaticamente o banco anterior e termina com health 200, telemetria sem token 401, SQLite íntegro e serviços ativos. O comparador verifica o esquema SQLite e os dados: todas as linhas anteriores devem continuar, e telemetria nova pode permanecer. O backup de segurança e o log são mantidos sob `/var/backups/nivus-compose`. Escolha um backup mais antigo cuja contagem de telemetria seja menor que a atual; o teste cancela antes da troca se não houver essa diferença.
 
 Teste restauração apenas numa VM descartável ou clone, depois de snapshot. A rotina ainda requer validação ponta a ponta numa instalação limpa antes de ser considerada pronta para produção.
 
@@ -87,3 +87,4 @@ Em 13/11/2026, no Ubuntu 26.04.1 LTS x86_64 com 2 vCPUs e 3,2 GiB de RAM, três 
 - A versão React modular passou em smoke test e foi ativada no Nginx do host de teste usando um script privado de backup/rollback. A troca da interface de outra instalação precisa de procedimento próprio para os caminhos daquele host.
 
 Esta árvore continua sendo uma candidata para revisão, não um release de produção.
+
