@@ -110,7 +110,7 @@ jobs:
               send -- "nivus-ci-admin\r"
               exp_continue
             }
-            -re {Senha .*caracteres:} {
+            -re {Senha .*caracteres\):} {
               send -- "$env(NIVUS_CI_ADMIN_PASSWORD)\r"
               exp_continue
             }
