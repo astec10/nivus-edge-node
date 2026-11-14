@@ -70,3 +70,153 @@ jobs:
           NIVUS_STAGING_REQUIRE_LEGACY_HOST: "0"
         run: bash deploy/verify-compose-staging.sh
 
+  recovery-integration:
+    name: Install, backup and rollback on disposable Ubuntu VM
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Confirm isolated VM prerequisites
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          . /etc/os-release
+          [[ "$ID" == ubuntu && "$(uname -m)" == x86_64 ]]
+          systemctl --version
+          VIRT=$(systemd-detect-virt --vm 2>/dev/null || true)
+          [[ -n "$VIRT" && "$VIRT" != none ]]
+          printf 'Ubuntu=%s virtualization=%s\n' "$VERSION_ID" "$VIRT"
+          sudo systemctl is-active docker.service
+
+      - name: Install expect for terminal-only admin prompts
+        run: sudo apt-get update && sudo apt-get install -y expect
+
+      - name: Install Nivus in the disposable VM
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          NIVUS_CI_ADMIN_PASSWORD=$(openssl rand -hex 24)
+          echo "::add-mask::$NIVUS_CI_ADMIN_PASSWORD"
+          export NIVUS_CI_ADMIN_PASSWORD
+          cat > "$RUNNER_TEMP/install-nivus.expect" <<'EXPECT'
+          log_user 1
+          set timeout 2400
+          spawn sudo bash deploy/install.sh
+          expect {
+            -re {Nome do primeiro administrador:} {
+              send -- "nivus-ci-admin\r"
+              exp_continue
+            }
+            -re {Senha .*caracteres:} {
+              send -- "$env(NIVUS_CI_ADMIN_PASSWORD)\r"
+              exp_continue
+            }
+            -re {Confirme a senha:} {
+              send -- "$env(NIVUS_CI_ADMIN_PASSWORD)\r"
+              exp_continue
+            }
+            timeout { puts stderr "Timeout durante a instalação"; exit 124 }
+            eof
+          }
+          set result [wait]
+          exit [lindex $result 3]
+          EXPECT
+          expect "$RUNNER_TEMP/install-nivus.expect"
+          unset NIVUS_CI_ADMIN_PASSWORD
+
+      - name: Validate backup, forced rollback and normal restore
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          APP=/opt/nivus-compose/current
+          DB=/var/lib/nivus-compose/data/nivus.db
+          TELEMETRY_UNIT=nivus-compose-telemetry.service
+          HTTPS_PORT=$(sudo awk -F= '$1 == "NIVUS_HTTPS_PORT" {print $2; exit}' "$APP/.env")
+
+          read_count() {
+            sudo python3 - "$1" <<'PY'
+          from pathlib import Path
+          import sqlite3, sys
+          path = Path(sys.argv[1]).resolve()
+          connection = sqlite3.connect(path.as_uri() + "?mode=ro", uri=True, timeout=10)
+          try:
+              print(connection.execute("SELECT COUNT(*) FROM telemetry").fetchone()[0])
+          finally:
+              connection.close()
+          PY
+          }
+
+          for attempt in $(seq 1 90); do
+            CURRENT_COUNT=$(read_count "$DB")
+            if (( CURRENT_COUNT > 0 )); then break; fi
+            sleep 2
+          done
+          (( CURRENT_COUNT > 0 ))
+
+          BACKUP_OUTPUT=$(sudo bash "$APP/deploy/backup.sh")
+          printf '%s\n' "$BACKUP_OUTPUT"
+          BACKUP_DIR=$(sed -n 's/^Backup SQLite consistente e configuração salvos em //p' <<<"$BACKUP_OUTPUT")
+          [[ -d "$BACKUP_DIR" && -s "$BACKUP_DIR/nivus.sqlite3" ]]
+          sudo bash "$APP/deploy/restore.sh" --check "$BACKUP_DIR"
+          BACKUP_COUNT=$(read_count "$BACKUP_DIR/nivus.sqlite3")
+
+          ADVANCED=0
+          for attempt in $(seq 1 90); do
+            CURRENT_COUNT=$(read_count "$DB")
+            if (( CURRENT_COUNT > BACKUP_COUNT )); then ADVANCED=1; break; fi
+            sleep 2
+          done
+          (( ADVANCED == 1 ))
+
+          cat > "$RUNNER_TEMP/test-rollback.expect" <<'EXPECT'
+          log_user 1
+          set timeout 1800
+          set backup [lindex $argv 0]
+          spawn sudo bash /opt/nivus-compose/current/deploy/test-restore-rollback.sh --i-understand-this-is-a-disposable-vm $backup
+          expect {
+            -re {Digite VM-ROLLBACK-TEST:} { send -- "VM-ROLLBACK-TEST\r"; exp_continue }
+            -re {Digite RESTORE para continuar:} { send -- "RESTORE\r"; exp_continue }
+            timeout { puts stderr "Timeout durante o teste de rollback"; exit 124 }
+            eof
+          }
+          set result [wait]
+          exit [lindex $result 3]
+          EXPECT
+          expect "$RUNNER_TEMP/test-rollback.expect" "$BACKUP_DIR"
+
+          cat > "$RUNNER_TEMP/normal-restore.expect" <<'EXPECT'
+          log_user 1
+          set timeout 900
+          set backup [lindex $argv 0]
+          spawn sudo bash /opt/nivus-compose/current/deploy/restore.sh $backup
+          expect {
+            -re {Digite RESTORE para continuar:} { send -- "RESTORE\r"; exp_continue }
+            timeout { puts stderr "Timeout durante a restauração normal"; exit 124 }
+            eof
+          }
+          set result [wait]
+          exit [lindex $result 3]
+          EXPECT
+          expect "$RUNNER_TEMP/normal-restore.expect" "$BACKUP_DIR"
+
+          sudo systemctl is-active --quiet "$TELEMETRY_UNIT"
+          for service in api worker mqtt web; do
+            ID=$(sudo docker compose -f "$APP/docker-compose.yml" --env-file "$APP/.env" ps -q "$service")
+            [[ -n "$ID" && "$(sudo docker inspect -f '{{.State.Running}}' "$ID")" == true ]]
+          done
+          [[ "$(sudo curl -kfsS --max-time 5 "https://127.0.0.1:$HTTPS_PORT/health")" == *'"status":"ok"'* ]]
+          [[ "$(sudo curl -k -sS --max-time 5 -o /dev/null -w '%{http_code}' "https://127.0.0.1:$HTTPS_PORT/api/telemetry")" == 401 ]]
+          sudo docker compose -f "$APP/docker-compose.yml" --env-file "$APP/.env" exec -T api python -c 'import sqlite3; c=sqlite3.connect("file:/data/nivus.db?mode=ro", uri=True); r=c.execute("PRAGMA quick_check").fetchall(); assert r and all(x[0] == "ok" for x in r); c.close()'
+
+          RESTORED_COUNT=$(read_count "$DB")
+          ADVANCED=0
+          for attempt in $(seq 1 90); do
+            CURRENT_COUNT=$(read_count "$DB")
+            if (( CURRENT_COUNT > RESTORED_COUNT )); then ADVANCED=1; break; fi
+            sleep 2
+          done
+          (( ADVANCED == 1 ))
+          echo "RECOVERY_VM=passed rollback_and_normal_restore telemetry=$RESTORED_COUNT->$CURRENT_COUNT"
