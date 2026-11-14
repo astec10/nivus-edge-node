@@ -21,11 +21,13 @@ Foram criadas onze skills Codex em codex-skills/: uma coordenadora, quatro para 
 
 docs/AI_DEVELOPMENT_ORCHESTRATION.md registra a checagem das fontes oficiais de Hermes e OmniRoute. Os componentes documentam Discord, webhooks de GitHub/Jira, endpoint compatível com OpenAI e políticas de roteamento de modelos. Não foi confirmada a instalação específica mencionada por um comentarista do YouTube; o ciclo completo requer integração de ferramentas, controles de concorrência, sandbox, orçamento, retry e aprovação humana. Essa automação é uma opção de ferramenta de desenvolvimento externa ao runtime do Nivus e não altera o roadmap do nó de borda.
 
-## CI de recuperação e painel completo de marcos (14/11/2026, 15:34 UTC)
+## CI de recuperação e painel completo de marcos (2026-11-14 23:22:48 UTC)
 
-O PR #2 passou na execução Ubuntu 22.04 descartável (run 43651745341). A instalação limpa publicou telemetria no SQLite; o backup foi validado; o teste de health forçou a restauração automática e confirmou preservação dos dados, retorno de serviços, HTTPS 200, API sem token 401 e SQLite íntegro. A restauração normal também passou e a telemetria avançou de 1 para 2 registros. O smoke Compose/MQTT→SQLite e o teste dos filtros/botão de atualização do painel passaram. A correção inclui caminho de credencial compatível com systemd 249, verificação root do backup e scripts LF. Foram usados apenas runners descartáveis do GitHub; o notebook ativo não foi alterado.
+O [PR #2 passou na execução Ubuntu 22.04 descartável](https://github.com/astec10/nivus-edge-node/actions/runs/43652402829): instalação limpa, MQTT→SQLite, backup validado, falha de health forçada, rollback com preservação dos dados, restauração normal, HTTPS 200, API sem token 401, `PRAGMA quick_check` e telemetria retomada de 1 para 2 registros. O smoke da stack e o teste do painel também passaram. A execução usa runners descartáveis do GitHub e não alterou o notebook.
 
-O painel de staging agora apresenta 42 marcos até a primeira versão completa: 17 concluídos, um em execução, um aguardando e 23 planejados. O filtro anterior ocultava o atributo hidden porque a regra .item { display: grid } prevalecia no CSS; a regra explícita .item[hidden] corrige isso. O filtro “Aguardando” agora tem um marco correspondente. Os contadores, estados acessíveis, cinco filtros e o botão de atualização manual foram verificados num harness DOM Node que confirmou busca da página e do JavaScript. A versão corrigida ainda não foi publicada no notebook nem conferida no navegador desse host.
+O painel de staging apresenta 43 marcos até a primeira versão completa: 18 concluídos, um ativo (correção de telemetria térmica no PR #4), um aguardando (teste de instalação limpa na VM Hyper-V local) e 23 planejados. Os cinco filtros, contadores, estados acessíveis, busca e atualização manual foram verificados. O filtro oculto e o estado “Aguardando” foram corrigidos. Esta versão ainda não foi publicada no notebook nem verificada no navegador desse host.
+
+O PR #4 também passou no smoke Compose do [run 43652755033](https://github.com/astec10/nivus-edge-node/actions/runs/43652755033). A correção térmica continua em revisão e não foi implantada no notebook.
 
 ## CI Ubuntu 22.04 aprovada (14/11/2026, 15:00 UTC)
 
