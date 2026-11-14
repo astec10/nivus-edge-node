@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-14 23:10 UTC
+Atualizado: 2026-11-14 23:12 UTC
 Licença escolhida: AGPL-3.0-only
 
 ## Organização funcional e árvore de dependências (14/11/2026)
@@ -23,7 +23,7 @@ docs/AI_DEVELOPMENT_ORCHESTRATION.md registra a checagem das fontes oficiais de 
 
 ## CI de recuperação e painel completo de marcos (14/11/2026, 15:34 UTC)
 
-O PR #2 testa instalação limpa numa VM Ubuntu 22.04 descartável, backup SQLite, falha de health simulada, rollback e restauração normal. O smoke MQTT→SQLite passou. A última execução de recuperação instalou a stack, criou backup, chegou ao rollback forçado, preservou o conteúdo anterior e confirmou que telemetria continuou crescendo; falhou ao final porque um script continha CRLF e o Bash tentou executar uma linha vazia como comando. Também foi corrigida a checagem do diretório do backup, que é gravável apenas por root. Os scripts foram normalizados para LF e a CI recomeçou no commit mais recente; resultado ainda pendente. Só runners descartáveis do GitHub foram usados; o notebook ativo não foi alterado.
+O PR #2 passou na execução Ubuntu 22.04 descartável (run 43651745341). A instalação limpa publicou telemetria no SQLite; o backup foi validado; o teste de health forçou a restauração automática e confirmou preservação dos dados, retorno de serviços, HTTPS 200, API sem token 401 e SQLite íntegro. A restauração normal também passou e a telemetria avançou de 1 para 2 registros. O smoke Compose/MQTT→SQLite e o teste dos filtros/botão de atualização do painel passaram. A correção inclui caminho de credencial compatível com systemd 249, verificação root do backup e scripts LF. Foram usados apenas runners descartáveis do GitHub; o notebook ativo não foi alterado.
 
 O painel de staging agora apresenta 42 marcos até a primeira versão completa: 17 concluídos, um em execução, um aguardando e 23 planejados. O filtro anterior ocultava o atributo hidden porque a regra .item { display: grid } prevalecia no CSS; a regra explícita .item[hidden] corrige isso. O filtro “Aguardando” agora tem um marco correspondente. Os contadores, estados acessíveis, cinco filtros e o botão de atualização manual foram verificados num harness DOM Node que confirmou busca da página e do JavaScript. A versão corrigida ainda não foi publicada no notebook nem conferida no navegador desse host.
 
