@@ -10,7 +10,6 @@ Group=nivus-telemetry
 WorkingDirectory=/opt/nivus-compose/current
 EnvironmentFile=/etc/nivus-compose/telemetry.env
 LoadCredential=mqtt_agent_password:/etc/nivus-compose/secrets/mqtt_agent_password
-Environment=NIVUS_MQTT_PASSWORD_FILE=%d/mqtt_agent_password
 ExecStartPre=+/opt/nivus-compose/current/deploy/resolve-mqtt-endpoint.sh
 ExecStart=/opt/nivus-compose/current/deploy/start-telemetry.sh
 Restart=always

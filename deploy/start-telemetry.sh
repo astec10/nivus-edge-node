@@ -20,5 +20,11 @@ for octet in "$a" "$b" "$c" "$d"; do
   fi
 done
 
+if [[ -z "${CREDENTIALS_DIRECTORY:-}" || ! -r "$CREDENTIALS_DIRECTORY/mqtt_agent_password" ]]; then
+  echo "Credencial MQTT do coletor não está disponível pelo systemd." >&2
+  exit 1
+fi
+
 export NIVUS_MQTT_BROKER="$broker"
+export NIVUS_MQTT_PASSWORD_FILE="$CREDENTIALS_DIRECTORY/mqtt_agent_password"
 exec /opt/nivus-compose/venv/bin/python /opt/nivus-compose/current/telemetry/agent.py
