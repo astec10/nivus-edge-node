@@ -23,7 +23,7 @@ O instalador cria segredos em /etc/nivus-compose/secrets, um certificado TLS aut
 
 O navegador avisará que o certificado é autoassinado. Não exponha a instalação diretamente à Internet.
 
-O broker e os serviços que o usam ficam numa rede Docker interna. O coletor do host resolve o IP atual do broker por um `ExecStartPre` privilegiado e grava somente esse endereço em `/run`; a senha continua sendo entregue como credencial systemd ao processo sem privilégios. Não altere o agente para conectar a um `localhost`/porta publicada: redes `internal` não publicam a porta MQTT no host. O helper é executado a cada início do coletor para acompanhar a recriação do container.
+O broker e os serviços que o usam ficam numa rede Docker interna. O coletor do host resolve o IP atual do broker por um `ExecStartPre` privilegiado e grava somente esse endereço em `/run`. O processo principal lê e valida o arquivo depois do `ExecStartPre`, antes de iniciar o agente; a senha continua sendo entregue como credencial systemd ao processo sem privilégios. Não altere o agente para conectar a um `localhost`/porta publicada: redes `internal` não publicam a porta MQTT no host. O helper é executado a cada início do coletor para acompanhar a recriação do container.
 
 ## Verificar, backup e parar
 
@@ -87,4 +87,3 @@ Em 13/11/2026, no Ubuntu 26.04.1 LTS x86_64 com 2 vCPUs e 3,2 GiB de RAM, três 
 - A versão React modular passou em smoke test e foi ativada no Nginx do host de teste usando um script privado de backup/rollback. A troca da interface de outra instalação precisa de procedimento próprio para os caminhos daquele host.
 
 Esta árvore continua sendo uma candidata para revisão, não um release de produção.
-

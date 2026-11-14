@@ -23,6 +23,9 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
+      - name: Check progress page filters and refresh button
+        run: node tests/test_progress_ui.cjs
+
       - name: Check shell and Python syntax
         shell: bash
         run: |
@@ -150,11 +153,18 @@ jobs:
           }
 
           for attempt in $(seq 1 90); do
-            CURRENT_COUNT=$(read_count "$DB")
+            if ! CURRENT_COUNT=$(read_count "$DB" 2>/dev/null); then CURRENT_COUNT=0; fi
             if (( CURRENT_COUNT > 0 )); then break; fi
             sleep 2
           done
-          (( CURRENT_COUNT > 0 ))
+          if (( CURRENT_COUNT == 0 )); then
+            echo "No telemetry rows arrived after the clean install; collector diagnostics follow."
+            sudo systemctl status --no-pager --lines=30 "$TELEMETRY_UNIT" || true
+            sudo journalctl -u "$TELEMETRY_UNIT" -n 80 --no-pager || true
+            sudo docker compose -f "$APP/docker-compose.yml" --env-file "$APP/.env" logs --tail=60 mqtt worker || true
+            exit 1
+          fi
+          echo "Initial telemetry rows: $CURRENT_COUNT"
 
           BACKUP_OUTPUT=$(sudo bash "$APP/deploy/backup.sh")
           printf '%s\n' "$BACKUP_OUTPUT"
@@ -165,7 +175,7 @@ jobs:
 
           ADVANCED=0
           for attempt in $(seq 1 90); do
-            CURRENT_COUNT=$(read_count "$DB")
+            if ! CURRENT_COUNT=$(read_count "$DB" 2>/dev/null); then CURRENT_COUNT=0; fi
             if (( CURRENT_COUNT > BACKUP_COUNT )); then ADVANCED=1; break; fi
             sleep 2
           done
@@ -240,7 +250,7 @@ jobs:
           RESTORED_COUNT=$(read_count "$DB")
           ADVANCED=0
           for attempt in $(seq 1 90); do
-            CURRENT_COUNT=$(read_count "$DB")
+            if ! CURRENT_COUNT=$(read_count "$DB" 2>/dev/null); then CURRENT_COUNT=0; fi
             if (( CURRENT_COUNT > RESTORED_COUNT )); then ADVANCED=1; break; fi
             sleep 2
           done

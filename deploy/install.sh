@@ -146,6 +146,7 @@ python3 -m venv "$INSTALL_ROOT/venv"
 "$INSTALL_ROOT/venv/bin/python" -m pip install --no-cache-dir -r "$CURRENT/telemetry/requirements.txt"
 install -m 644 "$CURRENT/deploy/nivus-compose-telemetry.service" /etc/systemd/system/nivus-compose-telemetry.service
 chmod 0755 "$CURRENT/deploy/resolve-mqtt-endpoint.sh"
+chmod 0755 "$CURRENT/deploy/start-telemetry.sh"
 cat > "$ETC_ROOT/telemetry.env" <<EOF
 NIVUS_MQTT_PORT=1883
 NIVUS_MQTT_USERNAME=nivus-agent
