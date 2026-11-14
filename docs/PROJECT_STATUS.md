@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-14 22:48 UTC
+Atualizado: 2026-11-14 23:10 UTC
 Licença escolhida: AGPL-3.0-only
 
 ## Organização funcional e árvore de dependências (14/11/2026)
@@ -15,7 +15,7 @@ Foi preparado em staging o gerador tools/build_ai_context.py: ele reúne context
 
 ## Skills alinhadas ao roadmap (14/11/2026)
 
-Foram criadas em staging onze skills Codex em codex-skills/: uma coordenadora, quatro para módulos e operações da base, cinco para capacidades futuras e uma para um fluxo externo opcional de desenvolvimento com IA. A skill de telemetria de hardware foi acrescentada após a falha observada na seleção de temperatura. docs/SKILL_MAP.md cruza as skills com as fases do projeto. A skill externa de desenvolvimento não é módulo do Nivus e não instala Hermes/OmniRoute no nó de borda. As skills não são módulos do produto. A publicação e a instalação pessoal pelo Codex estão em preparação.
+Foram criadas onze skills Codex em codex-skills/: uma coordenadora, quatro para módulos e operações da base, cinco para capacidades futuras e uma para um fluxo externo opcional de desenvolvimento com IA. Todas passaram pelo quick_validate.py oficial do skill-creator e foram instaladas localmente em C:/Users/lps93/.codex/skills. A skill de telemetria de hardware explica a seleção por driver/label; classifica o Open Hardware Monitor original como legado e separa o fork. docs/SKILL_MAP.md cruza as skills com as fases do projeto. A publicação permanece em revisão no PR #3; as skills são orientações para desenvolvimento, não módulos do produto. A skill externa não instala Hermes/OmniRoute no nó de borda.
 
 ## Avaliação de automação externa com IA (14/11/2026)
 
@@ -23,7 +23,7 @@ docs/AI_DEVELOPMENT_ORCHESTRATION.md registra a checagem das fontes oficiais de 
 
 ## CI de recuperação e painel completo de marcos (14/11/2026, 15:34 UTC)
 
-O PR #2 testa instalação limpa numa VM Ubuntu 22.04 descartável, backup SQLite, falha de health simulada, rollback e restauração normal. Na execução mais recente, a instalação limpa passou, mas o job de recuperação não recebeu linhas MQTT: o systemd 249 registrou `%d/mqtt_agent_password` como specifier inválido na linha `Environment=`; o coletor iniciou sem senha e o broker rejeitou a autenticação. O smoke job também apontou que `tests/test_progress_ui.cjs` não estava no branch. Staging agora carrega o caminho da credencial via `$CREDENTIALS_DIRECTORY` no wrapper e inclui o arquivo do teste; nova execução da CI ainda está pendente. Esta execução usou somente runners descartáveis do GitHub; o notebook ativo não foi alterado.
+O PR #2 testa instalação limpa numa VM Ubuntu 22.04 descartável, backup SQLite, falha de health simulada, rollback e restauração normal. O smoke MQTT→SQLite passou. A última execução de recuperação instalou a stack, criou backup, chegou ao rollback forçado, preservou o conteúdo anterior e confirmou que telemetria continuou crescendo; falhou ao final porque um script continha CRLF e o Bash tentou executar uma linha vazia como comando. Também foi corrigida a checagem do diretório do backup, que é gravável apenas por root. Os scripts foram normalizados para LF e a CI recomeçou no commit mais recente; resultado ainda pendente. Só runners descartáveis do GitHub foram usados; o notebook ativo não foi alterado.
 
 O painel de staging agora apresenta 42 marcos até a primeira versão completa: 17 concluídos, um em execução, um aguardando e 23 planejados. O filtro anterior ocultava o atributo hidden porque a regra .item { display: grid } prevalecia no CSS; a regra explícita .item[hidden] corrige isso. O filtro “Aguardando” agora tem um marco correspondente. Os contadores, estados acessíveis, cinco filtros e o botão de atualização manual foram verificados num harness DOM Node que confirmou busca da página e do JavaScript. A versão corrigida ainda não foi publicada no notebook nem conferida no navegador desse host.
 
