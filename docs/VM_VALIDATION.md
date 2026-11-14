@@ -10,7 +10,23 @@ Este roteiro valida uma instalação independente do Nivus Compose. A VM deve se
 - Faça um snapshot inicial antes de instalar. Anote versão do Ubuntu, arquitetura, CPU/RAM/disco livres, hipervisor e data.
 - Use uma conta Linux de teste com `sudo`. Nunca compartilhe sua senha. Para acesso remoto, autorize uma chave pública temporária e confira a impressão digital SSH da VM por um canal local confiável.
 
-O operador confirmou Ubuntu 26.04.1 LTS amd64 no VirtualBox, com 4 vCPUs, 8 GB de RAM, filesystem raiz de cerca de 24,44 GB e 16 MB de memória de vídeo virtual. Esse vídeo é o adaptador de exibição virtual, não VRAM de GPU para inferência. O perfil atual oferece margem para o teste de instalação e restore, mas confirme o espaço livre antes do build: o instalador baixa imagens e pacotes e a partição de 24,44 GB pode ser o limite mais próximo. Registre os recursos reais observados no guest; o baseline mínimo ainda não foi certificado.
+O operador confirmou uma VM `testev1` com Ubuntu 26.04.1 LTS amd64, 4 vCPUs, 8 GB de RAM, filesystem raiz de cerca de 24,44 GB e 16 MB de memória de vídeo virtual. O vídeo é o adaptador de exibição, não VRAM para inferência. O operador relata que a VM trava ao tentar alterar configurações; numa sessão anterior o console também exibiu mensagens de watchdog/soft-lockup/RCU. Não instale o Nivus nela até resolver a estabilidade. Nenhum Nivus foi instalado nessa VM.
+
+Para repetir o teste num ambiente previsível, o repositório fornece `deploy/windows/New-NivusTestVm.ps1`. Ele cria uma VM separada chamada `nivus-test-clean`, usa Ubuntu Server 24.04.5 LTS amd64, confere o SHA-256 oficial da ISO, atribui no máximo 2 vCPUs e ajusta a RAM conforme o host, cria um VDI dinâmico de 32 GB, mantém 16 MB de vídeo sem aceleração 3D e encaminha SSH somente por `127.0.0.1:2223`. O script não altera nem apaga `testev1` ou outras VMs. Ainda não foi executado no computador do operador.
+
+Baixe [Ubuntu Server 24.04.5 LTS amd64](https://releases.ubuntu.com/24.04/ubuntu-24.04.5-live-server-amd64.iso) e, no PowerShell aberto na raiz do repositório, execute:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\deploy\windows\New-NivusTestVm.ps1 -IsoPath "$env:USERPROFILE\Downloads\ubuntu-24.04.5-live-server-amd64.iso"
+```
+
+O `ExecutionPolicy Bypass` vale apenas para essa execução e não altera a política global do Windows. No instalador, escolha o disco virtual de 32 GB, Ubuntu Server minimal e a opção **OpenSSH server**; crie credenciais somente para a VM e não as compartilhe. Depois do primeiro boot, faça um snapshot no VirtualBox antes de instalar o Nivus.
+
+### Se uma VM travar ao alterar configurações
+
+Configurações de hardware como RAM, CPU, armazenamento e rede devem ser ajustadas com a VM completamente desligada. O estado **Salvo** também pode bloquear alterações. Se o guest responder, rode `sudo poweroff` e aguarde o estado **Powered Off**. Se não responder, na janela da VM escolha **Máquina → Fechar → Desligar a máquina**; isso equivale a uma interrupção de energia para o guest e pode perder dados que ainda não foram gravados. Não escolha **Salvar o estado da máquina** para fazer essas alterações. Consulte o [manual oficial do VirtualBox](https://www.virtualbox.org/manual/).
+
+Para a nova VM, mantenha o perfil conservador gerado pelo script. Em servidor sem interface gráfica, 16 MB de vídeo e aceleração 3D desligada são suficientes. O VirtualBox recomenda reservar RAM e no máximo metade das threads lógicas do host para cada VM; memória insuficiente no Windows pode causar paginação e deixar todo o host sem resposta. Se a janela de configurações continuar travando mesmo com a VM desligada, não altere o VDI: mantenha `testev1` intacta e use a nova VM criada pelo script.
 
 Na console da VM, depois do primeiro login:
 
@@ -21,7 +37,7 @@ sudo systemctl enable --now ssh
 sudo ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
 ```
 
-No VirtualBox: **Configurações → Rede → Adaptador 1 (NAT) → Avançado → Encaminhamento de portas**. Crie regra TCP com IP do host `127.0.0.1`, porta do host `2222`, porta do guest `22` e IP do guest vazio ou o endereço NAT atual. Assim, SSH só fica acessível pelo próprio computador host; a conexão é `ssh -p 2222 usuario@127.0.0.1`. Autorize apenas a chave pública temporária entregue para o teste e confira a impressão digital ED25519 da VM.
+O script configura a regra NAT SSH como `127.0.0.1:2223` no host para a porta `22` do guest. Assim, SSH só fica acessível pelo próprio computador host; a conexão é `ssh -p 2223 usuario@127.0.0.1`. Se a VM for criada manualmente, use **Configurações → Rede → Adaptador 1 (NAT) → Avançado → Encaminhamento de portas** e crie a mesma regra. Autorize apenas uma chave pública temporária entregue para o teste e confira a impressão digital ED25519 da VM.
 
 ## 2. Obter e revisar o código
 
