@@ -32,14 +32,16 @@ Critérios já observados: login funcional; API exige token; health HTTPS respon
 
 Siga [`VM_VALIDATION.md`](VM_VALIDATION.md) como roteiro executável e registre a evidência em [`PROJECT_STATUS.md`](PROJECT_STATUS.md). O script de restauração está implementado; só declare a etapa concluída após teste real em clone descartável com backup, restore, validação e rollback.
 
-1. Validar instalação limpa em VM Ubuntu Server minimal x86_64, sem arquivos de staging ou segredos prévios.
+1. Executar o workflow de CI em VM Ubuntu 22.04 amd64 a cada pull request para `main` e push em `main`; usar VM local descartável para ciclos de instalação/reboot/restore que exijam interação ou investigação.
 2. Registrar RAM livre, CPU, disco, espaço de build, portas, versões do Ubuntu/Docker/Compose e tempo de instalação.
 3. Reiniciar a VM e confirmar que API, painel, MQTT, worker, coletor, dados e endpoint descoberto voltam sozinhos.
 4. Criar backup; usar `deploy/test-restore-rollback.sh` numa VM descartável para demonstrar rollback automático e depois testar uma restauração normal.
-5. Repetir em uma segunda versão de Ubuntu suportada e, depois, em hardware x86_64 diferente.
+5. Qualificar seis máquinas de referência: Intel e AMD, cada fabricante nas faixas de geração antiga, intermediária e recente. Não repetir a suíte inteira por commit; usar a bateria física de compatibilidade documentada em [`TEST_STRATEGY.md`](TEST_STRATEGY.md).
 6. Documentar erros recuperáveis, como falta de disco, portas ocupadas, falha APT e interrupção durante o bootstrap.
 
 Critério de saída: uma pessoa que siga o README consegue instalar, autenticar, ver telemetria depois do reboot e restaurar um backup; o procedimento não remove dados ao falhar e não interfere em serviços preexistentes.
+
+CI aprovado comprova o fluxo no runner virtual Ubuntu, não em cada chipset ou periférico. O suporte a plataformas Intel/AMD só será anunciado depois dos seis registros de referência, com CPU, placa-mãe, BIOS, rede, armazenamento e resultado.
 
 ### Fase 2 — Identidade e telemetria de vários nós
 
