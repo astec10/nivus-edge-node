@@ -136,6 +136,11 @@ def snapshot(path):
         tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         if not {"users", "telemetry"}.issubset(tables):
             raise SystemExit(f"tabelas Nivus ausentes em {path}")
+        schema = connection.execute(
+            "SELECT type, name, tbl_name, sql FROM sqlite_master "
+            "WHERE type IN ('table', 'index', 'trigger', 'view') "
+            "AND name NOT LIKE 'sqlite_%' ORDER BY type, name"
+        ).fetchall()
         fingerprints = {}
         for table in tables:
             if table == "sqlite_sequence":
@@ -148,14 +153,16 @@ def snapshot(path):
                 encoded = json.dumps(normalized, sort_keys=True, separators=(",", ":"), default=str).encode()
                 encoded_rows.append(hashlib.sha256(encoded).hexdigest())
             fingerprints[table] = Counter(encoded_rows)
-        return tables, fingerprints
+        return tables, schema, fingerprints
     finally:
         connection.close()
 
-before_tables, before_rows = snapshot(sys.argv[1])
-after_tables, after_rows = snapshot(sys.argv[2])
+before_tables, before_schema, before_rows = snapshot(sys.argv[1])
+after_tables, after_schema, after_rows = snapshot(sys.argv[2])
 if before_tables != after_tables:
     raise SystemExit("rollback alterou a lista de tabelas SQLite")
+if before_schema != after_schema:
+    raise SystemExit("rollback alterou o esquema SQLite")
 for table in before_rows:
     if table == "telemetry":
         if before_rows[table] - after_rows[table]:
@@ -167,3 +174,4 @@ PY
 
 echo 'Rollback automático validado; serviços, health HTTPS, 401 e SQLite estão íntegros.'
 printf 'Backup de segurança: %s\n' "$GUARD_DIR"
+
