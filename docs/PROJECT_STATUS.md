@@ -1,7 +1,15 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-14
+Atualizado: 2026-11-14 04:46 UTC
 Licença escolhida: AGPL-3.0-only
+
+## Comparador de rollback exercitado e VM limpa preparada (14/11/2026, 04:46 UTC)
+
+O comparador Python embutido em `deploy/test-restore-rollback.sh` foi executado sem alteração contra quatro fixtures SQLite descartáveis: aceitou uma linha nova de telemetria mantendo todas as linhas anteriores, e rejeitou perda de usuário, alteração de esquema (índice) e alteração de configuração. O processo encerrou com limpeza do diretório temporário confirmada.
+
+Na VM `nivus-test-clean`, a impressão digital SSH do guest foi conferida novamente (`SHA256:l1f0aTbIJrVfJo5pU5DR9KmSJoY6FY5ynopjoPBwiIQ`). A chave temporária entrou por autenticação somente de chave, e a entrada correspondente em `authorized_keys` foi confirmada com a opção `restrict`. O checkout público foi clonado em `/home/nivus/nivus-edge-node`, branch `main`, commit `5edc7e74968017af5731339cf44419830bf924ec`, árvore limpa. No próprio Ubuntu Server 24.04.5 LTS, `bash -n` passou nos três scripts de backup/restore e os modos `--help` de restore e rollback passaram.
+
+A VM reporta x86_64, 4 CPUs online, 4.009.220 kB de memória e 27 GB livres em disco de 32 GB; uma visualização anterior do VirtualBox registrou 2 vCPUs, portanto a contagem de CPU atribuída ainda precisa ser reconciliada antes de qualquer benchmark. Docker e a instalação Nivus ainda estão ausentes. `sudo -n` não está habilitado; a instalação requer que o operador digite a senha administrativa e crie a conta inicial diretamente no terminal. Nenhuma instalação, banco ou serviço do notebook foi alterado.
 
 ## Tentativa automatizada de criar VM limpa (14/11/2026, 01:42 UTC)
 

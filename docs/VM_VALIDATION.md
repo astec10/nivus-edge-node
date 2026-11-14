@@ -14,7 +14,7 @@ O operador confirmou uma VM `testev1` com Ubuntu 26.04.1 LTS amd64, 4 vCPUs, 8 G
 
 Para repetir o teste num ambiente previsível, o repositório fornece `deploy/windows/New-NivusTestVm.ps1`. Ele cria uma VM separada chamada `nivus-test-clean`, usa Ubuntu Server 24.04.5 LTS amd64, baixa a ISO oficial se ela ainda não existir e confere o SHA-256 antes de criar a VM. Atribui no máximo 2 vCPUs e ajusta a RAM conforme o host, cria um VDI dinâmico de 32 GB, mantém 16 MB de vídeo sem aceleração 3D e encaminha SSH somente por `127.0.0.1:2223`. Antes do download/criação, recusa se outra VM estiver em execução, a porta SSH estiver ocupada ou a RAM/disco livre forem insuficientes. O script não altera nem apaga `testev1` ou outras VMs.
 
-Na primeira tentativa automatizada, a ISO Ubuntu Server 24.04.5 foi verificada, mas o criador parou com E_ACCESSDENIED antes de alterar VMs. A VM `nivus-test-clean` foi criada e está em execução. A configuração VirtualBox confirma 2 vCPU, 4 GB RAM, 16 MB de vídeo virtual, NAT e regra `nivus-ssh` em `127.0.0.1:2223` para guest:22. A captura do console confirma Ubuntu Server 24.04.5 LTS amd64. O perfil Ubuntu 24.10 exibido no gerenciador não descreve o sistema convidado instalado. O operador instalou/ativou OpenSSH e confirmou `systemctl is-active ssh` = `active`. O cliente Windows negociou SSH pelo encaminhamento; impressão digital de host observada: `SHA256:l1f0aTbIJrVfJo5pU5DR9KmSJoY6FY5ynopjoPBwiIQ`. A autenticação ainda responde `Permission denied (publickey,password)` porque a chave pública temporária não foi autorizada na VM; nenhuma senha foi tentada.
+Após a primeira tentativa automatizada parar com E_ACCESSDENIED antes de alterar qualquer VM, `nivus-test-clean` foi criada com Ubuntu Server 24.04.5 LTS amd64 e SSH/NAT local. A conferência atual autenticou a conta `nivus` somente pela chave temporária; a impressão digital ED25519 do host corresponde a `SHA256:l1f0aTbIJrVfJo5pU5DR9KmSJoY6FY5ynopjoPBwiIQ`, e a entrada autorizada foi conferida com `restrict`. O guest reporta 4 CPUs online, 4.009.220 kB de memória e 27 GB livres em disco de 32 GB; uma leitura anterior do gerenciador indicou 2 vCPUs, então esse valor deve ser reconciliado antes de benchmark. O clone em `/home/nivus/nivus-edge-node` está no commit `5edc7e74968017af5731339cf44419830bf924ec`, sem alterações locais. `bash -n` nos scripts de backup/restore e `--help` de restore e rollback passaram no Ubuntu. Docker e Nivus ainda não estão instalados; `sudo -n` não está habilitado, então o operador precisa digitar a senha sudo e criar o administrador inicial no terminal durante a instalação. Nenhum serviço ou dado do notebook foi alterado.
 
 Ubuntu Server 24.04.5 LTS tem suporte padrão até 31/05/2029 ([notas oficiais](https://documentation.ubuntu.com/release-notes/24.04/)). No console Ubuntu, rode:
 
@@ -24,13 +24,13 @@ systemctl status ssh --no-pager
 ss -lnt | grep ':22'
 ~~~
 
-Nesta VM, o operador confirmou `systemctl is-active ssh` = `active`. A negociação SSH via NAT funcionou, mas ainda falta autorizar a chave pública temporária; nenhuma senha foi tentada. Confira a impressão digital no console local:
+Na VM atual, `systemctl is-active ssh` respondeu `active`, o fingerprint foi conferido no console local e a autenticação SSH somente por chave foi validada. O bloco de comando abaixo é uma referência para outra VM ou para uma futura troca da chave:
 
 ~~~bash
 sudo ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
 ~~~
 
-Ela deve coincidir com o fingerprint observado do host: `SHA256:l1f0aTbIJrVfJo5pU5DR9KmSJoY6FY5ynopjoPBwiIQ`. Só então autorize a chave pública temporária com a opção `restrict` na conta de teste. Nunca copie a chave privada.
+A leitura do console da VM atual e o handshake SSH conferiram `SHA256:l1f0aTbIJrVfJo5pU5DR9KmSJoY6FY5ynopjoPBwiIQ`. A chave temporária já foi autorizada com a opção `restrict`; a chave privada continua apenas no ambiente de desenvolvimento e não deve ser copiada.
 
 Se outra VM mostrar `Unit ssh.service could not be found`, instale e ative OpenSSH:
 
