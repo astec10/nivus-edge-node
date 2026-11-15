@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import json
+import io
 import os
 import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
+from contextlib import redirect_stderr
 
 from scripts.validate_ai_task import runtime_minutes, validate
 from tools.ai_executor import gemini_client, worker
@@ -137,6 +139,53 @@ class WorkerTests(unittest.TestCase):
             self.assertIsNone(report["input_tokens"])
             self.assertIsNone(report["output_tokens"])
             self.assertFalse({"prompt", "response", "api_key", "content"}.intersection(report))
+
+    def test_provider_error_logs_stable_code_instead_of_none(self) -> None:
+        class FailedClient:
+            last_usage_report = None
+
+            def __init__(self):
+                self.last_usage_report = None
+
+            def propose_changes(self, **_kwargs):
+                raise gemini_client.GeminiAPIError(
+                    "Gemini API returned HTTP 503",
+                    error_code="provider_http_503",
+                    status_code=503,
+                )
+
+        with tempfile.TemporaryDirectory(prefix="nivus-ai-error-code-") as tmp:
+            root = Path(tmp)
+            for relative in worker.PROJECT_CONTEXT_PATHS:
+                target = root / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text("public synthetic context\n", encoding="utf-8")
+            (root / "docs" / "example.md").write_text("public synthetic source\n", encoding="utf-8")
+            issue_file = root / "issue.json"
+            issue_file.write_text(json.dumps(issue_payload()), encoding="utf-8")
+            usage_file = root / "usage.json"
+            stderr = io.StringIO()
+            with patch.object(worker, "GeminiClient", FailedClient), redirect_stderr(stderr):
+                result = worker.run(issue_file, root, usage_file)
+
+            report = json.loads(usage_file.read_text(encoding="utf-8"))
+            self.assertEqual(result, 1)
+            self.assertEqual(report["error_code"], "provider_http_503")
+            self.assertIn("AI worker stopped safely: provider_http_503", stderr.getvalue())
+            self.assertNotIn("None", stderr.getvalue())
+
+
+class WorkflowDispatchTests(unittest.TestCase):
+    def test_authorized_intake_uses_one_worker_dispatch_path(self) -> None:
+        repository_root = Path(__file__).resolve().parents[2]
+        intake = (repository_root / ".github" / "workflows" / "ai-task-intake.yml").read_text(encoding="utf-8")
+        worker_workflow = (repository_root / ".github" / "workflows" / "ai-proposal-worker.yml").read_text(encoding="utf-8")
+
+        self.assertIn("ai:ready", intake)
+        self.assertNotIn("gh workflow run ai-proposal-worker.yml", intake)
+        self.assertNotIn("actions: write", intake)
+        self.assertIn("types: [labeled]", worker_workflow)
+        self.assertIn("github.event.label.name == 'ai:ready'", worker_workflow)
 
 
 if __name__ == "__main__":

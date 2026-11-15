@@ -229,11 +229,11 @@ def run(issue_file: Path, repo_root: Path, usage_report_path: Path | None) -> in
                 report["status"] = "preflight_failed"
             elif client.last_usage_report is None:
                 report["status"] = "worker_failed"
-            report["error_code"] = exc.status_code if isinstance(exc, GeminiAPIError) else type(exc).__name__
+            report["error_code"] = exc.error_code if isinstance(exc, GeminiAPIError) else type(exc).__name__
             if client is None or client.last_usage_report is None:
                 report["duration_ms"] = round((datetime.now(timezone.utc) - started_at).total_seconds() * 1000)
         _write_report(usage_report_path, report)
-        code = exc.status_code if isinstance(exc, GeminiAPIError) else str(exc)
+        code = exc.error_code if isinstance(exc, GeminiAPIError) else str(exc)
         print(f"AI worker stopped safely: {code}", file=sys.stderr)
         return 1
     finally:

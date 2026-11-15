@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-15 11:37 UTC
+Atualizado: 2026-11-15 20:57 UTC
 Licença: AGPL-3.0-only
 
 ## Resumo verificado
@@ -45,6 +45,6 @@ Nenhum suporte universal x86_64, automação doméstica, coordenador multi-nó o
 
 O fluxo persistente com agente, Discord/Jira, roteador de modelos, GitHub PR e aprovação humana está documentado em `docs/AI_DEVELOPMENT_ORCHESTRATION.md`. O cenário completo descrito por um comentarista de vídeo não foi confirmado como uma integração pronta; os componentes são documentados separadamente. `docs/VIDEO_RESEARCH_INDEX.md` cataloga os vídeos e expõe o nível de verificação de cada um. Os metadados, resumos curados e notas atômicas versionados ficam em `knowledge/`; `tools/build_ai_context.py` gera termos lexicais e índice independentes de modelo. A biblioteca consultável e sincronizada dentro do produto continua planejada na Fase 4, não implementada.
 
-O PR #3 está recebendo intake GitHub, adaptador Gemini, worker que restringe alterações a caminhos exatos e workflow que abre PR em rascunho após autorização `ai:ready`. O worker não lê Issue privada fora do contrato, não apaga arquivos, não executa comandos e não altera workflows. Oito testes locais cobrem autorização, limite de tempo, allowlist, gravação restrita e preflight sem chave; a simulação sem chave confirmou que nenhuma conexão de rede foi aberta e que o relatório contém só metadados. Ainda não está ativo no `main`: não há secret `GEMINI_API_KEY`, variável de orçamento nem chamada API end-to-end observada. O worker não aprova, faz merge ou deploy.
+O fluxo inicial do executor foi integrado ao `main` no PR #3. A chave `GEMINI_API_KEY` e a variável `NIVUS_AI_BUDGET_MODE=free-tier` foram configuradas no GitHub segundo confirmação do mantenedor; o valor da chave não foi lido. Duas tentativas com a API não produziram proposta: HTTP 503 e timeout após 75 segundos da chamada síncrona. Esta branch corrige o timeout com background polling limitado, códigos de falha úteis, limpeza da interação e remoção da segunda via de disparo que poderia duplicar uma chamada. Os testes offline desta branch passaram; a chamada end-to-end com esta correção ainda não foi observada. O worker continua restrito a caminhos exatos e não executa comandos, não modifica workflows, não aprova, não faz merge nem deploy. A revisão humana permanece obrigatória.
 
 GitHub Issues e Actions são a fila e execução principais, sem depender do PC ou notebook do operador. O notebook é suporte opcional para painel, inspeção e agregação de relatórios quando estiver online. Telemetria do host não é requisito; agregação de telemetria entre nós será útil quando o Nó Master estiver operacional.
