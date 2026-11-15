@@ -23,25 +23,25 @@ O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não sign
 - Automação residencial real, VPN integrada ao produto e ações remotas em dispositivos.
 - Inferência local, consulta à biblioteca de PDFs, fila de trabalhos entre máquinas, transferência P2P e conectores para provedores comerciais com limites de uso.
 - Instalação limpa validada, reboot, atualização com rollback e matriz de hardware x86_64.
-- O executor de desenvolvimento já tem intake de tarefas, mas o dispatcher no notebook, o worker de modelo e a criação automática de PR ainda estão pendentes.
+- O executor externo de desenvolvimento está em revisão no PR #3: intake GitHub, worker Gemini e abertura de PR em rascunho via Actions. Ainda não está no `main`, não tem chave configurada e não passou por chamada real ao modelo. O notebook é suporte opcional; GitHub Actions é o executor principal.
 
-Veja [docs/PROJECT_ROADMAP.md](docs/PROJECT_ROADMAP.md) para fases, entregáveis e critérios de conclusão; [docs/VISION.md](docs/VISION.md) registra a visão doméstica mais ampla. O estado verificado está em [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md). O [mapa funcional e de dependências](docs/MODULE_MAP.md) separa módulos existentes e planejados; [docs/AI_CONTEXT.md](docs/AI_CONTEXT.md) e [docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md) orientam sessões de IA e a passagem de contexto. A cobertura das skills está em [docs/SKILL_MAP.md](docs/SKILL_MAP.md).
+Veja [docs/PROJECT_ROADMAP.md](docs/PROJECT_ROADMAP.md) para fases, entregáveis e critérios de conclusão; [docs/VISION.md](docs/VISION.md) registra a visão doméstica mais ampla. O estado verificado do notebook está em [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
 
-O plano para não repetir a suíte completa em cada computador está em [docs/TEST_STRATEGY.md](docs/TEST_STRATEGY.md): CI em runners Ubuntu descartáveis hospedados pelo GitHub e uma matriz de seis plataformas físicas de referência (Intel e AMD, três faixas de geração) nos marcos de compatibilidade. O operador não usará VMs no computador pessoal.
+O plano para evitar repetir a suíte completa em cada computador está em [docs/TEST_STRATEGY.md](docs/TEST_STRATEGY.md): CI em runners Ubuntu descartáveis hospedados pelo GitHub e uma matriz de seis plataformas físicas de referência (Intel e AMD, três faixas de geração) nos marcos de compatibilidade. Não é necessário instalar ou iniciar VMs no computador do operador.
 
-Para orientar agentes, dividir módulos e reutilizar conhecimento versionado, consulte [docs/AI_CONTEXT.md](docs/AI_CONTEXT.md), [docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md), [docs/AI_MODULE_WORKPLAN.md](docs/AI_MODULE_WORKPLAN.md), [docs/AI_EXECUTOR_IMPLEMENTATION.md](docs/AI_EXECUTOR_IMPLEMENTATION.md), [docs/AI_DEVELOPMENT_ORCHESTRATION.md](docs/AI_DEVELOPMENT_ORCHESTRATION.md) e o [índice de vídeos](docs/VIDEO_RESEARCH_INDEX.md). `knowledge/` contém notas públicas e índice lexical; `temp/` continua local e ignorada pelo Git.
+Para orientar agentes de programação, dividir módulos e reutilizar conhecimento versionado, consulte [docs/AI_CONTEXT.md](docs/AI_CONTEXT.md), [docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md), [docs/AI_MODULE_WORKPLAN.md](docs/AI_MODULE_WORKPLAN.md), [docs/AI_EXECUTOR_IMPLEMENTATION.md](docs/AI_EXECUTOR_IMPLEMENTATION.md), [docs/AI_DEVELOPMENT_ORCHESTRATION.md](docs/AI_DEVELOPMENT_ORCHESTRATION.md) e o [índice de pesquisa dos vídeos](docs/VIDEO_RESEARCH_INDEX.md). A pasta `knowledge/` guarda notas públicas e índice lexical; `temp/` permanece fora do Git.
 
 ## Comece por aqui
 
 Se você quer entender ou modificar o código:
 
-1. Leia este README, [AGENTS.md](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md), [docs/AI_CONTEXT.md](docs/AI_CONTEXT.md) e [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
-2. Leia [docs/MODULE_MAP.md](docs/MODULE_MAP.md), [docs/SKILL_MAP.md](docs/SKILL_MAP.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) e [docs/DECISIONS.md](docs/DECISIONS.md) antes de mudar limites entre módulos ou contratos de API.
+1. Leia este README, [AGENTS.md](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md) e [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
+2. Leia [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) e [docs/DECISIONS.md](docs/DECISIONS.md) antes de mudar limites entre módulos ou contratos de API.
 3. Siga [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) para preparar backend, frontend e broker de desenvolvimento.
 4. Escolha uma tarefa pequena com resultado verificável. Não trate itens da visão ou do roadmap como recursos já implementados.
 5. Faça as verificações disponíveis para a área alterada, documente os resultados e atualize o estado/decisões se o comportamento mudou.
 
-O roteiro detalhado para contribuições está em [CONTRIBUTING.md](CONTRIBUTING.md). Consulte o [catálogo de componentes open source](docs/OPEN_SOURCE_COMPONENTS.md) para opções pesquisadas, estado de adoção e impactos; os itens listados são candidatos e não foram instalados. O pacote de instalação é candidato, não uma versão de produção: siga [deploy/README.md](deploy/README.md) e o roteiro de validação em runner Linux remoto em [docs/VM_VALIDATION.md](docs/VM_VALIDATION.md). Nenhuma VM precisa ser iniciada no computador do operador.
+O roteiro detalhado para contribuições está em [CONTRIBUTING.md](CONTRIBUTING.md). O pacote de instalação é candidato, não uma versão de produção: siga [deploy/README.md](deploy/README.md) e o roteiro de validação em runner Linux remoto em [docs/VM_VALIDATION.md](docs/VM_VALIDATION.md). Nenhuma VM precisa ser iniciada no computador do operador.
 
 ## Mapa do código
 
@@ -55,30 +55,29 @@ O roteiro detalhado para contribuições está em [CONTRIBUTING.md](CONTRIBUTING
 | `backend/security.py` | Hash de senha, JWT e validações de segurança |
 | `backend/services/` e `backend/mqtt_worker.py` | Publicação MQTT e processamento de eventos |
 | `telemetry/agent.py` | Amostras de recursos do host e envio MQTT |
+| `telemetry/hardware_sensors.py` | Classificação de temperaturas CPU/APU, placa-mãe e GPU |
 | `frontend/src/components/` | Login e componentes visuais do dashboard |
 | `deploy/` | Compose, Nginx, Mosquitto, instalador candidato e operações |
 | `docs/` | Visão, arquitetura, decisões, configuração, roadmap e status |
 | `PROGRESS.html` | Página estática dos marcos; não lê a telemetria do host |
 
+A semântica, origem e limites das leituras térmicas estão em [docs/HARDWARE_TELEMETRY.md](docs/HARDWARE_TELEMETRY.md).
+
 ## Instalação e execução
 
-O desenvolvimento local está descrito em [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md). A instalação Compose para teste está em [deploy/README.md](deploy/README.md); ela requer Ubuntu, Docker/Compose, privilégios administrativos e credenciais iniciais criadas no terminal. A API e o broker ficam em redes privadas do Compose; MQTT não é publicado no host. O painel HTTPS usa certificado autoassinado por padrão.
+O desenvolvimento local está descrito em [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md). A instalação Compose para teste está em [deploy/README.md](deploy/README.md); ela requer Ubuntu, Docker/Compose, privilégios administrativos e credenciais iniciais criadas no terminal. A API e o broker ficam em redes privadas do Compose; MQTT não é publicado no host. Em instalação limpa, o painel usa HTTPS na porta padrão 443 (`https://IP/`) quando disponível; se outro serviço já ocupa essa porta, o instalador preserva o serviço e escolhe uma alternativa. O certificado autoassinado gera aviso no navegador.
 
 Não há promessa de suporte a toda máquina x86_64 até validar Ubuntu minimal em instalações limpas e medir CPU, memória, armazenamento e periféricos. Veja os marcos pendentes antes de instalar fora do notebook de teste.
 
 ## Segurança e limites
 
 - Não copie senhas, tokens, chaves, bancos, logs ou telemetria real para GitHub.
-- Acesso remoto de administração deve usar rede privada/VPN e regras restritas; não encaminhe painel ou SSH diretamente à Internet.
+- Na LAN, prefira reservar um IP no roteador. Para acesso fora de casa, DDNS pode oferecer um nome estável, mas deve ser combinado com VPN; não encaminhe painel ou SSH diretamente à Internet.
 - Comece integrações físicas em leitura e notificações. Um modelo de IA, reconhecimento facial ou leitura de placas não pode, sozinho, abrir portão, desarmar alarme ou desligar circuito crítico.
 - Comandos MQTT precisam de identidade, tópicos permitidos, confirmação, timeout e intertravamentos locais.
 - Câmeras, rostos, placas, áudio e presença exigem minimização, retenção limitada e controles de acesso.
 
 Leia [docs/VISION.md](docs/VISION.md) para requisitos físicos, automações e limites de segurança. O Nivus não substitui detectores certificados nem projeto/instalação elétrica profissional.
-
-## Manutenção do repositório
-
-O GitHub acompanha versões semanais de dependências e executa CodeQL no código. Issues e pull requests usam modelos que pedem módulo, escopo, critérios de aceite, evidências e rollback. Veja [CONTRIBUTING.md](CONTRIBUTING.md) antes de propor uma mudança. Dependabot abre propostas; uma pessoa deve revisar e aprovar cada atualização.
 
 ## Licença
 

@@ -24,4 +24,3 @@ The linked local-AI videos have only partial secondary transcript/description ev
 
 - [Video research index](../../docs/VIDEO_RESEARCH_INDEX.md)
 - [Nivus AI and knowledge roadmap](../../docs/PROJECT_ROADMAP.md)
-

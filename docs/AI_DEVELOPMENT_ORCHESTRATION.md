@@ -39,23 +39,28 @@ requested -> triaged -> queued -> leased -> running -> pull_request -> ci -> sta
 
 O desenvolvimento externo pode usar esse fluxo para preparar mudanças no repositório Nivus. Ele não é runtime do nó de borda. Para distribuição futura entre máquinas Nivus, a Fase 5 do roadmap exige identidade, capacidade anunciada, leases, quotas, cancelamento, isolamento, verificação de artefatos e recuperação de falhas. A Fase 4 da biblioteca pode fornecer conhecimento citável a esses workers.
 
-## Notebook como servidor de controle
+## Execução contínua sem o PC do operador
 
-O CCE U25 pode atuar como **controlador leve sempre ligado**, sem executar código enviado por agentes. O controlador pode consultar tarefas aprovadas no GitHub, disparar um workflow hospedado, acompanhar o resultado e retomar a consulta após reinicialização. GitHub Issues e Actions permanecem como registro durável: se o notebook ficar offline, novas execuções aguardam; o estado existente não se perde.
+GitHub Issues guarda a fila e GitHub Actions executa as tarefas em runners hospedados. O processo não depende do PC nem do notebook do operador: depois que uma Issue passa pelo intake e um mantenedor revisa e autoriza uma chamada, o runner inicia sozinho e prepara um PR em rascunho. A chamada ao modelo ainda exige Internet, quota do provedor e uma chave de escopo mínimo. A máquina local pode ficar desligada; GitHub e a API do modelo continuam como dependências externas.
 
 ```text
-GitHub Issue revisada e marcada ai:ready
-  -> controlador opcional no notebook (HTTPS de saída)
-  -> GitHub Actions ubuntu-24.04 descartável
-  -> agente/modelo autorizado e sandbox
-  -> PR -> CI -> revisão humana
+GitHub Issue validada (ai:queued)
+  -> mantenedor revisa e autoriza (intake + ai:ready)
+  -> GitHub Actions ubuntu-24.04 efêmero
+  -> Gemini free-tier recebe somente contexto público/sintético
+  -> proposta aplicada aos caminhos exatos e PR em rascunho
+  -> CI e revisão humana
+
+Notebook online: painel/inspeção e agregação opcional dos relatórios de uso.
 ```
 
-O controlador não precisa receber conexões da Internet, acessar o banco de telemetria nem expor portas. Uma conta de serviço separada deve ter somente acesso ao repositório necessário para ler as tarefas e disparar workflows. O token fica em credencial local de permissões restritas, nunca em issue, log, repositório ou prompt. Telemetria do Nivus não é dependência deste fluxo; agregação entre nós será útil quando o Nó Master estiver operacional.
+O notebook é suporte adicional, não controlador nem ponto único de falha. Ele pode acompanhar a página de progresso, baixar relatórios de uso ou executar análises locais quando disponível. Se ficar offline, a fila e os workflows continuam no GitHub. Telemetria do Nivus não é dependência; agregação entre nós será útil quando o Nó Master estiver operacional.
 
-Com os recursos informados para o CCE U25 (2 núcleos e cerca de 3,2 GiB de RAM), ele não é o local recomendado para manter agentes de código, builds paralelos ou sandboxes. Um runner padrão `ubuntu-24.04` hospedado pelo GitHub oferece 4 vCPU e 16 GB de RAM para repositórios públicos, com uso padrão gratuito segundo a documentação atual. Isso fornece computação, não créditos de modelo. O notebook pode coordenar; o runner hospedado executa.
+O executor inicial foi preparado para uma chamada por tarefa, com um modelo fixo e conteúdo público/sintético. `free-tier` no workflow é uma confirmação do mantenedor, não uma trava contra cobrança: antes de criar o segredo, use um projeto Google sem faturamento vinculado. Não coloque a chave na Issue, no repositório ou neste chat. A chamada real permanece desativada até o PR ser integrado e o mantenedor configurar o segredo e a variável de orçamento.
 
-Não configure um runner self-hosted GitHub no CCE para executar código de PRs públicos. O GitHub alerta que workflows com código não confiável podem comprometer o host e acessar credenciais. Se o notebook parar, o despacho pausa e retoma depois; isso não significa execução literalmente ininterrupta.
+Com os recursos informados para o CCE U25 (2 núcleos e cerca de 3,2 GiB de RAM), ele não é o local recomendado para manter agentes de código, builds paralelos ou sandboxes. Um runner padrão `ubuntu-24.04` hospedado pelo GitHub oferece 4 vCPU e 16 GB de RAM para repositórios públicos, com uso padrão gratuito segundo a documentação atual. Isso fornece computação, não créditos de modelo. O runner hospedado executa; o notebook pode ajudar a observar e agregar relatórios quando estiver online.
+
+Não configure um runner self-hosted GitHub no CCE para executar código de PRs públicos. O GitHub alerta que workflows com código não confiável podem comprometer o host e acessar credenciais. “Offline” aqui significa que o operador pode estar ausente e os computadores locais desligados; o runner e a API continuam precisando de Internet. A quota gratuita do modelo pode pausar novas propostas, sem perder as Issues da fila.
 
 ## Paralelismo de módulos: construtores e integrador
 
@@ -81,4 +86,3 @@ O mapa de pacotes, dependências e critérios do modelo “cada agente constrói
 - [GitHub Actions: capacidade e custo dos runners hospedados](https://docs.github.com/en/actions/reference/runners/github-hosted-runners)
 - [GitHub Actions: uso seguro de runners](https://docs.github.com/en/actions/reference/security/secure-use)
 - [Hermes: requisitos e limites de recursos do Docker](https://hermes-agent.nousresearch.com/docs/user-guide/docker/)
-

@@ -9,4 +9,3 @@ Este diretório contém fontes e conhecimento técnico curado, compartilhável p
 O conteúdo versionado é a fonte para qualquer IA e para futuras instalações. A biblioteca no produto, sincronização entre nós, ACLs e consulta no dashboard ainda não estão implementadas. Não guarde dados domésticos privados, segredos nem cópias integrais de obras protegidas aqui.
 
 Os campos `search_terms` são palavras normalizadas para pesquisa lexical. Não representam IDs de tokenizer de um modelo. Isso permite que ferramentas e modelos diferentes usem o mesmo catálogo sem dependência de fornecedor.
-

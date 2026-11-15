@@ -117,4 +117,3 @@ Critério de saída: limite financeiro não é ultrapassado silenciosamente; dad
 **Em paralelo agora:** concluir a Fase 1 por CI hospedada, manter a biblioteca pública versionada e avançar o executor externo de desenvolvimento. Esse executor não depende da telemetria do nó. **Quando o Nó Master estiver operacional:** iniciar a Fase 2 em leitura somente para agregar dados dos nós. Depois seguem Home Assistant e sensores em leitura, IA local e só então o scheduler de tarefas entre nós. Conectores comerciais entram por último.
 
 Para decidir a próxima entrega física da casa, veja “Decisões em aberto” em [`VISION.md`](VISION.md). Modelos exatos de roteador, switch PoE, câmeras, inversor, medidores e proteção elétrica ainda precisam ser escolhidos e conferidos com documentação de fabricante e profissionais habilitados.
-

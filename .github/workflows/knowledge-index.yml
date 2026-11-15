@@ -28,4 +28,3 @@ jobs:
 
       - name: Check source catalog and generated lexical index
         run: python tools/build_ai_context.py --check
-

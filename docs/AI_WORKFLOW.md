@@ -1,56 +1,47 @@
-# Fluxo de trabalho para preservar contexto de IA
+# Conhecimento compartilhado e trabalho com IA
 
-Este processo reduz mudanças fora de escopo e evita que uma sessão trate planos antigos como código existente. Ele vale para Codex, outras IAs e contribuições humanas assistidas por IA.
+## Fonte comum
 
-## 1. Abrir a tarefa com o estado atual
+O GitHub é a fonte versionada das decisões do Nivus e do conhecimento técnico curado para o projeto. Organize material duradouro por tema em `docs/` e `knowledge/topics/`; os registros das fontes ficam em `knowledge/catalog/`. Assim, qualquer IA que leia o repositório recebe os mesmos resumos, metadados e limites, sem depender da memória de uma conversa ou de um fornecedor.
 
-1. Confira branch, diretório de trabalho e alterações locais antes de editar.
-2. Leia README.md, AGENTS.md, docs/AI_CONTEXT.md e docs/PROJECT_STATUS.md.
-3. Para mudança estrutural, leia MODULE_MAP.md, ARCHITECTURE.md, DECISIONS.md e PROJECT_ROADMAP.md.
-4. Para operação, instalação ou dados, leia também deploy/README.md e VM_VALIDATION.md.
-5. Verifique o branch, PR e código atuais. Um resumo de outra sessão, vídeo, issue ou skill é contexto; não é prova de implementação nem autorização para executar.
+O produto ainda não implementa a biblioteca compartilhada entre nós. O catálogo e os resumos deste repositório são conteúdo curado para essa biblioteca futura, não uma funcionalidade já disponível na dashboard.
 
-## 2. Transformar a ideia em tarefa verificável
+## Fluxo de ingestão
 
-Registre em poucas linhas:
-- objetivo observável e comportamento esperado;
-- módulo dono e dependências;
-- arquivos/contratos que podem mudar;
-- critérios de aceite;
-- como validar com dados descartáveis;
-- risco, rollback e o que fica fora de escopo.
+1. Registrar uma fonte com URL, autor/canal quando conhecido, data de consulta, tema e licença/condições de uso.
+2. Extrair apenas o que está acessível. Quando houver legenda, guardar localmente apenas se permitido; não publicar transcrição integral protegida.
+3. Atomizar em conceitos independentes: uma nota curta por mecanismo, afirmação ou decisão.
+4. Rotular cada afirmação como `observed`, `primary-docs-verified`, `secondary-source`, `user-provided` ou `needs-transcript`.
+5. Preservar timestamp de vídeo, página/seção de documento, versão, proveniência e limites.
+6. Normalizar termos para busca, gerar o índice lexical e revisar o diff. Índice e notas derivados devem ser reproduzíveis a partir das fontes versionadas.
+7. Atualizar a nota se uma fonte corrigir ou contradizer a afirmação; não conservar versões incompatíveis sem explicar a diferença.
 
-Escolha um módulo por PR sempre que possível. Mudanças paralelas precisam de fronteiras e contratos definidos antes do trabalho. Não faça alterações simultâneas em arquivos compartilhados sem combinar a ordem de integração.
+## Termos de busca e tokens
 
-## 3. Implementar e verificar
+`tools/build_ai_context.py` normaliza texto com Unicode NFKC e caixa baixa, preserva identificadores úteis e cria `knowledge/index/records.jsonl` e `knowledge/index/terms.json`. Esses são termos lexicais independentes de modelo, não IDs de token de BPE/SentencePiece. Um tokenizer de modelo muda conforme o modelo e a versão; nenhum modelo específico é requisito para consultar o índice.
 
-1. Inspecione o código que executa hoje; não recrie uma função já existente.
-2. Faça uma alteração pequena e compatível. Se precisar quebrar um contrato, inclua migração, documentação e caminho de volta.
-3. Não adicione pacotes, serviços, contas ou permissões sem necessidade documentada.
-4. Execute verificações pertinentes à mudança em ambiente isolado. Não use banco, segredo ou serviço do notebook ativo como fixture.
-5. Registre o comando, o resultado e o alcance real da verificação. Smoke, CI virtual e benchmark físico são evidências diferentes.
-6. Atualize PROJECT_STATUS.md, DECISIONS.md e PROJECT_ROADMAP.md somente quando o status, uma decisão ou um critério tiver mudado.
-7. Revise diff, licenças e arquivos ignorados antes do PR.
+Na raiz do repositório:
 
-## 4. Biblioteca compartilhada e cache local
+```bash
+python3 tools/build_ai_context.py
+python3 tools/build_ai_context.py --query "hermes gateway discord jira"
+```
 
-O GitHub é a fonte versionada comum para decisões e conhecimento técnico público. Organize documentos de projeto em `docs/` e notas curtas por conceito em `knowledge/topics/`; registre URLs, datas, licenças e verificação em `knowledge/catalog/`. A biblioteca consultável/sincronizada no produto continua futura.
+`records.jsonl` contém um registro por nota/fonte e a lista de termos normalizados. `terms.json` mapeia cada termo para IDs de registros. Não adicione embeddings ou banco vetorial até que uma avaliação de busca mostre benefício mensurável.
 
-- Preserve a proveniência: fonte, versão, página ou timestamp, licença, status da evidência e limitações.
-- Separe observação direta, documentação primária, fonte secundária, conteúdo informado pelo operador e alegação ainda não verificada.
-- Escreva resumos próprios; não publique livros ou transcrições completas protegidas.
-- Use `tools/build_ai_context.py` para gerar `knowledge/index/records.jsonl` e `knowledge/index/terms.json`. O índice lexical usa termos normalizados, não IDs específicos de tokenizer de LLM.
-- `temp/` fica opcional e local, ignorada pelo Git; nunca coloque nela ou no GitHub credenciais, bases reais, logs, IPs privados, imagens, rostos, placas ou telemetria doméstica.
-- A busca lexical é a primeira etapa; só adicione embeddings/banco vetorial após medir ganho de qualidade e custo.
+## Privacidade, licenças e uso compartilhado
 
-## 5. Passagem entre sessões
+- Versione somente informação que possa ser pública e útil a todos os contribuidores.
+- Não versione senhas, tokens, arquivos de configuração privada, métricas de uma casa, imagens, placas, rostos, logs de produção ou banco real.
+- Para vídeos e livros, prefira notas e resumos próprios com timestamps/citações de origem. Não copie a legenda ou o livro completo sem autorização/licença compatível.
+- Uma fonte de terceiro não vira documentação oficial do Nivus. Registre separadamente fato, alegação promocional, teste local e inferência.
+- A biblioteca compartilhada futura deve aplicar identidade, ACL, versão de esquema e proveniência antes de sincronizar dados entre nós.
 
-Ao encerrar ou transferir uma tarefa, deixe uma passagem curta com:
-1. objetivo e branch/PR;
-2. arquivos alterados e motivo;
-3. verificações realmente executadas e seus resultados;
-4. estado: feito, em revisão, staging, instalado ou pendente;
-5. riscos, rollback e próxima ação;
-6. informação que precisa ser confirmada pelo operador.
+## Duas formas distintas de paralelismo
 
-Não use “concluído” para código que só está planejado, compila localmente ou passou apenas em runner virtual de CI.
+- **Desenvolvimento:** agente externo recebe tarefa, trabalha em sandbox/branch, abre PR, passa CI e espera revisão humana.
+- **Runtime do Nivus:** scheduler futuro distribui tarefas de dados/IA entre nós autenticados conforme capacidade, quota, lease, prazo e política de segurança.
+
+Um roteador de modelos não é uma fila de tarefas; compartilhar arquivos/GPU pela rede não combina automaticamente RAM/VRAM. Veja [`AI_DEVELOPMENT_ORCHESTRATION.md`](AI_DEVELOPMENT_ORCHESTRATION.md) e a Fase 5 do [`PROJECT_ROADMAP.md`](PROJECT_ROADMAP.md).
+
+O executor de desenvolvimento por GitHub Issues está documentado em [`AI_EXECUTOR_IMPLEMENTATION.md`](AI_EXECUTOR_IMPLEMENTATION.md). O branch de revisão já contém intake, adaptador Gemini e worker que prepara PR em rascunho após autorização `ai:ready`; ainda faltam configuração da chave, validação end-to-end e integração no `main`.

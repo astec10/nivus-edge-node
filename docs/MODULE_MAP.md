@@ -1,83 +1,75 @@
-# Mapa funcional e de dependências do Nivus
+# Mapa de módulos e dependências
 
-Este documento separa o que existe no código desta branch, o que foi observado no notebook e o que ainda é uma capacidade futura. Ele orienta onde uma mudança deve entrar e quais contratos precisam ser preservados. A presença de um diretório ou de uma skill não prova que uma função está integrada ou implantada.
+Este mapa distingue o que existe do que está planejado. Os caminhos são relativos à raiz do repositório.
 
-## Árvore funcional
+## Nó de borda atual
 
-Nivus Edge Node
-├── Nó de borda e interface
-│   ├── Painel web: frontend/src — React/Vite, login e visualizações do nó
-│   ├── Servidor web: deploy/nginx — TLS e proxy para a API
-│   └── API: backend/main.py e backend/api
-│       ├── routers — autenticação, usuários, telemetria, alertas, configurações e atuadores
-│       ├── schemas.py — validação e contratos dos payloads
-│       ├── dependencies.py — identidade, JWT e autorização por papel
-│       ├── security.py — hash de senha e funções de segurança
-│       ├── services/ — regras de integração, incluindo publicação MQTT
-│       └── database.py — conexões SQLite e alterações aditivas de esquema
-├── Coleta e mensageria
-│   ├── telemetry/agent.py — amostras de recursos do host e sensores disponíveis
-│   ├── Mosquitto — broker MQTT restrito às redes configuradas
-│   └── backend/mqtt_worker.py — consumo de mensagens e persistência
-├── Operação e recuperação
-│   ├── docker-compose.yml — serviços, redes, limites e healthchecks
-│   ├── deploy/ — instalação candidata, configuração, backup, restore e rollback
-│   └── systemd do host — execução do agente leve de telemetria
-├── Capacidades futuras do produto
-│   ├── Registro e identidade de vários nós
-│   ├── Home Assistant, Zigbee, sensores, energia, câmeras e interfone
-│   ├── Base de conhecimento local e inferência local
-│   ├── Fila de tarefas, distribuição de trabalho e transferência de artefatos
-│   └── Conectores opcionais para provedores de IA comerciais
-└── Apoio ao desenvolvimento
-    ├── docs/ — decisões, arquitetura, status, roadmap e processo de IA
-    ├── codex-skills/ — instruções para orientar tarefas por domínio
-    └── temp/ — cache local opcional, ignorado pelo Git
+```mermaid
+flowchart TD
+  Host[Ubuntu host] --> Agent[telemetry/agent.py]
+  Agent --> MQTT[Mosquitto MQTT]
+  MQTT --> Worker[backend/mqtt_worker.py]
+  Worker --> DB[(SQLite persistente)]
+  Browser[Browser] --> Nginx[Nginx HTTPS]
+  Nginx --> UI[frontend React/Vite]
+  UI --> API[backend/main.py FastAPI]
+  API --> Routers[backend/api/routers]
+  Routers --> Schemas[backend/api/schemas.py]
+  Routers --> Auth[backend/api/dependencies.py + security.py]
+  Routers --> DB
+  API --> MQTT
+  Compose[docker-compose.yml] --> Nginx
+  Compose --> API
+  Compose --> Worker
+  Compose --> MQTT
+```
 
-## Fluxo de dependências atual
+### Fronteiras
 
-- Pessoa usuária → navegador → Nginx → arquivos estáticos do painel.
-- Painel → Nginx → rotas FastAPI. A API valida o token e o papel antes da operação protegida.
-- Routers FastAPI → schemas, dependências de autorização, serviços de domínio e camada SQLite.
-- Agente do host → broker MQTT → worker → SQLite. O worker e a API usam a mesma base persistente da candidata.
-- Serviço FastAPI → serviço MQTT → broker para comandos permitidos; a execução física exige confirmação e intertravamentos locais.
-- Compose organiza API, worker, broker e Nginx. O agente de telemetria permanece como serviço do host e acessa o broker conforme a configuração protegida documentada em deploy/README.md.
-
-O broker não deve ser publicado na LAN por conveniência. API, MQTT e banco têm fronteiras distintas; não crie uma dependência circular entre routers, serviços e acesso ao banco.
-
-## Estado por capacidade
-
-| Capacidade | Diretório ou contrato | Estado que pode ser afirmado |
+| Módulo | Entrada/saída | Responsabilidade |
 | --- | --- | --- |
-| Login por senha/JWT e papéis | backend/api, backend/security.py | Implementado; validação e operação no notebook estão descritas em PROJECT_STATUS.md. USB e biometria não estão implementadas. |
-| Painel e telemetria de um nó | frontend/src, backend/api/routers | Implementados na candidata; painel e API foram observados no notebook. |
-| Persistência e ingestão MQTT | backend/database.py, backend/mqtt_worker.py, telemetry/ | Implementadas; a stack Compose paralela foi observada coletando no notebook. |
-| Backup, restore e rollback | deploy/ | Código e fluxo passaram CI descartável; teste em hardware físico e matriz multi-vendor continuam pendentes. O operador não usará VM local. |
-| Catálogo autenticado de nós | Ainda sem módulo próprio | Planejado. Não há descoberta, cadastro ou revogação multi-nó integrados. |
-| Automação doméstica e atuadores | Ainda sem adaptador Home Assistant completo | Planejado; proteções de segurança são requisito de projeto, não prova de integração. |
-| Conhecimento e inferência local | Ainda sem runtime de RAG/inferência integrado | Planejado. O cache de desenvolvimento não é a biblioteca de conhecimento do produto. |
-| Execução federada de tarefas | Ainda sem serviço de fila/leases | Planejado; não instalar agentes externos no nó de borda como substituto. |
+| `telemetry/` | métricas do host → MQTT | Coleta CPU, memória, disco, energia estimada e sensores disponíveis; não implementa a política da API. |
+| `backend/api/routers/` | HTTP autenticado ↔ schemas | Endpoints por domínio; exige autorização nas rotas sensíveis. |
+| `backend/services/` | chamadas internas ↔ serviços | MQTT, logs e operações de domínio; não expõe portas diretamente. |
+| `backend/database.py` | conexões ↔ SQLite | Persistência, migrações aditivas e consultas. |
+| `backend/mqtt_worker.py` | MQTT → validação/persistência | Consome telemetria e registra alertas de regra determinística. |
+| `frontend/src/` | API ↔ componentes React | Login e dashboard; não decide segurança de backend. |
+| `deploy/` e `docker-compose.yml` | arquivos de configuração → processos | Instalação, redes, volumes, health, backup e rollback. |
 
-## Caminho de uma mudança
+Consulte [`ARCHITECTURE.md`](ARCHITECTURE.md), [`PROJECT_STATUS.md`](PROJECT_STATUS.md) e os arquivos de cada módulo antes de mudar contratos. O mapa não substitui o código.
 
-1. Escolha um único domínio e leia a skill correspondente em docs/SKILL_MAP.md.
-2. Localize o contrato: rota/schema, tabela, tópico MQTT, mensagem da UI ou configuração.
-3. Faça a menor alteração que respeite o contrato e a fronteira do módulo.
-4. Verifique a área tocada em ambiente descartável; não use o SQLite do notebook para testes.
-5. Atualize PROJECT_STATUS.md, DECISIONS.md ou PROJECT_ROADMAP.md somente quando os fatos ou decisões mudarem.
-6. Abra um PR pequeno, descrevendo evidências, limitações e rollback.
+## Biblioteca compartilhada futura
 
-## Integrações futuras e dependências
+```mermaid
+flowchart LR
+  Sources[Fontes com licença/proveniência] --> Extract[Extração/OCR/legenda autorizada]
+  Extract --> Review[Revisão e estado de evidência]
+  Review --> Chunks[Notas atomizadas por tema]
+  Chunks --> Lexical[Índice lexical reproduzível]
+  Lexical --> Retrieval[Consulta com citações]
+  Identity[Identidade e ACL por nó] --> Retrieval
+  Retrieval --> Agents[Agentes locais autorizados]
+```
 
-- Home Assistant e Zigbee2MQTT devem entrar por um adaptador documentado, com credenciais próprias e modo inicial somente de leitura.
-- Sensores de hardware devem usar as fontes do kernel Linux/hwmon e conservar nome, origem, unidade e validade da leitura.
-- Câmeras e inferência visual devem emitir eventos com proveniência; reconhecimento de pessoa ou placa não pode ser a única autorização para um atuador.
-- O registro de nós deve preceder distribuição de tarefas: identidade, autorização, revogação e heartbeat vêm antes da fila.
-- A fila deve definir leases, limites de recurso, cancelamento, isolamento e verificação de artefatos antes de executar tarefas em outros computadores.
-- Conectores comerciais devem ser opcionais, respeitar limites/custos e permitir fallback local; não são dependências do caminho básico do nó.
+`knowledge/catalog/` e `knowledge/topics/` são conteúdo público curado. Extração, indexação lexical executável, consulta na aplicação e replicação autenticada em vários nós ainda são trabalho da Fase 4.
 
-Veja PROJECT_ROADMAP.md para fases e critérios e ARCHITECTURE.md para detalhes da candidata atual.
+## Paralelismo externo de desenvolvimento (fora do runtime)
 
-## Desenvolvimento paralelo com IA (fora do runtime Nivus)
+```text
+GitHub Issue aprovada (ai:ready)
+  → controlador leve opcional no notebook
+  → runner efêmero GitHub-hosted
+  → agente/modelo em sandbox
+  → PR → CI → homologação → revisão humana/merge
+```
 
-GitHub Issue revisada → controlador leve opcional no notebook → runner GitHub-hosted descartável → agente/modelo em sandbox → PR → CI → revisão humana. O intake de Issue existe; controlador no notebook, worker de código e provedores ainda não estão instalados. O fluxo não depende da telemetria nem do Nó Master. Leia AI_MODULE_WORKPLAN.md para dividir peças e serializar contratos compartilhados.
+O intake GitHub existe; o controlador no notebook, worker, provedor de modelo e sandbox ainda não foram implementados. Hermes/OmniRoute/Discord/Jira são opções de ferramentas externas, não serviços do nó Nivus. O executor não depende do agente de telemetria nem do Nó Master. Ver [`AI_DEVELOPMENT_ORCHESTRATION.md`](AI_DEVELOPMENT_ORCHESTRATION.md).
+
+## Scheduler Nivus entre nós (futuro)
+
+```text
+identidade de nó → inventário de capacidade → fila/lease → worker isolado
+                → artefato com checksum → validação/aceite → auditoria
+```
+
+Esse scheduler não está implementado. A Fase 2 fornece cadastro/heartbeat e a Fase 5 define leases, idempotência, quotas, cancelamento e recuperação. Compartilhar um arquivo ou GPU pela LAN não agrega RAM/VRAM por si só.

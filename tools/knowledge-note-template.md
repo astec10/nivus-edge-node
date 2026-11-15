@@ -24,4 +24,3 @@ Point to the source section/page/video timestamp and record what was not verifie
 
 - Primary source:
 - Secondary source, if used:
-

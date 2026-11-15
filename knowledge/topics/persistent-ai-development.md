@@ -26,4 +26,3 @@ The Hermes Docker documentation describes a persistent messaging gateway; Hermes
 - [Module work packages and integration plan](../../docs/AI_MODULE_WORKPLAN.md)
 - [Hermes persistent gateway documentation](https://hermes-agent.nousresearch.com/docs/user-guide/docker)
 - [GitHub deployment reviews](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/review-deployments)
-

@@ -66,4 +66,3 @@ O YouTube limitou a leitura direta das páginas durante esta revisão. Por isso,
 ## Como integrar à biblioteca compartilhada Nivus
 
 O catálogo preserva origem e status; notas temáticas guardam resumos próprios e pequenos conceitos. A biblioteca compartilhada em runtime ainda é planejada. Para integrá-la, a Fase 4 deve importar registros versionados, manter URL/timestamp, direitos de uso, checksum e confiança, gerar chunks reproduzíveis e permitir pesquisa lexical primeiro. Embeddings podem vir depois de medição. Nenhuma alegação de vídeo deve se tornar fato do Nivus sem evidência primária ou teste reproduzível.
-

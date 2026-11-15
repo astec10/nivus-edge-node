@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-15 03:45 UTC
+Atualizado: 2026-11-15 11:37 UTC
 Licença: AGPL-3.0-only
 
 ## Resumo verificado
@@ -45,7 +45,6 @@ Nenhum suporte universal x86_64, automação doméstica, coordenador multi-nó o
 
 O fluxo persistente com agente, Discord/Jira, roteador de modelos, GitHub PR e aprovação humana está documentado em `docs/AI_DEVELOPMENT_ORCHESTRATION.md`. O cenário completo descrito por um comentarista de vídeo não foi confirmado como uma integração pronta; os componentes são documentados separadamente. `docs/VIDEO_RESEARCH_INDEX.md` cataloga os vídeos e expõe o nível de verificação de cada um. Os metadados, resumos curados e notas atômicas versionados ficam em `knowledge/`; `tools/build_ai_context.py` gera termos lexicais e índice independentes de modelo. A biblioteca consultável e sincronizada dentro do produto continua planejada na Fase 4, não implementada.
 
-O executor de desenvolvimento tem um intake inicial em `docs/AI_EXECUTOR_IMPLEMENTATION.md`: formulário de issue, validação de escopo e fila manual em runner GitHub-hosted. Neste estágio ele não chama modelos nem modifica código. Um worker de IA aguarda escolha de host externo, provedor, orçamento e credencial GitHub de escopo mínimo.
+O PR #3 está recebendo intake GitHub, adaptador Gemini, worker que restringe alterações a caminhos exatos e workflow que abre PR em rascunho após autorização `ai:ready`. O worker não lê Issue privada fora do contrato, não apaga arquivos, não executa comandos e não altera workflows. Oito testes locais cobrem autorização, limite de tempo, allowlist, gravação restrita e preflight sem chave; a simulação sem chave confirmou que nenhuma conexão de rede foi aberta e que o relatório contém só metadados. Ainda não está ativo no `main`: não há secret `GEMINI_API_KEY`, variável de orçamento nem chamada API end-to-end observada. O worker não aprova, faz merge ou deploy.
 
-O notebook pode hospedar um controlador leve para despachar tarefas, mas esse serviço ainda não foi instalado. A recomendação é manter a execução de código em runners hospedados pelo GitHub. Telemetria do host está presente no ambiente de teste, mas não é requisito do executor; agregação de telemetria entre nós será útil quando o Nó Master estiver operacional.
-
+GitHub Issues e Actions são a fila e execução principais, sem depender do PC ou notebook do operador. O notebook é suporte opcional para painel, inspeção e agregação de relatórios quando estiver online. Telemetria do host não é requisito; agregação de telemetria entre nós será útil quando o Nó Master estiver operacional.

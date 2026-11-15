@@ -1,0 +1,148 @@
+name: AI proposal worker
+
+on:
+  issues:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Open issue number previously validated by AI task intake
+        required: true
+        type: string
+      reviewed_and_authorized:
+        description: Confirm you reviewed this public/synthetic task and authorize one free-tier model call
+        required: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ai-proposal-${{ github.event.issue.number || inputs.issue_number }}
+  cancel-in-progress: false
+
+jobs:
+  propose:
+    if: >-
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
+      (
+      (github.event_name == 'issues' && github.event.action == 'labeled' && github.event.label.name == 'ai:ready') ||
+      (github.event_name == 'workflow_dispatch' && inputs.reviewed_and_authorized == true)
+      )
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      issues: read
+    outputs:
+      branch: ${{ steps.publish_branch.outputs.branch }}
+    env:
+      ISSUE_NUMBER: ${{ inputs.issue_number || github.event.issue.number }}
+      REPOSITORY: ${{ github.repository }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+    steps:
+      - name: Check out trusted default branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch and validate issue payload
+        id: validate_issue
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          ISSUE_NUMBER: ${{ inputs.issue_number || github.event.issue.number }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -Eeuo pipefail
+          [[ "$GITHUB_REF_NAME" == "$DEFAULT_BRANCH" ]]
+          [[ "$ISSUE_NUMBER" =~ ^[1-9][0-9]*$ ]]
+          gh api "repos/$REPOSITORY/issues/$ISSUE_NUMBER" > "$RUNNER_TEMP/nivus-ai-issue.json"
+          gh api "repos/$REPOSITORY/issues/$ISSUE_NUMBER" --jq .body > "$RUNNER_TEMP/nivus-ai-issue-body.md"
+          runtime_minutes="$(python scripts/validate_ai_task.py \
+            --file "$RUNNER_TEMP/nivus-ai-issue-body.md" \
+            --require-free-tier --print-runtime-minutes)"
+          echo "runtime_minutes=$runtime_minutes" >> "$GITHUB_OUTPUT"
+
+      - name: Generate and apply a bounded proposal
+        shell: bash
+        env:
+          NIVUS_AI_BUDGET_MODE: ${{ vars.NIVUS_AI_BUDGET_MODE }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          MAX_RUNTIME_MINUTES: ${{ steps.validate_issue.outputs.runtime_minutes }}
+        run: |
+          set -Eeuo pipefail
+          timeout --kill-after=10 "$MAX_RUNTIME_MINUTES"m python -m tools.ai_executor.worker \
+            --issue-file "$RUNNER_TEMP/nivus-ai-issue.json" \
+            --repo-root "$GITHUB_WORKSPACE" \
+            --usage-report "$RUNNER_TEMP/nivus-ai-usage.json"
+
+      - name: Save sanitized model usage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nivus-ai-usage-${{ github.run_id }}
+          path: ${{ runner.temp }}/nivus-ai-usage.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Publish proposal branch
+        id: publish_branch
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          if [[ -z "$(git status --porcelain)" ]]; then
+            echo "No proposal changes were produced."
+            exit 1
+          fi
+          branch="ai/issue-${ISSUE_NUMBER}-run-${GITHUB_RUN_ID}"
+          git switch -c "$branch"
+          git add --all
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "ai: propose changes for issue #${ISSUE_NUMBER}"
+          git push --set-upstream origin "$branch"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+
+  validate-proposal:
+    needs: propose
+    uses: ./.github/workflows/ubuntu-ci.yml
+    with:
+      source_ref: ${{ needs.propose.outputs.branch }}
+
+  open-draft-pr:
+    needs: [propose, validate-proposal]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: write
+    env:
+      ISSUE_NUMBER: ${{ inputs.issue_number || github.event.issue.number }}
+      REPOSITORY: ${{ github.repository }}
+      PROPOSAL_BRANCH: ${{ needs.propose.outputs.branch }}
+    steps:
+      - name: Create draft PR after checks pass
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          [[ "$ISSUE_NUMBER" =~ ^[1-9][0-9]*$ ]]
+          [[ "$PROPOSAL_BRANCH" =~ ^ai/issue-[1-9][0-9]*-run-[0-9]+$ ]]
+          base_branch="$(gh repo view "$REPOSITORY" --json defaultBranchRef --jq '.defaultBranchRef.name')"
+          gh pr create \
+            --draft \
+            --base "$base_branch" \
+            --head "$PROPOSAL_BRANCH" \
+            --title "AI proposal for issue #${ISSUE_NUMBER}" \
+            --body "Generated from a validated public/synthetic task. The proposal passed the Ubuntu CI workflow. Human review and approval are required before merge or deployment. Closes #${ISSUE_NUMBER}. Workflow: https://github.com/${REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+

@@ -24,4 +24,3 @@ The linked NetworkChuck video is represented by secondary caption mirrors and pr
 
 - [Video research index](../../docs/VIDEO_RESEARCH_INDEX.md)
 - [Nivus task federation roadmap](../../docs/PROJECT_ROADMAP.md)
-

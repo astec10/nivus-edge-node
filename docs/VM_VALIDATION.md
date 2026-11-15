@@ -1,173 +1,25 @@
-# Roteiro de validação em VM Ubuntu limpa
+# Validação em runner remoto, sem VM local
 
-Este roteiro valida uma instalação independente do Nivus Compose. A VM deve ser descartável e isolada; não execute os passos de instalação em um host com dados importantes.
+O operador decidiu não usar VirtualBox, Hyper-V ou outras VMs no computador pessoal. A validação de instalação e recuperação deve ocorrer em runners Linux descartáveis hospedados pelo GitHub Actions, sem iniciar VMs no Windows do operador e sem alterar o notebook ativo.
 
-Para cada alteração de software, o workflow [Ubuntu VM validation](../.github/workflows/ubuntu-ci.yml) executa automaticamente checks e uma integração Compose numa VM Ubuntu 22.04 amd64 recém-criada ([documentação dos runners hospedados](https://docs.github.com/en/actions/how-tos/write-workflows/choose-where-workflows-run/choose-the-runner-for-a-job)). Esse fluxo reduz testes manuais repetidos, mas não substitui este roteiro para reboot/restauração nem a qualificação das seis plataformas físicas Intel/AMD descritas em [`TEST_STRATEGY.md`](TEST_STRATEGY.md). A VM local continua útil para depurar falhas de instalação, restaurar snapshots e medir um perfil específico; não é necessário criar uma VM para cada modelo de computador.
+## Fluxo automatizado
 
-## 1. Preparar a VM
+O workflow [`ubuntu-ci.yml`](../.github/workflows/ubuntu-ci.yml) executa a validação em Ubuntu amd64 hospedado pelo GitHub. O run `43662375766` passou o smoke Compose e o fluxo de instalação, backup, health-check, rollback induzido e restauração normal. Esse registro é evidência para aquele commit; mudanças posteriores só ficam cobertas depois de uma nova execução verde.
 
-- Ubuntu Server 22.04 LTS ou posterior, `amd64`/`x86_64`, com `systemd` 247 ou posterior.
-- Para o primeiro ciclo: 2 vCPUs, 4 GB de RAM e 30 GB de disco. Registre a configuração real; esses valores são condições de teste, não requisitos mínimos certificados.
-- Rede NAT com saída para APT/GitHub/Docker Hub e SSH acessível somente pelo host de virtualização. No VirtualBox, encaminhe TCP `127.0.0.1:2222` do host para a porta 22 do guest; não encaminhe portas para a Internet pública nem para a LAN doméstica.
-- Faça um snapshot inicial antes de instalar. Anote versão do Ubuntu, arquitetura, CPU/RAM/disco livres, hipervisor e data.
-- Use uma conta Linux de teste com `sudo`. Nunca compartilhe sua senha. Para acesso remoto, autorize uma chave pública temporária e confira a impressão digital SSH da VM por um canal local confiável.
+Ao abrir um pull request ou enviar uma alteração para `main`:
 
-O operador confirmou uma VM `testev1` com Ubuntu 26.04.1 LTS amd64, 4 vCPUs, 8 GB de RAM, filesystem raiz de cerca de 24,44 GB e 16 MB de memória de vídeo virtual. O vídeo é o adaptador de exibição, não VRAM para inferência. O operador relata que a VM trava ao tentar alterar configurações; numa sessão anterior o console também exibiu mensagens de watchdog/soft-lockup/RCU. Não instale o Nivus nela até resolver a estabilidade. Nenhum Nivus foi instalado nessa VM.
+1. Confira o resultado de todos os jobs do workflow.
+2. Para um job com falha, preserve o log sanitizado e reproduza a falha num runner descartável.
+3. Não copie banco, `.env`, tokens, certificados, chaves ou telemetria do notebook para artefatos de CI.
+4. Confirme que health HTTPS responde, a API exige autenticação, SQLite passa `quick_check` e a ingestão MQTT aumenta a telemetria.
+5. O teste de recuperação deve criar seu próprio estado descartável e demonstrar tanto o rollback forçado quanto o restore normal.
 
-Para repetir o teste num ambiente previsível, o repositório fornece `deploy/windows/New-NivusTestVm.ps1`. Ele cria uma VM separada chamada `nivus-test-clean`, usa Ubuntu Server 24.04.5 LTS amd64, baixa a ISO oficial se ela ainda não existir e confere o SHA-256 antes de criar a VM. Atribui no máximo 2 vCPUs e ajusta a RAM conforme o host, cria um VDI dinâmico de 32 GB, mantém 16 MB de vídeo sem aceleração 3D e encaminha SSH somente por `127.0.0.1:2223`. Antes do download/criação, recusa se outra VM estiver em execução, a porta SSH estiver ocupada ou a RAM/disco livre forem insuficientes. O script não altera nem apaga `testev1` ou outras VMs.
+## Testes que não devem rodar no notebook ativo
 
-Após a primeira tentativa automatizada parar com E_ACCESSDENIED antes de alterar qualquer VM, `nivus-test-clean` foi criada com Ubuntu Server 24.04.5 LTS amd64 e SSH/NAT local. A conferência atual autenticou a conta `nivus` somente pela chave temporária; a impressão digital ED25519 do host corresponde a `SHA256:l1f0aTbIJrVfJo5pU5DR9KmSJoY6FY5ynopjoPBwiIQ`, e a entrada autorizada foi conferida com `restrict`. O guest reporta 4 CPUs online, 4.009.220 kB de memória e 27 GB livres em disco de 32 GB; uma leitura anterior do gerenciador indicou 2 vCPUs, então esse valor deve ser reconciliado antes de benchmark. O clone em `/home/nivus/nivus-edge-node` está no commit `5edc7e74968017af5731339cf44419830bf924ec`, sem alterações locais. `bash -n` nos scripts de backup/restore e `--help` de restore e rollback passaram no Ubuntu. Docker e Nivus ainda não estão instalados; `sudo -n` não está habilitado, então o operador precisa digitar a senha sudo e criar o administrador inicial no terminal durante a instalação. Nenhum serviço ou dado do notebook foi alterado.
+`deploy/test-restore-rollback.sh` injeta falha para verificar a recuperação. Não rode esse script no notebook de teste nem em qualquer máquina com dados importantes. A rotina deve ser executada somente dentro do workflow remoto que cria um ambiente descartável para cada execução. O notebook permanece disponível para telemetria real e validações de leitura.
 
-Ubuntu Server 24.04.5 LTS tem suporte padrão até 31/05/2029 ([notas oficiais](https://documentation.ubuntu.com/release-notes/24.04/)). No console Ubuntu, rode:
+## Limites
 
-~~~bash
-cat /etc/os-release
-systemctl status ssh --no-pager
-ss -lnt | grep ':22'
-~~~
+Runner hospedado valida software e integração com hardware virtualizado. Não certifica sensores, firmware, desempenho ou estabilidade de cada computador. Para anunciar compatibilidade ampla, registre testes físicos em plataformas Intel e AMD de diferentes gerações, sem repetir uma matriz física inteira a cada commit.
 
-Na VM atual, `systemctl is-active ssh` respondeu `active`, o fingerprint foi conferido no console local e a autenticação SSH somente por chave foi validada. O bloco de comando abaixo é uma referência para outra VM ou para uma futura troca da chave:
-
-~~~bash
-sudo ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
-~~~
-
-A leitura do console da VM atual e o handshake SSH conferiram `SHA256:l1f0aTbIJrVfJo5pU5DR9KmSJoY6FY5ynopjoPBwiIQ`. A chave temporária já foi autorizada com a opção `restrict`; a chave privada continua apenas no ambiente de desenvolvimento e não deve ser copiada.
-
-Se outra VM mostrar `Unit ssh.service could not be found`, instale e ative OpenSSH:
-
-~~~bash
-sudo apt update
-sudo apt install -y openssh-server
-sudo systemctl enable --now ssh
-~~~
-
-Depois, do Windows, confirme SSH com `ssh -p 2223 ... 127.0.0.1`; confira a impressão digital antes de aceitar a chave do host. Autorize somente a chave pública temporária e preserve o acesso restrito à conta de teste. Não envie senha ou chave privada. O encaminhamento só escuta em 127.0.0.1; não exponha a porta à LAN ou à Internet.
-
-Somente se a VM `nivus-test-clean` ainda não existir, no PowerShell aberto na raiz do repositório execute o script. Se a ISO ainda não estiver em Downloads, ele baixa cerca de 3,8 GB do servidor oficial e verifica o hash antes de iniciar o VirtualBox:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\deploy\windows\New-NivusTestVm.ps1
-```
-
-O download também está disponível no site oficial do [Ubuntu Server 24.04.5 LTS amd64](https://releases.ubuntu.com/24.04/ubuntu-24.04.5-live-server-amd64.iso). Para usar uma ISO já salva em outro caminho, informe `-IsoPath "C:\caminho\ubuntu-24.04.5-live-server-amd64.iso"`.
-
-O `ExecutionPolicy Bypass` vale apenas para essa execução e não altera a política global do Windows. No instalador, escolha o disco virtual de 32 GB, Ubuntu Server minimal e a opção **OpenSSH server**; crie credenciais somente para a VM e não as compartilhe. Depois do primeiro boot, faça um snapshot no VirtualBox antes de instalar o Nivus.
-
-### Se uma VM travar ao alterar configurações
-
-Configurações de hardware como RAM, CPU, armazenamento e rede devem ser ajustadas com a VM completamente desligada. O estado **Salvo** também pode bloquear alterações. Se o guest responder, rode `sudo poweroff` e aguarde o estado **Powered Off**. Se não responder, na janela da VM escolha **Máquina → Fechar → Desligar a máquina**; isso equivale a uma interrupção de energia para o guest e pode perder dados que ainda não foram gravados. Não escolha **Salvar o estado da máquina** para fazer essas alterações. Consulte o [manual oficial do VirtualBox](https://www.virtualbox.org/manual/).
-
-Para a nova VM, mantenha o perfil conservador gerado pelo script. Em servidor sem interface gráfica, 16 MB de vídeo e aceleração 3D desligada são suficientes. O VirtualBox recomenda reservar RAM e no máximo metade das threads lógicas do host para cada VM; memória insuficiente no Windows pode causar paginação e deixar todo o host sem resposta. Se a janela de configurações continuar travando mesmo com a VM desligada, não altere o VDI: mantenha `testev1` intacta e use a nova VM criada pelo script.
-
-Na console da VM, depois do primeiro login:
-
-```bash
-sudo apt update
-sudo apt install -y openssh-server
-sudo systemctl enable --now ssh
-sudo ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
-```
-
-O script configura a regra NAT SSH como `127.0.0.1:2223` no host para a porta `22` do guest. Assim, SSH só fica acessível pelo próprio computador host; a conexão é `ssh -p 2223 usuario@127.0.0.1`. Se a VM for criada manualmente, use **Configurações → Rede → Adaptador 1 (NAT) → Avançado → Encaminhamento de portas** e crie a mesma regra. Autorize apenas uma chave pública temporária entregue para o teste e confira a impressão digital ED25519 da VM.
-
-## 2. Obter e revisar o código
-
-```bash
-git clone https://github.com/astec10/nivus-edge-node.git
-cd nivus-edge-node
-git rev-parse HEAD
-git status --short
-sed -n '1,240p' deploy/install.sh
-```
-
-Registre o commit instalado. O instalador exige Ubuntu x86_64, systemd 247+, Docker Compose e acesso à Internet para dependências. A instalação usa HTTPS com certificado autoassinado e escolhe outra porta se 8443 estiver ocupada.
-
-## 3. Instalar e verificar
-
-```bash
-sudo bash deploy/install.sh
-```
-
-Crie o primeiro administrador no terminal. Não copie a senha para logs, capturas ou este relatório. Depois:
-
-```bash
-sudo systemctl is-enabled docker.service nivus-compose-telemetry.service
-sudo systemctl show nivus-compose-telemetry.service -p ActiveState -p SubState -p NRestarts --no-pager
-sudo docker ps --filter name=nivus-edge --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
-HTTPS_PORT=$(sudo awk -F= '$1 == "NIVUS_HTTPS_PORT" {print $2}' /opt/nivus-compose/current/.env)
-curl -kfsS "https://127.0.0.1:${HTTPS_PORT}/health"
-curl -ksS -o /dev/null -w '%{http_code}\n' "https://127.0.0.1:${HTTPS_PORT}/api/telemetry"
-```
-
-Esperado: serviços habilitados, quatro containers ativos, health com `status: ok`, e `401` para telemetria sem token. Somente o Nginx deve publicar uma porta no host; MQTT e API permanecem em redes Docker privadas. O certificado autoassinado gera um aviso no navegador durante este teste.
-
-Confirme que a coleta persiste novas linhas no SQLite:
-
-```bash
-read_count() {
-  sudo docker exec nivus-edge-api-1 python -c 'import sqlite3; c=sqlite3.connect("file:/data/nivus.db?mode=ro", uri=True); print(c.execute("SELECT COUNT(*) FROM telemetry").fetchone()[0]); c.close()'
-}
-before=$(read_count)
-sleep 12
-after=$(read_count)
-printf 'telemetry_before=%s telemetry_after=%s\n' "$before" "$after"
-test "$after" -gt "$before"
-```
-
-Abra `https://IP-DA-VM:PORTA/`, aceite o aviso de certificado apenas nesta VM isolada e confirme o login. Não registre credenciais.
-
-## 4. Verificar reinício
-
-Faça isso somente na VM descartável, após o snapshot e a coleta acima:
-
-```bash
-sudo reboot
-```
-
-Após a VM voltar, repita health, `401`, `systemctl show`, `docker ps` e a contagem SQLite. Os serviços precisam iniciar sozinhos e a base precisa manter as linhas existentes e continuar crescendo.
-
-## 5. Backup e teste de restauração
-
-Crie um backup consistente:
-
-```bash
-sudo bash /opt/nivus-compose/current/deploy/backup.sh
-sudo ls -lt /var/backups/nivus-compose
-```
-
-O backup inclui uma cópia SQLite validada e o `.env` do Compose, mas **não inclui** os segredos JWT/MQTT, credenciais do broker, chave/certificado TLS ou imagens. Portanto, ele serve como ponto de recuperação local da instalação que conserva os mesmos segredos; não é um pacote completo para migrar para outro host.
-
-O repositório agora inclui `deploy/restore.sh`. Primeiro teste somente a validação:
-
-```bash
-sudo ls -lt /var/backups/nivus-compose
-BACKUP_DIR=/var/backups/nivus-compose/20261113T000000Z-XXXXXX
-sudo bash /opt/nivus-compose/current/deploy/restore.sh --check "$BACKUP_DIR"
-```
-
-Substitua o valor de exemplo por um diretório real listado por `backup.sh`; o nome termina com um sufixo aleatório. Para provar o rollback automático, use a VM descartável depois de snapshot, gere um backup, espere a contagem de telemetria avançar e rode:
-
-```bash
-sudo bash /opt/nivus-compose/current/deploy/test-restore-rollback.sh --i-understand-this-is-a-disposable-vm "$BACKUP_DIR"
-```
-
-O teste só funciona dentro de uma VM, faz um backup de segurança, exige as confirmações `VM-ROLLBACK-TEST` e `RESTORE`, simula uma falha de health por até 45 segundos e verifica o retorno do banco, dos serviços, health 200, `401` sem token e SQLite. O resultado esperado é uma falha de health simulada seguida de mensagem de rollback recuperado; os dados atuais precisam permanecer. Se não houver mais telemetria na base ativa do que no backup escolhido, espere a coleta e tente novamente. Este teste injeta uma falha deliberadamente e nunca deve ser rodado no notebook ativo.
-
-Depois, teste o caminho normal no mesmo ambiente descartável: `sudo bash /opt/nivus-compose/current/deploy/restore.sh "$BACKUP_DIR"`, digite `RESTORE`, confirme que a contagem volta ao ponto salvo e que a telemetria recomeça. O `restore.sh` cria outro backup consistente antes da troca e tenta rollback se a validação posterior falhar. Durante o rollback, verifica o SQLite, os quatro containers, o coletor, health HTTPS 200 e `401` sem token; se não confirmar todos, informa que o rollback não foi totalmente validado e mantém o backup prévio. Ele mantém `.env` e segredos atuais e restaura só o SQLite. Não execute a restauração nem o teste de falha no notebook em uso.
-
-Até passar nesse teste de integração em VM, a restauração automatizada está implementada e revisada, mas não declarada validada.
-
-## 6. Relatar o resultado
-
-Anexe ao relatório, sem senhas, JWTs, conteúdo de `.env`, endereços domésticos ou dados pessoais:
-
-- commit Git e versão do Ubuntu, arquitetura, hipervisor e recursos atribuídos;
-- resultado e duração da instalação, RAM/disco antes e depois, imagens baixadas e portas ocupadas;
-- saída resumida de health, status do serviço/coletor, containers e HTTP 401;
-- contagem de telemetria antes/depois da espera e depois do reboot;
-- localização e tamanho do backup, resultado de `quick_check` e estado de cada critério;
-- erros encontrados e procedimento de rollback usado.
-
-**Critério de saída:** instalação sem staging ou segredos prévios; login e telemetria persistente; recuperação após reboot; backup íntegro; restauração e rollback demonstrados numa cópia descartável. Até esses critérios passarem, o projeto é uma candidata e não declara compatibilidade universal x86_64.
-
+Para instalações limpas, o painel tenta usar HTTPS na porta 443 e assim abre em `https://IP/`. Se outro serviço já ocupa 443, o instalador mantém esse serviço e seleciona uma porta alternativa. A instalação paralela atual ainda exige promoção Nginx para colocar a dashboard candidata no endereço sem sufixo de porta.

@@ -6,7 +6,7 @@ from __future__ import annotations
 import argparse
 import re
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 REQUIRED = (
     "Objective",
@@ -68,7 +68,17 @@ def sections(body: str) -> dict[str, str]:
     return {key: "\n".join(value).strip() for key, value in found.items()}
 
 
-def validate(body: str) -> list[str]:
+def runtime_minutes(body: str) -> int:
+    raw = sections(body).get("Maximum runtime in minutes", "")
+    if not re.fullmatch(r"\s*\d{1,2}\s*", raw):
+        raise ValueError("Maximum runtime precisa ser um número entre 1 e 15 minutos.")
+    value = int(raw)
+    if not 1 <= value <= 15:
+        raise ValueError("Maximum runtime precisa ser um número entre 1 e 15 minutos.")
+    return value
+
+
+def validate(body: str, *, require_free_tier: bool = False) -> list[str]:
     problems: list[str] = []
     values = sections(body)
     for name in REQUIRED:
@@ -80,8 +90,13 @@ def validate(body: str) -> list[str]:
         problems.append("A fila pública aceita somente código/documentação pública ou dados sintéticos.")
 
     budget = values.get("External model budget", "")
-    if budget != "no model call — intake only":
-        problems.append("Nenhum worker/provider está autorizado; selecione 'no model call — intake only'.")
+    if budget not in {
+        "no model call — intake only",
+        "free-tier model call — public/synthetic content only",
+    }:
+        problems.append("A fila aceita somente intake ou chamada free-tier com dados públicos/sintéticos.")
+    elif require_free_tier and budget != "free-tier model call — public/synthetic content only":
+        problems.append("A chamada de modelo requer o orçamento free-tier explicitamente selecionado.")
 
     risk = values.get("Risk", "").casefold()
     if risk == "high":
@@ -90,19 +105,32 @@ def validate(body: str) -> list[str]:
         problems.append("Risk precisa ser low ou medium para entrar na fila automática.")
 
     runtime = values.get("Maximum runtime in minutes", "")
-    if not re.fullmatch(r"\s*\d{1,3}\s*", runtime) or not 1 <= int(runtime) <= 30:
-        problems.append("Maximum runtime precisa ser um número entre 1 e 30 minutos.")
+    if not re.fullmatch(r"\s*\d{1,2}\s*", runtime) or not 1 <= int(runtime) <= 15:
+        problems.append("Maximum runtime precisa ser um número entre 1 e 15 minutos.")
 
     allowed_paths = values.get("Allowed paths", "")
     entries = [line.strip().lstrip("-*").strip().strip("` ") for line in allowed_paths.splitlines() if line.strip()]
     if not entries:
         problems.append("Allowed paths precisa listar caminhos exatos do repositório.")
+    if len(set(entries)) != len(entries):
+        problems.append("Allowed paths não pode conter caminhos duplicados.")
     for entry in entries:
-        path = entry.replace("\\", "/")
+        path = entry
+        candidate = PurePosixPath(path)
         parts = path.split("/")
-        if path.startswith("/") or re.match(r"^[A-Za-z]:", path) or ".." in parts or any(c in path for c in "*?[]"):
+        if (
+            path.startswith("/")
+            or "\\" in path
+            or ":" in path
+            or candidate.as_posix() != path
+            or any(part in {"", ".", ".."} for part in parts)
+            or any(c in path for c in "*?[]")
+            or any(ord(c) < 32 for c in path)
+        ):
             problems.append(f"Caminho amplo ou inválido em Allowed paths: {entry}")
         folded_parts = [part.casefold() for part in parts]
+        if path.casefold().startswith(".github/workflows/"):
+            problems.append(f"Workflows exigem alteração humana separada: {entry}")
         if any(
             part in FORBIDDEN_PATH_PARTS
             or part in FORBIDDEN_NAMES
@@ -127,17 +155,21 @@ def validate(body: str) -> list[str]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--file", type=Path, help="Arquivo com o corpo da issue; por padrão lê stdin")
+    parser.add_argument("--require-free-tier", action="store_true", help="Exige autorização explícita para uma chamada free-tier")
+    parser.add_argument("--print-runtime-minutes", action="store_true", help="Valida e imprime somente o limite de execução da issue")
     args = parser.parse_args()
     body = args.file.read_text(encoding="utf-8") if args.file else sys.stdin.read()
-    problems = validate(body)
+    problems = validate(body, require_free_tier=args.require_free_tier)
     if problems:
         for problem in problems:
             print(f"ERRO: {problem}", file=sys.stderr)
         return 1
+    if args.print_runtime_minutes:
+        print(runtime_minutes(body))
+        return 0
     print("Issue válida para a fila de intake; nenhum modelo foi chamado.")
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

@@ -45,4 +45,3 @@ Um integrador deve ser o único responsável por decidir mudanças simultâneas 
 O repositório tem intake por GitHub Issue, validação de escopo e workflow manual que marca `ai:queued`. **Não** há ainda um dispatcher instalado no notebook, chamada a modelo, worker de código, criação automática de PR ou integração com Discord/Jira/Hermes/OmniRoute. A telemetria local do CCE e o futuro Nó Master são independentes desse fluxo.
 
 O notebook pode hospedar um controlador leve por systemd; o processamento e sandbox de código ficam em runners GitHub-hosted descartáveis. Tarefas e resultados no GitHub sobrevivem a uma interrupção do notebook. Ver [`AI_EXECUTOR_IMPLEMENTATION.md`](AI_EXECUTOR_IMPLEMENTATION.md) e [`AI_DEVELOPMENT_ORCHESTRATION.md`](AI_DEVELOPMENT_ORCHESTRATION.md).
-

@@ -24,4 +24,3 @@ The summary is based on indexed description metadata, not an independent inspect
 
 - [Video research index](../../docs/VIDEO_RESEARCH_INDEX.md)
 - [Nivus vision and safety boundaries](../../docs/VISION.md)
-
