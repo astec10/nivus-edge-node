@@ -4,7 +4,7 @@ Use runners Ubuntu descartáveis para repetir a validação funcional em cada mu
 
 ## Evidência mais recente
 
-O workflow Ubuntu VM validation passou no run 43652960603 em Ubuntu 22.04 amd64. Ele executou build e smoke Compose, instalação limpa, coleta MQTT para SQLite, backup consistente, validação somente leitura, rollback por falha de health, restauração normal, health HTTPS 200, API 401 sem token, quick_check e retomada da telemetria.
+O workflow Ubuntu VM validation passou no run 43662375766, associado ao commit ba242268786c838626c6f76907e6e64eba158d94, em Ubuntu 22.04 amd64. Os jobs de instalação/backup/rollback e de smoke Compose concluíram com sucesso. Ele executou build e smoke Compose, instalação limpa, coleta MQTT para SQLite, backup consistente, validação somente leitura, rollback por falha de health, restauração normal, health HTTPS 200, API 401 sem token, quick_check e retomada da telemetria.
 
 A CI fornece um ambiente virtual efêmero, com execução reproduzível e sem exigir que o operador monte uma VM local para cada computador. O resultado não testa BIOS, rede física, controladores de disco, sensores ou desempenho sustentado de cada modelo.
 
