@@ -127,13 +127,13 @@ echo "unauthenticated_telemetry_http=$AUTH_STATUS"
 echo '===MQTT_TO_SQLITE==='
 TIMESTAMP=$(date +%s)
 MQTT_PASSWORD=$(cat "$SECRETS_DIR/mqtt_agent_password")
-PAYLOAD=$(printf '{"node":"%s","timestamp":%s,"cpu_percent":5.2,"memory_percent":42.0,"disk_percent":20.0,"temperature":null,"power_consumption":17.6}' "$PROJECT" "$TIMESTAMP")
+PAYLOAD=$(printf '{"node":"%s","timestamp":%s,"cpu_percent":5.2,"memory_percent":42.0,"disk_percent":20.0,"temperature":57.0,"temperature_source":"coretemp: Package id 0","motherboard_temperature":null,"gpu_temperature":47.0,"gpu_temperature_source":"amdgpu: edge","gpu_hotspot_temperature":68.0,"gpu_hotspot_source":"amdgpu: junction","power_consumption":17.6}' "$PROJECT" "$TIMESTAMP")
 docker compose -p "$PROJECT" exec -T mqtt mosquitto_pub \
   -h 127.0.0.1 -p 1883 -u nivus-agent -P "$MQTT_PASSWORD" \
   -t nivus/edge/telemetry -q 1 -m "$PAYLOAD"
 for attempt in $(seq 1 15); do
   DB_RESULT=$(docker compose -p "$PROJECT" exec -T api python -c \
-    'import sqlite3,sys; c=sqlite3.connect("/data/nivus.db"); check=c.execute("PRAGMA quick_check").fetchone()[0]; count=c.execute("SELECT COUNT(*) FROM telemetry WHERE node=?", (sys.argv[1],)).fetchone()[0]; print(check, count); c.close()' \
+    'import sqlite3,sys; c=sqlite3.connect("/data/nivus.db"); check=c.execute("PRAGMA quick_check").fetchone()[0]; row=c.execute("SELECT COUNT(*),temperature_source,temperature,gpu_temperature,gpu_hotspot_temperature FROM telemetry WHERE node=?", (sys.argv[1],)).fetchone(); assert row == (1,"coretemp: Package id 0",57.0,47.0,68.0), row; print(check, row[0]); c.close()' \
     "$PROJECT")
   [[ "$DB_RESULT" == 'ok 1' ]] && break
   sleep 1
