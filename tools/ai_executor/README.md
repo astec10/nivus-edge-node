@@ -43,3 +43,6 @@ O workflow `AI task intake` pode apenas enfileirar a Issue ou, após a confirma�
 
 Para habilitar o uso depois que a revisão for integrada: crie um projeto Google separado, não vincule faturamento e gere uma chave para a Gemini API. Guarde-a como `GEMINI_API_KEY` em **Settings → Secrets and variables → Actions → Secrets**; crie a variável `NIVUS_AI_BUDGET_MODE=free-tier` em **Variables** somente depois de conferir o projeto. Não envie a chave no chat, Issue ou repositório. A configuração é uma confirmação do operador, não um limitador de custo. O executor cria um artifact por tentativa, retido por 30 dias, com modelo, tokens/duração/status e sem conteúdo do prompt.
 
+## Permissão do GitHub para abrir PRs
+
+A última etapa usa `gh pr create --draft` com o `GITHUB_TOKEN`. No repositório, confira **Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests**. Sem essa permissão, o branch de proposta e a CI podem terminar, mas a etapa que abre o PR falha; nesse caso, um mantenedor precisa abrir o PR manualmente. O workflow solicita `pull-requests: write` apenas no job de abertura e não tem passo de aprovação, merge ou deploy. PRs criados pelo `GITHUB_TOKEN` também podem deixar os workflows de evento `pull_request` aguardando aprovação manual; o workflow de proposta executa a CI reutilizável antes de criar o PR.
