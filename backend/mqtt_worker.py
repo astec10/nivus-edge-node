@@ -50,6 +50,41 @@ def on_message(client, userdata, msg):
         memory = _number(payload, "memory_percent", 0, 100)
         disk = _number(payload, "disk_percent", 0, 100)
         temperature = _number(payload, "temperature", -40, 150, nullable=True)
+        temperature_source = payload.get("temperature_source")
+        if temperature_source is not None and (
+            not isinstance(temperature_source, str)
+            or len(temperature_source) > 128
+            or any(ord(character) < 32 for character in temperature_source)
+        ):
+            raise ValueError("temperature_source")
+        motherboard_temperature = _number(
+            payload, "motherboard_temperature", -40, 150, nullable=True
+        )
+        motherboard_temperature_source = payload.get("motherboard_temperature_source")
+        if motherboard_temperature_source is not None and (
+            not isinstance(motherboard_temperature_source, str)
+            or len(motherboard_temperature_source) > 128
+            or any(ord(character) < 32 for character in motherboard_temperature_source)
+        ):
+            raise ValueError("motherboard_temperature_source")
+        gpu_temperature = _number(payload, "gpu_temperature", -40, 150, nullable=True)
+        gpu_temperature_source = payload.get("gpu_temperature_source")
+        if gpu_temperature_source is not None and (
+            not isinstance(gpu_temperature_source, str)
+            or len(gpu_temperature_source) > 128
+            or any(ord(character) < 32 for character in gpu_temperature_source)
+        ):
+            raise ValueError("gpu_temperature_source")
+        gpu_hotspot_temperature = _number(
+            payload, "gpu_hotspot_temperature", -40, 150, nullable=True
+        )
+        gpu_hotspot_source = payload.get("gpu_hotspot_source")
+        if gpu_hotspot_source is not None and (
+            not isinstance(gpu_hotspot_source, str)
+            or len(gpu_hotspot_source) > 128
+            or any(ord(character) < 32 for character in gpu_hotspot_source)
+        ):
+            raise ValueError("gpu_hotspot_source")
         power = _number(payload, "power_consumption", 0, 1000, nullable=True)
 
         conn = get_db_connection()
@@ -60,9 +95,27 @@ def on_message(client, userdata, msg):
         previous = cursor.fetchone()
         cursor.execute(
             """INSERT INTO telemetry
-               (node, timestamp, cpu_percent, memory_percent, disk_percent, temperature, power_consumption)
-               VALUES (?, ?, ?, ?, ?, ?, ?)""",
-            (node, timestamp, cpu, memory, disk, temperature, power),
+               (node, timestamp, cpu_percent, memory_percent, disk_percent, temperature,
+                temperature_source, motherboard_temperature, motherboard_temperature_source,
+                gpu_temperature, gpu_temperature_source,
+                gpu_hotspot_temperature, gpu_hotspot_source, power_consumption)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                node,
+                timestamp,
+                cpu,
+                memory,
+                disk,
+                temperature,
+                temperature_source,
+                motherboard_temperature,
+                motherboard_temperature_source,
+                gpu_temperature,
+                gpu_temperature_source,
+                gpu_hotspot_temperature,
+                gpu_hotspot_source,
+                power,
+            ),
         )
         telemetry_id = cursor.lastrowid
 
