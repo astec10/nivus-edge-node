@@ -11,8 +11,9 @@ Construir uma plataforma local-first de nó de borda que começa monitorando um 
 - A base atual contém uma API FastAPI, painel React, SQLite, MQTT, agente de telemetria e implantação candidata Compose.
 - A instalação systemd/Nginx antiga e a candidata Compose são ambientes separados no notebook de teste. Verifique PROJECT_STATUS.md antes de citar o estado ao vivo.
 - O login atualmente usa senha e JWT. USB, Face ID e leitor biométrico não são recursos implementados.
-- Multi-nó, Home Assistant, Zigbee, câmeras, IA local, P2P, execução distribuída e APIs comerciais pertencem ao roadmap, a menos que o código e os critérios atuais provem o contrário.
-- Testes de CI em runners descartáveis não provam suporte a todos os hardwares físicos nem substituem a validação na VM Ubuntu local.
+- Telemetria local está presente no nó de teste, mas agregação entre nós não é requisito para o executor de desenvolvimento; será útil quando o Nó Master estiver operacional.
+- Multi-nó, biblioteca compartilhada em runtime, Home Assistant, Zigbee, câmeras, IA local, P2P, execução distribuída e APIs comerciais pertencem ao roadmap, a menos que o código e os critérios atuais provem o contrário.
+- Testes de CI em runners descartáveis não provam suporte a todos os hardwares físicos. O operador não usará VMs no computador pessoal; use CI hospedada ou simulações.
 - Não afirme que uma versão de staging está no notebook. Consulte o PR e a saída de publicação correspondentes.
 
 ## Fontes canônicas — consulte nesta ordem conforme o escopo
@@ -24,7 +25,9 @@ Construir uma plataforma local-first de nó de borda que começa monitorando um 
 5. PROJECT_ROADMAP.md — fases, ordem e critérios de conclusão.
 6. ARCHITECTURE.md e DECISIONS.md — desenho e decisões vigentes.
 7. DEVELOPMENT.md e CONFIGURATION.md — ambiente local e opções.
-8. deploy/README.md e VM_VALIDATION.md — operações, recuperação e validação da instalação.
+8. deploy/README.md e VM_VALIDATION.md — operações, recuperação e validação da instalação usando CI remota.
+9. AI_MODULE_WORKPLAN.md, AI_EXECUTOR_IMPLEMENTATION.md e AI_DEVELOPMENT_ORCHESTRATION.md — paralelismo e executor externo.
+10. VIDEO_RESEARCH_INDEX.md e knowledge/README.md — fontes curadas e busca lexical.
 9. SKILL_MAP.md — skill adequada para a área da tarefa.
 
 Se duas fontes divergirem, inspecione código e evidência recente, registre a discrepância e corrija a fonte canônica. Não escolha automaticamente o documento mais otimista.
@@ -42,6 +45,12 @@ Se duas fontes divergirem, inspecione código e evidência recente, registre a d
 
 Ao começar, declare: objetivo, módulo dono, contrato afetado, arquivos que pretende tocar, riscos e validação. Inspecione a branch atual antes de editar. Faça uma mudança pequena, preserve comportamento externo ou documente a migração, rode apenas verificações pertinentes e descreva o resultado observado. Atualize status/decisões quando fatos mudarem. Consulte AI_WORKFLOW.md para o passo a passo e o formato de passagem de contexto.
 
-## Cache local
+## Conhecimento versionado e biblioteca futura
 
-O cache opcional de consulta técnica fica em temp/ e é ignorado pelo Git. Atomizar significa dividir uma referência em notas curtas por conceito com fonte, versão/data, assunto e palavras-chave. Indexar/tokenizar, no material de desenvolvimento atual, significa normalizar termos para busca lexical; não significa criar IDs de tokens de um modelo de linguagem. O cache não é produto, fonte de verdade nem destino para segredos, bases reais, logs ou dados domésticos. Decisões permanentes continuam nos documentos canônicos.
+O GitHub é a fonte comum das decisões e do conhecimento técnico curado. `knowledge/catalog/` preserva as fontes e `knowledge/topics/` guarda resumos próprios por conceito. `tools/build_ai_context.py` gera um índice lexical independente de modelo em `knowledge/index/`. Termos normalizados ajudam diferentes IAs a pesquisar; não são IDs do tokenizador interno de um modelo.
+
+A biblioteca consultável e sincronizada dentro do produto ainda é futura. Fontes, licenças, timestamps/páginas e níveis de evidência devem acompanhar cada resumo. Não publique transcrições completas protegidas, segredos, dados domésticos, logs ou telemetria real.
+
+## Cache local opcional
+
+`temp/` pode guardar cache privado e fica ignorada pelo Git. Ela não substitui a biblioteca pública nem os documentos canônicos e nunca deve conter senhas, tokens, bancos reais, logs ou dados domésticos.

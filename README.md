@@ -1,6 +1,6 @@
 # Nivus Edge Node
 
-O Nivus é um projeto aberto para construir uma plataforma de borda local-first: primeiro coleta e organiza telemetria com segurança num computador Linux de baixo consumo; depois poderá integrar automação residencial, vários nós e processamento local ou distribuído.
+O Nivus é um projeto aberto para construir uma plataforma de borda local-first, modular e de baixo consumo. Telemetria é um módulo da plataforma; sua agregação entre nós não é pré-requisito para o executor nem para a biblioteca compartilhada e será mais útil quando o Nó Master estiver operacional.
 
 O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não significa compatibilidade comprovada com qualquer computador. Até agora, o stack Compose foi instalado e operado em paralelo num único notebook Ubuntu CCE U25. Uma instalação limpa independente, reboot, restauração e mais modelos de hardware ainda precisam de validação.
 
@@ -11,7 +11,7 @@ O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não sign
 - API FastAPI separada em routers, schemas, dependências, segurança, banco e serviço MQTT.
 - Login com senha e JWT, senha armazenada com PBKDF2, papéis de usuário e endpoints protegidos. No momento, o acesso é por senha; chave USB e biometria não estão implementadas.
 - Painel React/Vite dividido em componentes, com login, telemetria, usuários e seções do dashboard.
-- SQLite persistente, ingestão MQTT e agente de telemetria do host.
+- SQLite persistente, ingestão MQTT e agente de telemetria do host na instalação de teste. Telemetria agregada de vários nós é uma fase futura ligada ao Nó Master.
 - Instalação Compose paralela com API, worker, Mosquitto e Nginx; HTTPS, backup e procedimento de rollback.
 - A candidata Compose passou health HTTPS, HTTP 401 sem token e login; o coletor publica telemetria continuamente. A instalação antiga systemd/Nginx continua separada e ativa.
 - A interface servida mostra os avisos AGPL e links para o código e a licença.
@@ -23,12 +23,13 @@ O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não sign
 - Automação residencial real, VPN integrada ao produto e ações remotas em dispositivos.
 - Inferência local, consulta à biblioteca de PDFs, fila de trabalhos entre máquinas, transferência P2P e conectores para provedores comerciais com limites de uso.
 - Instalação limpa validada, reboot, atualização com rollback e matriz de hardware x86_64.
+- O executor de desenvolvimento já tem intake de tarefas, mas o dispatcher no notebook, o worker de modelo e a criação automática de PR ainda estão pendentes.
 
 Veja [docs/PROJECT_ROADMAP.md](docs/PROJECT_ROADMAP.md) para fases, entregáveis e critérios de conclusão; [docs/VISION.md](docs/VISION.md) registra a visão doméstica mais ampla. O estado verificado está em [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md). O [mapa funcional e de dependências](docs/MODULE_MAP.md) separa módulos existentes e planejados; [docs/AI_CONTEXT.md](docs/AI_CONTEXT.md) e [docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md) orientam sessões de IA e a passagem de contexto. A cobertura das skills está em [docs/SKILL_MAP.md](docs/SKILL_MAP.md).
 
-O plano para não repetir a suíte completa em cada computador está em [docs/TEST_STRATEGY.md](docs/TEST_STRATEGY.md): CI numa VM Ubuntu limpa para cada alteração e uma matriz de seis plataformas físicas de referência (Intel e AMD, três faixas de geração) nos marcos de compatibilidade.
+O plano para não repetir a suíte completa em cada computador está em [docs/TEST_STRATEGY.md](docs/TEST_STRATEGY.md): CI em runners Ubuntu descartáveis hospedados pelo GitHub e uma matriz de seis plataformas físicas de referência (Intel e AMD, três faixas de geração) nos marcos de compatibilidade. O operador não usará VMs no computador pessoal.
 
-Para reutilizar contexto e consultas técnicas de programação entre sessões, veja [docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md). O cache opcional em temp/ é local e ignorado pelo Git; este repositório ainda não inclui um gerador executável. Atomização significa dividir notas por conceito, e a busca lexical normaliza termos — isso não equivale à tokenização interna de um modelo. Decisões permanentes devem ficar nos documentos canônicos.
+Para orientar agentes, dividir módulos e reutilizar conhecimento versionado, consulte [docs/AI_CONTEXT.md](docs/AI_CONTEXT.md), [docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md), [docs/AI_MODULE_WORKPLAN.md](docs/AI_MODULE_WORKPLAN.md), [docs/AI_EXECUTOR_IMPLEMENTATION.md](docs/AI_EXECUTOR_IMPLEMENTATION.md), [docs/AI_DEVELOPMENT_ORCHESTRATION.md](docs/AI_DEVELOPMENT_ORCHESTRATION.md) e o [índice de vídeos](docs/VIDEO_RESEARCH_INDEX.md). `knowledge/` contém notas públicas e índice lexical; `temp/` continua local e ignorada pelo Git.
 
 ## Comece por aqui
 
@@ -40,7 +41,7 @@ Se você quer entender ou modificar o código:
 4. Escolha uma tarefa pequena com resultado verificável. Não trate itens da visão ou do roadmap como recursos já implementados.
 5. Faça as verificações disponíveis para a área alterada, documente os resultados e atualize o estado/decisões se o comportamento mudou.
 
-O roteiro detalhado para contribuições está em [CONTRIBUTING.md](CONTRIBUTING.md). Consulte o [catálogo de componentes open source](docs/OPEN_SOURCE_COMPONENTS.md) para opções pesquisadas, estado de adoção e impactos; os itens listados são candidatos e não foram instalados. O pacote de instalação é candidato, não uma versão de produção: siga [deploy/README.md](deploy/README.md) e o [roteiro da VM Ubuntu limpa](docs/VM_VALIDATION.md); não use uma máquina com dados importantes como ambiente de teste.
+O roteiro detalhado para contribuições está em [CONTRIBUTING.md](CONTRIBUTING.md). Consulte o [catálogo de componentes open source](docs/OPEN_SOURCE_COMPONENTS.md) para opções pesquisadas, estado de adoção e impactos; os itens listados são candidatos e não foram instalados. O pacote de instalação é candidato, não uma versão de produção: siga [deploy/README.md](deploy/README.md) e o roteiro de validação em runner Linux remoto em [docs/VM_VALIDATION.md](docs/VM_VALIDATION.md). Nenhuma VM precisa ser iniciada no computador do operador.
 
 ## Mapa do código
 

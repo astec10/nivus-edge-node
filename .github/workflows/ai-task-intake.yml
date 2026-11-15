@@ -1,0 +1,69 @@
+name: AI task intake
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Open GitHub issue number created from the AI development task form
+        required: true
+        type: string
+      reviewed_public_content:
+        description: Confirm the issue contains public or synthetic information only
+        required: true
+        type: boolean
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: ai-task-intake-${{ inputs.issue_number }}
+  cancel-in-progress: false
+
+jobs:
+  validate-and-queue:
+    if: inputs.reviewed_public_content == true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository tools
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate issue contract
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ inputs.issue_number }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          [[ "$ISSUE_NUMBER" =~ ^[1-9][0-9]*$ ]]
+          gh api "repos/$REPOSITORY/issues/$ISSUE_NUMBER" --jq 'if has("pull_request") then error("a pull request cannot be queued as an issue task") elif .state != "open" then error("task issue must be open") else .body end' > "$RUNNER_TEMP/issue-body.md"
+          python scripts/validate_ai_task.py --file "$RUNNER_TEMP/issue-body.md"
+
+      - name: Ensure queue label exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          if ! gh api --method POST "repos/$REPOSITORY/labels" -f name='ai:queued' -f color='5319e7' -f description='Validated task waiting for an external AI worker' >/dev/null 2>&1; then
+            gh api "repos/$REPOSITORY/labels/ai%3Aqueued" >/dev/null
+          fi
+
+      - name: Mark issue as queued for an executor
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ inputs.issue_number }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          gh api --method POST "repos/$REPOSITORY/issues/$ISSUE_NUMBER/labels" -f 'labels[]=ai:queued' >/dev/null
+

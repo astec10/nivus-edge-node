@@ -32,19 +32,16 @@ Escolha um módulo por PR sempre que possível. Mudanças paralelas precisam de 
 6. Atualize PROJECT_STATUS.md, DECISIONS.md e PROJECT_ROADMAP.md somente quando o status, uma decisão ou um critério tiver mudado.
 7. Revise diff, licenças e arquivos ignorados antes do PR.
 
-## 4. Cache técnico local, opcional
+## 4. Biblioteca compartilhada e cache local
 
-A consulta frequente de linguagem, bibliotecas e técnicas pode ser acelerada com notas atomizadas, mas a cache deve continuar separada do código público e dos dados do produto.
+O GitHub é a fonte versionada comum para decisões e conhecimento técnico público. Organize documentos de projeto em `docs/` e notas curtas por conceito em `knowledge/topics/`; registre URLs, datas, licenças e verificação em `knowledge/catalog/`. A biblioteca consultável/sincronizada no produto continua futura.
 
-- Diretório reservado: temp/knowledge/notes/ para notas; índices e pacotes podem ficar em temp/knowledge/ e temp/.
-- O padrão do repositório ignora /temp/. Confirme com Git antes de copiar dados para esse local.
-- Uma nota deve cobrir um conceito e registrar título, resumo curto, fonte primária, versão ou data de consulta, data da revisão, tags e limitações conhecidas.
-- Prefira documentação oficial e repositórios upstream; guarde um trecho curto ou resumo próprio e a URL, não uma cópia extensa de livro ou documentação.
-- Atualize ou remova notas obsoletas quando APIs, versões ou avisos mudarem.
-- A busca prevista é lexical sobre termos normalizados. “Tokenizado” neste contexto não significa usar o tokenizador interno de cada LLM nem transforma texto em conhecimento automaticamente.
-- Nunca armazene chaves, senhas, tokens, arquivos .env, bases SQLite reais, logs, endereços domésticos, rostos, placas ou dados de sensores privados.
-- Não envie temp/knowledge, índice ou pacote de contexto ao GitHub. Se uma decisão for duradoura, resuma-a em docs/DECISIONS.md; se for fato operacional, atualize PROJECT_STATUS.md.
-- Este branch não fornece um gerador executável de cache. Não indique tools/build_ai_context.py como arquivo disponível nem afirme que o índice foi produzido por este repositório.
+- Preserve a proveniência: fonte, versão, página ou timestamp, licença, status da evidência e limitações.
+- Separe observação direta, documentação primária, fonte secundária, conteúdo informado pelo operador e alegação ainda não verificada.
+- Escreva resumos próprios; não publique livros ou transcrições completas protegidas.
+- Use `tools/build_ai_context.py` para gerar `knowledge/index/records.jsonl` e `knowledge/index/terms.json`. O índice lexical usa termos normalizados, não IDs específicos de tokenizer de LLM.
+- `temp/` fica opcional e local, ignorada pelo Git; nunca coloque nela ou no GitHub credenciais, bases reais, logs, IPs privados, imagens, rostos, placas ou telemetria doméstica.
+- A busca lexical é a primeira etapa; só adicione embeddings/banco vetorial após medir ganho de qualidade e custo.
 
 ## 5. Passagem entre sessões
 
@@ -56,4 +53,4 @@ Ao encerrar ou transferir uma tarefa, deixe uma passagem curta com:
 5. riscos, rollback e próxima ação;
 6. informação que precisa ser confirmada pelo operador.
 
-Não use “concluído” para código que só está planejado, compila localmente ou passou apenas numa VM de CI.
+Não use “concluído” para código que só está planejado, compila localmente ou passou apenas em runner virtual de CI.

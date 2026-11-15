@@ -35,3 +35,8 @@ Consequência: a porta HTTPS publicada pode ser acessada no endereço configurad
 ## Licença do projeto — 2026-11-13
 
 Decisão do operador: licenciar o Nivus Edge Node sob AGPL-3.0-only para que pessoas possam usar, estudar, modificar e distribuir versões derivadas conforme os termos da AGPL. Interfaces acessíveis pela rede devem oferecer o código-fonte correspondente sem custo e exibir aviso legal apropriado. A licença completa está em LICENSE; dependências e assets de terceiros mantêm as respectivas licenças e avisos.
+
+
+## Conhecimento comum e executor externo — 2026-11-15
+
+O GitHub é a fonte comum versionada para contexto de IA e conhecimento curado: metadados, resumos próprios e termos lexicais com proveniência. O runtime da biblioteca compartilhada não está implementado. Telemetria agregada não é requisito para o executor de desenvolvimento e será útil quando o Nó Master estiver operacional. O notebook CCE pode hospedar um controlador leve; código deve rodar em runner GitHub-hosted efêmero, não em runner self-hosted de repositório público. Tarefas ficam em Issues/Actions e retomam após uma interrupção.

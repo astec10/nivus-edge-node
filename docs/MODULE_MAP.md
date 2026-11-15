@@ -52,7 +52,7 @@ O broker não deve ser publicado na LAN por conveniência. API, MQTT e banco tê
 | Login por senha/JWT e papéis | backend/api, backend/security.py | Implementado; validação e operação no notebook estão descritas em PROJECT_STATUS.md. USB e biometria não estão implementadas. |
 | Painel e telemetria de um nó | frontend/src, backend/api/routers | Implementados na candidata; painel e API foram observados no notebook. |
 | Persistência e ingestão MQTT | backend/database.py, backend/mqtt_worker.py, telemetry/ | Implementadas; a stack Compose paralela foi observada coletando no notebook. |
-| Backup, restore e rollback | deploy/ | Código e fluxo passaram CI descartável; o teste local completo em VM continua pendente. |
+| Backup, restore e rollback | deploy/ | Código e fluxo passaram CI descartável; teste em hardware físico e matriz multi-vendor continuam pendentes. O operador não usará VM local. |
 | Catálogo autenticado de nós | Ainda sem módulo próprio | Planejado. Não há descoberta, cadastro ou revogação multi-nó integrados. |
 | Automação doméstica e atuadores | Ainda sem adaptador Home Assistant completo | Planejado; proteções de segurança são requisito de projeto, não prova de integração. |
 | Conhecimento e inferência local | Ainda sem runtime de RAG/inferência integrado | Planejado. O cache de desenvolvimento não é a biblioteca de conhecimento do produto. |
@@ -77,3 +77,7 @@ O broker não deve ser publicado na LAN por conveniência. API, MQTT e banco tê
 - Conectores comerciais devem ser opcionais, respeitar limites/custos e permitir fallback local; não são dependências do caminho básico do nó.
 
 Veja PROJECT_ROADMAP.md para fases e critérios e ARCHITECTURE.md para detalhes da candidata atual.
+
+## Desenvolvimento paralelo com IA (fora do runtime Nivus)
+
+GitHub Issue revisada → controlador leve opcional no notebook → runner GitHub-hosted descartável → agente/modelo em sandbox → PR → CI → revisão humana. O intake de Issue existe; controlador no notebook, worker de código e provedores ainda não estão instalados. O fluxo não depende da telemetria nem do Nó Master. Leia AI_MODULE_WORKPLAN.md para dividir peças e serializar contratos compartilhados.
