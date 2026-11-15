@@ -10,9 +10,9 @@ O alvo de distribuição é Ubuntu Server minimal x86_64/amd64. “Alvo” não 
 
 ## Onde estamos
 
-**Fundação do nó de borda: funcionando numa instalação Ubuntu de teste.** A API modular, o painel, o broker, o worker e o coletor Compose foram instalados em paralelo no notebook CCE U25. Health HTTPS, autenticação, login, persistência SQLite e aumento contínuo de telemetria foram verificados. A instalação systemd/Nginx anterior permaneceu ativa. Veja [`PROJECT_STATUS.md`](PROJECT_STATUS.md) para evidência e limites.
+**Fundação do nó de borda: funcionando numa instalação Ubuntu de teste, com correção térmica em andamento.** A API modular, o painel, o broker, o worker e o coletor Compose foram instalados em paralelo no notebook CCE U25. Health HTTPS, autenticação, login, persistência SQLite e coleta foram verificados. Depois de uma atualização térmica parcial, a checagem mais recente encontrou os serviços e o banco ativos, mas temperatura sem origem identificada; a correção revisada está em staging. A instalação systemd/Nginx anterior permanece separada. Veja [`PROJECT_STATUS.md`](PROJECT_STATUS.md) para o estado atual e os limites.
 
-**Instalação portátil: em validação.** O Compose funciona no CCE U25; `deploy/restore.sh` foi implementado, e o comparador de rollback passou quatro fixtures SQLite descartáveis. A VM `nivus-test-clean` está instalada com Ubuntu Server 24.04.5 LTS amd64 e acessível por chave SSH temporária restrita; o clone limpo do repositório está no commit `5edc7e7`, e sintaxe/`--help` dos scripts passou no guest. Docker e Nivus ainda não foram instalados: a instalação aguarda senha sudo inserida pelo operador. Faltam health/login, coleta, reboot e teste integrado de backup, restore e rollback, além de outro hardware x86_64. Não é ainda um release suportado para todos os computadores.
+**Instalação e recuperação: CI aprovada; portabilidade ainda em validação.** O workflow Ubuntu 22.04 amd64 instalou a candidata em runner virtual descartável, recebeu telemetria, validou backup, provocou rollback por health inválido e concluiu uma restauração normal. Os detalhes estão em [`PROJECT_STATUS.md`](PROJECT_STATUS.md). O operador deixou de usar a VM local instável; a CI de rotina não depende de uma VM no computador do operador. Ainda faltam reconciliar a atualização parcial do notebook, validar o comportamento após reinício num laboratório automatizado e medir outras plataformas. Não é ainda um release suportado para todos os computadores.
 
 **Multi-nó, Home Assistant, Zigbee, sensores domésticos, vídeo, IA local, P2P e provedores comerciais: planejados.** O painel atual representa o nó instalado; não existe ainda um coordenador multi-nó ou scheduler de IA.
 
@@ -28,18 +28,18 @@ Critérios já observados: login funcional; API exige token; health HTTPS respon
 
 ### Fase 1 — Instalação, recuperação e portabilidade
 
-**Estado: próxima prioridade.**
+**Estado: parcialmente validada; é a prioridade atual.**
 
-Siga [`VM_VALIDATION.md`](VM_VALIDATION.md) como roteiro executável e registre a evidência em [`PROJECT_STATUS.md`](PROJECT_STATUS.md). O script de restauração está implementado; só declare a etapa concluída após teste real em clone descartável com backup, restore, validação e rollback.
+Siga [`VM_VALIDATION.md`](VM_VALIDATION.md) para a CI e um laboratório descartável opcional. O fluxo de backup, restore e rollback passou num runner Ubuntu virtual; registre o escopo exato em [`PROJECT_STATUS.md`](PROJECT_STATUS.md). A VM local instável do operador está fora dos testes. Não declare compatibilidade física universal com base apenas no runner.
 
-1. Executar o workflow de CI em VM Ubuntu 22.04 amd64 a cada pull request para `main` e push em `main`; usar VM local descartável para ciclos de instalação/reboot/restore que exijam interação ou investigação.
-2. Registrar RAM livre, CPU, disco, espaço de build, portas, versões do Ubuntu/Docker/Compose e tempo de instalação.
-3. Reiniciar a VM e confirmar que API, painel, MQTT, worker, coletor, dados e endpoint descoberto voltam sozinhos.
-4. Criar backup; usar `deploy/test-restore-rollback.sh` numa VM descartável para demonstrar rollback automático e depois testar uma restauração normal.
-5. Qualificar seis máquinas de referência: Intel e AMD, cada fabricante nas faixas de geração antiga, intermediária e recente. Não repetir a suíte inteira por commit; usar a bateria física de compatibilidade documentada em [`TEST_STRATEGY.md`](TEST_STRATEGY.md).
+1. Manter o workflow automatizado em Ubuntu 22.04 amd64 a cada pull request para `main` e push em `main`; acrescentar versões Ubuntu suportadas quando a matriz estiver estável.
+2. Registrar RAM livre, CPU, disco, espaço de build, portas, versões do Ubuntu/Docker/Compose e tempo de instalação no runner e no host de referência.
+3. Automatizar uma recuperação de inicialização após reinício num runner ou laboratório descartável, confirmando API, painel, MQTT, worker, coletor e persistência.
+4. Manter o teste de backup, `--check`, rollback induzido e restore normal no runner; conservar o backup de segurança e os diagnósticos de qualquer falha.
+5. Qualificar seis computadores de referência: Intel e AMD, cada fabricante nas faixas de geração antiga, intermediária e recente. Não repetir a suíte física por commit; usar a bateria documentada em [`TEST_STRATEGY.md`](TEST_STRATEGY.md).
 6. Documentar erros recuperáveis, como falta de disco, portas ocupadas, falha APT e interrupção durante o bootstrap.
 
-Critério de saída: uma pessoa que siga o README consegue instalar, autenticar, ver telemetria depois do reboot e restaurar um backup; o procedimento não remove dados ao falhar e não interfere em serviços preexistentes.
+Critério de saída: uma pessoa que siga o README consegue instalar, autenticar, ver telemetria após reinício e restaurar um backup; o procedimento não remove dados ao falhar e não interfere em serviços preexistentes. A CI atual cobre instalação e recuperação; restauração/reboot em instalação persistente e a matriz física ainda não foram concluídos.
 
 CI aprovado comprova o fluxo no runner virtual Ubuntu, não em cada chipset ou periférico. O suporte a plataformas Intel/AMD só será anunciado depois dos seis registros de referência, com CPU, placa-mãe, BIOS, rede, armazenamento e resultado.
 
@@ -110,3 +110,4 @@ Critério de saída: limite financeiro não é ultrapassado silenciosamente; dad
 **Agora:** Fase 1. **Depois:** Fase 2 em leitura somente. **Em seguida:** Home Assistant e sensores em leitura, IA local e só então orquestração. Conectores comerciais entram por último. Esse caminho mede a rede e os nós antes de confiar tarefas ou automações a eles.
 
 Para decidir a próxima entrega física da casa, veja “Decisões em aberto” em [`VISION.md`](VISION.md). Modelos exatos de roteador, switch PoE, câmeras, inversor, medidores e proteção elétrica ainda precisam ser escolhidos e conferidos com documentação de fabricante e profissionais habilitados.
+

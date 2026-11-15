@@ -32,4 +32,6 @@ cp -a /opt/nivus-compose/current/docker-compose.yml "$DEST/"
 cp -a /opt/nivus-compose/current/.env "$DEST/"
 chmod 600 "$DEST/.env"
 echo "Backup SQLite consistente e configuração salvos em $DEST"
-echo "Segredos não foram copiados. Mantenha este backup em armazenamento protegido."
+echo "O arquivo .env foi incluído com modo 0600; trate o backup como sensível."
+echo "Arquivos de credenciais externos e certificados privados não foram copiados."
+

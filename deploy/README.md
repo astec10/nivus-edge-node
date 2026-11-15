@@ -23,7 +23,7 @@ O instalador cria segredos em /etc/nivus-compose/secrets, um certificado TLS aut
 
 O navegador avisará que o certificado é autoassinado. Não exponha a instalação diretamente à Internet.
 
-O broker e os serviços que o usam ficam numa rede Docker interna. O coletor do host resolve o IP atual do broker por um `ExecStartPre` privilegiado e grava somente esse endereço em `/run`; a senha continua sendo entregue como credencial systemd ao processo sem privilégios. Não altere o agente para conectar a um `localhost`/porta publicada: redes `internal` não publicam a porta MQTT no host. O helper é executado a cada início do coletor para acompanhar a recriação do container.
+O broker e os serviços que o usam ficam numa rede Docker interna. O coletor do host resolve o IP atual do broker por um `ExecStartPre` privilegiado e grava somente esse endereço em `/run`. O processo principal valida esse arquivo depois do `ExecStartPre`, antes de iniciar o agente; a senha é carregada como credencial systemd. O wrapper usa `$CREDENTIALS_DIRECTORY` para apontar ao arquivo e não coloca a senha no ambiente. Não altere o agente para conectar a um `localhost`/porta publicada: redes `internal` não publicam a porta MQTT no host. O helper é executado a cada início do coletor para acompanhar a recriação do container.
 
 ## Verificar, backup e parar
 
@@ -39,7 +39,7 @@ Parar remove os containers e a rede temporária, mas mantém banco, estado do Mo
 
 ## Restaurar a base SQLite
 
-`backup.sh` cria um diretório exclusivo com sufixo aleatório, uma cópia SQLite consistente validada por `quick_check` e uma cópia do `.env` atual. Segredos JWT/MQTT e certificados ficam no diretório de segredos da instalação e não são sobrescritos pelo restore. O backup é local ao host; não é migração completa para outra máquina. Restrinja o acesso a `/var/backups/nivus-compose` e mantenha cópias externas protegidas se precisar resistir à falha do disco.
+`backup.sh` cria um diretório exclusivo com sufixo aleatório, uma cópia SQLite consistente validada por `quick_check` e uma cópia do `.env` atual com modo 0600. Trate o diretório inteiro como sensível: o `.env` pode conter configuração privada. Os arquivos de credenciais JWT/MQTT e certificados ficam no diretório de segredos da instalação, não são copiados por este script e não são sobrescritos pelo restore. O backup é local ao host; não é migração completa para outra máquina. Restrinja o acesso a `/var/backups/nivus-compose` e mantenha cópias externas protegidas se precisar resistir à falha do disco.
 
 Primeiro liste os diretórios de backup e valide a cópia desejada sem parar serviços. Troque o valor de exemplo pelo diretório mostrado pelo comando de backup:
 
