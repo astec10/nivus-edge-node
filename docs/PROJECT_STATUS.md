@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-15 21:13 UTC
+Atualizado: 2026-11-15 21:24 UTC
 Licença: AGPL-3.0-only
 
 ## Resumo verificado
@@ -50,4 +50,4 @@ O intake e o worker inicial de propostas foram integrados pelo PR #3. Segundo co
 GitHub Issues e Actions são a fila e execução principais, sem depender do PC ou notebook do operador. O notebook é suporte opcional para painel, inspeção e agregação de relatórios quando estiver online. Telemetria do host não é requisito; agregação de telemetria entre nós será útil quando o Nó Master estiver operacional.
 ## Próximo marco: sensores e dashboard
 
-O PR #4 integra classificação por origem de sensores e gráficos térmicos; o PR #5 acrescenta controles e detalhes de interface e depende do #4. A CI do commit original do #4 e do #5 passou; o #4 estava em conflito com alterações posteriores de main. Esta branch reúne as alterações sem descartar o índice de conhecimento nem o executor. A CI deve ser executada novamente após esta resolução. Nenhuma dessas novas mudanças foi publicada no notebook por este trabalho.
+O PR #4 agora inclui o estado atual de main; os conflitos em cinco arquivos foram resolvidos sem descartar o executor, a documentação ou o índice. No commit f537a17 passaram Knowledge index, Ubuntu VM validation e CodeQL. O PR #5, dependente do #4, foi reconciliado no commit d450923; passaram Knowledge index e Dashboard and hardware telemetry. Ambos estão mergeáveis, mas continuam abertos; o #5 segue em rascunho. A dashboard mantém seleção de séries, modo Tudo, períodos e tipos de gráfico. Hotspots CPU/APU e GPU aparecem somente nos detalhes após 3 segundos, não como cartões/linhas permanentes. Logs da aplicação são lidos dos arquivos do Nivus; a API distingue aceite do broker de confirmação física do atuador. Essas alterações ainda não foram publicadas no notebook.
