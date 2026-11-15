@@ -20,7 +20,6 @@ on:
 permissions:
   contents: read
   issues: write
-  actions: write
 
 concurrency:
   group: ai-task-intake-${{ inputs.issue_number }}
@@ -51,7 +50,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ inputs.issue_number }}
           REPOSITORY: ${{ github.repository }}
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           AUTHORIZE_FREE_MODEL_CALL: ${{ inputs.authorize_free_model_call }}
         shell: bash
         run: |
@@ -97,10 +95,7 @@ jobs:
           if ! gh api --method POST "repos/$REPOSITORY/labels" -f name='ai:ready' -f color='0e8a16' -f description='Explicitly authorized free-tier AI proposal' >/dev/null 2>&1; then
             gh api "repos/$REPOSITORY/labels/ai%3Aready" >/dev/null
           fi
+          # Re-adding this label is the single dispatch path to the worker.
+          # The label event itself starts one run; do not also call workflow_dispatch.
+          gh api --method DELETE "repos/$REPOSITORY/issues/$ISSUE_NUMBER/labels/ai%3Aready" >/dev/null 2>&1 || true
           gh api --method POST "repos/$REPOSITORY/issues/$ISSUE_NUMBER/labels" -f 'labels[]=ai:ready' >/dev/null
-          if ! gh workflow run ai-proposal-worker.yml --ref "$DEFAULT_BRANCH" \
-            -f "issue_number=$ISSUE_NUMBER" \
-            -f reviewed_and_authorized=true; then
-            gh api --method DELETE "repos/$REPOSITORY/issues/$ISSUE_NUMBER/labels/ai%3Aready" >/dev/null 2>&1 || true
-            exit 1
-          fi

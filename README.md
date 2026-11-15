@@ -23,7 +23,7 @@ O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não sign
 - Automação residencial real, VPN integrada ao produto e ações remotas em dispositivos.
 - Inferência local, consulta à biblioteca de PDFs, fila de trabalhos entre máquinas, transferência P2P e conectores para provedores comerciais com limites de uso.
 - Instalação limpa validada, reboot, atualização com rollback e matriz de hardware x86_64.
-- O executor externo de desenvolvimento está em revisão no PR #3: intake GitHub, worker Gemini e abertura de PR em rascunho via Actions. Ainda não está no `main`, não tem chave configurada e não passou por chamada real ao modelo. O notebook é suporte opcional; GitHub Actions é o executor principal.
+- O executor externo de desenvolvimento foi integrado no PR #3. A chave do provedor está configurada como Secret segundo confirmação do mantenedor, mas as duas primeiras chamadas falharam (HTTP 503 e timeout síncrono); uma correção com polling em segundo plano e exclusão da interação está em revisão. Até uma chamada end-to-end passar, o executor não deve ser considerado funcional. O notebook é suporte opcional; GitHub Actions é o executor principal.
 
 Veja [docs/PROJECT_ROADMAP.md](docs/PROJECT_ROADMAP.md) para fases, entregáveis e critérios de conclusão; [docs/VISION.md](docs/VISION.md) registra a visão doméstica mais ampla. O estado verificado do notebook está em [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
 

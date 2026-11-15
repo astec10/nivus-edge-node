@@ -62,3 +62,7 @@ A pasta `knowledge/` contém catálogo e notas próprias para contribuição pú
 ## Separação do executor e telemetria do Nó Master — 2026-11-15
 
 Telemetria agregada entre nós não é pré-requisito para o executor de desenvolvimento; será mais útil quando o Nó Master estiver operacional. O notebook CCE pode ser avaliado como controlador leve que despacha workflows para runners GitHub-hosted; não será runner self-hosted de código público nem sandbox paralela sem comprovar recursos e isolamento. Issues e Actions são o estado durável quando o notebook fica offline.
+
+## Chamadas Gemini em segundo plano — 2026-11-15
+
+O worker usa background polling limitado porque chamadas síncronas anteriores excederam o timeout de conexão. A API exige `store=true` nesse modo; o cliente deve recuperar a resposta e apagar a interação assim que puder, registrar `interaction_deleted` e tratar falha de exclusão como possível retenção temporária no provedor. Tarefas continuam limitadas a dados públicos/sintéticos e a uma autorização explícita por tentativa. O intake usa somente o evento `ai:ready` para iniciar o worker e não dispara também `workflow_dispatch`.

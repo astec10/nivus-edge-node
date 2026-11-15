@@ -13,8 +13,9 @@ O adaptador não lê Issues, não faz checkout, não escreve no disco, não exec
 - Modelo revisado e fixo: `gemini-3.8-flash`. Este primeiro executor não aceita roteamento para outros modelos.
 - API: Gemini Interactions (`/v1beta/interactions`), com resposta JSON estruturada.
 - Dependências: biblioteca padrão do Python; sem SDK adicional.
-- Orçamento local da chamada: 75 segundos e até 6144 tokens de saída, pensamento baixo. O código não faz repetição automática em `429`, timeout ou erro do provedor.
-- `store: false`; prompts, resposta e chave não são gravados pelo adaptador nem incluídos em mensagens de erro.
+- Orçamento local da chamada: timeout HTTP de 30 segundos, espera total de até 240 segundos e até 6144 tokens de saída, pensamento baixo. O código não repete automaticamente a criação da interação em `429`, timeout ou erro do provedor.
+- A chamada em segundo plano exige armazenamento temporário (`store: true`). O adaptador consulta o resultado, tenta cancelar uma interação ainda ativa quando ocorre timeout e tenta apagar o registro ao terminar. O relatório indica se a exclusão foi confirmada; se a exclusão falhar, a retenção segue a política do provedor.
+- Prompts, resposta e chave não aparecem no artefato nem nas mensagens de erro. A modalidade gratuita documenta atualmente retenção de um dia e possível uso do conteúdo para melhorar produtos; use apenas código público e contexto sintético.
 - A chamada exige `NIVUS_AI_BUDGET_MODE=free-tier` como confirmação explícita do mantenedor. Essa variável não verifica nem limita a cobrança do projeto Google. Use uma chave de um projeto separado sem faturamento vinculado; o código não consegue impedir cobrança se a chave pertencer a um projeto com faturamento.
 
 O plano gratuito atual permite uso limitado de alguns modelos; quotas podem mudar e não garantem que a fila seja atendida continuamente. Na modalidade gratuita, o Google informa que o conteúdo pode ser usado para melhorar seus produtos. Portanto, envie somente código público e contexto sanitizado; nunca envie secrets, banco SQLite, telemetria real, dados domésticos ou informação pessoal. Para material privado, use modalidade/termos adequados ou um provedor aprovado pelo mantenedor.
@@ -39,7 +40,7 @@ proposal = client.propose_changes(
 print(proposal.usage_report.to_dict())  # Metadados sem prompt, resposta ou chave.
 ```
 
-O workflow `AI task intake` pode apenas enfileirar a Issue ou, após a confirmação explícita do mantenedor, disparar uma única proposta. O worker valida contrato/labels, aplica o limite de tempo solicitado (1–15 minutos), compara o estado dos arquivos e aplica conteúdo somente aos caminhos autorizados; a CI roda em outro runner sem a chave Gemini. Mesmo com a CI aprovada, a revisão e o merge para `main` permanecem humanos.
+O workflow `AI task intake` pode apenas enfileirar a Issue ou, após a confirmação explícita do mantenedor, adicionar a label `ai:ready`. Esse evento inicia uma única proposta; o intake não também despacha o workflow manual. O worker valida contrato/labels, aplica o limite de tempo solicitado (1–15 minutos), compara o estado dos arquivos e aplica conteúdo somente aos caminhos autorizados; a CI roda em outro runner sem a chave Gemini. Mesmo com a CI aprovada, a revisão e o merge para `main` permanecem humanos.
 
 Para habilitar o uso depois que a revisão for integrada: crie um projeto Google separado, não vincule faturamento e gere uma chave para a Gemini API. Guarde-a como `GEMINI_API_KEY` em **Settings → Secrets and variables → Actions → Secrets**; crie a variável `NIVUS_AI_BUDGET_MODE=free-tier` em **Variables** somente depois de conferir o projeto. Não envie a chave no chat, Issue ou repositório. A configuração é uma confirmação do operador, não um limitador de custo. O executor cria um artifact por tentativa, retido por 30 dias, com modelo, tokens/duração/status e sem conteúdo do prompt.
 

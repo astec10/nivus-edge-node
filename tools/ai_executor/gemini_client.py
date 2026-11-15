@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import socket
 import time
 import urllib.error
 import urllib.request
@@ -25,6 +26,8 @@ MAX_INPUT_CHARS = 64_000
 MAX_RESPONSE_BYTES = 2_000_000
 MAX_CHANGES = 20
 MAX_FILE_CHARS = 120_000
+API_REVISION = "2026-05-20"
+INTERACTION_ID_PATTERN = re.compile(r"[A-Za-z0-9._:-]{1,200}")
 
 PROPOSAL_SCHEMA: dict[str, Any] = {
     "type": "object",
@@ -74,8 +77,16 @@ SECRET_PATTERNS = (
 class GeminiAPIError(RuntimeError):
     """A sanitized provider error; response bodies and credentials are omitted."""
 
-    def __init__(self, message: str, *, status_code: int | None = None, retry_after: str | None = None):
+    def __init__(
+        self,
+        message: str,
+        *,
+        error_code: str = "gemini_error",
+        status_code: int | None = None,
+        retry_after: str | None = None,
+    ):
         super().__init__(message)
+        self.error_code = error_code
         self.status_code = status_code
         self.retry_after = retry_after
 
@@ -116,8 +127,10 @@ class UsageReport:
     output_tokens: int | None
     http_status: int | None = None
     retry_after: str | None = None
+    error_code: str | None = None
+    interaction_deleted: bool | None = None
 
-    def to_dict(self) -> dict[str, str | int | None]:
+    def to_dict(self) -> dict[str, str | int | bool | None]:
         """Return metadata only; never includes prompt, response, or API key."""
         return {
             "provider": self.provider,
@@ -131,6 +144,8 @@ class UsageReport:
             "output_tokens": self.output_tokens,
             "http_status": self.http_status,
             "retry_after": self.retry_after,
+            "error_code": self.error_code,
+            "interaction_deleted": self.interaction_deleted,
         }
 
 
@@ -159,7 +174,12 @@ def _validate_repo_path(path: str) -> str:
 
 def _extract_output_text(response: dict[str, Any]) -> str:
     if response.get("status") != "completed":
-        raise GeminiAPIError("Gemini interaction did not complete")
+        state = response.get("status")
+        safe_state = state if isinstance(state, str) and re.fullmatch(r"[a-z_]{1,40}", state) else "unknown"
+        raise GeminiAPIError(
+            f"Gemini interaction finished with status {safe_state}",
+            error_code=f"interaction_{safe_state}",
+        )
 
     fragments: list[str] = []
     for step in response.get("steps", []):
@@ -182,7 +202,9 @@ class GeminiClient:
         api_key: str | None = None,
         *,
         model: str | None = None,
-        timeout_seconds: int = 75,
+        timeout_seconds: int = 30,
+        interaction_timeout_seconds: int = 240,
+        poll_interval_seconds: int = 5,
         max_output_tokens: int = 6_144,
     ) -> None:
         self._api_key = (api_key or os.getenv("GEMINI_API_KEY", "")).strip()
@@ -195,9 +217,15 @@ class GeminiClient:
             raise ValueError(f"Model selection is restricted to the reviewed model {DEFAULT_MODEL}")
         if not 5 <= timeout_seconds <= 120:
             raise ValueError("timeout_seconds must be between 5 and 120")
+        if not 30 <= interaction_timeout_seconds <= 600:
+            raise ValueError("interaction_timeout_seconds must be between 30 and 600")
+        if not 1 <= poll_interval_seconds <= 30:
+            raise ValueError("poll_interval_seconds must be between 1 and 30")
         if not 512 <= max_output_tokens <= 8_192:
             raise ValueError("max_output_tokens must be between 512 and 8192")
         self.timeout_seconds = timeout_seconds
+        self.interaction_timeout_seconds = interaction_timeout_seconds
+        self.poll_interval_seconds = poll_interval_seconds
         self.max_output_tokens = max_output_tokens
         self.last_usage_report: UsageReport | None = None
 
@@ -267,31 +295,52 @@ class GeminiClient:
                 "max_output_tokens": self.max_output_tokens,
                 "thinking_level": "low",
             },
-            "store": False,
+            # Background interactions require temporary server-side storage.
+            # The interaction is explicitly deleted after its result is read.
+            "store": True,
+            "background": True,
         }
         started_at = datetime.now(timezone.utc)
         timer = time.monotonic()
+        interaction_id: str | None = None
+        interaction_state: str | None = None
+        response: dict[str, Any] = {}
+        proposal_data: dict[str, Any] | None = None
+        failure: GeminiAPIError | None = None
+        interaction_deleted: bool | None = None
         try:
-            response = self._post(request_body)
+            response = self._request_json("POST", API_URL, body=request_body)
+            interaction_id = _validated_interaction_id(response.get("id"))
+            if interaction_id is None:
+                raise GeminiAPIError(
+                    "Gemini did not return a valid interaction ID",
+                    error_code="interaction_id_missing",
+                )
+            interaction_state = response.get("status") if isinstance(response.get("status"), str) else None
+            response = self._wait_for_completion(interaction_id, response)
+            interaction_state = response.get("status") if isinstance(response.get("status"), str) else None
+            try:
+                proposal_data = self._parse_proposal(_extract_output_text(response), set(normalized_paths))
+            except GeminiAPIError as exc:
+                if exc.error_code == "gemini_error":
+                    exc.error_code = "proposal_invalid_output"
+                raise
         except GeminiAPIError as exc:
-            self.last_usage_report = UsageReport(
-                provider="google-gemini",
-                model=self.model,
-                status="provider_error",
-                budget_mode="free-tier",
-                started_at_utc=started_at.isoformat(),
-                duration_ms=round((time.monotonic() - timer) * 1000),
-                interaction_id=None,
-                input_tokens=None,
-                output_tokens=None,
-                http_status=exc.status_code,
-                retry_after=exc.retry_after,
-            )
-            raise
+            failure = exc
+        finally:
+            if interaction_id:
+                if interaction_state == "in_progress":
+                    self._cancel_interaction(interaction_id)
+                interaction_deleted = self._delete_interaction(interaction_id)
+
         usage = response.get("usage", {}) if isinstance(response.get("usage"), dict) else {}
         input_tokens = _optional_int(usage.get("total_input_tokens"))
         output_tokens = _optional_int(usage.get("total_output_tokens"))
-        report_status = "response_received"
+        report_status = "proposal_ready" if failure is None else (
+            "invalid_model_output" if failure.error_code.startswith(("proposal_", "response_")) else
+            "interaction_error" if failure.error_code.startswith("interaction_") else
+            "provider_error"
+        )
         self.last_usage_report = UsageReport(
             provider="google-gemini",
             model=self.model,
@@ -299,46 +348,46 @@ class GeminiClient:
             budget_mode="free-tier",
             started_at_utc=started_at.isoformat(),
             duration_ms=round((time.monotonic() - timer) * 1000),
-            interaction_id=(
-                response.get("id")
-                if isinstance(response.get("id"), str)
-                and re.fullmatch(r"[A-Za-z0-9._:-]{1,200}", response["id"])
-                else None
-            ),
+            interaction_id=interaction_id,
             input_tokens=input_tokens,
             output_tokens=output_tokens,
-            http_status=200,
+            http_status=failure.status_code if failure else 200,
+            retry_after=failure.retry_after if failure else None,
+            error_code=failure.error_code if failure else None,
+            interaction_deleted=interaction_deleted,
         )
-        try:
-            proposal_data = self._parse_proposal(_extract_output_text(response), set(normalized_paths))
-        except GeminiAPIError:
-            self.last_usage_report = UsageReport(
-                **{**self.last_usage_report.to_dict(), "status": "invalid_model_output"}
-            )
-            raise
-        self.last_usage_report = UsageReport(
-            **{**self.last_usage_report.to_dict(), "status": "proposal_ready"}
-        )
+        if failure is not None:
+            raise failure
+        if proposal_data is None:
+            raise GeminiAPIError("Gemini did not return a proposal", error_code="proposal_missing")
         return ChangeProposal(
             summary=proposal_data["summary"],
             changes=tuple(proposal_data["changes"]),
             usage_report=self.last_usage_report,
         )
 
-    def _post(self, body: dict[str, Any]) -> dict[str, Any]:
-        encoded = json.dumps(body, ensure_ascii=False).encode("utf-8")
+    def _request_bytes(
+        self,
+        method: str,
+        url: str,
+        *,
+        body: dict[str, Any] | None = None,
+        timeout_seconds: int | None = None,
+    ) -> bytes:
+        encoded = json.dumps(body, ensure_ascii=False).encode("utf-8") if body is not None else None
         request = urllib.request.Request(
-            API_URL,
+            url,
             data=encoded,
             headers={
                 "Content-Type": "application/json",
                 "x-goog-api-key": self._api_key,
+                "Api-Revision": API_REVISION,
             },
-            method="POST",
+            method=method,
         )
         try:
             opener = urllib.request.build_opener(_NoRedirectHandler())
-            with opener.open(request, timeout=self.timeout_seconds) as response:
+            with opener.open(request, timeout=timeout_seconds or self.timeout_seconds) as response:
                 raw = response.read(MAX_RESPONSE_BYTES + 1)
         except urllib.error.HTTPError as exc:
             raw_retry_after = exc.headers.get("Retry-After") if exc.headers else None
@@ -349,23 +398,95 @@ class GeminiClient:
             )
             raise GeminiAPIError(
                 f"Gemini API returned HTTP {exc.code}",
+                error_code=f"provider_http_{exc.code}",
                 status_code=exc.code,
                 retry_after=retry_after,
             ) from None
-        except (urllib.error.URLError, TimeoutError, OSError):
-            raise GeminiAPIError("Gemini API connection failed or timed out") from None
+        except urllib.error.URLError as exc:
+            timed_out = isinstance(exc.reason, (TimeoutError, socket.timeout))
+            raise GeminiAPIError(
+                "Gemini API request timed out" if timed_out else "Gemini API connection failed",
+                error_code="network_timeout" if timed_out else "network_error",
+            ) from None
+        except (TimeoutError, socket.timeout):
+            raise GeminiAPIError("Gemini API request timed out", error_code="network_timeout") from None
+        except OSError:
+            raise GeminiAPIError("Gemini API connection failed", error_code="network_error") from None
 
         if len(raw) > MAX_RESPONSE_BYTES:
-            raise GeminiAPIError("Gemini API response exceeded the 2 MB limit")
+            raise GeminiAPIError("Gemini API response exceeded the 2 MB limit", error_code="response_too_large")
+        return raw
+
+    def _request_json(
+        self,
+        method: str,
+        url: str,
+        *,
+        body: dict[str, Any] | None = None,
+        timeout_seconds: int | None = None,
+    ) -> dict[str, Any]:
+        raw = self._request_bytes(method, url, body=body, timeout_seconds=timeout_seconds)
         try:
             result = json.loads(raw.decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError):
-            raise GeminiAPIError("Gemini API returned invalid JSON") from None
+            raise GeminiAPIError("Gemini API returned invalid JSON", error_code="response_invalid_json") from None
         if not isinstance(result, dict):
-            raise GeminiAPIError("Gemini API returned an unexpected response shape")
+            raise GeminiAPIError("Gemini API returned an unexpected response shape", error_code="response_invalid_shape")
         if "error" in result:
-            raise GeminiAPIError("Gemini API reported a failed interaction")
+            raise GeminiAPIError("Gemini API reported a failed interaction", error_code="provider_response_error")
         return result
+
+    def _wait_for_completion(self, interaction_id: str, initial: dict[str, Any]) -> dict[str, Any]:
+        response = initial
+        deadline = time.monotonic() + self.interaction_timeout_seconds
+        resource_url = f"{API_URL}/{interaction_id}"
+        while response.get("status") == "in_progress":
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise GeminiAPIError("Gemini interaction exceeded its execution deadline", error_code="interaction_timeout")
+            time.sleep(min(self.poll_interval_seconds, remaining))
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise GeminiAPIError("Gemini interaction exceeded its execution deadline", error_code="interaction_timeout")
+            response = self._request_json(
+                "GET",
+                resource_url,
+                timeout_seconds=max(1, min(self.timeout_seconds, int(remaining))),
+            )
+            returned_id = _validated_interaction_id(response.get("id"))
+            if returned_id != interaction_id:
+                raise GeminiAPIError("Gemini returned a different interaction resource", error_code="interaction_id_mismatch")
+        if response.get("status") != "completed":
+            state = response.get("status")
+            safe_state = state if isinstance(state, str) and re.fullmatch(r"[a-z_]{1,40}", state) else "unknown"
+            raise GeminiAPIError(
+                f"Gemini interaction finished with status {safe_state}",
+                error_code=f"interaction_{safe_state}",
+            )
+        return response
+
+    def _cancel_interaction(self, interaction_id: str) -> None:
+        try:
+            self._request_bytes(
+                "POST",
+                f"{API_URL}/{interaction_id}/cancel",
+                timeout_seconds=min(self.timeout_seconds, 10),
+            )
+        except GeminiAPIError:
+            # Best effort only; deleting the stored result is still attempted.
+            pass
+
+    def _delete_interaction(self, interaction_id: str) -> bool:
+        try:
+            self._request_bytes(
+                "DELETE",
+                f"{API_URL}/{interaction_id}",
+                timeout_seconds=min(self.timeout_seconds, 10),
+            )
+            return True
+        except GeminiAPIError as exc:
+            # A missing resource already satisfies the cleanup objective.
+            return exc.status_code == 404
 
     @staticmethod
     def _parse_proposal(text: str, allowed_paths: set[str]) -> dict[str, Any]:
@@ -409,4 +530,10 @@ class GeminiClient:
 
 def _optional_int(value: object) -> int | None:
     return value if isinstance(value, int) and not isinstance(value, bool) and value >= 0 else None
+
+
+def _validated_interaction_id(value: object) -> str | None:
+    if isinstance(value, str) and INTERACTION_ID_PATTERN.fullmatch(value):
+        return value
+    return None
 
