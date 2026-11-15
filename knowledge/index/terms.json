@@ -97,8 +97,7 @@
     "doc-vision"
   ],
   "30": [
-    "doc-ai-executor-implementation",
-    "doc-project-status"
+    "doc-ai-executor-implementation"
   ],
   "344": [
     "video-yc5sg321g0y"
@@ -130,6 +129,7 @@
   ],
   "44": [
     "doc-video-research-index",
+    "doc-project-status",
     "video-yc5sg321g0y"
   ],
   "443": [
@@ -162,9 +162,6 @@
     "doc-ai-module-workplan",
     "doc-project-roadmap",
     "doc-vision"
-  ],
-  "6bc48c4": [
-    "doc-project-status"
   ],
   "7": [
     "doc-ai-context",
@@ -2538,6 +2535,7 @@
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
     "doc-video-research-index",
+    "doc-project-status",
     "doc-project-roadmap"
   ],
   "correction": [
@@ -8199,6 +8197,9 @@
   "recuperar": [
     "doc-ai-context"
   ],
+  "recurso": [
+    "doc-project-status"
+  ],
   "recursos": [
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
@@ -9090,6 +9091,9 @@
     "doc-vision",
     "ref-multipaz-developer-website"
   ],
+  "serializa": [
+    "doc-project-status"
+  ],
   "serializar": [
     "doc-ai-module-workplan"
   ],
@@ -9135,7 +9139,6 @@
     "video-vqxbftjq0m4"
   ],
   "seu": [
-    "doc-project-status",
     "ref-multipaz-developer-website"
   ],
   "seus": [
@@ -10517,7 +10520,8 @@
   "workflows": [
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
-    "doc-ai-module-workplan"
+    "doc-ai-module-workplan",
+    "doc-project-status"
   ],
   "workspace": [
     "ai-development-persistent-worker"

@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-15 21:30 UTC
+Atualizado: 2026-11-15 21:44 UTC
 Licença: AGPL-3.0-only
 
 ## Resumo verificado
@@ -50,4 +50,4 @@ O intake e o worker inicial de propostas foram integrados pelo PR #3. Segundo co
 GitHub Issues e Actions são a fila e execução principais, sem depender do PC ou notebook do operador. O notebook é suporte opcional para painel, inspeção e agregação de relatórios quando estiver online. Telemetria do host não é requisito; agregação de telemetria entre nós será útil quando o Nó Master estiver operacional.
 ## Próximo marco: sensores e dashboard
 
-O PR #4 inclui o estado atual de main no commit f537a17; Knowledge index, Ubuntu VM validation e CodeQL passaram. O PR #5 está empilhado sobre o #4 e seu head atual é 6bc48c4; Knowledge index e Dashboard and hardware telemetry passaram. Ambos seguem abertos; o #4 está pronto para revisão e o #5 permanece em rascunho até a integração da base. A dashboard mantém seleção de séries, modo Tudo, períodos e tipos de gráfico. Hotspots CPU/APU e GPU aparecem somente nos detalhes após 3 segundos, não como cartões ou linhas permanentes. Logs da aplicação são lidos dos arquivos do Nivus; a API distingue aceite do broker de confirmação física do atuador. Nenhuma dessas alterações foi publicada no notebook.
+O PR #4 inclui o estado atual de main no commit f537a17; Knowledge index, Ubuntu VM validation e CodeQL passaram. O PR #5 está empilhado sobre o #4; após a correção da serialização do índice, os workflows Knowledge index e Dashboard and hardware telemetry passaram no head de recurso. Ambos seguem abertos; o #4 está pronto para revisão e o #5 permanece em rascunho até a integração da base. A dashboard mantém seleção de séries, modo Tudo, períodos e tipos de gráfico. Hotspots CPU/APU e GPU aparecem somente nos detalhes após 3 segundos, não como cartões ou linhas permanentes. Logs da aplicação são lidos dos arquivos do Nivus; a API distingue aceite do broker de confirmação física do atuador. Nenhuma dessas alterações foi publicada no notebook.
