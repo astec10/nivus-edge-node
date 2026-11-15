@@ -29,9 +29,25 @@ class HardwareSensorTests(unittest.TestCase):
 
         self.assertEqual(metrics["temperature"], 57.0)
         self.assertEqual(metrics["temperature_source"], "coretemp: Package id 0")
+        self.assertIsNone(metrics["cpu_hotspot_temperature"])
         self.assertIsNone(metrics["motherboard_temperature"])
         self.assertIsNone(metrics["gpu_temperature"])
         self.assertIsNone(metrics["gpu_hotspot_temperature"])
+
+    @patch("hardware_sensors.psutil.sensors_temperatures")
+    def test_exposes_cpu_hotspot_only_when_driver_labels_it_explicitly(self, read_sensors):
+        read_sensors.return_value = {
+            "coretemp": [
+                sensor(56.0, "Package id 0"),
+                sensor(79.0, "CPU hotspot"),
+            ]
+        }
+
+        metrics = get_thermal_metrics()
+
+        self.assertEqual(metrics["temperature"], 56.0)
+        self.assertEqual(metrics["cpu_hotspot_temperature"], 79.0)
+        self.assertEqual(metrics["cpu_hotspot_source"], "coretemp: CPU hotspot")
 
     @patch("hardware_sensors.psutil.sensors_temperatures")
     def test_separates_gpu_edge_and_hotspot(self, read_sensors):
@@ -58,6 +74,7 @@ class HardwareSensorTests(unittest.TestCase):
         self.assertEqual(metrics["motherboard_temperature"], 33.0)
         self.assertEqual(metrics["motherboard_temperature_source"], "nct6775: SYSTIN")
         self.assertIsNone(metrics["temperature"])
+        self.assertIsNone(metrics["cpu_hotspot_temperature"])
 
     @patch("hardware_sensors.psutil.sensors_temperatures")
     def test_missing_or_implausible_sensors_remain_unavailable(self, read_sensors):
@@ -70,6 +87,7 @@ class HardwareSensorTests(unittest.TestCase):
 
         self.assertIsNone(metrics["temperature"])
         self.assertIsNone(metrics["temperature_source"])
+        self.assertIsNone(metrics["cpu_hotspot_temperature"])
         self.assertIsNone(metrics["motherboard_temperature"])
 
 

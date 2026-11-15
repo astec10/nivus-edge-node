@@ -1,3 +1,4 @@
+import logging
 import json
 import math
 import os
@@ -7,6 +8,10 @@ from pathlib import Path
 import paho.mqtt.client as mqtt
 
 from database import get_db_connection, init_db
+from services.app_logging import configure_service_logger
+
+
+logger = logging.getLogger("nivus.worker")
 
 MQTT_BROKER = os.environ.get("NIVUS_MQTT_BROKER", "localhost")
 MQTT_PORT = int(os.environ.get("NIVUS_MQTT_PORT", "1883"))
@@ -23,9 +28,9 @@ TOPIC = os.environ.get("NIVUS_TELEMETRY_TOPIC", "nivus/edge/telemetry")
 def on_connect(client, userdata, flags, reason_code, properties=None):
     if getattr(reason_code, "value", reason_code) == 0:
         client.subscribe(TOPIC, qos=1)
-        print("Worker MQTT conectado e inscrito no tópico de telemetria.")
+        logger.info("Worker MQTT conectado e inscrito no tópico de telemetria.")
     else:
-        print("Worker MQTT não conseguiu conectar ao broker.")
+        logger.error("Worker MQTT não conseguiu conectar ao broker.")
 
 
 def _number(payload, name, minimum, maximum, nullable=False):
@@ -57,6 +62,16 @@ def on_message(client, userdata, msg):
             or any(ord(character) < 32 for character in temperature_source)
         ):
             raise ValueError("temperature_source")
+        cpu_hotspot_temperature = _number(
+            payload, "cpu_hotspot_temperature", -40, 150, nullable=True
+        )
+        cpu_hotspot_source = payload.get("cpu_hotspot_source")
+        if cpu_hotspot_source is not None and (
+            not isinstance(cpu_hotspot_source, str)
+            or len(cpu_hotspot_source) > 128
+            or any(ord(character) < 32 for character in cpu_hotspot_source)
+        ):
+            raise ValueError("cpu_hotspot_source")
         motherboard_temperature = _number(
             payload, "motherboard_temperature", -40, 150, nullable=True
         )
@@ -96,10 +111,11 @@ def on_message(client, userdata, msg):
         cursor.execute(
             """INSERT INTO telemetry
                (node, timestamp, cpu_percent, memory_percent, disk_percent, temperature,
-                temperature_source, motherboard_temperature, motherboard_temperature_source,
+                temperature_source, cpu_hotspot_temperature, cpu_hotspot_source,
+                motherboard_temperature, motherboard_temperature_source,
                 gpu_temperature, gpu_temperature_source,
                 gpu_hotspot_temperature, gpu_hotspot_source, power_consumption)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 node,
                 timestamp,
@@ -108,6 +124,8 @@ def on_message(client, userdata, msg):
                 disk,
                 temperature,
                 temperature_source,
+                cpu_hotspot_temperature,
+                cpu_hotspot_source,
                 motherboard_temperature,
                 motherboard_temperature_source,
                 gpu_temperature,
@@ -139,17 +157,24 @@ def on_message(client, userdata, msg):
                     "(alert_type, value, threshold, telemetry_id) VALUES (?, ?, ?, ?)",
                     (alert_type, value, threshold, telemetry_id),
                 )
+                logger.warning(
+                    "Alerta %s: valor %.1f excedeu limite %.1f.",
+                    alert_type,
+                    value,
+                    threshold,
+                )
         conn.commit()
     except (UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError, ValueError):
-        print("Mensagem MQTT inválida; amostra descartada.")
+        logger.warning("Mensagem MQTT inválida; amostra descartada.")
     except sqlite3.Error:
-        print("Falha ao gravar a amostra MQTT no SQLite.")
+        logger.exception("Falha ao gravar a amostra MQTT no SQLite.")
     finally:
         if conn is not None:
             conn.close()
 
 
 if __name__ == "__main__":
+    logger = configure_service_logger("worker")
     init_db()
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     mqtt_username = os.environ.get("NIVUS_MQTT_USERNAME")
@@ -158,6 +183,6 @@ if __name__ == "__main__":
         client.username_pw_set(mqtt_username, mqtt_password)
     client.on_connect = on_connect
     client.on_message = on_message
-    print("Iniciando o worker MQTT do Nivus.")
+    logger.info("Iniciando o worker MQTT do Nivus.")
     client.connect(MQTT_BROKER, MQTT_PORT, 60)
     client.loop_forever()

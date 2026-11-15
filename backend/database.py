@@ -30,6 +30,8 @@ def init_db():
                 disk_percent REAL,
                 temperature REAL,
                 temperature_source TEXT,
+                cpu_hotspot_temperature REAL,
+                cpu_hotspot_source TEXT,
                 motherboard_temperature REAL,
                 motherboard_temperature_source TEXT,
                 gpu_temperature REAL,
@@ -80,6 +82,8 @@ def init_db():
         }
         for column, definition in (
             ("temperature_source", "TEXT"),
+            ("cpu_hotspot_temperature", "REAL"),
+            ("cpu_hotspot_source", "TEXT"),
             ("motherboard_temperature", "REAL"),
             ("motherboard_temperature_source", "TEXT"),
             ("gpu_temperature", "REAL"),
