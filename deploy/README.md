@@ -39,7 +39,7 @@ Parar remove os containers e a rede temporária, mas mantém banco, estado do Mo
 
 ## Restaurar a base SQLite
 
-`backup.sh` cria um diretório exclusivo com sufixo aleatório, uma cópia SQLite consistente validada por `quick_check` e uma cópia do `.env` atual. Segredos JWT/MQTT e certificados ficam no diretório de segredos da instalação e não são sobrescritos pelo restore. O backup é local ao host; não é migração completa para outra máquina. Restrinja o acesso a `/var/backups/nivus-compose` e mantenha cópias externas protegidas se precisar resistir à falha do disco.
+`backup.sh` cria um diretório exclusivo com sufixo aleatório, uma cópia SQLite consistente validada por `quick_check` e uma cópia do `.env` atual com modo 0600. Trate o diretório inteiro como sensível: o `.env` pode conter configuração privada. Os arquivos de credenciais JWT/MQTT e certificados ficam no diretório de segredos da instalação, não são copiados por este script e não são sobrescritos pelo restore. O backup é local ao host; não é migração completa para outra máquina. Restrinja o acesso a `/var/backups/nivus-compose` e mantenha cópias externas protegidas se precisar resistir à falha do disco.
 
 Primeiro liste os diretórios de backup e valide a cópia desejada sem parar serviços. Troque o valor de exemplo pelo diretório mostrado pelo comando de backup:
 
@@ -87,3 +87,4 @@ Em 13/11/2026, no Ubuntu 26.04.1 LTS x86_64 com 2 vCPUs e 3,2 GiB de RAM, três 
 - A versão React modular passou em smoke test e foi ativada no Nginx do host de teste usando um script privado de backup/rollback. A troca da interface de outra instalação precisa de procedimento próprio para os caminhos daquele host.
 
 Esta árvore continua sendo uma candidata para revisão, não um release de produção.
+
