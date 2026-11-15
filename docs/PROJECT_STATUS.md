@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-15 11:37 UTC
+Atualizado: 2026-11-15 21:13 UTC
 Licença: AGPL-3.0-only
 
 ## Resumo verificado
@@ -45,6 +45,9 @@ Nenhum suporte universal x86_64, automação doméstica, coordenador multi-nó o
 
 O fluxo persistente com agente, Discord/Jira, roteador de modelos, GitHub PR e aprovação humana está documentado em `docs/AI_DEVELOPMENT_ORCHESTRATION.md`. O cenário completo descrito por um comentarista de vídeo não foi confirmado como uma integração pronta; os componentes são documentados separadamente. `docs/VIDEO_RESEARCH_INDEX.md` cataloga os vídeos e expõe o nível de verificação de cada um. Os metadados, resumos curados e notas atômicas versionados ficam em `knowledge/`; `tools/build_ai_context.py` gera termos lexicais e índice independentes de modelo. A biblioteca consultável e sincronizada dentro do produto continua planejada na Fase 4, não implementada.
 
-O PR #3 está recebendo intake GitHub, adaptador Gemini, worker que restringe alterações a caminhos exatos e workflow que abre PR em rascunho após autorização `ai:ready`. O worker não lê Issue privada fora do contrato, não apaga arquivos, não executa comandos e não altera workflows. Oito testes locais cobrem autorização, limite de tempo, allowlist, gravação restrita e preflight sem chave; a simulação sem chave confirmou que nenhuma conexão de rede foi aberta e que o relatório contém só metadados. Ainda não está ativo no `main`: não há secret `GEMINI_API_KEY`, variável de orçamento nem chamada API end-to-end observada. O worker não aprova, faz merge ou deploy.
+O intake e o worker inicial de propostas foram integrados pelo PR #3. Segundo confirmação do mantenedor, GEMINI_API_KEY e NIVUS_AI_BUDGET_MODE=free-tier estão configurados no GitHub; o valor secreto não foi lido, e o uso de um projeto Google sem faturamento é uma configuração externa autodeclarada. O PR #15 substitui a espera síncrona curta por polling Gemini em segundo plano, com uma única criação de interação e limpeza do registro. Os três checks hospedados passaram no commit 4a031b9; o PR permanece em rascunho e a nova versão ainda não fez uma chamada end-to-end. O worker não aprova, faz merge ou deploy.
 
 GitHub Issues e Actions são a fila e execução principais, sem depender do PC ou notebook do operador. O notebook é suporte opcional para painel, inspeção e agregação de relatórios quando estiver online. Telemetria do host não é requisito; agregação de telemetria entre nós será útil quando o Nó Master estiver operacional.
+## Próximo marco: sensores e dashboard
+
+O PR #4 integra classificação por origem de sensores e gráficos térmicos; o PR #5 acrescenta controles e detalhes de interface e depende do #4. A CI do commit original do #4 e do #5 passou; o #4 estava em conflito com alterações posteriores de main. Esta branch reúne as alterações sem descartar o índice de conhecimento nem o executor. A CI deve ser executada novamente após esta resolução. Nenhuma dessas novas mudanças foi publicada no notebook por este trabalho.
