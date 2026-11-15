@@ -1,39 +1,22 @@
-import React, { useMemo, useState } from 'react';
-import { Zap, Settings, Terminal } from 'lucide-react';
+import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
+import { Bell, Cpu, History, Settings, Terminal, Zap } from 'lucide-react';
 import MetricCard from './MetricCard';
-import TelemetryChart from './TelemetryChart';
-import { formatMetric, selectTelemetryWindow, summarizeMetric } from '../utils/telemetry';
+import { describeTelemetryFreshness, formatMetric, getGraphicsLabel, selectTelemetryWindow, summarizeMetric } from '../utils/telemetry';
 
-const TEMPERATURE_METRICS = [
-  { label: 'CPU / APU', key: 'temperature', source: 'temperature_source' },
-  { label: 'GPU', key: 'gpu_temperature', source: 'gpu_temperature_source' },
-  { label: 'GPU hotspot', key: 'gpu_hotspot_temperature', source: 'gpu_hotspot_source' },
-  { label: 'Placa-mãe', key: 'motherboard_temperature', source: 'motherboard_temperature_source' },
-];
+const TelemetryChart = lazy(() => import('./TelemetryChart'));
 
-function RangeDetails({ samples, metric, unit }) {
-  const summary = summarizeMetric(samples, metric);
+function MetricDetails({ samples, metrics }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.25rem 0.75rem', fontSize: '0.8rem' }}>
-      <span>Atual</span><strong>{formatMetric(summary.current, unit)}</strong>
-      <span>Mínima</span><strong>{formatMetric(summary.minimum, unit)}</strong>
-      <span>Máxima</span><strong>{formatMetric(summary.maximum, unit)}</strong>
-      <span>Amostras válidas</span><strong>{summary.count}</strong>
-    </div>
-  );
-}
-
-function TemperatureDetails({ samples }) {
-  const latest = samples.at(-1);
-  return (
-    <div style={{ display: 'grid', gap: '0.65rem' }}>
-      {TEMPERATURE_METRICS.map(({ label, key, source }) => {
+    <div className="metric-details-list">
+      {metrics.map(({ label, key, source }) => {
         const summary = summarizeMetric(samples, key);
+        const latest = samples.at(-1);
         return (
-          <div key={key} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.15rem 0.6rem', borderBottom: '1px solid #334155', paddingBottom: '0.45rem' }}>
-            <strong>{label}</strong><strong>{formatMetric(summary.current, '°C')}</strong>
-            <small style={{ color: '#94a3b8' }}>Mín {formatMetric(summary.minimum, '°C')} · Máx {formatMetric(summary.maximum, '°C')}</small>
-            <small style={{ gridColumn: '1 / -1', color: '#94a3b8' }}>Fonte: {latest?.[source] || 'sensor não exposto'}</small>
+          <div className="metric-details-item" key={key}>
+            <strong>{label}</strong>
+            <strong>{formatMetric(summary.current, '°C')}</strong>
+            <small>Mín {formatMetric(summary.minimum, '°C')} · Máx {formatMetric(summary.maximum, '°C')}</small>
+            <small>Fonte: {latest?.[source] || 'sensor não exposto pelo SO/driver'}</small>
           </div>
         );
       })}
@@ -41,81 +24,238 @@ function TemperatureDetails({ samples }) {
   );
 }
 
-export default function DashboardPanel({ activeTab, error, latest, settings, setSettings, isAdmin, handleUpdateSetting, telemetry, controlMode, setControlMode, relayState, handleRelayToggle, systemLogs }) {
-  const [chartMode, setChartMode] = useState('temperature');
+function RangeDetails({ samples, metric, unit }) {
+  const summary = summarizeMetric(samples, metric);
+  return (
+    <div className="metric-details-list">
+      <div className="metric-details-item">
+        <strong>Atual</strong><strong>{formatMetric(summary.current, unit)}</strong>
+        <small>Mín {formatMetric(summary.minimum, unit)} · Máx {formatMetric(summary.maximum, unit)}</small>
+        <small>{summary.count} amostras válidas no período</small>
+      </div>
+    </div>
+  );
+}
+
+function formatDatabaseTimestamp(value) {
+  if (!value) return 'Horário indisponível';
+  const text = String(value);
+  const normalized = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(text)
+    ? text
+    : `${text.replace(' ', 'T')}Z`;
+  const date = new Date(normalized);
+  return Number.isNaN(date.getTime()) ? text : date.toLocaleString();
+}
+
+function alertDescription(alertType) {
+  if (alertType === 'TEMPERATURE_HIGH') return { name: 'Temperatura CPU/APU', unit: '°C' };
+  if (alertType === 'CPU_HIGH') return { name: 'Uso de CPU', unit: '%' };
+  return { name: alertType || 'Alerta', unit: '' };
+}
+
+export default function DashboardPanel({
+  activeTab,
+  error,
+  latest,
+  settings,
+  isAdmin,
+  isTempCritical,
+  handleUpdateSetting,
+  telemetry,
+  handleActuatorCommand,
+  actuatorMessage,
+  settingsStatus,
+  systemLogs,
+  auditLogs,
+  alertsHistory,
+}) {
+  const [chartMode, setChartMode] = useState('all');
   const [chartRange, setChartRange] = useState('15m');
+  const [thresholdDraft, setThresholdDraft] = useState(settings.temp_threshold ?? '75');
+  const [thresholdDirty, setThresholdDirty] = useState(false);
+  const [savingThreshold, setSavingThreshold] = useState(false);
+  const thresholdValue = Number.parseFloat(thresholdDraft);
+  const thresholdValid = Number.isFinite(thresholdValue) && thresholdValue >= 0 && thresholdValue <= 150;
   const chartRows = useMemo(() => selectTelemetryWindow(telemetry, chartRange), [telemetry, chartRange]);
-  const temperatureDetails = <TemperatureDetails samples={chartRows} />;
+
+  useEffect(() => {
+    if (!thresholdDirty) setThresholdDraft(settings.temp_threshold ?? '75');
+  }, [settings.temp_threshold, thresholdDirty]);
+
+  const saveThreshold = async () => {
+    if (!thresholdValid) return;
+    setSavingThreshold(true);
+    const saved = await handleUpdateSetting('temp_threshold', String(thresholdValue));
+    if (saved) {
+      setThresholdDraft(String(thresholdValue));
+      setThresholdDirty(false);
+    }
+    setSavingThreshold(false);
+  };
+
+  const temperatureSamples = chartRows;
+  const graphicsLabel = getGraphicsLabel(latest?.gpu_temperature_source);
+  const freshness = describeTelemetryFreshness(latest?.timestamp);
 
   return (
     <>
       {activeTab === 'dashboard' && (
-        <>
-          {error && <div style={{ backgroundColor: '#7f1d1d', color: '#fca5a5', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1.5rem' }}>{error}</div>}
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(155px, 1fr))', gap: '1rem', marginBottom: '0.8rem' }}>
+        <main className="dashboard-content">
+          {error && <div className="dashboard-error" role="alert">{error}</div>}
+
+          <p className="dashboard-metric-help">
+            Passe o ponteiro ou use o foco do teclado sobre um cartão por 3 segundos para ver fonte, mínimas e máximas. Os detalhes acompanham o período selecionado no gráfico.
+          </p>
+          <p className={`dashboard-telemetry-freshness ${freshness.fresh ? 'dashboard-telemetry-fresh' : 'dashboard-telemetry-stale'}`} role="status" aria-live="polite">
+            {freshness.label}
+            {latest?.timestamp && ` · ${formatDatabaseTimestamp(new Date(Number(latest.timestamp) * 1000).toISOString())}`}
+          </p>
+          {isTempCritical && (
+            <div className="dashboard-temperature-alert" role="alert">
+              Temperatura CPU/APU acima do limite configurado: {formatMetric(latest?.temperature, '°C')}.
+            </div>
+          )}
+
+          <div className="dashboard-metric-grid">
             <MetricCard label="CPU" value={formatMetric(latest?.cpu_percent, '%')} details={<RangeDetails samples={chartRows} metric="cpu_percent" unit="%" />} />
             <MetricCard label="Memória" value={formatMetric(latest?.memory_percent, '%')} details={<RangeDetails samples={chartRows} metric="memory_percent" unit="%" />} />
             <MetricCard label="Disco" value={formatMetric(latest?.disk_percent, '%')} details={<RangeDetails samples={chartRows} metric="disk_percent" unit="%" />} />
-            <MetricCard label="CPU / APU" value={formatMetric(latest?.temperature_source ? latest.temperature : null, '°C')} hint={latest?.temperature_source || 'Fonte não identificada'} details={temperatureDetails} detailsLabel="Temperaturas por componente" />
-            <MetricCard label="Placa-mãe" value={formatMetric(latest?.motherboard_temperature, '°C')} hint={latest?.motherboard_temperature_source || 'Sensor não exposto pelo SO/driver'} details={temperatureDetails} detailsLabel="Temperaturas por componente" />
-            <MetricCard label="GPU" value={formatMetric(latest?.gpu_temperature, '°C')} hint={latest?.gpu_temperature_source || 'Sensor não exposto pelo SO/driver'} details={temperatureDetails} detailsLabel="Temperaturas por componente" />
-            <MetricCard label="GPU hotspot" value={formatMetric(latest?.gpu_hotspot_temperature, '°C')} hint={latest?.gpu_hotspot_source || 'Sensor não exposto pelo SO/driver'} details={temperatureDetails} detailsLabel="Temperaturas por componente" />
-            <MetricCard label="Energia estimada" value={formatMetric(latest?.power_consumption, ' W')} hint="Estimativa de software; não é medição física" details={<RangeDetails samples={chartRows} metric="power_consumption" unit=" W" />} />
+            <MetricCard
+              label="CPU / APU"
+              value={formatMetric(latest?.temperature_source ? latest.temperature : null, '°C')}
+              hint={latest?.temperature_source || 'Sensor térmico não exposto'}
+              details={<MetricDetails samples={temperatureSamples} metrics={[
+                { label: 'CPU / APU', key: 'temperature', source: 'temperature_source' },
+                { label: 'CPU hotspot', key: 'cpu_hotspot_temperature', source: 'cpu_hotspot_source' },
+              ]} />}
+              detailsLabel="Temperatura de CPU / APU"
+            />
+            <MetricCard
+              label={graphicsLabel}
+              value={formatMetric(latest?.gpu_temperature, '°C')}
+              hint={latest?.gpu_temperature_source || 'Sensor gráfico não exposto'}
+              details={<MetricDetails samples={temperatureSamples} metrics={[
+                { label: 'Gráficos (APU/GPU)', key: 'gpu_temperature', source: 'gpu_temperature_source' },
+                { label: 'GPU hotspot', key: 'gpu_hotspot_temperature', source: 'gpu_hotspot_source' },
+              ]} />}
+              detailsLabel={`${graphicsLabel} · temperaturas`}
+            />
+            <MetricCard
+              label="Placa-mãe"
+              value={formatMetric(latest?.motherboard_temperature, '°C')}
+              hint={latest?.motherboard_temperature_source || 'Sensor não exposto pelo SO/driver'}
+              details={<MetricDetails samples={temperatureSamples} metrics={[{ label: 'Placa-mãe', key: 'motherboard_temperature', source: 'motherboard_temperature_source' }]} />}
+              detailsLabel="Temperatura da placa-mãe"
+            />
+            <MetricCard
+              label="Energia estimada"
+              value={formatMetric(latest?.power_consumption, ' W')}
+              hint="Estimativa de software; não é medição física"
+              details={<RangeDetails samples={chartRows} metric="power_consumption" unit=" W" />}
+            />
           </div>
 
-          <div style={{ color: '#94a3b8', fontSize: '0.78rem', margin: '0 0 1.25rem' }}>
-            Para ver fonte e extremos térmicos, mantenha o ponteiro sobre um cartão de temperatura por 3 segundos. A janela usada acompanha o período do gráfico.
-          </div>
+          <Suspense fallback={<div className="telemetry-chart-loading" role="status">Carregando gráficos…</div>}>
+            <TelemetryChart rows={chartRows} mode={chartMode} setMode={setChartMode} range={chartRange} setRange={setChartRange} />
+          </Suspense>
 
-          <TelemetryChart rows={chartRows} mode={chartMode} setMode={setChartMode} range={chartRange} setRange={setChartRange} />
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem', marginBottom: '2rem' }}>
-            <div style={{ backgroundColor: '#1e293b', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h3 style={{ margin: 0, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Zap size={18} style={{ color: '#eab308' }} /> Atuadores (MQTT)
-                </h3>
-                <div style={{ display: 'flex', backgroundColor: '#0f172a', borderRadius: '0.375rem', padding: '0.2rem', border: '1px solid #334155' }}>
-                  <button onClick={() => setControlMode('auto')} style={{ backgroundColor: controlMode === 'auto' ? '#3b82f6' : 'transparent', color: 'white', border: 'none', padding: '0.3rem 0.7rem', borderRadius: '0.25rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: '600' }}>Auto</button>
-                  <button onClick={() => setControlMode('manual')} style={{ backgroundColor: controlMode === 'manual' ? '#3b82f6' : 'transparent', color: 'white', border: 'none', padding: '0.3rem 0.7rem', borderRadius: '0.25rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: '600' }}>Manual</button>
-                </div>
+          <div className="dashboard-secondary-grid">
+            <section className="dashboard-panel" aria-labelledby="actuator-title">
+              <div className="dashboard-panel-heading">
+                <h3 id="actuator-title"><Zap aria-hidden="true" /> Atuador MQTT (opcional)</h3>
+                <span className="dashboard-panel-tag">Manual</span>
               </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#0f172a', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
+              <p className="dashboard-panel-copy">
+                O monitoramento funciona sem atuadores. Este comando envia ON/OFF ao tópico permitido; o broker confirma o recebimento, mas o dispositivo não informa seu estado físico.
+              </p>
+              <div className="actuator-command-row">
                 <div>
-                  <div style={{ fontWeight: '500', fontSize: '0.95rem' }}>Relé Principal (Carga)</div>
-                  <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{controlMode === 'auto' ? 'Modo Automático ativo' : 'Modo Manual ativo'}</div>
+                  <strong>Relé principal</strong>
+                  <small>Tópico: nivus/edge/relay1</small>
                 </div>
-                <div onClick={controlMode === 'manual' && isAdmin ? handleRelayToggle : undefined} style={{ width: '56px', height: '28px', backgroundColor: relayState ? '#10b981' : '#475569', borderRadius: '14px', position: 'relative', cursor: controlMode === 'manual' && isAdmin ? 'pointer' : 'not-allowed', transition: 'background-color 0.2s', opacity: controlMode === 'auto' ? 0.6 : 1 }}>
-                  <div style={{ width: '22px', height: '22px', backgroundColor: 'white', borderRadius: '50%', position: 'absolute', top: '3px', left: relayState ? '31px' : '3px', transition: 'left 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }} />
-                </div>
-              </div>
-            </div>
-
-            <div style={{ backgroundColor: '#1e293b', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
-              <h3 style={{ marginTop: 0, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Settings size={18} /> Limiares de Alerta
-              </h3>
-              <div style={{ marginBottom: '0.5rem' }}>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Temperatura Limite (°C):</label>
-                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.3rem' }}>
-                  <input type="number" disabled={!isAdmin} value={settings.temp_threshold} onChange={e => setSettings({ ...settings, temp_threshold: e.target.value })} style={{ backgroundColor: '#0f172a', border: '1px solid #334155', color: 'white', padding: '0.4rem', borderRadius: '0.375rem', width: '100%' }} />
-                  {isAdmin && <button onClick={() => handleUpdateSetting('temp_threshold', settings.temp_threshold)} style={{ backgroundColor: '#a855f7', color: 'white', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '0.375rem', cursor: 'pointer' }}>Salvar</button>}
+                <div className="actuator-actions">
+                  <button type="button" disabled={!isAdmin} onClick={() => handleActuatorCommand('nivus/edge/relay1', 'ON')}>Enviar ON</button>
+                  <button type="button" disabled={!isAdmin} onClick={() => handleActuatorCommand('nivus/edge/relay1', 'OFF')}>Enviar OFF</button>
                 </div>
               </div>
-            </div>
+              <p className="dashboard-status-message" role="status">{actuatorMessage || (isAdmin ? 'Nenhum comando enviado.' : 'Somente administrador pode enviar comandos.')}</p>
+              <div className="dashboard-event-list" aria-label="Auditoria recente dos atuadores">
+                <strong><History size={14} aria-hidden="true" /> Comandos recentes</strong>
+                {auditLogs.length ? auditLogs.slice(0, 5).map((event) => (
+                  <div className="dashboard-event-row" key={event.id}>
+                    <span>{event.command} · {event.topic}</span>
+                    <time>{formatDatabaseTimestamp(event.timestamp)}</time>
+                  </div>
+                )) : <small>Nenhum comando registrado.</small>}
+              </div>
+            </section>
+
+            <section className="dashboard-panel dashboard-alert-panel" aria-labelledby="alert-settings-title">
+              <div className="dashboard-panel-heading">
+                <h3 id="alert-settings-title"><Settings aria-hidden="true" /> Limite de temperatura</h3>
+              </div>
+              <p className="dashboard-panel-copy">Gera alerta quando a leitura de CPU/APU ultrapassa este valor.</p>
+              <div className="threshold-row">
+                <label htmlFor="temperature-threshold">Limite (°C)</label>
+                <input
+                  id="temperature-threshold"
+                  type="number"
+                  min="0"
+                  max="150"
+                  step="0.5"
+                  disabled={!isAdmin || savingThreshold}
+                  value={thresholdDraft}
+                  onChange={(event) => {
+                    setThresholdDraft(event.target.value);
+                    setThresholdDirty(true);
+                  }}
+                />
+                {isAdmin && <button type="button" disabled={savingThreshold || !thresholdDirty || !thresholdValid} onClick={saveThreshold}>{savingThreshold ? 'Salvando…' : 'Salvar'}</button>}
+              </div>
+              {thresholdDirty && !thresholdValid && <p className="dashboard-input-error" role="alert">Informe um valor entre 0 e 150 °C.</p>}
+              <p className={`dashboard-threshold-state ${isTempCritical ? 'dashboard-threshold-high' : ''}`} role={isTempCritical ? 'alert' : 'status'}>
+                {isTempCritical
+                  ? 'Limite ultrapassado; o worker registra o evento na primeira amostra da subida.'
+                  : latest?.temperature_source
+                    ? `Leitura atual dentro do limite de ${formatMetric(Number(settings.temp_threshold), '°C')}.`
+                    : 'Sem leitura de CPU/APU disponível para avaliar o limite.'}
+              </p>
+              {settingsStatus && <p className="dashboard-status-message" role="status">{settingsStatus}</p>}
+            </section>
+
+            <section className="dashboard-panel dashboard-alert-history-panel" aria-labelledby="alert-history-title">
+              <div className="dashboard-panel-heading">
+                <h3 id="alert-history-title"><Bell aria-hidden="true" /> Alertas recentes</h3>
+                <span className="dashboard-panel-tag">Regra determinística</span>
+              </div>
+              <p className="dashboard-panel-copy">O worker grava uma ocorrência quando a métrica cruza o limite. Não há notificação remota nesta versão.</p>
+              <div className="dashboard-event-list" aria-live="polite">
+                {alertsHistory.length ? alertsHistory.slice(0, 5).map((event) => {
+                  const alert = alertDescription(event.alert_type);
+                  return (
+                    <div className="dashboard-event-row" key={event.id}>
+                      <span>{alert.name}: {formatMetric(event.value, alert.unit)} · limite {formatMetric(event.threshold, alert.unit)}</span>
+                      <time>{formatDatabaseTimestamp(event.timestamp)}</time>
+                    </div>
+                  );
+                }) : <small>Nenhum cruzamento de limite registrado.</small>}
+              </div>
+            </section>
           </div>
 
-          <div style={{ backgroundColor: '#1e293b', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
-            <h3 style={{ marginTop: 0, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Terminal size={18} /> Logs do Sistema
-            </h3>
-            <div style={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '0.5rem', padding: '1rem', height: '160px', overflowY: 'auto', fontFamily: 'monospace', fontSize: '0.85rem', color: '#38bdf8' }}>
-              {systemLogs.map((log, i) => <div key={i}>{log}</div>)}
+          <section className="dashboard-panel dashboard-logs-panel" aria-labelledby="system-logs-title">
+            <div className="dashboard-panel-heading">
+              <h3 id="system-logs-title"><Terminal aria-hidden="true" /> Logs do Nivus</h3>
+              <span className="dashboard-panel-tag">API + worker MQTT</span>
             </div>
-          </div>
-        </>
+            <p className="dashboard-panel-copy">Eventos da aplicação Nivus. Estes registros não incluem logs do Ubuntu, kernel ou de outros containers.</p>
+            <div className="system-log-list" aria-live="polite">
+              {systemLogs.length
+                ? systemLogs.map((log, index) => <div key={`${index}-${log}`}>{log}</div>)
+                : <div className="system-log-empty"><Cpu aria-hidden="true" /> Nenhum registro de aplicação disponível ainda.</div>}
+            </div>
+          </section>
+        </main>
       )}
     </>
   );

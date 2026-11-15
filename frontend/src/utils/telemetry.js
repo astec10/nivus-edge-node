@@ -36,3 +36,32 @@ export function formatMetric(value, unit = '') {
     ? `${value.toFixed(1)}${unit}`
     : 'N/D';
 }
+
+export function getGraphicsLabel(source) {
+  const label = typeof source === 'string' ? source.toLowerCase() : '';
+  if (/nvidia|nouveau/.test(label)) return 'Gráficos NVIDIA';
+  if (/amdgpu|radeon|\bamd\b/.test(label)) return 'Gráficos AMD (APU/GPU)';
+  if (/i915|xe\b|intel/.test(label)) return 'Gráficos Intel (APU/GPU)';
+  if (/apu|integrated|igpu/.test(label)) return 'APU integrada';
+  return 'Gráficos (APU/GPU)';
+}
+
+export function thresholdOrDefault(value, fallback) {
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+export function describeTelemetryFreshness(timestamp, now = Date.now()) {
+  const sampleTime = Number(timestamp);
+  if (!Number.isFinite(sampleTime) || sampleTime <= 0) {
+    return { fresh: false, label: 'Aguardando a primeira amostra de telemetria.' };
+  }
+  const ageSeconds = Math.max(0, Math.floor(now / 1000 - sampleTime));
+  const ageLabel = ageSeconds < 60 ? `${ageSeconds}s` : `${Math.floor(ageSeconds / 60)}min`;
+  return {
+    fresh: ageSeconds <= 15,
+    label: ageSeconds <= 15
+      ? `Amostra recente · coletada há ${ageLabel}`
+      : `Telemetria sem atualização há ${ageLabel}`,
+  };
+}
