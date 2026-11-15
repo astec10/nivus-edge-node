@@ -138,7 +138,8 @@ jobs:
           set -Eeuo pipefail
           [[ "$ISSUE_NUMBER" =~ ^[1-9][0-9]*$ ]]
           [[ "$PROPOSAL_BRANCH" =~ ^ai/issue-[1-9][0-9]*-run-[0-9]+$ ]]
-          base_branch="$(gh repo view "$REPOSITORY" --json defaultBranchRef --jq '.defaultBranchRef.name')"
+          base_branch="$(gh api "repos/$REPOSITORY" --jq '.default_branch')"
+          [[ -n "$base_branch" ]]
           gh pr create \
             --draft \
             --base "$base_branch" \
