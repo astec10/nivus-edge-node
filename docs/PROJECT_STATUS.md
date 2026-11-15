@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-15 01:04 UTC
+Atualizado: 2026-11-15 02:31 UTC
 Licença: AGPL-3.0-only
 
 ## Resumo verificado
@@ -11,7 +11,7 @@ A árvore de módulos e dependências está em MODULE_MAP.md. O catálogo de nó
 
 ## CI de instalação e recuperação
 
-O PR #2 está aberto e não foi mesclado. O run 43652960603 passou nos dois jobs Ubuntu 22.04 amd64:
+Na conferência de 2026-11-15 02:31 UTC, o PR #2 permanecia aberto e não mesclado. O run 43662375766, associado ao commit ba242268786c838626c6f76907e6e64eba158d94, passou nos dois jobs Ubuntu 22.04 amd64:
 
 - Build e smoke Compose com MQTT chegando ao SQLite.
 - Instalação limpa num runner virtual descartável, backup consistente, modo de verificação sem mutação, rollback induzido por health inválido, restauração normal, health HTTPS 200, API sem token 401, integridade SQLite e retomada da telemetria.
