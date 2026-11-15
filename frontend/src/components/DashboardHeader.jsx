@@ -1,9 +1,15 @@
 import React from 'react';
-import { Activity, Lock, Unlock } from 'lucide-react';
+import { Activity, CircleCheck, CircleX, Lock, Unlock } from 'lucide-react';
 
-export default function DashboardHeader({ token, userPayload, fetchData }) {
+export default function DashboardHeader({ token, userPayload, fetchData, isOnline }) {
+  const legacyPortValue = import.meta.env.VITE_NIVUS_LEGACY_DASHBOARD_PORT || '';
+  const legacyPort = /^\d{1,5}$/.test(legacyPortValue) ? Number(legacyPortValue) : 0;
+  const legacyDashboardUrl = legacyPort > 0 && legacyPort < 65536
+    ? `${window.location.protocol}//${window.location.hostname}:${legacyPort}/`
+    : '';
+
   return (
-<header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #334155', paddingBottom: '1rem' }}>
+<header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #334155', paddingBottom: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.75rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
             <Activity style={{ color: '#38bdf8' }} /> Nivus Edge Dashboard
@@ -11,6 +17,26 @@ export default function DashboardHeader({ token, userPayload, fetchData }) {
           <p style={{ color: '#94a3b8', fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>Nó: Nivus Edge Node</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div
+            className={`connection-status ${isOnline ? 'connection-status-online' : 'connection-status-offline'}`}
+            role="status"
+            aria-live="polite"
+            title={isOnline ? 'A API respondeu ao último health check.' : 'A API não respondeu ao último health check.'}
+          >
+            {isOnline ? <CircleCheck size={14} aria-hidden="true" /> : <CircleX size={14} aria-hidden="true" />}
+            <span>{isOnline ? 'API online' : 'API offline'}</span>
+          </div>
+          {legacyDashboardUrl && (
+            <a
+              className="legacy-dashboard-switch"
+              href={legacyDashboardUrl}
+              aria-label="Mudar para a versão anterior e leve da dashboard"
+              title="Abrir a versão anterior e leve da dashboard"
+            >
+              <span>Versão leve</span>
+              <span className="legacy-dashboard-track" aria-hidden="true"><span /></span>
+            </a>
+          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: token ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)', border: `1px solid ${token ? '#10b981' : '#ef4444'}`, padding: '0.4rem 0.8rem', borderRadius: '9999px', fontSize: '0.8rem', color: token ? '#34d399' : '#f87171' }}>
             {token ? <Unlock size={14} /> : <Lock size={14} />}
             <span>{token ? `Sessão: ${userPayload?.sub} (${userPayload?.role})` : 'Não Autenticado'}</span>

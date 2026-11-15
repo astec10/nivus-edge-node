@@ -1,6 +1,8 @@
 FROM node:22-bookworm-slim@sha256:e9f565d32859f0cbfb52125eafe8be39390f24dac302dc3cdf566e8ba3ab21ee AS build
 WORKDIR /src
 ENV NODE_OPTIONS=--max-old-space-size=512
+ARG VITE_NIVUS_LEGACY_DASHBOARD_PORT=
+ENV VITE_NIVUS_LEGACY_DASHBOARD_PORT=${VITE_NIVUS_LEGACY_DASHBOARD_PORT}
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY frontend/ ./

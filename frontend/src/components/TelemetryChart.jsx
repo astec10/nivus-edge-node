@@ -1,8 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Activity } from 'lucide-react';
 import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
   CartesianGrid,
-  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -10,38 +13,64 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { CHART_RANGES, formatMetric, summarizeMetric } from '../utils/telemetry';
+import { CHART_RANGES, formatMetric, getGraphicsLabel, summarizeMetric } from '../utils/telemetry';
 
 const CHARTS = {
+  all: {
+    title: 'Visão conjunta de telemetria',
+    series: [
+      { key: 'temperature', name: 'CPU / APU (°C)', unit: '°C', color: '#f87171', source: 'temperature_source' },
+      { key: 'motherboard_temperature', name: 'Placa-mãe (°C)', unit: '°C', color: '#a78bfa', source: 'motherboard_temperature_source' },
+      { key: 'gpu_temperature', name: 'Gráficos (°C)', unit: '°C', color: '#38bdf8', source: 'gpu_temperature_source' },
+      { key: 'cpu_percent', name: 'CPU (%)', unit: '%', color: '#fbbf24' },
+      { key: 'memory_percent', name: 'Memória (%)', unit: '%', color: '#c084fc' },
+      { key: 'disk_percent', name: 'Disco (%)', unit: '%', color: '#34d399' },
+      { key: 'power_consumption', name: 'Potência estimada (W)', unit: ' W', color: '#fb923c' },
+    ],
+  },
   temperature: {
     title: 'Temperaturas por componente',
-    unit: '°C',
     series: [
-      { key: 'temperature', name: 'CPU / APU', color: '#f87171', source: 'temperature_source' },
-      { key: 'motherboard_temperature', name: 'Placa-mãe', color: '#a78bfa', source: 'motherboard_temperature_source' },
-      { key: 'gpu_temperature', name: 'GPU', color: '#38bdf8', source: 'gpu_temperature_source' },
-      { key: 'gpu_hotspot_temperature', name: 'GPU hotspot', color: '#fb923c', source: 'gpu_hotspot_source' },
+      { key: 'temperature', name: 'CPU / APU', unit: '°C', color: '#f87171', source: 'temperature_source' },
+      { key: 'motherboard_temperature', name: 'Placa-mãe', unit: '°C', color: '#a78bfa', source: 'motherboard_temperature_source' },
+      { key: 'gpu_temperature', name: 'Gráficos (APU/GPU)', unit: '°C', color: '#38bdf8', source: 'gpu_temperature_source' },
     ],
   },
   performance: {
     title: 'Uso de recursos',
-    unit: '%',
     series: [
-      { key: 'cpu_percent', name: 'CPU (%)', color: '#38bdf8' },
-      { key: 'memory_percent', name: 'Memória (%)', color: '#a78bfa' },
-      { key: 'disk_percent', name: 'Disco (%)', color: '#34d399' },
+      { key: 'cpu_percent', name: 'CPU', unit: '%', color: '#38bdf8' },
+      { key: 'memory_percent', name: 'Memória', unit: '%', color: '#a78bfa' },
+      { key: 'disk_percent', name: 'Disco', unit: '%', color: '#34d399' },
     ],
   },
   energy: {
     title: 'Consumo estimado',
-    unit: ' W',
     series: [
-      { key: 'power_consumption', name: 'Potência estimada (W)', color: '#34d399' },
+      { key: 'power_consumption', name: 'Potência estimada', unit: ' W', color: '#34d399' },
     ],
   },
 };
 
-function DelayedChartTooltip({ active, payload, mode, rows }) {
+const HOTSPOT_DETAILS = [
+  { key: 'cpu_hotspot_temperature', name: 'CPU/APU hotspot', unit: '°C', source: 'cpu_hotspot_source' },
+  { key: 'gpu_hotspot_temperature', name: 'GPU hotspot', unit: '°C', source: 'gpu_hotspot_source' },
+];
+
+const CHART_MODES = [
+  { key: 'all', label: 'Tudo' },
+  { key: 'temperature', label: 'Temperaturas' },
+  { key: 'performance', label: 'Uso' },
+  { key: 'energy', label: 'Energia' },
+];
+
+const CHART_TYPES = [
+  { key: 'line', label: 'Linha' },
+  { key: 'area', label: 'Área' },
+  { key: 'bar', label: 'Barras' },
+];
+
+function DelayedChartTooltip({ active, payload, series, rows, selectionKey, mode }) {
   const [ready, setReady] = useState(false);
   const sample = payload?.[0]?.payload;
   const sampleKey = sample?.timestamp ?? sample?.time;
@@ -51,92 +80,190 @@ function DelayedChartTooltip({ active, payload, mode, rows }) {
     if (!active || sampleKey == null) return undefined;
     const timer = window.setTimeout(() => setReady(true), 3000);
     return () => window.clearTimeout(timer);
-  }, [active, sampleKey, mode]);
+  }, [active, sampleKey, selectionKey, mode]);
 
   if (!active || !ready || !sample) return null;
-  const series = CHARTS[mode].series;
 
   return (
-    <div style={{ minWidth: 230, padding: '0.8rem', border: '1px solid #475569', borderRadius: '0.6rem', background: '#07111f', color: '#f8fafc', boxShadow: '0 8px 24px #0008' }}>
-      <strong style={{ display: 'block', marginBottom: '0.45rem' }}>{sample.time || 'Amostra'}</strong>
-      {series.map(({ key, name, color, source }) => {
-        const point = formatMetric(sample[key], mode === 'energy' ? ' W' : mode === 'temperature' ? '°C' : '%');
+    <div className="telemetry-chart-tooltip">
+      <strong>{sample.time || 'Amostra'}</strong>
+      {series.map(({ key, name, color, unit, source }) => {
         const summary = summarizeMetric(rows, key);
         return (
-          <div key={key} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.8rem', fontSize: '0.78rem', marginTop: '0.25rem' }}>
+          <div key={key} className="telemetry-chart-tooltip-row">
             <span style={{ color }}>{name}</span>
-            <span>{point}</span>
-            {summary.count > 0 && <small style={{ gridColumn: '1 / -1', color: '#94a3b8' }}>Mín {formatMetric(summary.minimum, mode === 'energy' ? ' W' : mode === 'temperature' ? '°C' : '%')} · Máx {formatMetric(summary.maximum, mode === 'energy' ? ' W' : mode === 'temperature' ? '°C' : '%')} no período</small>}
-            {source && <small style={{ gridColumn: '1 / -1', color: '#94a3b8' }}>Fonte: {sample[source] || 'sensor não exposto'}</small>}
+            <strong>{formatMetric(sample[key], unit)}</strong>
+            {summary.count > 0 && (
+              <small className="telemetry-chart-tooltip-meta">
+                Mín {formatMetric(summary.minimum, unit)} · Máx {formatMetric(summary.maximum, unit)} no período
+              </small>
+            )}
+            {source && <small className="telemetry-chart-tooltip-meta">Fonte: {sample[source] || 'sensor não exposto'}</small>}
           </div>
         );
       })}
-      {mode === 'temperature' && (
-        <div style={{ borderTop: '1px solid #334155', marginTop: '0.55rem', paddingTop: '0.45rem', fontSize: '0.72rem', color: '#cbd5e1' }}>
-          Tooltip detalhado após 3 segundos sobre o ponto.
-        </div>
-      )}
+      {(mode === 'all' || mode === 'temperature') && HOTSPOT_DETAILS.map(({ key, name, unit, source }) => {
+        const summary = summarizeMetric(rows, key);
+        return (
+          <div key={key} className="telemetry-chart-tooltip-row telemetry-chart-tooltip-detail">
+            <span>{name} · detalhe</span>
+            <strong>{formatMetric(sample[key], unit)}</strong>
+            {summary.count > 0 && (
+              <small className="telemetry-chart-tooltip-meta">
+                Mín {formatMetric(summary.minimum, unit)} · Máx {formatMetric(summary.maximum, unit)} no período
+              </small>
+            )}
+            <small className="telemetry-chart-tooltip-meta">Fonte: {sample[source] || 'sensor não exposto'}</small>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
+function renderSeries(chartType, series) {
+  const props = {
+    key: series.key,
+    dataKey: series.key,
+    name: series.name,
+    yAxisId: series.unit,
+    stroke: series.color,
+    fill: series.color,
+    strokeWidth: 2,
+    isAnimationActive: false,
+  };
+
+  if (chartType === 'area') return <Area {...props} type="monotone" fillOpacity={0.12} dot={false} connectNulls={false} />;
+  if (chartType === 'bar') return <Bar {...props} />;
+  return <Line {...props} type="monotone" dot={false} connectNulls={false} />;
+}
+
 export default function TelemetryChart({ rows, mode, setMode, range, setRange }) {
-  const chart = CHARTS[mode];
+  const [chartType, setChartType] = useState('line');
+  const [visibleKeys, setVisibleKeys] = useState(() => new Set(CHARTS[mode].series.map(({ key }) => key)));
+  const graphicsLabel = getGraphicsLabel(rows.at(-1)?.gpu_temperature_source);
+  const chart = useMemo(() => ({
+    ...CHARTS[mode],
+    series: CHARTS[mode].series.map((series) => (
+      series.key === 'gpu_temperature'
+        ? { ...series, name: `${graphicsLabel} (°C)` }
+        : series
+    )),
+  }), [graphicsLabel, mode]);
+  const selectedSeries = chart.series.filter(({ key }) => visibleKeys.has(key));
   const summaries = useMemo(
     () => Object.fromEntries(chart.series.map(({ key }) => [key, summarizeMetric(rows, key)])),
     [chart, rows],
   );
-  const hasValues = chart.series.some(({ key }) => summaries[key].count > 0);
+  const hasValues = selectedSeries.some(({ key }) => summaries[key].count > 0);
+  const units = [...new Set(selectedSeries.map(({ unit }) => unit))];
+  const selectionKey = selectedSeries.map(({ key }) => key).join(',');
 
-  const chartModes = [
-    { key: 'temperature', label: 'Temperaturas' },
-    { key: 'performance', label: 'Uso' },
-    { key: 'energy', label: 'Energia' },
-  ];
+  useEffect(() => {
+    setVisibleKeys(new Set(CHARTS[mode].series.map(({ key }) => key)));
+  }, [mode]);
+
+  const toggleSeries = (key) => {
+    setVisibleKeys((current) => {
+      const next = new Set(current);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const ChartComponent = chartType === 'area' ? AreaChart : chartType === 'bar' ? BarChart : LineChart;
 
   return (
-    <section style={{ backgroundColor: '#1e293b', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid #334155', marginBottom: '2rem' }} aria-labelledby="telemetry-chart-title">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
-        <h3 id="telemetry-chart-title" style={{ margin: 0, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Activity style={{ color: '#38bdf8' }} /> {chart.title}
-        </h3>
-        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }} role="group" aria-label="Tipo de gráfico">
-          {chartModes.map((option) => (
-            <button key={option.key} type="button" aria-pressed={mode === option.key} onClick={() => setMode(option.key)} style={{ background: mode === option.key ? '#0e7490' : '#0f172a', color: '#f8fafc', border: '1px solid #475569', borderRadius: '0.45rem', padding: '0.42rem 0.65rem', cursor: 'pointer' }}>
+    <section className="telemetry-chart-panel" aria-labelledby="telemetry-chart-title">
+      <div className="telemetry-chart-heading">
+        <h3 id="telemetry-chart-title"><Activity aria-hidden="true" /> {chart.title}</h3>
+        <div className="telemetry-chart-modes" role="group" aria-label="Conjunto de informações do gráfico">
+          {CHART_MODES.map((option) => (
+            <button key={option.key} type="button" aria-pressed={mode === option.key} onClick={() => setMode(option.key)}>
               {option.label}
             </button>
           ))}
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.8rem', flexWrap: 'wrap', marginTop: '0.8rem' }}>
-        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }} role="group" aria-label="Período do gráfico">
+      <div className="telemetry-chart-toolbar">
+        <div className="telemetry-chart-ranges" role="group" aria-label="Período do gráfico">
           {CHART_RANGES.map((option) => (
-            <button key={option.key} type="button" aria-pressed={range === option.key} onClick={() => setRange(option.key)} style={{ background: range === option.key ? '#1d4ed8' : '#0f172a', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '0.45rem', padding: '0.38rem 0.6rem', cursor: 'pointer', fontSize: '0.82rem' }}>
+            <button key={option.key} type="button" aria-pressed={range === option.key} onClick={() => setRange(option.key)}>
               {option.label}
             </button>
           ))}
         </div>
-        <small style={{ color: '#94a3b8' }}>{rows.length} amostras no período · histórico limitado às 1000 mais recentes</small>
+        <label className="telemetry-chart-type">
+          Tipo
+          <select value={chartType} onChange={(event) => setChartType(event.target.value)} aria-label="Tipo de gráfico">
+            {CHART_TYPES.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
+          </select>
+        </label>
       </div>
 
-      <div style={{ width: '100%', height: 330, marginTop: '0.9rem' }}>
+      <div className="telemetry-series-toolbar">
+        <div className="telemetry-series-options" role="group" aria-label="Séries visíveis">
+          {chart.series.map(({ key, name, color }) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={visibleKeys.has(key)}
+              onClick={() => toggleSeries(key)}
+              className={visibleKeys.has(key) ? 'telemetry-series-selected' : ''}
+              style={{ '--series-color': color }}
+            >
+              <span aria-hidden="true" />{name}
+            </button>
+          ))}
+        </div>
+        <button
+          className="telemetry-show-all"
+          type="button"
+          onClick={() => setVisibleKeys(new Set(chart.series.map(({ key }) => key)))}
+        >
+          Mostrar todas as informações
+        </button>
+      </div>
+
+      <div className="telemetry-chart-caption">
+        <small>{rows.length} amostras no período · até 1000 amostras armazenadas</small>
+        {mode === 'all' && <small>°C, %, e W usam escalas próprias; a potência é estimada por software.</small>}
+        <small>Detalhes do ponto após 3 segundos de pausa.</small>
+      </div>
+
+      <div className="telemetry-chart-canvas">
         {hasValues ? (
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={rows} margin={{ top: 8, right: 12, left: 0, bottom: 6 }}>
+            <ChartComponent data={rows} margin={{ top: 8, right: units.length > 1 ? 88 : 12, left: 0, bottom: 6 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
               <XAxis dataKey="time" stroke="#94a3b8" minTickGap={24} />
-              <YAxis stroke="#94a3b8" unit={chart.unit} domain={mode === 'performance' ? [0, 100] : ['auto', 'auto']} width={60} />
-              <Tooltip content={<DelayedChartTooltip mode={mode} rows={rows} />} />
-              <Legend />
-              {chart.series.map(({ key, name, color }) => (
-                <Line key={key} type="monotone" dataKey={key} name={name} stroke={color} strokeWidth={2} dot={false} connectNulls={false} isAnimationActive={false} />
+              {units.map((unit, index) => (
+                <YAxis
+                  key={unit}
+                  yAxisId={unit}
+                  stroke="#94a3b8"
+                  unit={unit}
+                  domain={unit === '%' ? [0, 100] : ['auto', 'auto']}
+                  width={unit === '°C' ? 48 : 42}
+                  orientation={index === 0 ? 'left' : 'right'}
+                  hide={false}
+                  tick={{ fontSize: 11 }}
+                  {...(index > 1 ? { orientation: 'right', width: 42, offset: 38, tick: { fontSize: 10 } } : {})}
+                />
               ))}
-            </LineChart>
+              <Tooltip content={<DelayedChartTooltip series={selectedSeries} rows={rows} selectionKey={selectionKey} mode={mode} />} />
+              {selectedSeries.map((series) => renderSeries(chartType, series))}
+            </ChartComponent>
           </ResponsiveContainer>
         ) : (
-          <div style={{ height: '100%', display: 'grid', placeItems: 'center', padding: '1rem', color: '#94a3b8', textAlign: 'center' }}>
-            {mode === 'temperature' ? 'Nenhuma temperatura identificada neste período. Leituras antigas sem origem não são reutilizadas.' : 'Sem amostras para este período.'}
+          <div className="telemetry-chart-empty">
+            {selectedSeries.length === 0
+              ? 'Selecione uma ou mais séries para exibir.'
+              : mode === 'temperature'
+                ? 'Nenhuma temperatura identificada neste período. Leituras antigas sem origem não são reutilizadas.'
+                : 'Sem amostras para as séries selecionadas neste período.'}
           </div>
         )}
       </div>
