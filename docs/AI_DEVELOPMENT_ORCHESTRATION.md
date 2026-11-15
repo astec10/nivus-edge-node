@@ -86,3 +86,27 @@ O mapa de pacotes, dependências e critérios do modelo “cada agente constrói
 - [GitHub Actions: capacidade e custo dos runners hospedados](https://docs.github.com/en/actions/reference/runners/github-hosted-runners)
 - [GitHub Actions: uso seguro de runners](https://docs.github.com/en/actions/reference/security/secure-use)
 - [Hermes: requisitos e limites de recursos do Docker](https://hermes-agent.nousresearch.com/docs/user-guide/docker/)
+
+
+## Avaliação: run-gemini-cli do Google
+
+**Verificado em 2026-11-15.** A Action [`google-github-actions/run-gemini-cli`](https://github.com/google-github-actions/run-gemini-cli) é uma integração do Google para executar o Gemini CLI em runners do GitHub Actions. O repositório está sob `google-github-actions`, declara autoria Google LLC e licença Apache-2.0. O README recomenda uma chave `GEMINI_API_KEY` guardada em Actions Secrets; também há opções de autenticação Google Cloud/Vertex.
+
+### O que ela acrescenta
+
+- Interface por comentários em Issues e Pull Requests para pedir triagem, revisão, análise ou alterações.
+- Workflows de plano e execução com um ciclo de aprovação de plano.
+- Acesso configurável às ferramentas, incluindo ferramentas GitHub MCP; não é execução offline e depende de runner hospedado, rede e quota do modelo.
+
+### Limites de segurança para o Nivus
+
+- A implementação atual executa `gemini --yolo`; ferramentas que forem disponibilizadas ao CLI recebem aprovação automática durante aquele job. A proteção precisa estar na lista explícita de ferramentas e no escopo curto do token, não numa confirmação interativa em cada comando.
+- O exemplo de invocação somente leitura dá acesso de escrita a Issues e Pull Requests para comentários. O exemplo `plan-execute` concede `contents: write` e disponibiliza operações de criar/editar/apagar arquivos e enviar commits.
+- A Action instala `@google/gemini-cli@latest` por padrão. Para execução reproduzível, fixe a versão da Action por SHA revisado e configure uma versão exata do CLI; não instale extensions sem revisão.
+- Conteúdo de Issue, comentários, diffs e arquivos do repositório é entrada não confiável e pode conter instruções maliciosas. Não passe segredos de produção, dados domésticos ou telemetria real ao agente. Evite debug e upload de artefatos quando a saída puder conter contexto privado.
+
+### Decisão para esta arquitetura
+
+A Action é uma boa candidata opcional para **revisão, triagem e planejamento sem permissão de escrita no código**, em runner hospedado. Não substitui o executor Nivus atual: esse worker limita caminhos, aplica patches validados, executa CI sem a chave e abre PR em rascunho. Se no futuro a Action for usada para gerar código, a versão Nivus deve manter runner descartável, ferramenta GitHub com allowlist, chave somente no job de inferência, branch/PR isolado, CI sem chave e revisão humana. Nenhum workflow da Action foi habilitado por esta avaliação.
+
+A referência consultada estava no commit `387c8ddb7a72078825da941758b811b9153c71e8`; a release marcada mais recente era `v0.1.22`. Esses identificadores são uma fotografia de 2026-11-15 e devem ser conferidos antes de uma instalação. Consulte [metadados da Action](https://github.com/google-github-actions/run-gemini-cli/blob/387c8ddb7a72078825da941758b811b9153c71e8/action.yml), [README](https://github.com/google-github-actions/run-gemini-cli/blob/387c8ddb7a72078825da941758b811b9153c71e8/README.md) e [exemplo plan-execute](https://github.com/google-github-actions/run-gemini-cli/blob/387c8ddb7a72078825da941758b811b9153c71e8/examples/workflows/gemini-assistant/gemini-plan-execute.yml).
