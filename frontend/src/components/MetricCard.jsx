@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 const cardStyle = {
@@ -11,6 +11,7 @@ const cardStyle = {
 };
 
 function MetricCard({ label, value, hint, details, detailsLabel }) {
+  const tooltipId = useId();
   const [visible, setVisible] = useState(false);
   const [position, setPosition] = useState({ left: 16, top: 16, width: 320 });
   const showTimer = useRef(null);
@@ -28,7 +29,11 @@ function MetricCard({ label, value, hint, details, detailsLabel }) {
     const bounds = event.currentTarget.getBoundingClientRect();
     const width = Math.min(360, Math.max(180, window.innerWidth - 24));
     const left = Math.max(12, Math.min(bounds.left, window.innerWidth - width - 12));
-    const top = Math.max(12, Math.min(bounds.bottom + 8, window.innerHeight - 340));
+    const tooltipHeight = Math.min(window.innerHeight * 0.55, 420);
+    const below = bounds.bottom + 8;
+    const top = below + tooltipHeight <= window.innerHeight - 12
+      ? below
+      : Math.max(12, bounds.top - tooltipHeight - 8);
     setPosition({ left, top, width });
     showTimer.current = window.setTimeout(() => setVisible(true), 3000);
   };
@@ -46,14 +51,15 @@ function MetricCard({ label, value, hint, details, detailsLabel }) {
     ? createPortal(
       <div
         role="tooltip"
-        id="metric-details-tooltip"
+        id={tooltipId}
         style={{
           position: 'fixed',
           zIndex: 1000,
           left: position.left,
           top: position.top,
           width: position.width,
-          maxHeight: 'min(55vh, 420px)',
+          maxHeight: '55vh',
+          boxSizing: 'border-box',
           overflowY: 'auto',
           padding: '0.9rem 1rem',
           border: '1px solid #38bdf8',
@@ -78,7 +84,7 @@ function MetricCard({ label, value, hint, details, detailsLabel }) {
         tabIndex={0}
         role="group"
         aria-label={`${label}: ${value}. Mantenha o ponteiro ou o foco por 3 segundos para ver detalhes.`}
-        aria-describedby={visible ? 'metric-details-tooltip' : undefined}
+        aria-describedby={visible ? tooltipId : undefined}
         onPointerEnter={startDwell}
         onPointerLeave={hideDetails}
         onFocus={startDwell}
@@ -92,7 +98,6 @@ function MetricCard({ label, value, hint, details, detailsLabel }) {
         <span style={{ color: '#94a3b8' }}>{label}</span>
         <div style={{ fontSize: '1.8rem', fontWeight: 'bold', lineHeight: 1.3 }}>{value}</div>
         {hint && <small style={{ display: 'block', color: '#94a3b8', minHeight: '1.1rem' }}>{hint}</small>}
-        <small style={{ display: 'block', color: '#64748b', marginTop: '0.35rem', fontSize: '0.68rem' }}>Pouse 3 s para detalhes</small>
       </div>
       {tooltip}
     </>

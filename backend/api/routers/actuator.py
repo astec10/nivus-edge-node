@@ -31,7 +31,12 @@ def send_actuator_command(
         conn.commit()
     finally:
         conn.close()
-    return {"status": "success"}
+    return {
+        "status": "success",
+        "broker_accepted": True,
+        "device_confirmed": False,
+        "message": "O broker MQTT confirmou o recebimento; o dispositivo não confirmou o estado físico.",
+    }
 
 
 @router.get("/audit")

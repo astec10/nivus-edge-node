@@ -16,6 +16,7 @@ services:
       - /tmp:rw,noexec,nosuid,size=16m
     environment:
       NIVUS_DB_PATH: /data/nivus.db
+      NIVUS_LOG_DIR: /data/logs
       NIVUS_JWT_SECRET_FILE: /run/secrets/jwt_secret
       NIVUS_NODE_NAME: ${NIVUS_NODE_NAME:-nivus-edge-node}
       NIVUS_CORS_ORIGINS: ${NIVUS_CORS_ORIGINS:-}
@@ -68,6 +69,7 @@ services:
       - /tmp:rw,noexec,nosuid,size=16m
     environment:
       NIVUS_DB_PATH: /data/nivus.db
+      NIVUS_LOG_DIR: /data/logs
       NIVUS_MQTT_BROKER: mqtt
       NIVUS_MQTT_PORT: "1883"
       NIVUS_MQTT_USERNAME: nivus-worker
@@ -123,6 +125,8 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
+      args:
+        VITE_NIVUS_LEGACY_DASHBOARD_PORT: ${NIVUS_LEGACY_DASHBOARD_PORT:-}
     restart: unless-stopped
     init: true
     read_only: true
