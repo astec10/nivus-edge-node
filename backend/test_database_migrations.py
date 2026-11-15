@@ -46,6 +46,8 @@ class ThermalMigrationTests(unittest.TestCase):
             self.assertTrue(
                 {
                     "temperature_source",
+                    "cpu_hotspot_temperature",
+                    "cpu_hotspot_source",
                     "motherboard_temperature_source",
                     "gpu_temperature_source",
                     "gpu_hotspot_temperature",

@@ -7,6 +7,7 @@ import LoginPanel from './components/LoginPanel';
 import UserManagementPanel from './components/UserManagementPanel';
 import DashboardPanel from './components/DashboardPanel';
 import LegalNotice from './components/LegalNotice';
+import { thresholdOrDefault } from './utils/telemetry';
 
 const API_BASE = '';
 
@@ -34,11 +35,11 @@ function App() {
   const [targetNewPassword, setTargetNewPassword] = useState('');
   const [targetConfirmPassword, setTargetConfirmPassword] = useState('');
 
-  const [controlMode, setControlMode] = useState('auto');
-  const [relayState, setRelayState] = useState(false);
+  const [actuatorMessage, setActuatorMessage] = useState('');
+  const [settingsStatus, setSettingsStatus] = useState('');
 
   const parseJwt = (t) => {
-    try { return JSON.parse(atob(t.split('.')[1])); } catch (e) { return null; }
+    try { return JSON.parse(atob(t.split('.')[1])); } catch { return null; }
   };
 
   const userPayload = token ? parseJwt(token) : null;
@@ -60,7 +61,7 @@ function App() {
       gain.connect(audioCtx.destination);
       osc.start();
       osc.stop(audioCtx.currentTime + 0.2);
-    } catch (e) {}
+    } catch {}
   };
 
   const handleLogin = async (e) => {
@@ -157,7 +158,7 @@ function App() {
       setNewUsername('');
       setNewPassword('');
       fetchData();
-    } catch (err) {
+    } catch {
       alert('Erro ao guardar utilizador.');
     }
   };
@@ -182,7 +183,7 @@ function App() {
       setTargetNewPassword('');
       setTargetConfirmPassword('');
       fetchData();
-    } catch (err) {
+    } catch {
       alert('Falha na autenticação do Administrador ou erro no servidor.');
     }
   };
@@ -192,40 +193,46 @@ function App() {
     try {
       await axios.delete(`${API_BASE}/api/users/${targetUser}`, { headers: { Authorization: `Bearer ${token}` } });
       fetchData();
-    } catch (err) { alert('Erro ao remover.'); }
+    } catch { alert('Erro ao remover.'); }
   };
 
   const handleActuatorCommand = async (topic, command) => {
     if (!isAdmin) {
-      alert('Modo de Leitura (Viewer): Sem permissão.');
-      return;
+      setActuatorMessage('Somente administrador pode enviar comandos.');
+      return false;
     }
+    const confirmed = window.confirm(`Enviar o comando ${command} ao tópico ${topic}? O dispositivo pode alterar uma carga física.`);
+    if (!confirmed) return false;
+    setActuatorMessage(`Enviando ${command} ao broker MQTT…`);
     try {
-      await axios.post(`${API_BASE}/api/actuator/command`, { topic, command }, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.post(`${API_BASE}/api/actuator/command`, { topic, command }, { headers: { Authorization: `Bearer ${token}` } });
+      setActuatorMessage(response.data.device_confirmed
+        ? `Dispositivo confirmou ${command}.`
+        : `Broker aceitou ${command}; o dispositivo não confirmou o estado físico.`);
       fetchData();
-    } catch (err) { alert('Acesso negado.'); }
-  };
-
-  const handleRelayToggle = () => {
-    if (!isAdmin) {
-      alert('Modo de Leitura (Viewer): Sem permissão.');
-      return;
+      return true;
+    } catch (err) {
+      const detail = err.response?.data?.detail;
+      setActuatorMessage(detail || 'O broker MQTT não confirmou o comando; nenhuma confirmação física está disponível.');
+      return false;
     }
-    const newState = !relayState;
-    setRelayState(newState);
-    handleActuatorCommand('nivus/edge/relay1', newState ? 'ON' : 'OFF');
   };
 
   const handleUpdateSetting = async (key, value) => {
     if (!isAdmin) {
-      alert('Modo de Leitura (Viewer): Sem permissão.');
-      return;
+      setSettingsStatus('Somente administrador pode alterar os limites.');
+      return false;
     }
+    setSettingsStatus('Salvando limite…');
     try {
       await axios.post(`${API_BASE}/api/settings`, { key, value }, { headers: { Authorization: `Bearer ${token}` } });
       setSettings(prev => ({ ...prev, [key]: value }));
-      alert('Definição atualizada!');
-    } catch (err) { alert('Acesso negado.'); }
+      setSettingsStatus('Limite salvo.');
+      return true;
+    } catch (err) {
+      setSettingsStatus(err.response?.data?.detail || 'Não foi possível salvar o limite.');
+      return false;
+    }
   };
 
   useEffect(() => {
@@ -235,8 +242,8 @@ function App() {
   }, [token]);
 
   const latest = telemetry.length > 0 ? telemetry[telemetry.length - 1] : null;
-  const tempLimit = parseFloat(settings.temp_threshold) || 75;
-  const cpuLimit = parseFloat(settings.cpu_threshold) || 90;
+  const tempLimit = thresholdOrDefault(settings.temp_threshold, 75);
+  const cpuLimit = thresholdOrDefault(settings.cpu_threshold, 90);
   const isTempCritical = latest && Number.isFinite(latest.temperature) && latest.temperature > tempLimit;
   const isCpuCritical = latest && latest.cpu_percent > cpuLimit;
   const hasActiveAlert = isTempCritical || isCpuCritical;
@@ -246,13 +253,13 @@ function App() {
   const passwordsDoNotMatch = targetConfirmPassword.length > 0 && targetNewPassword !== targetConfirmPassword;
 
   return (
-    <div className="dashboard-root" style={{ minHeight: '100vh', backgroundColor: '#0f172a', color: '#f8fafc', padding: '2rem', fontFamily: 'system-ui, sans-serif', position: 'relative' }}>
+    <div className="dashboard-root" style={{ minHeight: '100vh', minWidth: 0, backgroundColor: '#0f172a', color: '#f8fafc', padding: 'clamp(0.75rem, 2vw, 1.75rem)', fontFamily: 'system-ui, sans-serif', position: 'relative' }}>
       <PasswordChangeModal editingUser={editingUser} setEditingUser={setEditingUser} handlePasswordChangeSubmit={handlePasswordChangeSubmit} targetNewPassword={targetNewPassword} setTargetNewPassword={setTargetNewPassword} targetConfirmPassword={targetConfirmPassword} setTargetConfirmPassword={setTargetConfirmPassword} passwordsDoNotMatch={passwordsDoNotMatch} adminAuthPassword={adminAuthPassword} setAdminAuthPassword={setAdminAuthPassword} />
-      <DashboardHeader token={token} userPayload={userPayload} fetchData={fetchData} />
+      <DashboardHeader token={token} userPayload={userPayload} fetchData={fetchData} isOnline={isOnline} />
       <DashboardNavigation token={token} isAdmin={isAdmin} activeTab={activeTab} setActiveTab={setActiveTab} handleLogout={handleLogout} />
       <LoginPanel token={token} handleLogin={handleLogin} username={username} setUsername={setUsername} password={password} setPassword={setPassword} />
       <UserManagementPanel token={token} isAdmin={isAdmin} activeTab={activeTab} newUsername={newUsername} setNewUsername={setNewUsername} newPassword={newPassword} setNewPassword={setNewPassword} newRole={newRole} setNewRole={setNewRole} handleSaveUser={handleSaveUser} usersList={usersList} setEditingUser={setEditingUser} setTargetNewPassword={setTargetNewPassword} setTargetConfirmPassword={setTargetConfirmPassword} setAdminAuthPassword={setAdminAuthPassword} handleDeleteUser={handleDeleteUser} />
-      <DashboardPanel activeTab={activeTab} error={error} latest={latest} settings={settings} setSettings={setSettings} isAdmin={isAdmin} handleUpdateSetting={handleUpdateSetting} telemetry={telemetry} controlMode={controlMode} setControlMode={setControlMode} relayState={relayState} handleRelayToggle={handleRelayToggle} systemLogs={systemLogs} />
+      <DashboardPanel activeTab={activeTab} error={error} latest={latest} settings={settings} isAdmin={isAdmin} isTempCritical={isTempCritical} handleUpdateSetting={handleUpdateSetting} telemetry={telemetry} handleActuatorCommand={handleActuatorCommand} actuatorMessage={actuatorMessage} settingsStatus={settingsStatus} systemLogs={systemLogs} auditLogs={auditLogs} alertsHistory={alertsHistory} />
       <LegalNotice />
     </div>
   );

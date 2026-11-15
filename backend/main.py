@@ -12,12 +12,15 @@ from api.routers import (
     users,
 )
 from database import init_db
+from services.app_logging import configure_service_logger
 from security import load_jwt_secret
 
 
 # Fail fast when the JWT secret is missing, before the API starts accepting requests.
 load_jwt_secret()
 init_db()
+logger = configure_service_logger("api")
+logger.info("Nivus API iniciada.")
 
 CORS_ORIGINS = [
     item.strip()

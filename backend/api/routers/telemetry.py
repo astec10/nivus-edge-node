@@ -1,9 +1,8 @@
-import subprocess
-
 from fastapi import APIRouter, Depends, Query
 
 from api.dependencies import get_current_admin, get_current_user
 from database import get_db_connection
+from services.app_logging import read_application_logs
 
 
 router = APIRouter(prefix="/api", tags=["telemetry"])
@@ -29,14 +28,4 @@ def get_system_logs(
     lines: int = Query(25, ge=1, le=100),
     admin: str = Depends(get_current_admin),
 ):
-    try:
-        result = subprocess.run(
-            ["pm2", "logs", "nivus-dashboard", "--lines", str(lines), "--nostream"],
-            capture_output=True,
-            text=True,
-            timeout=3,
-        )
-        logs_output = result.stdout if result.returncode == 0 else result.stderr
-        return {"logs": logs_output.splitlines()[-lines:]}
-    except Exception:
-        return {"logs": ["Logs indisponíveis no momento."]}
+    return read_application_logs(lines)
