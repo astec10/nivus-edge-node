@@ -111,7 +111,7 @@ function App() {
 
       const headers = currentToken ? { Authorization: `Bearer ${currentToken}` } : {};
       const [telRes, logRes, audRes, altRes, setRes] = await Promise.all([
-        axios.get(`${API_BASE}/api/telemetry?limit=30`, { headers }),
+        axios.get(`${API_BASE}/api/telemetry?limit=1000`, { headers }),
         axios.get(`${API_BASE}/api/logs?lines=15`, { headers }).catch(() => ({ data: { logs: [] } })),
         axios.get(`${API_BASE}/api/actuator/audit?limit=10`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_BASE}/api/alerts/history?limit=10`, { headers }).catch(() => ({ data: [] })),

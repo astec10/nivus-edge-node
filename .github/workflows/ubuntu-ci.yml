@@ -29,6 +29,11 @@ jobs:
           set -Eeuo pipefail
           while IFS= read -r -d '' script; do bash -n "$script"; done < <(find deploy -type f -name '*.sh' -print0)
           python3 -m compileall -q backend telemetry
+          python3 -m unittest discover -s telemetry -p 'test_*.py'
+          python3 -m unittest discover -s backend -p 'test_*.py'
+
+      - name: Check telemetry chart range summaries
+        run: node frontend/tests/telemetry.test.mjs
 
       - name: Prepare isolated Compose smoke environment
         shell: bash

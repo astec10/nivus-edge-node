@@ -31,7 +31,11 @@ def init_db():
                 temperature REAL,
                 temperature_source TEXT,
                 motherboard_temperature REAL,
+                motherboard_temperature_source TEXT,
                 gpu_temperature REAL,
+                gpu_temperature_source TEXT,
+                gpu_hotspot_temperature REAL,
+                gpu_hotspot_source TEXT,
                 power_consumption REAL
             );
             CREATE TABLE IF NOT EXISTS actuator_audit (
@@ -77,7 +81,11 @@ def init_db():
         for column, definition in (
             ("temperature_source", "TEXT"),
             ("motherboard_temperature", "REAL"),
+            ("motherboard_temperature_source", "TEXT"),
             ("gpu_temperature", "REAL"),
+            ("gpu_temperature_source", "TEXT"),
+            ("gpu_hotspot_temperature", "REAL"),
+            ("gpu_hotspot_source", "TEXT"),
         ):
             if column not in telemetry_columns:
                 conn.execute(f"ALTER TABLE telemetry ADD COLUMN {column} {definition}")

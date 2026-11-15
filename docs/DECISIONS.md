@@ -40,3 +40,7 @@ Decisão do operador: licenciar o Nivus Edge Node sob AGPL-3.0-only para que pes
 ## Semântica da telemetria térmica — 2026-11-14
 
 A temperatura principal representa CPU/APU identificada por driver e label, e a origem é armazenada junto da amostra. Temperaturas de placa-mãe e GPU são campos opcionais separados. Sensores indisponíveis ou ambíguos permanecem nulos; zonas ACPI genéricas não substituem a leitura da CPU. Usar a interface Linux hwmon/psutil no runtime Ubuntu. lm-sensors é ferramenta opcional de diagnóstico. Open Hardware Monitor original é referência Windows legada; não é dependência do Nivus. Validar cada driver e família de hardware antes de declarar suporte.
+
+## Gráficos e detalhes de sensores — 2026-11-15
+
+Separar gráficos de temperatura, uso e potência para manter unidades e escalas legíveis. Permitir janelas de 5, 15, 30 e 60 minutos, além do conjunto carregado limitado a 1000 amostras. Os tooltips de métricas aparecem após 3 segundos de hover ou foco; mínimo e máximo referem-se somente à janela visível. GPU, hotspot e placa-mãe sem fonte identificada permanecem N/D. O hotspot é coletado apenas quando o driver o rotula explicitamente como `hotspot` ou `junction`.

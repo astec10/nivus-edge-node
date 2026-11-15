@@ -10,12 +10,19 @@ No Windows, LibreHardwareMonitor e o fork mantido de Open Hardware Monitor podem
 
 - `temperature` é a temperatura CPU/APU selecionada, para preservar os clientes antigos.
 - `temperature_source` conserva driver e label para a UI e para auditoria da amostra.
-- `motherboard_temperature` e `gpu_temperature` são valores independentes e opcionais.
+- `motherboard_temperature`/`motherboard_temperature_source` e `gpu_temperature`/`gpu_temperature_source` são valores independentes e opcionais.
+- `gpu_hotspot_temperature`/`gpu_hotspot_source` representam somente uma leitura explicitamente rotulada `hotspot` ou `junction` pelo driver da GPU. Não são inferidos a partir da temperatura comum da GPU.
 - Sensor ausente, inacessível ou sem identificação confiável permanece `null`; a UI apresenta `N/D`. Não usar zero, ACPI genérico nem a última amostra antiga como substituto.
 - Para Intel, preferir o pacote `coretemp` a sensores ACPI genéricos. Para AMD, preferir `Tdie` quando disponível; `Tctl` só deve ser rotulado conforme a semântica fornecida pelo driver. Uma APU pode não expor uma leitura térmica separada da CPU ou GPU.
 - Identificar placa/GPU pelo driver e label. Uma zona `acpitz` ou `thermal_zone0` isolada não prova que a leitura seja CPU ou placa-mãe.
 
-As colunas de origem, placa-mãe e GPU são adicionadas por migração SQLite aditiva. Registros antigos sem `temperature_source` são mantidos, mas não são plotados como temperatura da CPU.
+As colunas de origem, placa-mãe, GPU e hotspot são adicionadas por migração SQLite aditiva. Registros antigos sem `temperature_source` são mantidos, mas não são plotados como temperatura da CPU.
+
+## Gráficos e detalhes na interface
+
+O dashboard separa séries de temperatura (°C), uso (CPU/memória/disco em %) e potência estimada (W), para que escalas diferentes não escondam a variação térmica. O usuário pode escolher 5, 15, 30 ou 60 minutos, ou todas as até 1000 amostras recebidas pela API. O alcance real em tempo depende da cadência e da disponibilidade da coleta.
+
+Os cartões de métricas e os pontos do gráfico exibem detalhes depois de 3 segundos de foco/hover. Mínimo e máximo são calculados apenas sobre as amostras válidas do período selecionado; não representam extremos históricos ou limites seguros do componente. GPU, hotspot e placa-mãe sem sensor disponível aparecem como `N/D`.
 
 ## Evidência observada no CCE U25
 
@@ -27,7 +34,7 @@ Esta observação comprova o bug e a fonte no CCE U25. Não demonstra suporte a 
 
 ## Implementação e limites
 
-`telemetry/hardware_sensors.py` classifica fontes conhecidas e labels; falha de API ou leitura inválida não interrompe o restante da coleta. `telemetry/agent.py` publica os campos opcionais; `backend/mqtt_worker.py` valida e grava os campos; `backend/database.py` migra o schema sem apagar histórico; `frontend/src/components/DashboardPanel.jsx` diferencia CPU/APU, placa-mãe e GPU.
+`telemetry/hardware_sensors.py` classifica fontes conhecidas e labels; falha de API ou leitura inválida não interrompe o restante da coleta. `telemetry/agent.py` publica os campos opcionais; `backend/mqtt_worker.py` valida e grava os campos; `backend/database.py` migra o schema sem apagar histórico; os componentes em `frontend/src/components/` diferenciam CPU/APU, placa-mãe, GPU e hotspot.
 
 O pacote não instala `lm-sensors`, não executa `sensors-detect` automaticamente e não carrega módulos do kernel. Se uma placa não expõe o sensor, a correção apropriada é registrar essa limitação ou acrescentar suporte explícito ao driver, não adivinhar o componente.
 

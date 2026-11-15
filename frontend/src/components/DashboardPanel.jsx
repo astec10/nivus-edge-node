@@ -1,81 +1,74 @@
-import React from 'react';
-import { Activity, Zap, Settings, Terminal } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import React, { useMemo, useState } from 'react';
+import { Zap, Settings, Terminal } from 'lucide-react';
+import MetricCard from './MetricCard';
+import TelemetryChart from './TelemetryChart';
+import { formatMetric, selectTelemetryWindow, summarizeMetric } from '../utils/telemetry';
 
-const formatTemperature = (value) => (
-  typeof value === 'number' && Number.isFinite(value) ? `${value.toFixed(1)}°C` : 'N/D'
-);
+const TEMPERATURE_METRICS = [
+  { label: 'CPU / APU', key: 'temperature', source: 'temperature_source' },
+  { label: 'GPU', key: 'gpu_temperature', source: 'gpu_temperature_source' },
+  { label: 'GPU hotspot', key: 'gpu_hotspot_temperature', source: 'gpu_hotspot_source' },
+  { label: 'Placa-mãe', key: 'motherboard_temperature', source: 'motherboard_temperature_source' },
+];
+
+function RangeDetails({ samples, metric, unit }) {
+  const summary = summarizeMetric(samples, metric);
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.25rem 0.75rem', fontSize: '0.8rem' }}>
+      <span>Atual</span><strong>{formatMetric(summary.current, unit)}</strong>
+      <span>Mínima</span><strong>{formatMetric(summary.minimum, unit)}</strong>
+      <span>Máxima</span><strong>{formatMetric(summary.maximum, unit)}</strong>
+      <span>Amostras válidas</span><strong>{summary.count}</strong>
+    </div>
+  );
+}
+
+function TemperatureDetails({ samples }) {
+  const latest = samples.at(-1);
+  return (
+    <div style={{ display: 'grid', gap: '0.65rem' }}>
+      {TEMPERATURE_METRICS.map(({ label, key, source }) => {
+        const summary = summarizeMetric(samples, key);
+        return (
+          <div key={key} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.15rem 0.6rem', borderBottom: '1px solid #334155', paddingBottom: '0.45rem' }}>
+            <strong>{label}</strong><strong>{formatMetric(summary.current, '°C')}</strong>
+            <small style={{ color: '#94a3b8' }}>Mín {formatMetric(summary.minimum, '°C')} · Máx {formatMetric(summary.maximum, '°C')}</small>
+            <small style={{ gridColumn: '1 / -1', color: '#94a3b8' }}>Fonte: {latest?.[source] || 'sensor não exposto'}</small>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function DashboardPanel({ activeTab, error, latest, settings, setSettings, isAdmin, handleUpdateSetting, telemetry, controlMode, setControlMode, relayState, handleRelayToggle, systemLogs }) {
+  const [chartMode, setChartMode] = useState('temperature');
+  const [chartRange, setChartRange] = useState('15m');
+  const chartRows = useMemo(() => selectTelemetryWindow(telemetry, chartRange), [telemetry, chartRange]);
+  const temperatureDetails = <TemperatureDetails samples={chartRows} />;
+
   return (
     <>
       {activeTab === 'dashboard' && (
         <>
           {error && <div style={{ backgroundColor: '#7f1d1d', color: '#fca5a5', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1.5rem' }}>{error}</div>}
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
-            <div style={{ backgroundColor: '#1e293b', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
-              <span style={{ color: '#94a3b8' }}>CPU</span>
-              <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{latest ? `${latest.cpu_percent}%` : 'N/A'}</div>
-            </div>
-            <div style={{ backgroundColor: '#1e293b', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
-              <span style={{ color: '#94a3b8' }}>Memória</span>
-              <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{latest ? `${latest.memory_percent}%` : 'N/A'}</div>
-            </div>
-            <div style={{ backgroundColor: '#1e293b', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
-              <span style={{ color: '#94a3b8' }}>Disco</span>
-              <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{latest ? `${latest.disk_percent}%` : 'N/A'}</div>
-            </div>
-            <div style={{ backgroundColor: '#1e293b', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
-              <span style={{ color: '#94a3b8' }}>CPU / APU</span>
-              <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>
-                {formatTemperature(latest?.temperature_source ? latest.temperature : null)}
-              </div>
-              <small style={{ color: '#94a3b8' }}>{latest?.temperature_source || 'Fonte não identificada'}</small>
-            </div>
-            <div style={{ backgroundColor: '#1e293b', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
-              <span style={{ color: '#94a3b8' }}>Placa-mãe</span>
-              <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>
-                {formatTemperature(latest?.motherboard_temperature)}
-              </div>
-              <small style={{ color: '#94a3b8' }}>
-                {latest?.motherboard_temperature == null ? 'Sensor não exposto pelo SO/driver' : 'Leitura disponível'}
-              </small>
-            </div>
-            <div style={{ backgroundColor: '#1e293b', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
-              <span style={{ color: '#94a3b8' }}>GPU</span>
-              <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>
-                {formatTemperature(latest?.gpu_temperature)}
-              </div>
-              <small style={{ color: '#94a3b8' }}>
-                {latest?.gpu_temperature == null ? 'Sensor não exposto pelo SO/driver' : 'Leitura disponível'}
-              </small>
-            </div>
-            <div style={{ backgroundColor: '#1e293b', padding: '1.25rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
-              <span style={{ color: '#94a3b8' }}>Energia</span>
-              <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{latest ? `${latest.power_consumption}W` : 'N/A'}</div>
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(155px, 1fr))', gap: '1rem', marginBottom: '0.8rem' }}>
+            <MetricCard label="CPU" value={formatMetric(latest?.cpu_percent, '%')} details={<RangeDetails samples={chartRows} metric="cpu_percent" unit="%" />} />
+            <MetricCard label="Memória" value={formatMetric(latest?.memory_percent, '%')} details={<RangeDetails samples={chartRows} metric="memory_percent" unit="%" />} />
+            <MetricCard label="Disco" value={formatMetric(latest?.disk_percent, '%')} details={<RangeDetails samples={chartRows} metric="disk_percent" unit="%" />} />
+            <MetricCard label="CPU / APU" value={formatMetric(latest?.temperature_source ? latest.temperature : null, '°C')} hint={latest?.temperature_source || 'Fonte não identificada'} details={temperatureDetails} detailsLabel="Temperaturas por componente" />
+            <MetricCard label="Placa-mãe" value={formatMetric(latest?.motherboard_temperature, '°C')} hint={latest?.motherboard_temperature_source || 'Sensor não exposto pelo SO/driver'} details={temperatureDetails} detailsLabel="Temperaturas por componente" />
+            <MetricCard label="GPU" value={formatMetric(latest?.gpu_temperature, '°C')} hint={latest?.gpu_temperature_source || 'Sensor não exposto pelo SO/driver'} details={temperatureDetails} detailsLabel="Temperaturas por componente" />
+            <MetricCard label="GPU hotspot" value={formatMetric(latest?.gpu_hotspot_temperature, '°C')} hint={latest?.gpu_hotspot_source || 'Sensor não exposto pelo SO/driver'} details={temperatureDetails} detailsLabel="Temperaturas por componente" />
+            <MetricCard label="Energia estimada" value={formatMetric(latest?.power_consumption, ' W')} hint="Estimativa de software; não é medição física" details={<RangeDetails samples={chartRows} metric="power_consumption" unit=" W" />} />
           </div>
 
-          <div style={{ backgroundColor: '#1e293b', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid #334155', marginBottom: '2rem' }}>
-            <h3 style={{ marginTop: 0, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Activity style={{ color: '#38bdf8' }} /> Telemetria em Tempo Real (Temperatura, Uso e Consumo)
-            </h3>
-            <div style={{ width: '100%', height: '300px', marginTop: '1rem' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={telemetry}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                  <XAxis dataKey="time" stroke="#94a3b8" />
-                  <YAxis stroke="#94a3b8" />
-                  <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#f8fafc' }} />
-                  <Legend />
-                  <Line type="monotone" dataKey="temperature" name="Temperatura (°C)" stroke="#ef4444" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="cpu_percent" name="Uso CPU (%)" stroke="#38bdf8" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="power_consumption" name="Consumo (W)" stroke="#10b981" strokeWidth={2} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+          <div style={{ color: '#94a3b8', fontSize: '0.78rem', margin: '0 0 1.25rem' }}>
+            Para ver fonte e extremos térmicos, mantenha o ponteiro sobre um cartão de temperatura por 3 segundos. A janela usada acompanha o período do gráfico.
           </div>
+
+          <TelemetryChart rows={chartRows} mode={chartMode} setMode={setChartMode} range={chartRange} setRange={setChartRange} />
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem', marginBottom: '2rem' }}>
             <div style={{ backgroundColor: '#1e293b', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>

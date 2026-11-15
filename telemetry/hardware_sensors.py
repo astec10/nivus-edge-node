@@ -58,6 +58,27 @@ def _cpu_priority(source, label):
     return 6
 
 
+def _is_gpu_hotspot(label):
+    label = label.lower()
+    return any(token in label for token in ("hotspot", "junction"))
+
+
+def _is_gpu_memory(label):
+    label = label.lower()
+    return any(token in label for token in ("memory", "mem", "vram"))
+
+
+def _gpu_priority(reading):
+    label = reading["label"].lower()
+    if _is_gpu_hotspot(label):
+        return 10
+    if any(token in label for token in ("edge", "gpu", "core")):
+        return 0
+    if _is_gpu_memory(label):
+        return 20
+    return 7
+
+
 def get_thermal_metrics():
     """Return identified CPU/APU, motherboard, and GPU temperatures.
 
@@ -89,14 +110,33 @@ def get_thermal_metrics():
     cpu_readings.sort(key=lambda reading: _cpu_priority(reading["source"], reading["label"]))
     board_readings = [reading for reading in readings if reading["kind"] == "motherboard"]
     gpu_readings = [reading for reading in readings if reading["kind"] == "gpu"]
+    gpu_readings.sort(key=_gpu_priority)
+    gpu_hotspot_readings = [
+        reading for reading in gpu_readings if _is_gpu_hotspot(reading["label"])
+    ]
+    gpu_core_readings = [
+        reading
+        for reading in gpu_readings
+        if not _is_gpu_hotspot(reading["label"])
+        and not _is_gpu_memory(reading["label"])
+    ]
 
     cpu = cpu_readings[0] if cpu_readings else None
     board = board_readings[0] if board_readings else None
-    gpu = gpu_readings[0] if gpu_readings else None
+    gpu = gpu_core_readings[0] if gpu_core_readings else None
+    gpu_hotspot = gpu_hotspot_readings[0] if gpu_hotspot_readings else None
     return {
         "temperature": cpu["value"] if cpu else None,
         "temperature_source": f"{cpu['source']}: {cpu['label']}" if cpu else None,
         "motherboard_temperature": board["value"] if board else None,
+        "motherboard_temperature_source": (
+            f"{board['source']}: {board['label']}" if board else None
+        ),
         "gpu_temperature": gpu["value"] if gpu else None,
+        "gpu_temperature_source": f"{gpu['source']}: {gpu['label']}" if gpu else None,
+        "gpu_hotspot_temperature": gpu_hotspot["value"] if gpu_hotspot else None,
+        "gpu_hotspot_source": (
+            f"{gpu_hotspot['source']}: {gpu_hotspot['label']}" if gpu_hotspot else None
+        ),
     }
 
