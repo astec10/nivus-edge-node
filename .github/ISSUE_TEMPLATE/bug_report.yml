@@ -1,0 +1,48 @@
+name: Relato de problema
+description: Relate um erro reproduzível no Nivus.
+title: "bug: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Não inclua senhas, tokens, chaves, IPs públicos, banco de produção,
+        rostos, placas ou telemetria residencial. Remova identificadores dos logs.
+  - type: textarea
+    id: problem
+    attributes:
+      label: O que aconteceu?
+      description: Informe o comportamento observado e o esperado.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Como reproduzir
+      description: Liste passos mínimos, sem dados secretos.
+      placeholder: "1. ...\n2. ...\n3. ..."
+    validations:
+      required: true
+  - type: input
+    id: module
+    attributes:
+      label: Módulo
+      description: Consulte docs/MODULE_MAP.md.
+      placeholder: "telemetry, backend, frontend, deploy..."
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Ambiente
+      description: Ubuntu, arquitetura, hardware geral e versão do Nivus.
+      placeholder: "Ubuntu LTS, x86_64, VM ou hardware físico"
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidência sanitizada
+      description: Mensagem de erro e verificações que já fez. Apague credenciais e dados pessoais.
+    validations:
+      required: false

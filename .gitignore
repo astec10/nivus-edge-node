@@ -15,6 +15,7 @@ secrets/
 data/
 logs/
 work/
+/temp/
 __pycache__/
 *.py[cod]
 .venv/

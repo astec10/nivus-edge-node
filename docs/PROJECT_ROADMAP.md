@@ -12,7 +12,7 @@ O alvo de distribuição é Ubuntu Server minimal x86_64/amd64. “Alvo” não 
 
 **Fundação do nó de borda: funcionando numa instalação Ubuntu de teste.** A API modular, o painel, o broker, o worker e o coletor Compose foram instalados em paralelo no notebook CCE U25. Health HTTPS, autenticação, login, persistência SQLite e aumento contínuo de telemetria foram verificados. A instalação systemd/Nginx anterior permaneceu ativa. Veja [`PROJECT_STATUS.md`](PROJECT_STATUS.md) para evidência e limites.
 
-**Instalação portátil: em validação.** O Compose funciona no CCE U25; `deploy/restore.sh` foi implementado, e o comparador de rollback passou quatro fixtures SQLite descartáveis. A VM `nivus-test-clean` está instalada com Ubuntu Server 24.04.5 LTS amd64 e acessível por chave SSH temporária restrita; o clone limpo do repositório está no commit `5edc7e7`, e sintaxe/`--help` dos scripts passou no guest. Docker e Nivus ainda não foram instalados: a instalação aguarda senha sudo inserida pelo operador. Faltam health/login, coleta, reboot e teste integrado de backup, restore e rollback, além de outro hardware x86_64. Não é ainda um release suportado para todos os computadores.
+**Instalação portátil: validada por CI hospedada, ainda sem qualificação universal.** O run 43662375766 passou build/smoke Compose e instalação, backup, restauração e rollback em runners Ubuntu descartáveis do GitHub. O operador não usará VMs no computador pessoal. Faltam reboot em hardware, sensores reais adicionais e teste em outras plataformas x86_64; a candidata não é suportada em qualquer computador ainda.
 
 **Multi-nó, Home Assistant, Zigbee, sensores domésticos, vídeo, IA local, P2P e provedores comerciais: planejados.** O painel atual representa o nó instalado; não existe ainda um coordenador multi-nó ou scheduler de IA.
 
@@ -32,10 +32,10 @@ Critérios já observados: login funcional; API exige token; health HTTPS respon
 
 Siga [`VM_VALIDATION.md`](VM_VALIDATION.md) como roteiro executável e registre a evidência em [`PROJECT_STATUS.md`](PROJECT_STATUS.md). O script de restauração está implementado; só declare a etapa concluída após teste real em clone descartável com backup, restore, validação e rollback.
 
-1. Executar o workflow de CI em VM Ubuntu 22.04 amd64 a cada pull request para `main` e push em `main`; usar VM local descartável para ciclos de instalação/reboot/restore que exijam interação ou investigação.
+1. Executar o workflow em runner Ubuntu hospedado pelo GitHub a cada pull request para `main` e push em `main`; não iniciar VMs no computador do operador.
 2. Registrar RAM livre, CPU, disco, espaço de build, portas, versões do Ubuntu/Docker/Compose e tempo de instalação.
-3. Reiniciar a VM e confirmar que API, painel, MQTT, worker, coletor, dados e endpoint descoberto voltam sozinhos.
-4. Criar backup; usar `deploy/test-restore-rollback.sh` numa VM descartável para demonstrar rollback automático e depois testar uma restauração normal.
+3. Exercitar reboot, persistência, instalação, backup, restore e rollback no runner descartável hospedado pelo CI, sem alterar o notebook de teste.
+4. Preservar as evidências e logs sanitizados do runner como artefatos da execução; repetir o fluxo após mudança nos scripts operacionais.
 5. Qualificar seis máquinas de referência: Intel e AMD, cada fabricante nas faixas de geração antiga, intermediária e recente. Não repetir a suíte inteira por commit; usar a bateria física de compatibilidade documentada em [`TEST_STRATEGY.md`](TEST_STRATEGY.md).
 6. Documentar erros recuperáveis, como falta de disco, portas ocupadas, falha APT e interrupção durante o bootstrap.
 
@@ -45,15 +45,18 @@ CI aprovado comprova o fluxo no runner virtual Ubuntu, não em cada chipset ou p
 
 ### Fase 2 — Identidade e telemetria de vários nós
 
-**Estado: planejada; começar em leitura somente.**
+**Estado: planejada; começar em leitura somente quando o Nó Master estiver operacional.** A telemetria local existe no nó de teste, mas agregá-la entre nós não é requisito para avançar o executor de desenvolvimento ou a biblioteca versionada. Cadastro/heartbeat e atualização coordenada serão entregas distintas. O operador deseja que uma correção, atualização ou função nova possa ser iniciada para todas as máquinas Nivus em rede; o envio automático ainda não existe.
 
 1. Definir identidade estável e cadastro explícito de cada nó; não confiar apenas em nome ou IP.
 2. Criar heartbeat, versão do agente, capacidade declarada e estado de conexão.
 3. Versionar o envelope de telemetria: nó, timestamp, unidade, origem, qualidade e versão do esquema.
 4. Exibir lista de nós, último contato e séries por nó no painel.
 5. Tratar duplicatas, atraso, relógios incorretos, perda de rede, revogação e nós desconhecidos.
+6. Definir distribuição de releases assinadas: inventário de versão/capacidades, seleção dos nós elegíveis, canário seguido de ondas, health check, manutenção de dados e rollback independente por nó. Offline, baixa bateria ou recursos insuficientes devem adiar a atualização sem bloquear a frota.
 
 Critério de saída: dois dispositivos podem enviar telemetria autenticada; um nó desconectado não derruba os outros; credenciais podem ser revogadas; o painel identifica claramente dados ausentes ou antigos.
+
+Para atualizações de frota, o critério adicional é demonstrar uma correção simulada em um nó canário, ampliar a implantação aos nós elegíveis depois do health check, e reverter somente o nó que falhar. Cada nó valida assinatura e compatibilidade antes de aplicar o artefato.
 
 ### Fase 3 — Integrações domésticas e energia
 
@@ -73,11 +76,15 @@ Critério de saída: falha de Internet não impede automações locais; sensores
 
 1. Medir CPU, RAM, GPU/VRAM, disco, temperatura e consumo em cada nó antes de escolher modelo.
 2. Criar adaptadores substituíveis para runtimes de inferência; manter o core funcional sem acelerador e sem Internet.
-3. Indexar PDFs por tema preservando documento, página e citação; separar arquivos originais de índices derivados.
-4. Limitar tamanho de contexto, armazenamento, tempo de inferência e concorrência para não prejudicar monitoramento/automação.
-5. Mostrar origem e nível de confiança; permitir revisão humana.
+3. Criar uma biblioteca compartilhada de conhecimento curado: PDFs licenciados, documentação técnica e resumos próprios de vídeos/artigos, preservando documento/URL, página ou timestamp, versão, licença, checksum e citação.
+4. Separar extração e OCR dos originais; atomizar por conceito e classificar tema, confiança e status de verificação. Não ingerir uma alegação de vídeo como fato sem fonte primária ou teste reproduzível.
+5. Começar com índice lexical reproduzível e consulta com citações; avaliar embeddings/RAG somente após medir qualidade, latência, RAM e disco.
+6. Versionar catálogo e notas públicas no GitHub para que qualquer IA veja o mesmo conhecimento. Segredos, dados domésticos e transcrições completas sem licença ficam fora do repositório.
+7. Definir identidade/ACL, sincronização, retenção e revogação antes de servir dados da biblioteca entre nós.
+8. Limitar tamanho de contexto, armazenamento, tempo de inferência e concorrência para não prejudicar monitoramento/automação.
+9. Mostrar origem e nível de confiança; permitir revisão humana.
 
-Critério de saída: benchmark reproduzível por hardware, fontes/citações visíveis e degradação controlada quando memória ou modelo não estiver disponível.
+Critério de saída: benchmark reproduzível por hardware; consultas reproduzíveis em catálogo versionado com fontes/timestamps/citações visíveis; sincronização autorizada entre nós; e degradação controlada quando memória, índice ou modelo não estiver disponível.
 
 ### Fase 5 — Orquestração de tarefas entre nós
 
@@ -107,6 +114,6 @@ Critério de saída: limite financeiro não é ultrapassado silenciosamente; dad
 
 ## Sequência recomendada
 
-**Agora:** Fase 1. **Depois:** Fase 2 em leitura somente. **Em seguida:** Home Assistant e sensores em leitura, IA local e só então orquestração. Conectores comerciais entram por último. Esse caminho mede a rede e os nós antes de confiar tarefas ou automações a eles.
+**Em paralelo agora:** concluir a Fase 1 por CI hospedada, manter a biblioteca pública versionada e avançar o executor externo de desenvolvimento. Esse executor não depende da telemetria do nó. **Quando o Nó Master estiver operacional:** iniciar a Fase 2 em leitura somente para agregar dados dos nós. Depois seguem Home Assistant e sensores em leitura, IA local e só então o scheduler de tarefas entre nós. Conectores comerciais entram por último.
 
 Para decidir a próxima entrega física da casa, veja “Decisões em aberto” em [`VISION.md`](VISION.md). Modelos exatos de roteador, switch PoE, câmeras, inversor, medidores e proteção elétrica ainda precisam ser escolhidos e conferidos com documentação de fabricante e profissionais habilitados.

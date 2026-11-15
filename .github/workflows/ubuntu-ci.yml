@@ -6,12 +6,18 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      source_ref:
+        description: Optional branch or ref to validate
+        required: false
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: ubuntu-vm-validation-${{ github.ref }}
+  group: ubuntu-vm-validation-${{ inputs.source_ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -22,13 +28,37 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref || github.ref }}
+
+      - name: Set up Python matching the API image
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install backend test dependencies
+        run: python -m pip install --disable-pip-version-check -r backend/requirements.txt
+
+      - name: Set up Node for dashboard checks
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint and build dashboard
+        working-directory: frontend
+        run: npm run lint && npm run build
 
       - name: Check shell and Python syntax
         shell: bash
         run: |
           set -Eeuo pipefail
           while IFS= read -r -d '' script; do bash -n "$script"; done < <(find deploy -type f -name '*.sh' -print0)
-          python3 -m compileall -q backend telemetry
+          python3 -m compileall -q backend telemetry scripts tools
+          python3 -m unittest discover -s tools/ai_executor -p 'test_*.py'
 
       - name: Prepare isolated Compose smoke environment
         shell: bash

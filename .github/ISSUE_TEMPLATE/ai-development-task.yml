@@ -1,0 +1,116 @@
+name: AI development task
+description: Structured, public task intake for the optional Nivus development executor
+title: "[AI task] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue is public. Do not include credentials, private household data, camera material, production logs, or non-public source files. Creating an issue does not start an AI worker; a maintainer must review and queue it.
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: One concrete problem or outcome.
+      placeholder: What should change and why?
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Observable checks that define completion.
+      placeholder: |
+        - Given ...
+        - When ...
+        - Then ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: allowed_paths
+    attributes:
+      label: Allowed paths
+      description: List exact repository-relative paths, one per line. Broad patterns are rejected.
+      placeholder: |
+        frontend/src/components/Example.jsx
+        docs/EXAMPLE.md
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Module
+      options:
+        - docs and knowledge
+        - backend API
+        - dashboard
+        - hardware telemetry
+        - deployment and operations
+        - executor infrastructure
+        - other (explain in objective)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: risk
+    attributes:
+      label: Risk
+      description: High-risk work remains human-led and is not eligible for unattended execution.
+      options:
+        - low
+        - medium
+        - high
+    validations:
+      required: true
+
+  - type: dropdown
+    id: data_classification
+    attributes:
+      label: Data classification
+      description: Only public or synthetic content can enter this public issue queue.
+      options:
+        - public source code and public documentation
+        - synthetic test data only
+        - contains private or household data (do not queue)
+    validations:
+      required: true
+
+  - type: input
+    id: max_runtime
+    attributes:
+      label: Maximum runtime in minutes
+      description: Worker timeout is enforced between 1 and 15 minutes. This does not authorize model spend.
+      placeholder: "10"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: model_budget
+    attributes:
+      label: External model budget
+      description: A free-tier call requires a repository secret and a separate Google API project with billing disabled. The worker cannot inspect billing state or technically prevent charges; the maintainer must confirm the project setup before authorizing a call.
+      options:
+        - no model call — intake only
+        - free-tier model call — public/synthetic content only
+    validations:
+      required: true
+
+  - type: input
+    id: human_owner
+    attributes:
+      label: Human owner
+      description: GitHub account responsible for reviewing the result.
+      placeholder: "@username"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: review_gate
+    attributes:
+      label: Review gate
+      options:
+        - label: I understand that a human must review the PR and approve any production merge/deploy.
+          required: true

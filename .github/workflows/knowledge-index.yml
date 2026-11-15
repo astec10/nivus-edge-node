@@ -1,0 +1,30 @@
+name: Knowledge index
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: knowledge-index-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-index:
+    name: Verify shared knowledge search index
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check source catalog and generated lexical index
+        run: python tools/build_ai_context.py --check

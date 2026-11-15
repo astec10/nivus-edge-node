@@ -1,6 +1,6 @@
 # Nivus Edge Node
 
-O Nivus é um projeto aberto para construir uma plataforma de borda local-first: primeiro coleta e organiza telemetria com segurança num computador Linux de baixo consumo; depois poderá integrar automação residencial, vários nós e processamento local ou distribuído.
+O Nivus é um projeto aberto para construir uma plataforma de borda local-first, modular e de baixo consumo. Telemetria é um módulo da plataforma; sua agregação entre nós não é pré-requisito para o executor nem para a biblioteca compartilhada e será mais útil quando o Nó Master estiver operacional.
 
 O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não significa compatibilidade comprovada com qualquer computador. Até agora, o stack Compose foi instalado e operado em paralelo num único notebook Ubuntu CCE U25. Uma instalação limpa independente, reboot, restauração e mais modelos de hardware ainda precisam de validação.
 
@@ -11,7 +11,7 @@ O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não sign
 - API FastAPI separada em routers, schemas, dependências, segurança, banco e serviço MQTT.
 - Login com senha e JWT, senha armazenada com PBKDF2, papéis de usuário e endpoints protegidos. No momento, o acesso é por senha; chave USB e biometria não estão implementadas.
 - Painel React/Vite dividido em componentes, com login, telemetria, usuários e seções do dashboard.
-- SQLite persistente, ingestão MQTT e agente de telemetria do host.
+- SQLite persistente, ingestão MQTT e agente de telemetria do host na instalação de teste. Telemetria agregada de vários nós é uma fase futura ligada ao Nó Master.
 - Instalação Compose paralela com API, worker, Mosquitto e Nginx; HTTPS, backup e procedimento de rollback.
 - A candidata Compose passou health HTTPS, HTTP 401 sem token e login; o coletor publica telemetria continuamente. A instalação antiga systemd/Nginx continua separada e ativa.
 - A interface servida mostra os avisos AGPL e links para o código e a licença.
@@ -23,10 +23,13 @@ O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não sign
 - Automação residencial real, VPN integrada ao produto e ações remotas em dispositivos.
 - Inferência local, consulta à biblioteca de PDFs, fila de trabalhos entre máquinas, transferência P2P e conectores para provedores comerciais com limites de uso.
 - Instalação limpa validada, reboot, atualização com rollback e matriz de hardware x86_64.
+- O executor externo de desenvolvimento está em revisão no PR #3: intake GitHub, worker Gemini e abertura de PR em rascunho via Actions. Ainda não está no `main`, não tem chave configurada e não passou por chamada real ao modelo. O notebook é suporte opcional; GitHub Actions é o executor principal.
 
 Veja [docs/PROJECT_ROADMAP.md](docs/PROJECT_ROADMAP.md) para fases, entregáveis e critérios de conclusão; [docs/VISION.md](docs/VISION.md) registra a visão doméstica mais ampla. O estado verificado do notebook está em [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
 
-O plano para evitar repetir a suíte completa em cada computador está em [docs/TEST_STRATEGY.md](docs/TEST_STRATEGY.md): CI numa VM Ubuntu limpa para cada alteração e uma matriz de seis plataformas físicas de referência (Intel e AMD, três faixas de geração) nos marcos de compatibilidade.
+O plano para evitar repetir a suíte completa em cada computador está em [docs/TEST_STRATEGY.md](docs/TEST_STRATEGY.md): CI em runners Ubuntu descartáveis hospedados pelo GitHub e uma matriz de seis plataformas físicas de referência (Intel e AMD, três faixas de geração) nos marcos de compatibilidade. Não é necessário instalar ou iniciar VMs no computador do operador.
+
+Para orientar agentes de programação, dividir módulos e reutilizar conhecimento versionado, consulte [docs/AI_CONTEXT.md](docs/AI_CONTEXT.md), [docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md), [docs/AI_MODULE_WORKPLAN.md](docs/AI_MODULE_WORKPLAN.md), [docs/AI_EXECUTOR_IMPLEMENTATION.md](docs/AI_EXECUTOR_IMPLEMENTATION.md), [docs/AI_DEVELOPMENT_ORCHESTRATION.md](docs/AI_DEVELOPMENT_ORCHESTRATION.md) e o [índice de pesquisa dos vídeos](docs/VIDEO_RESEARCH_INDEX.md). A pasta `knowledge/` guarda notas públicas e índice lexical; `temp/` permanece fora do Git.
 
 ## Comece por aqui
 
@@ -38,7 +41,7 @@ Se você quer entender ou modificar o código:
 4. Escolha uma tarefa pequena com resultado verificável. Não trate itens da visão ou do roadmap como recursos já implementados.
 5. Faça as verificações disponíveis para a área alterada, documente os resultados e atualize o estado/decisões se o comportamento mudou.
 
-O roteiro detalhado para contribuições está em [CONTRIBUTING.md](CONTRIBUTING.md). O pacote de instalação é candidato, não uma versão de produção: siga [deploy/README.md](deploy/README.md) e o [roteiro da VM Ubuntu limpa](docs/VM_VALIDATION.md); não use uma máquina com dados importantes como ambiente de teste.
+O roteiro detalhado para contribuições está em [CONTRIBUTING.md](CONTRIBUTING.md). O pacote de instalação é candidato, não uma versão de produção: siga [deploy/README.md](deploy/README.md) e o roteiro de validação em runner Linux remoto em [docs/VM_VALIDATION.md](docs/VM_VALIDATION.md). Nenhuma VM precisa ser iniciada no computador do operador.
 
 ## Mapa do código
 
@@ -52,21 +55,24 @@ O roteiro detalhado para contribuições está em [CONTRIBUTING.md](CONTRIBUTING
 | `backend/security.py` | Hash de senha, JWT e validações de segurança |
 | `backend/services/` e `backend/mqtt_worker.py` | Publicação MQTT e processamento de eventos |
 | `telemetry/agent.py` | Amostras de recursos do host e envio MQTT |
+| `telemetry/hardware_sensors.py` | Classificação de temperaturas CPU/APU, placa-mãe e GPU |
 | `frontend/src/components/` | Login e componentes visuais do dashboard |
 | `deploy/` | Compose, Nginx, Mosquitto, instalador candidato e operações |
 | `docs/` | Visão, arquitetura, decisões, configuração, roadmap e status |
 | `PROGRESS.html` | Página estática dos marcos; não lê a telemetria do host |
 
+A semântica, origem e limites das leituras térmicas estão em [docs/HARDWARE_TELEMETRY.md](docs/HARDWARE_TELEMETRY.md).
+
 ## Instalação e execução
 
-O desenvolvimento local está descrito em [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md). A instalação Compose para teste está em [deploy/README.md](deploy/README.md); ela requer Ubuntu, Docker/Compose, privilégios administrativos e credenciais iniciais criadas no terminal. A API e o broker ficam em redes privadas do Compose; MQTT não é publicado no host. O painel HTTPS usa certificado autoassinado por padrão.
+O desenvolvimento local está descrito em [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md). A instalação Compose para teste está em [deploy/README.md](deploy/README.md); ela requer Ubuntu, Docker/Compose, privilégios administrativos e credenciais iniciais criadas no terminal. A API e o broker ficam em redes privadas do Compose; MQTT não é publicado no host. Em instalação limpa, o painel usa HTTPS na porta padrão 443 (`https://IP/`) quando disponível; se outro serviço já ocupa essa porta, o instalador preserva o serviço e escolhe uma alternativa. O certificado autoassinado gera aviso no navegador.
 
 Não há promessa de suporte a toda máquina x86_64 até validar Ubuntu minimal em instalações limpas e medir CPU, memória, armazenamento e periféricos. Veja os marcos pendentes antes de instalar fora do notebook de teste.
 
 ## Segurança e limites
 
 - Não copie senhas, tokens, chaves, bancos, logs ou telemetria real para GitHub.
-- Acesso remoto de administração deve usar rede privada/VPN e regras restritas; não encaminhe painel ou SSH diretamente à Internet.
+- Na LAN, prefira reservar um IP no roteador. Para acesso fora de casa, DDNS pode oferecer um nome estável, mas deve ser combinado com VPN; não encaminhe painel ou SSH diretamente à Internet.
 - Comece integrações físicas em leitura e notificações. Um modelo de IA, reconhecimento facial ou leitura de placas não pode, sozinho, abrir portão, desarmar alarme ou desligar circuito crítico.
 - Comandos MQTT precisam de identidade, tópicos permitidos, confirmação, timeout e intertravamentos locais.
 - Câmeras, rostos, placas, áudio e presença exigem minimização, retenção limitada e controles de acesso.

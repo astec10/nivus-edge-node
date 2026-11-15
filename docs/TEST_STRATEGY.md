@@ -1,10 +1,10 @@
 # Estratégia de validação do Nivus
 
-O Nivus não precisa repetir uma instalação manual completa em cada computador a cada mudança. A validação é dividida em três camadas: CI numa VM Linux limpa, uma matriz pequena de máquinas físicas representativas e verificações específicas dos periféricos que realmente serão usados.
+O Nivus não precisa repetir uma instalação manual completa em cada computador a cada mudança. A validação é dividida em três camadas: CI em runners Linux descartáveis hospedados pelo GitHub, uma matriz pequena de máquinas físicas representativas e verificações específicas dos periféricos que realmente serão usados. Nenhuma VM precisa ser iniciada no computador do operador.
 
-## 1. Cada alteração: VM descartável de CI
+## 1. Cada alteração: runner remoto de CI
 
-O workflow [`Ubuntu VM validation`](../.github/workflows/ubuntu-ci.yml) roda numa VM hospedada nova com Ubuntu 22.04 amd64 em cada pull request para `main`, push em `main` ou execução manual. Ele:
+O workflow [`Ubuntu VM validation`](../.github/workflows/ubuntu-ci.yml) roda num runner hospedado novo com Ubuntu 22.04 amd64 em cada pull request para `main`, push em `main` ou execução manual. O ambiente remoto é descartável e não usa o computador do operador. Ele:
 
 1. valida a sintaxe dos scripts shell e compila os módulos Python;
 2. valida o arquivo Compose e constrói as imagens;
@@ -13,7 +13,7 @@ O workflow [`Ubuntu VM validation`](../.github/workflows/ubuntu-ci.yml) roda num
 5. registra uso instantâneo de CPU e memória dos containers;
 6. encerra os containers temporários sem depender de serviços do notebook.
 
-Esse ciclo detecta regressões de código e instalação com baixo esforço. A VM de CI é um Linux x86_64 virtualizado real, mas não representa cada chipset, BIOS, placa de rede, disco ou sensor disponível.
+Esse ciclo detecta regressões de código e instalação com baixo esforço. O runner de CI é um Linux x86_64 virtualizado remoto, mas não representa cada chipset, BIOS, placa de rede, disco ou sensor disponível.
 
 ## 2. Marcos de compatibilidade: seis plataformas de referência
 
@@ -50,7 +50,7 @@ O CI verifica os limites cgroup definidos no Compose e mostra a memória/CPU ins
 
 ## 5. Como relatar compatibilidade
 
-Manter uma linha por plataforma em [`VM_VALIDATION.md`](VM_VALIDATION.md) ou no relatório de release com: fabricante/faixa, modelo exato, BIOS/UEFI, placa-mãe/chipset, NIC, armazenamento, RAM, Ubuntu, commit, duração, resultado e observações. Uma falha numa referência deve ser corrigida ou documentada como limitação antes de anunciar suporte àquela faixa.
+Manter uma linha por plataforma no relatório de release com: fabricante/faixa, modelo exato, BIOS/UEFI, placa-mãe/chipset, NIC, armazenamento, RAM, Ubuntu, commit, duração, resultado e observações. Uma falha numa referência deve ser corrigida ou documentada como limitação antes de anunciar suporte àquela faixa.
 
 Passar CI significa que o fluxo de software passou no runner Ubuntu 22.04 amd64. Só depois da bateria de seis máquinas será correto dizer que o Nivus foi validado em seis plataformas de referência; isso ainda não promete compatibilidade universal com todo hardware x86_64.
 
