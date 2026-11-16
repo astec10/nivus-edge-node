@@ -21,6 +21,10 @@ class SettingUpdate(BaseModel):
     value: str
 
 
+class MaintenanceUpdate(BaseModel):
+    enabled: bool
+
+
 class UserCreate(BaseModel):
     username: str = Field(min_length=1, max_length=32, pattern=r"^[A-Za-z0-9_.-]+$")
     password: str = Field(min_length=8, max_length=256)

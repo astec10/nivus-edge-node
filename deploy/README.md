@@ -25,6 +25,22 @@ O navegador avisará que o certificado é autoassinado. Não exponha a instalaç
 
 O broker e os serviços que o usam ficam numa rede Docker interna. O coletor do host resolve o IP atual do broker por um `ExecStartPre` privilegiado e grava somente esse endereço em `/run`; a senha continua sendo entregue como credencial systemd ao processo sem privilégios. Não altere o agente para conectar a um `localhost`/porta publicada: redes `internal` não publicam a porta MQTT no host. O helper é executado a cada início do coletor para acompanhar a recriação do container.
 
+## Modo de manutenção e ajuda da CLI
+
+Após a instalação, `nivus help` mostra os comandos Nivus e sua função resumida; `nivus help maintenance` mostra os detalhes. Para consultar o estado, execute:
+
+    nivus maintenance status
+
+Para pausar somente a leitura/publicação dos sensores do host e a gravação de novas mensagens MQTT no SQLite:
+
+    sudo nivus maintenance enable
+
+Para retomar a operação normal imediatamente, sem reiniciar:
+
+    sudo nivus maintenance disable
+
+API, autenticação, dashboard, health checks, SQLite existente e broker MQTT continuam ativos. A manutenção não desliga serviços alheios nem os processos Nivus; o agente deixa de amostrar/publicar e o worker descarta novas amostras recebidas. O estado ativo fica em `/run/nivus-maintenance`, e o boot retorna automaticamente ao modo normal. O mesmo controle aparece na aba Configuração para administradores. Essas funções ainda estão em desenvolvimento nesta branch e não podem ser usadas no notebook até a publicação da release.
+
 ## Verificar, backup e parar
 
     sudo docker compose -f /opt/nivus-compose/current/docker-compose.yml ps

@@ -10,6 +10,7 @@ Group=nivus-telemetry
 WorkingDirectory=/opt/nivus-compose/current
 EnvironmentFile=/etc/nivus-compose/telemetry.env
 EnvironmentFile=-/run/nivus-compose/telemetry-runtime.env
+Environment=NIVUS_MAINTENANCE_STATE_PATH=/run/nivus-maintenance/state.json
 LoadCredential=mqtt_agent_password:/etc/nivus-compose/secrets/mqtt_agent_password
 Environment=NIVUS_MQTT_PASSWORD_FILE=%d/mqtt_agent_password
 ExecStartPre=+/opt/nivus-compose/current/deploy/resolve-mqtt-endpoint.sh
@@ -20,6 +21,7 @@ MemoryMax=64M
 CPUQuota=20%
 NoNewPrivileges=true
 ProtectSystem=strict
+ReadOnlyPaths=/run/nivus-maintenance
 ProtectHome=true
 PrivateTmp=true
 ProtectKernelTunables=true

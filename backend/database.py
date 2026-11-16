@@ -46,6 +46,14 @@ def init_db():
                 topic TEXT,
                 command TEXT
             );
+            CREATE TABLE IF NOT EXISTS maintenance_audit (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                actor TEXT NOT NULL,
+                enabled INTEGER NOT NULL CHECK (enabled IN (0, 1)),
+                boot_id TEXT NOT NULL,
+                reason TEXT NOT NULL DEFAULT 'user'
+            );
             CREATE TABLE IF NOT EXISTS system_settings (
                 key TEXT PRIMARY KEY,
                 value TEXT

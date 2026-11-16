@@ -9,6 +9,7 @@ import paho.mqtt.client as mqtt
 
 from database import get_db_connection, init_db
 from services.app_logging import configure_service_logger
+from services.maintenance import maintenance_enabled
 
 
 logger = logging.getLogger("nivus.worker")
@@ -44,6 +45,8 @@ def _number(payload, name, minimum, maximum, nullable=False):
 
 
 def on_message(client, userdata, msg):
+    if maintenance_enabled():
+        return
     conn = None
     try:
         payload = json.loads(msg.payload.decode("utf-8"))

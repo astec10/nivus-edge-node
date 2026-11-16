@@ -6,6 +6,7 @@ import DashboardNavigation from './components/DashboardNavigation';
 import LoginPanel from './components/LoginPanel';
 import UserManagementPanel from './components/UserManagementPanel';
 import DashboardPanel from './components/DashboardPanel';
+import SettingsPanel from './components/SettingsPanel';
 const LegacyDashboardPanel = lazy(() => import('./components/LegacyDashboardPanel'));
 import LegalNotice from './components/LegalNotice';
 import { thresholdOrDefault } from './utils/telemetry';
@@ -40,6 +41,9 @@ function App() {
 
   const [actuatorMessage, setActuatorMessage] = useState('');
   const [settingsStatus, setSettingsStatus] = useState('');
+  const [maintenanceState, setMaintenanceState] = useState(null);
+  const [maintenanceMessage, setMaintenanceMessage] = useState('');
+  const [maintenanceBusy, setMaintenanceBusy] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [soundStatus, setSoundStatus] = useState('Aviso sonoro do navegador desativado.');
 
@@ -167,6 +171,8 @@ function App() {
     setTargetNewPassword('');
     setTargetConfirmPassword('');
     setActiveTab('dashboard');
+    setMaintenanceState(null);
+    setMaintenanceMessage('');
     setSoundEnabled(false);
     setSoundStatus('Aviso sonoro do navegador desativado.');
     closeAlertAudioContext();
@@ -184,6 +190,7 @@ function App() {
         setAuditLogs([]);
         setAlertsHistory([]);
         setUsersList([]);
+        setMaintenanceState(null);
         return;
       }
 
@@ -193,16 +200,21 @@ function App() {
         setAuditLogs([]);
         setAlertsHistory([]);
         setUsersList([]);
+        setMaintenanceState(null);
         return;
       }
 
       const headers = currentToken ? { Authorization: `Bearer ${currentToken}` } : {};
-      const [telRes, logRes, audRes, altRes, setRes] = await Promise.all([
+      const payload = parseJwt(currentToken);
+      const [telRes, logRes, audRes, altRes, setRes, maintenanceRes] = await Promise.all([
         axios.get(`${API_BASE}/api/telemetry?limit=1000`, { headers }),
         axios.get(`${API_BASE}/api/logs?lines=15`, { headers }).catch(() => ({ data: { logs: [] } })),
         axios.get(`${API_BASE}/api/actuator/audit?limit=10`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_BASE}/api/alerts/history?limit=10`, { headers }).catch(() => ({ data: [] })),
-        axios.get(`${API_BASE}/api/settings`, { headers }).catch(() => ({ data: {} }))
+        axios.get(`${API_BASE}/api/settings`, { headers }).catch(() => ({ data: {} })),
+        payload?.role === 'admin'
+          ? axios.get(`${API_BASE}/api/maintenance`, { headers }).catch(() => ({ data: null }))
+          : Promise.resolve({ data: null })
       ]);
       
       const formattedData = telRes.data.map(item => ({
@@ -218,8 +230,8 @@ function App() {
       if (setRes.data && Object.keys(setRes.data).length > 0) {
         setSettings(prev => ({ ...prev, ...setRes.data }));
       }
+      setMaintenanceState(maintenanceRes.data || null);
 
-      const payload = currentToken ? parseJwt(currentToken) : null;
       if (payload?.role === 'admin') {
         const usersRes = await axios.get(`${API_BASE}/api/users`, { headers }).catch(() => ({ data: [] }));
         setUsersList(usersRes.data || []);
@@ -377,6 +389,26 @@ function App() {
     }
   };
 
+  const handleToggleMaintenance = async (enabled) => {
+    if (!isAdmin) return false;
+    if (enabled && !window.confirm('A coleta e a gravação de novas amostras serão pausadas até você retomar a operação. Continuar?')) return false;
+    setMaintenanceBusy(true);
+    setMaintenanceMessage(enabled ? 'Ativando modo de manutenção…' : 'Retomando coleta…');
+    try {
+      const response = await axios.post(`${API_BASE}/api/maintenance`, { enabled }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setMaintenanceState(response.data);
+      setMaintenanceMessage(enabled ? 'Modo de manutenção ativado.' : 'Operação normal retomada.');
+      return true;
+    } catch (err) {
+      setMaintenanceMessage(err.response?.data?.detail || 'Não foi possível alterar o modo de manutenção.');
+      return false;
+    } finally {
+      setMaintenanceBusy(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
     const interval = setInterval(() => fetchData(), 5000);
@@ -402,6 +434,14 @@ function App() {
           <DashboardNavigation token={token} isAdmin={isAdmin} activeTab={activeTab} setActiveTab={setActiveTab} handleLogout={handleLogout} />
           <LoginPanel token={token} handleLogin={handleLogin} username={username} setUsername={setUsername} password={password} setPassword={setPassword} />
           <UserManagementPanel token={token} isAdmin={isAdmin} activeTab={activeTab} newUsername={newUsername} setNewUsername={setNewUsername} newPassword={newPassword} setNewPassword={setNewPassword} newRole={newRole} setNewRole={setNewRole} handleSaveUser={handleSaveUser} usersList={usersList} setEditingUser={setEditingUser} setTargetNewPassword={setTargetNewPassword} setTargetConfirmPassword={setTargetConfirmPassword} setAdminAuthPassword={setAdminAuthPassword} handleDeleteUser={handleDeleteUser} />
+          {activeTab === 'settings' && isAdmin && (
+            <SettingsPanel
+              maintenanceState={maintenanceState}
+              maintenanceMessage={maintenanceMessage}
+              maintenanceBusy={maintenanceBusy}
+              onToggleMaintenance={handleToggleMaintenance}
+            />
+          )}
           {dashboardVersion === 'current' ? (
             <DashboardPanel activeTab={activeTab} error={error} latest={latest} settings={settings} isAdmin={isAdmin} isTempCritical={isTempCritical} handleUpdateSetting={handleUpdateSetting} telemetry={telemetry} handleActuatorCommand={handleActuatorCommand} actuatorMessage={actuatorMessage} settingsStatus={settingsStatus} soundEnabled={soundEnabled} soundStatus={soundStatus} onToggleAlertSound={handleToggleAlertSound} systemLogs={systemLogs} auditLogs={auditLogs} alertsHistory={alertsHistory} />
           ) : (

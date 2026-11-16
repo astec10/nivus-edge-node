@@ -66,3 +66,7 @@ Telemetria agregada entre nós não é pré-requisito para o executor de desenvo
 ## Chamadas Gemini em segundo plano — 2026-11-15
 
 O worker usa background polling limitado porque chamadas síncronas anteriores excederam o timeout de conexão. A API exige `store=true` nesse modo; o cliente deve recuperar a resposta e apagar a interação assim que puder, registrar `interaction_deleted` e tratar falha de exclusão como possível retenção temporária no provedor. Tarefas continuam limitadas a dados públicos/sintéticos e a uma autorização explícita por tentativa. O intake usa somente o evento `ai:ready` para iniciar o worker e não dispara também `workflow_dispatch`.
+
+## Modo de manutenção reversível — 2026-11-15
+
+Decisão do operador: oferecer um controle explícito na configuração e comandos `nivus maintenance enable|disable|status`, com `nivus help` para explicar os comandos. A manutenção pausa somente a coleta local do host e a gravação de novas mensagens de telemetria MQTT. API, login, dashboard, health, banco existente e broker continuam disponíveis; serviços não relacionados não são parados. `disable` retoma a operação sem reboot. O marcador temporário fica em `/run`, portanto um reboot também volta ao modo normal. Transições são registradas em SQLite, sem persistir o estado ativo entre boots. A implementação aguarda CI e publicação; ainda não está no notebook.
