@@ -287,7 +287,7 @@ def _restore_config(previous: bytes | None) -> None:
         except FileNotFoundError:
             pass
     else:
-        _atomic_write(CONFIG_PATH, previous, 0o644)
+        _atomic_write(CONFIG_PATH, previous, 0o600)
 
 
 def _ensure_configurable() -> None:
@@ -312,7 +312,7 @@ def apply_servers(value: object) -> dict:
     old_pointer = _remember_backup(backup_dir)
     try:
         _ensure_configurable()
-        _atomic_write(CONFIG_PATH, render_config(servers), 0o644)
+        _atomic_write(CONFIG_PATH, render_config(servers), 0o600)
         if not _restart_timesyncd():
             raise TimeSyncError("restart_failed", "systemd-timesyncd não reiniciou.")
     except Exception as exc:
@@ -484,14 +484,14 @@ def serve() -> None:
     socket_dir = SOCKET_PATH.parent
     _ensure_directory(socket_dir, 0o750)
     os.chown(socket_dir, 0, RUNTIME_GID)
-    os.chmod(socket_dir, 0o750)
+    os.chmod(socket_dir, 0o710)
     if os.path.lexists(SOCKET_PATH):
         raise SystemExit("O socket NTP já existe; o controlador recusou substituir o caminho.")
     server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     try:
         server.bind(str(SOCKET_PATH))
-        os.chown(SOCKET_PATH, 0, RUNTIME_GID)
-        os.chmod(SOCKET_PATH, 0o660)
+        os.chown(SOCKET_PATH, RUNTIME_UID, RUNTIME_GID)
+        os.chmod(SOCKET_PATH, 0o600)
         server.listen(8)
         while True:
             connection, _ = server.accept()
