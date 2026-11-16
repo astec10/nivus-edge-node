@@ -47,7 +47,9 @@ link_persistent() {
 }
 
 enable_unit() {
-  local wants="$1" target="$2" full="$ROOTFS/etc/systemd/system/$wants"
+  local wants="$1"
+  local target="$2"
+  local full="$ROOTFS/etc/systemd/system/$wants"
   install -d -m 755 "$(dirname -- "$full")"
   if [[ -L "$full" ]]; then
     [[ "$(readlink -- "$full")" == "$target" ]] || { echo "Ativação systemd conflitante: $wants" >&2; exit 2; }
