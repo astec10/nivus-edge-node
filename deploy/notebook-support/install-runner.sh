@@ -25,11 +25,6 @@ done
 if id "$RUNNER_USER" >/dev/null 2>&1 || [[ -e "$RUNNER_DIR" || -e "$RUNNER_HOME" ]]; then
   fail "há restos ou uma instalação existente; confira o README antes de remover qualquer coisa"
 fi
-printf 'No GitHub, gere o token em Settings > Actions > Runners > New self-hosted runner.\n'
-printf 'O token expira em uma hora. Cole-o aqui; a entrada ficará oculta e não será gravada.\n'
-read -r -s -p "Token temporário de registro: " RUNNER_REGISTRATION_TOKEN
-printf '\n'
-[[ -n "$RUNNER_REGISTRATION_TOKEN" ]] || fail "token vazio"
 tmp_dir="$(mktemp -d /tmp/nivus-runner-install.XXXXXX)"
 trap 'rm -rf -- "$tmp_dir"; unset RUNNER_REGISTRATION_TOKEN || true' EXIT
 archive="$tmp_dir/actions-runner.tar.gz"
@@ -45,6 +40,12 @@ printf '[3/6] Instalando dependências documentadas pelo runner...\n'
 tar -xzf "$archive" -C "$RUNNER_DIR"
 "$RUNNER_DIR/bin/installdependencies.sh"
 chown -R "$RUNNER_USER:$RUNNER_USER" "$RUNNER_DIR" "$RUNNER_HOME"
+chmod 0700 "$RUNNER_HOME"
+printf 'No GitHub, abra Settings > Actions > Runners > New self-hosted runner e selecione Linux x64.\n'
+printf 'Quando a página mostrar os comandos, copie o token de registro, que expira em uma hora.\n'
+read -r -s -p "Token temporário de registro: " RUNNER_REGISTRATION_TOKEN
+printf '\n'
+[[ -n "$RUNNER_REGISTRATION_TOKEN" ]] || fail "token vazio"
 printf '[4/6] Registrando somente o runner auxiliar deste repositório...\n'
 runuser -u "$RUNNER_USER" -- env NIVUS_RUNNER_TOKEN="$RUNNER_REGISTRATION_TOKEN" \
   bash -c 'cd /opt/nivus-notebook-support && ./config.sh --url https://github.com/astec10/nivus-edge-node --token "$NIVUS_RUNNER_TOKEN" --name nivus-notebook-support --labels nivus-support --work _work --unattended'
@@ -71,6 +72,7 @@ NoNewPrivileges=true
 ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectControlGroups=true
+ProtectProc=invisible
 LockPersonality=true
 RestrictSUIDSGID=true
 MemoryMax=2G
