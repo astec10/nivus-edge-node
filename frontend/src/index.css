@@ -1270,3 +1270,22 @@ code {
 .dashboard-root[data-theme="eink"] .settings-explanation {
   color: #d4d4d8 !important;
 }
+
+
+.dashboard-root[data-theme="cupertino"] .dashboard-nav-button.is-active {
+  border-color: #0284c7 !important;
+  color: #fff !important;
+  background-color: #0ea5e9 !important;
+}
+
+.dashboard-root[data-theme="cupertino"] .dashboard-nav-button--users.is-active {
+  border-color: #7e22ce !important;
+  color: #fff !important;
+  background-color: #7e22ce !important;
+}
+
+.dashboard-root[data-theme="cupertino"] .dashboard-nav-logout {
+  border-color: #dc2626 !important;
+  color: #b91c1c !important;
+  background-color: transparent !important;
+}
