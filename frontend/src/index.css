@@ -200,7 +200,6 @@ body {
 
 .telemetry-chart-heading,
 .dashboard-panel-heading,
-.telemetry-chart-toolbar,
 .telemetry-series-toolbar,
 .telemetry-chart-caption {
   display: flex;
@@ -271,6 +270,7 @@ body {
 .telemetry-chart-modes button:focus-visible,
 .telemetry-chart-ranges button:focus-visible,
 .telemetry-series-options button:focus-visible,
+.temperature-sound-toggle:focus-visible,
 .telemetry-show-all:focus-visible,
 .telemetry-chart-type select:focus-visible,
 .actuator-actions button:focus-visible,
@@ -280,14 +280,22 @@ body {
   outline-offset: 2px;
 }
 
-.telemetry-chart-toolbar {
+.telemetry-chart-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr) minmax(9rem, 0.65fr);
+  gap: 0.75rem;
   margin-top: 0.75rem;
 }
 
+.telemetry-chart-control-group,
 .telemetry-chart-type {
-  display: flex;
-  align-items: center;
+  display: grid;
+  align-content: start;
   gap: 0.4rem;
+  min-width: 0;
+}
+
+.telemetry-chart-type {
   color: #94a3b8;
   font-size: 0.78rem;
 }
@@ -306,6 +314,13 @@ body {
 .telemetry-series-toolbar {
   align-items: flex-start;
   margin-top: 0.75rem;
+}
+
+.telemetry-series-heading {
+  display: grid;
+  flex: 1 1 18rem;
+  gap: 0.45rem;
+  min-width: 0;
 }
 
 .telemetry-series-options button {
@@ -502,6 +517,55 @@ body {
   opacity: 0.55;
 }
 
+.dashboard-temperature-sound {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #94a3b8;
+  font-size: 0.76rem;
+}
+
+.temperature-sound-toggle {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #64748b;
+  border-radius: 50%;
+  color: #cbd5e1;
+  background: #0f172a;
+  cursor: pointer;
+}
+
+.temperature-sound-toggle.temperature-sound-enabled {
+  border-color: #059669;
+  color: #34d399;
+  background: rgba(5, 150, 105, 0.16);
+}
+
+.temperature-sound-toggle.temperature-sound-critical {
+  border-color: #dc2626;
+  color: #f87171;
+  background: rgba(220, 38, 38, 0.18);
+}
+
+.temperature-sound-toggle.temperature-sound-disabled {
+  border-color: #64748b;
+  color: #94a3b8;
+}
+
+.temperature-sound-toggle:hover {
+  filter: brightness(1.2);
+}
+
+.dashboard-sound-status {
+  margin: 0.35rem 0;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
 .threshold-row label {
   color: #cbd5e1;
   font-size: 0.8rem;
@@ -595,15 +659,36 @@ body {
   font-family: var(--sans);
 }
 
+@media (max-width: 760px) {
+  .telemetry-chart-controls {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .telemetry-chart-type {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 640px) {
   .connection-status {
     padding: 0.2rem 0.4rem;
   }
 
   .telemetry-chart-heading,
-  .telemetry-chart-toolbar,
   .telemetry-series-toolbar {
     align-items: stretch;
+  }
+
+  .telemetry-chart-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboard-temperature-sound {
+    margin-left: auto;
+  }
+
+  .telemetry-series-heading {
+    width: 100%;
   }
 
   .telemetry-chart-modes,
