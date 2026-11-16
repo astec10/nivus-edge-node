@@ -37,7 +37,9 @@ jobs:
           python-version: "3.12"
 
       - name: Compile USB preparation tools
-        run: python -m py_compile deploy/portable_usb/select_target.py deploy/portable_usb/generate_autoinstall.py deploy/portable_usb/configure_runtime.py
+        run: |
+          python -m py_compile deploy/portable_usb/select_target.py deploy/portable_usb/generate_autoinstall.py deploy/portable_usb/configure_runtime.py
+          bash -n deploy/portable_usb/install_nivus.sh
 
       - name: Run synthetic USB tests
         run: python -m unittest discover -s tests -p 'test_portable_usb_*.py' -v
