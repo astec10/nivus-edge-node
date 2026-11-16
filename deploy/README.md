@@ -19,7 +19,7 @@ Na raiz clonada do projeto:
 
     sudo bash deploy/install.sh
 
-O instalador cria segredos em /etc/nivus-compose/secrets, um certificado TLS autoassinado e uma conta de serviço para a telemetria. No primeiro uso, escolha um nome de 1–32 caracteres (letras, números, ponto, hífen ou sublinhado) e uma senha de 12–256 caracteres, digitada duas vezes sem eco. O broker MQTT não fica exposto à LAN; a API não publica sua porta. Só o Nginx HTTPS publica o painel. A porta web padrão escuta em todas as interfaces, portanto limite o acesso à LAN/VPN confiável com firewall.
+O instalador cria segredos em /etc/nivus-compose/secrets, um certificado TLS autoassinado e uma conta de serviço para a telemetria. No primeiro uso, escolha um nome de 1–32 caracteres (letras, números, ponto, hífen ou sublinhado) e uma senha temporária de 8–256 caracteres, com pelo menos uma letra e um número, digitada duas vezes sem eco. O primeiro login exige a troca por uma senha definitiva. O broker MQTT não fica exposto à LAN; a API não publica sua porta. Só o Nginx HTTPS publica o painel. A porta web padrão escuta em todas as interfaces, portanto limite o acesso à LAN/VPN confiável com firewall.
 
 O navegador avisará que o certificado é autoassinado. Não exponha a instalação diretamente à Internet.
 
