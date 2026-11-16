@@ -26,9 +26,9 @@ def _load_authenticated_user(token: str) -> dict:
 
         if row is None or row["role"] != payload["role"]:
             raise HTTPException(status_code=401, detail="Token inválido")
-        payload["password_change_required"] = bool(row["must_change_password"]) or bool(
-            payload.get("password_change_required")
-        )
+        temporary_password_token = payload.get("password_change_required") is True
+        payload["password_change_required"] = bool(row["must_change_password"]) or temporary_password_token
+        payload["_temporary_password_token"] = temporary_password_token
         return payload
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Token inválido")
@@ -46,10 +46,10 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
 
 def get_password_change_user(token: str = Depends(oauth2_scheme)) -> str:
     payload = _load_authenticated_user(token)
-    if not payload["password_change_required"]:
+    if not payload["password_change_required"] or not payload["_temporary_password_token"]:
         raise HTTPException(
             status_code=403,
-            detail="Não há troca de senha pendente para esta conta.",
+            detail="Use a sessão temporária obtida após o login com a senha provisória.",
         )
     return payload["sub"]
 
