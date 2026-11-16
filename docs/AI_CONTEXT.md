@@ -14,7 +14,7 @@ Criar uma plataforma local-first, modular e econômica para monitorar nós x86_6
 - Telemetria local está presente no nó de teste, mas telemetria agregada entre nós não é pré-requisito para o executor de desenvolvimento; será útil quando o Nó Master estiver operacional.
 - Multi-nó, biblioteca compartilhada em runtime, Home Assistant, Zigbee, IA local, P2P e scheduler distribuído continuam planejados até evidência de implementação.
 - O operador não usará VMs no computador pessoal. Use CI hospedada ou simulações; não solicite instalação local de VM.
-- Issue #29: a integração de armazenamento persistente (`NIVUS_DATA` em `/var/lib/nivus`) foi integrada pelo PR #31 e passou CI hospedada com ext4 em loop device; ainda não há imagem Live bootável nem validação física após reboot.
+- Issue #29: o operador confirmou Casper Live verdadeiro, inicializado diretamente do pendrive, com raiz volátil/overlay e área ext4 `NIVUS_DATA` persistente em `/var/lib/nivus`. A integração de storage foi integrada pelo PR #31 e passou CI hospedada com ext4 em loop device; ainda não há construtor ou imagem Live bootável nem validação física após reboot.
 - Acesso atual usa senha/JWT. USB e biometria são opcionais e não estão implementadas.
 
 ## Regras invariáveis
