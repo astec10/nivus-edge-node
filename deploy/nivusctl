@@ -70,7 +70,7 @@ def main(argv=None) -> int:
                 maintenance.print_help()
                 print("\n  enable   Pausa coleta do host e gravação de telemetria MQTT.")
                 print("  disable  Retoma a operação normal sem reiniciar o computador.")
-                print("  status   Mostra se a manutenção está ativa ou inativa.")
+                print("  sudo nivus maintenance status   Consulta se a manutenção está ativa.")
                 return 0
             parser.print_help()
             print("\nComandos Nivus:")

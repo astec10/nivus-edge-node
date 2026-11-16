@@ -172,8 +172,6 @@ VIEWER_TOKEN=$(docker compose -p "$PROJECT" exec -T api python -c \
 VIEWER_MAINT_STATUS=$(curl -k -sS --connect-timeout 2 --max-time 5 -o /dev/null -w '%{http_code}' \
   -X POST -H "Authorization: Bearer $VIEWER_TOKEN" -H 'Content-Type: application/json' \
   -d '{"enabled":true}' https://127.0.0.1:28443/api/maintenance)
-[[ $(stat -c "%a:%u:%g" "$MAINTENANCE_DIR/state.json") == "640:$RUNTIME_UID:$HOST_GID" ]]
-test -r "$MAINTENANCE_DIR/state.json"
 [[ "$VIEWER_MAINT_STATUS" == 403 ]]
 echo "viewer_maintenance_write_http=$VIEWER_MAINT_STATUS"
 
@@ -229,6 +227,8 @@ grep -q '"enabled":false' <<< "$API_STATE"
 curl -kfsS --connect-timeout 2 --max-time 5 -X POST \
   -H "Authorization: Bearer $ADMIN_TOKEN" -H 'Content-Type: application/json' \
   -d '{"enabled":true}' https://127.0.0.1:28443/api/maintenance | grep -q '"enabled":true'
+[[ $(stat -c "%a:%u:%g" "$MAINTENANCE_DIR/state.json") == "640:$RUNTIME_UID:$HOST_GID" ]]
+test -r "$MAINTENANCE_DIR/state.json"
 run_nivusctl() {
   local -a privilege=()
   if [[ $EUID -ne 0 ]]; then privilege=(sudo); fi

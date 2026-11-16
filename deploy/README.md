@@ -29,7 +29,7 @@ O broker e os serviços que o usam ficam numa rede Docker interna. O coletor do 
 
 Após a instalação, `nivus help` mostra os comandos Nivus e sua função resumida; `nivus help maintenance` mostra os detalhes. Para consultar o estado, execute:
 
-    sudo nivus maintenance status
+    nivus maintenance status
 
 Para pausar somente a leitura/publicação dos sensores do host e a gravação de novas mensagens MQTT no SQLite:
 
