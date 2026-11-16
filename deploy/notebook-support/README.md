@@ -13,18 +13,18 @@ O repositório Nivus é público. O GitHub alerta que runners self-hosted em rep
 - roda como usuário de sistema separado, com isolamento de filesystem pelo systemd;
 - executa testes Python e build/lint do frontend; não instala nem atualiza o Nivus.
 
-Esse recorte reduz a superfície, mas não elimina o risco residual de código ou dependências aprovados e incorporados à branch padrão. A instalação é opcional. Se o runner deixar de ser necessário, remova-o com remove-runner.sh.
+Esse recorte reduz a superfície, mas não elimina o risco residual de código ou dependências aprovados e incorporados à branch padrão. A conta ainda tem acesso de rede de saída à Internet e à LAN; ela não deve receber acesso a serviços ou credenciais domésticas. Se esse risco residual não for aceitável, não registre o runner. A instalação é opcional. Se o runner deixar de ser necessário, remova-o com remove-runner.sh.
 
 ## Instalação
 
 1. Abra astec10/nivus-edge-node no GitHub e vá a **Settings → Actions → Runners → New self-hosted runner**.
-2. Selecione **Linux** e **x64**. Deixe essa tela aberta; o token de registro expira em uma hora.
+2. Selecione **Linux** e **x64**. Deixe essa tela aberta; não gere o token ainda.
 3. Depois que esta alteração estiver integrada, no notebook baixe o script deste repositório e rode-o com sudo:
 
        curl --fail --location --output /tmp/nivus-install-runner.sh https://raw.githubusercontent.com/astec10/nivus-edge-node/main/deploy/notebook-support/install-runner.sh
        sudo bash /tmp/nivus-install-runner.sh
 
-4. Cole o token de registro somente no prompt oculto do script no terminal. Não o envie no chat, Issue ou arquivo.
+4. Quando o script pedir, gere o token de registro na tela do GitHub e cole-o somente no prompt oculto do terminal. O token expira em uma hora. Não o envie no chat, Issue ou arquivo.
 5. O script verifica a impressão SHA-256 do pacote oficial, instala dependências necessárias, cria o usuário nivus-support e o serviço systemd. Ele não adiciona a conta ao grupo Docker nem altera os serviços, dados ou dashboard do Nivus.
 6. Confira Settings → Actions → Runners: o runner nivus-notebook-support deve aparecer como **Idle**.
 
