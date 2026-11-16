@@ -36,7 +36,7 @@ class HostTimeSyncClientTests(unittest.TestCase):
                             b'{"ok":true,"state":"synchronized","can_configure":true,'
                             b'"configured_servers":["a.ntp.br","b.ntp.br","c.ntp.br"],'
                             b'"suggested_servers":["a.ntp.br","b.ntp.br","c.ntp.br"],'
-                            b'"has_rollback":false}\\n'
+                            b'"has_rollback":false}\n'
                         )
 
             thread = threading.Thread(target=serve_once)
