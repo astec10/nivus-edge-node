@@ -16,13 +16,14 @@ O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não sign
 - A candidata Compose passou health HTTPS, HTTP 401 sem token e login; o coletor publica telemetria continuamente. A instalação antiga systemd/Nginx continua separada e ativa.
 - A interface servida mostra os avisos AGPL e links para o código e a licença.
 
-### Ainda é plano
+### Planejado ou aguardando validação
 
 - Descoberta, cadastro e telemetria de vários nós numa única tela.
 - Home Assistant, Zigbee, sensores residenciais, medidores, câmeras, interfone e integração com inversor/baterias.
 - Automação residencial real, VPN integrada ao produto e ações remotas em dispositivos.
 - Inferência local, consulta à biblioteca de PDFs, fila de trabalhos entre máquinas, transferência P2P e conectores para provedores comerciais com limites de uso.
-- Modo de manutenção reversível na aba Configuração e CLI (`nivus maintenance enable|disable|status`), com `nivus help`; integrado no PR #28. A release ainda precisa ser aplicada e validada no notebook.
+- Modo de manutenção reversível na aba Configuração e CLI (`nivus maintenance enable|disable|status`), com `nivus help`, integrado no PR #28 e aprovado na CI. A release ainda aguarda aplicação e validação no notebook.
+- Configuração de sincronização NTP do Ubuntu, controle administrativo e rollback integrados nos PRs #40 e #41, com CI aprovada. O pacote está no `main`, mas ainda aguarda atualização e validação no notebook; alterar o NTP do host continua sendo uma ação explícita de administrador.
 - Instalação limpa validada, reboot, atualização com rollback e matriz de hardware x86_64.
 - O executor externo de desenvolvimento foi integrado no PR #3. A chave do provedor está configurada como Secret segundo confirmação do mantenedor, mas as duas primeiras chamadas falharam (HTTP 503 e timeout síncrono); uma correção com polling em segundo plano e exclusão da interação está em revisão. Até uma chamada end-to-end passar, o executor não deve ser considerado funcional. O notebook é suporte opcional; GitHub Actions é o executor principal.
 

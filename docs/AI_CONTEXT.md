@@ -11,6 +11,7 @@ Criar uma plataforma local-first, modular e econômica para monitorar nós x86_6
 - Para o estado observado no notebook, evidências de CI e pendências, leia [`PROJECT_STATUS.md`](PROJECT_STATUS.md).
 - Para fases, critérios e dependências, leia [`PROJECT_ROADMAP.md`](PROJECT_ROADMAP.md).
 - A implementação de manutenção e `nivus help` foi integrada à `main` no PR #28. CI passou; o notebook CCE U25 ainda não recebeu nem validou essa release. Consulte `deploy/README.md` e `PROJECT_STATUS.md` antes de afirmar que o recurso está ativo no host.
+- Relógio, formatos e temas de dashboard entraram no PR #37; configuração NTP restrita do host no PR #40 e correção do atualizador no PR #41. Todos foram integrados à `main` e os checks hospedados passaram. O pacote NTP ainda não foi aplicado ao CCE U25. Não declare o relógio do host configurado: a ação de NTP exige administrador e `systemd-timesyncd` ativo.
 - Telemetria local está presente no nó de teste, mas telemetria agregada entre nós não é pré-requisito para o executor de desenvolvimento; será útil quando o Nó Master estiver operacional.
 - Multi-nó, biblioteca compartilhada em runtime, Home Assistant, Zigbee, IA local, P2P e scheduler distribuído continuam planejados até evidência de implementação.
 - O operador não usará VMs no computador pessoal. Use CI hospedada ou simulações; não solicite instalação local de VM.
