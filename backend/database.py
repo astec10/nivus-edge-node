@@ -47,8 +47,32 @@ def init_db():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
                 topic TEXT,
-                command TEXT
+                command TEXT,
+                source TEXT NOT NULL DEFAULT 'manual'
             );
+            CREATE TABLE IF NOT EXISTS mobile_battery_devices (
+                device_id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                token_sha256 TEXT NOT NULL UNIQUE,
+                active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1)),
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                last_battery_percent INTEGER CHECK (last_battery_percent BETWEEN 0 AND 100),
+                last_observed_at REAL,
+                last_off_attempt_at REAL,
+                low_battery_latched INTEGER NOT NULL DEFAULT 0 CHECK (low_battery_latched IN (0, 1))
+            );
+            CREATE TABLE IF NOT EXISTS mobile_battery_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                device_id TEXT NOT NULL,
+                received_at TEXT NOT NULL,
+                observed_at REAL NOT NULL,
+                battery_percent INTEGER NOT NULL CHECK (battery_percent BETWEEN 0 AND 100),
+                action TEXT NOT NULL,
+                broker_accepted INTEGER NOT NULL DEFAULT 0 CHECK (broker_accepted IN (0, 1)),
+                FOREIGN KEY (device_id) REFERENCES mobile_battery_devices(device_id)
+            );
+            CREATE INDEX IF NOT EXISTS idx_mobile_battery_events_device_id
+                ON mobile_battery_events(device_id, id DESC);
             CREATE TABLE IF NOT EXISTS maintenance_audit (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -82,6 +106,14 @@ def init_db():
             );
             """
         )
+
+        actuator_columns = {
+            row["name"] for row in conn.execute("PRAGMA table_info(actuator_audit)")
+        }
+        if "source" not in actuator_columns:
+            conn.execute(
+                "ALTER TABLE actuator_audit ADD COLUMN source TEXT NOT NULL DEFAULT 'manual'"
+            )
 
         # Migrate account records without forcing existing users to rotate passwords.
         user_columns = {
