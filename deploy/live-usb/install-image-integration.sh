@@ -7,14 +7,16 @@ if [[ $EUID -ne 0 ]]; then
 fi
 [[ $# -eq 1 ]] || { echo "Uso: sudo bash $0 /caminho/raizfs-de-imagem" >&2; exit 2; }
 SCRIPT_DIR=$(cd -- "$(dirname -- "$0")" && pwd -P)
-SOURCE_ROOT=$(cd -- "$SCRIPT_DIR/../.." && pwd -P)
 ROOTFS=$(realpath -e -- "$1")
 HOST_ROOT=$(realpath -e /)
 [[ "$ROOTFS" != "$HOST_ROOT" ]] || { echo "Recusando modificar a raiz do sistema em execução." >&2; exit 2; }
 [[ -f "$ROOTFS/.nivus-live-image-root" ]] || {
   echo "Raiz de imagem sem .nivus-live-image-root; nenhuma alteração foi feita." >&2; exit 2;
 }
-[[ -r "$ROOTFS/etc/os-release" ]] || { echo "A raiz fornecida não parece conter um Ubuntu instalado." >&2; exit 2; }
+[[ -r "$ROOTFS/etc/os-release" ]] || { echo "A raiz fornecida não parece conter Ubuntu." >&2; exit 2; }
+grep -Eq '^ID="?ubuntu"?$' "$ROOTFS/etc/os-release" || {
+  echo "A raiz de imagem não identifica Ubuntu; nenhuma alteração foi feita." >&2; exit 2;
+}
 
 ensure_mountpoint() {
   local path="$1" full="$ROOTFS$1"
