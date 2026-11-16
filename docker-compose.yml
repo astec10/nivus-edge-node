@@ -16,6 +16,7 @@ services:
       - /tmp:rw,noexec,nosuid,size=16m
     environment:
       NIVUS_DB_PATH: /data/nivus.db
+      NIVUS_MAINTENANCE_STATE_PATH: /run/nivus-maintenance/state.json
       NIVUS_LOG_DIR: /data/logs
       NIVUS_JWT_SECRET_FILE: /run/secrets/jwt_secret
       NIVUS_NODE_NAME: ${NIVUS_NODE_NAME:-nivus-edge-node}
@@ -31,6 +32,9 @@ services:
         target: mqtt_password
     volumes:
       - ${NIVUS_DATA_DIR:-./data}:/data
+      - type: bind
+        source: ${NIVUS_MAINTENANCE_STATE_DIR:-/run/nivus-maintenance}
+        target: /run/nivus-maintenance
     networks:
       - web_private
       - mqtt_private
@@ -69,6 +73,7 @@ services:
       - /tmp:rw,noexec,nosuid,size=16m
     environment:
       NIVUS_DB_PATH: /data/nivus.db
+      NIVUS_MAINTENANCE_STATE_PATH: /run/nivus-maintenance/state.json
       NIVUS_LOG_DIR: /data/logs
       NIVUS_MQTT_BROKER: mqtt
       NIVUS_MQTT_PORT: "1883"
@@ -80,6 +85,10 @@ services:
         target: mqtt_password
     volumes:
       - ${NIVUS_DATA_DIR:-./data}:/data
+      - type: bind
+        source: ${NIVUS_MAINTENANCE_STATE_DIR:-/run/nivus-maintenance}
+        target: /run/nivus-maintenance
+        read_only: true
     networks: [mqtt_private]
     depends_on:
       mqtt:

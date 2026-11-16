@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import time
 from pathlib import Path
 
@@ -9,6 +10,10 @@ import psutil
 procfs_path = os.environ.get("NIVUS_PROCFS_PATH")
 if procfs_path and psutil.LINUX:
     psutil.PROCFS_PATH = procfs_path
+
+BACKEND_PATH = str(Path(__file__).resolve().parents[1] / "backend")
+if BACKEND_PATH not in sys.path:
+    sys.path.insert(0, BACKEND_PATH)
 
 MQTT_BROKER = os.environ.get("NIVUS_MQTT_BROKER", "localhost")
 MQTT_PORT = int(os.environ.get("NIVUS_MQTT_PORT", "1883"))
@@ -23,6 +28,7 @@ def _mqtt_password():
 TOPIC = os.environ.get("NIVUS_TELEMETRY_TOPIC", "nivus/edge/telemetry")
 NODE_NAME = os.environ.get("NIVUS_NODE_NAME", "nivus-edge-node")
 from hardware_sensors import get_thermal_metrics
+from services.maintenance import maintenance_enabled
 
 
 def estimate_power_consumption_watts(cpu_percent):
@@ -43,9 +49,19 @@ def main():
     client.loop_start()
     print("Agente de telemetria conectado ao broker MQTT.")
     samples = 0
+    maintenance_was_enabled = False
 
     try:
         while True:
+            if maintenance_enabled():
+                if not maintenance_was_enabled:
+                    print("Modo de manutenção ativo; coleta e publicação pausadas.")
+                    maintenance_was_enabled = True
+                time.sleep(1)
+                continue
+            if maintenance_was_enabled:
+                print("Modo de manutenção desativado; coleta retomada.")
+                maintenance_was_enabled = False
             cpu = psutil.cpu_percent(interval=1)
             payload = {
                 "node": NODE_NAME,

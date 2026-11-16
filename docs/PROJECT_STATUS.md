@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-16 02:26 UTC
+Atualizado: 2026-11-16 02:57 UTC
 Licença: AGPL-3.0-only
 
 ## Resumo verificado
@@ -37,11 +37,15 @@ O comportamento solicitado é desligar `nivus/edge/relay1` quando a bateria do d
 
 A dashboard principal está disponível em HTTPS na porta 443, portanto `https://IP/` não exige porta explícita. A versão leve continua em HTTPS 8444 para preservar compatibilidade e rollback. O IP da LAN pode ser reservado no roteador. DDNS e VPN de acesso remoto não foram configurados; o plano continua sendo combinar um nome DNS com VPN e não encaminhar painel ou SSH diretamente à Internet.
 
+## Modo de manutenção e comando de ajuda
+
+A issue #26 está sendo implementada nesta branch. A proposta oferece `nivus help`, `nivus help maintenance` e `sudo nivus maintenance status`; `sudo nivus maintenance enable` pausa a amostragem/publicação do agente do host e a gravação de novas amostras MQTT; `sudo nivus maintenance disable` retoma o trabalho sem relogar ou reiniciar. O painel traz o mesmo controle na aba Configuração para administradores. API, autenticação, painel, health, broker e dados já gravados permanecem disponíveis. Os processos Nivus continuam iniciados; apenas esses workloads são pausados. O marcador é volátil em `/run`, então reboot retorna ao funcionamento normal. Testes unitários de estado/CLI já passaram localmente; integração Compose, CI e publicação no notebook ainda estão pendentes. Não execute os comandos no notebook até a release ser atualizada.
+
 ## Escopo ainda pendente
 
 - Issue #25: corrigir e republicar `PROGRESS.html`, que ainda mostra a promoção como pendente, e validar a troca de dashboard sem novo login, logout e expiração.
 - Issue #21 e #23: aba Configuração com relógio Brasília, formatos 12/24h e data, fuso/GMT, servidores NTP redundantes sem mostrar a fonte no relógio e temas selecionáveis.
-- Issue #26: modo Manutenção reversível pela dashboard e CLI para pausar apenas workloads opcionais allowlisted; reboot volta ao modo normal. Não implementado.
+- Issue #26: concluir integração e CI do modo de manutenção e publicar a release; validação de implantação no notebook ainda não realizada.
 - Issue #22: integrar fonte identificada e recente da bateria do dispositivo móvel e associá-la ao relé; manter comandos manuais até então.
 - Fase 1: instalação limpa, recuperação e medição em mais hardware; a CI hospedada não substitui a matriz física Intel/AMD de três faixas de geração.
 - Fase 2: identidade/cadastro/heartbeat multi-nó, telemetria agregada e rollout de releases assinadas com canário, saúde e rollback por nó.

@@ -18,6 +18,11 @@ flowchart TD
   Routers --> Auth[backend/api/dependencies.py + security.py]
   Routers --> DB
   API --> MQTT
+  Operator[Admin dashboard or CLI] --> Maintenance[backend/services/maintenance.py]
+  Maintenance --> State[/run maintenance marker/]
+  Maintenance --> DB
+  Agent[telemetry/agent.py] --> State
+  Worker[backend/mqtt_worker.py] --> State
   Compose[docker-compose.yml] --> Nginx
   Compose --> API
   Compose --> Worker
@@ -33,6 +38,8 @@ flowchart TD
 | `backend/services/` | chamadas internas ↔ serviços | MQTT, logs e operações de domínio; não expõe portas diretamente. |
 | `backend/database.py` | conexões ↔ SQLite | Persistência, migrações aditivas e consultas. |
 | `backend/mqtt_worker.py` | MQTT → validação/persistência | Consome telemetria e registra alertas de regra determinística. |
+| `backend/services/maintenance.py` | Admin API/CLI → estado volátil + audit SQLite | Alterna coleta em background com allowlist; o marcador desaparece no reboot. |
+| `deploy/nivusctl` | terminal → maintenance service | Expõe `nivus help` e ações `maintenance enable|disable|status`; escrita exige sudo. |
 | `frontend/src/` | API ↔ componentes React | Login e dashboard; não decide segurança de backend. |
 | `deploy/` e `docker-compose.yml` | arquivos de configuração → processos | Instalação, redes, volumes, health, backup e rollback. |
 

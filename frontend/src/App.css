@@ -182,3 +182,135 @@
     border-right-color: var(--border);
   }
 }
+
+.dashboard-section > h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0 0 1rem;
+  font-size: 1.15rem;
+}
+
+.settings-card {
+  width: min(100%, 760px);
+  padding: clamp(1rem, 2vw, 1.5rem);
+  border: 1px solid #334155;
+  border-radius: 0.9rem;
+  background: #172337;
+  box-shadow: 0 12px 32px #0002;
+}
+
+.settings-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.settings-card-heading h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.settings-card-heading p,
+.maintenance-explanation,
+.maintenance-message {
+  color: #a9b9cf;
+  font-size: 0.9rem;
+}
+
+.settings-card-heading p {
+  margin: 0.4rem 0 0;
+}
+
+.maintenance-status {
+  flex: 0 0 auto;
+  padding: 0.28rem 0.65rem;
+  border: 1px solid #64748b;
+  border-radius: 999px;
+  color: #cbd5e1;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.maintenance-status.is-active {
+  border-color: #fbbf24;
+  color: #fcd34d;
+  background: #f59e0b12;
+}
+
+.maintenance-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.75rem;
+  margin: 1.2rem 0 0;
+}
+
+.maintenance-details div {
+  padding: 0.75rem;
+  border: 1px solid #334155;
+  border-radius: 0.65rem;
+  background: #0f172a70;
+}
+
+.maintenance-details dt {
+  color: #94a3b8;
+  font-size: 0.78rem;
+}
+
+.maintenance-details dd {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+}
+
+.maintenance-explanation {
+  max-width: 680px;
+  margin: 1.15rem 0;
+}
+
+.maintenance-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-height: 42px;
+  padding: 0.6rem 1rem;
+  border: 1px solid #38bdf8;
+  border-radius: 0.6rem;
+  color: #e0f2fe;
+  background: #0369a1;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.maintenance-toggle.is-active {
+  border-color: #34d399;
+  color: #d1fae5;
+  background: #047857;
+}
+
+.maintenance-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.maintenance-toggle:focus-visible {
+  outline: 3px solid #fbbf24;
+  outline-offset: 3px;
+}
+
+.maintenance-message {
+  min-height: 1.4em;
+  margin: 0.8rem 0 0;
+}
+
+@media (max-width: 640px) {
+  .settings-card-heading {
+    flex-direction: column;
+  }
+
+  .maintenance-toggle {
+    width: 100%;
+  }
+}

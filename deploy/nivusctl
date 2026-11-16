@@ -1,0 +1,104 @@
+#!/usr/bin/env python3
+"""Nivus host command-line controls with a fixed, allowlisted command surface."""
+
+import argparse
+import os
+import sys
+from pathlib import Path
+
+
+BACKEND_PATH = str(Path(__file__).resolve().parents[1] / "backend")
+if BACKEND_PATH not in sys.path:
+    sys.path.insert(0, BACKEND_PATH)
+
+# The CLI runs on the host, while the API receives its database path from
+# Compose. Point the host-side audit at the same persistent SQLite database.
+os.environ.setdefault("NIVUS_DB_PATH", "/var/lib/nivus-compose/data/nivus.db")
+
+from services.maintenance import (  # noqa: E402
+    MaintenanceStateError,
+    read_maintenance_state,
+    set_maintenance_mode,
+)
+
+
+def _print_state(state: dict) -> None:
+    if state["enabled"]:
+        print("Modo de manutenção: ATIVO")
+        print(f"Ativo desde: {state['started_at'] or 'horário indisponível'}")
+        print("Coleta do host e gravação de telemetria MQTT: pausadas")
+        print("API, autenticação, painel, health e broker MQTT: ativos")
+    else:
+        print("Modo de manutenção: inativo; operação normal")
+
+
+def _drop_to_database_owner() -> None:
+    """Avoid creating root-owned SQLite WAL files from the privileged CLI."""
+    if not hasattr(os, "geteuid") or os.geteuid() != 0:
+        return
+    db_path = Path(os.environ["NIVUS_DB_PATH"])
+    database_owner = db_path.stat()
+    if database_owner.st_uid == 0:
+        return
+    os.setgroups([])
+    os.setgid(database_owner.st_gid)
+    os.setuid(database_owner.st_uid)
+
+
+def main(argv=None) -> int:
+    command_name = Path(sys.argv[0]).name
+    parser = argparse.ArgumentParser(
+        prog=command_name,
+        description="Comandos administrativos permitidos do Nivus Edge Node.",
+        epilog=(
+            "Exemplos: nivus help; sudo nivus maintenance status; "
+            "sudo nivus maintenance enable; sudo nivus maintenance disable."
+        ),
+    )
+    subparsers = parser.add_subparsers(dest="group")
+    help_parser = subparsers.add_parser("help", help="Exibe a lista de comandos Nivus.")
+    help_parser.add_argument("topic", nargs="?", choices=("nivus", "maintenance"))
+    maintenance = subparsers.add_parser(
+        "maintenance", help="Pausa ou retoma trabalhos em segundo plano."
+    )
+    maintenance.add_argument("action", choices=("enable", "disable", "status"))
+    args = parser.parse_args(argv)
+
+    try:
+        if args.group is None or args.group == "help":
+            if args.group == "help" and args.topic == "maintenance":
+                maintenance.print_help()
+                print("\n  enable   Pausa coleta do host e gravação de telemetria MQTT.")
+                print("  disable  Retoma a operação normal sem reiniciar o computador.")
+                print("  sudo nivus maintenance status   Consulta se a manutenção está ativa.")
+                return 0
+            parser.print_help()
+            print("\nComandos Nivus:")
+            print("  sudo nivus maintenance status   Consulta o modo atual.")
+            print("  sudo nivus maintenance enable   Pausa coleta e gravação de telemetria.")
+            print("  sudo nivus maintenance disable  Retoma a operação normal imediatamente.")
+            print("\nO reboot também retorna ao modo normal. Não é necessário reiniciar para desativar.")
+            return 0
+        if args.action == "status":
+            if os.geteuid() != 0:
+                print("Use sudo para consultar o estado: sudo nivus maintenance status", file=sys.stderr)
+                return 2
+            _print_state(read_maintenance_state())
+            return 0
+        if os.geteuid() != 0:
+            print("Use sudo para consultar ou alterar o modo: sudo nivus maintenance status|enable|disable", file=sys.stderr)
+            return 2
+        _drop_to_database_owner()
+        state = set_maintenance_mode(args.action == "enable", os.environ.get("SUDO_USER", "root"))
+        _print_state(state)
+        return 0
+    except MaintenanceStateError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    except OSError as exc:
+        print(f"Não foi possível acessar os arquivos do Nivus: {exc}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

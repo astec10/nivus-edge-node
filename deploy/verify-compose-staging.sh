@@ -23,7 +23,7 @@ require_env NIVUS_DATA_DIR "$APP_DIR/data"
 require_env NIVUS_MOSQUITTO_DATA_DIR "$APP_DIR/mosquitto"
 require_env NIVUS_SECRET_DIR "$APP_DIR/secrets"
 
-for command in docker openssl curl ss; do
+for command in docker openssl curl ss python3; do
   command -v "$command" >/dev/null 2>&1 || { echo "Comando ausente: $command" >&2; exit 2; }
 done
 if ss -H -ltn 'sport = :28443' | grep -q .; then
@@ -32,13 +32,19 @@ if ss -H -ltn 'sport = :28443' | grep -q .; then
 fi
 
 PROJECT="nivus-smoke-$(date -u +%Y%m%d-%H%M%S)-$$"
-DATA_DIR="$APP_DIR/data"
+DATA_DIR="/tmp/$PROJECT-data"
 MOSQ_DATA_DIR="$APP_DIR/mosquitto"
 SECRETS_DIR="$APP_DIR/secrets"
+MAINTENANCE_DIR="/tmp/$PROJECT-maintenance"
+NIVUS_HELP_BIN="$APP_DIR/runtime-bin/$PROJECT"
+export NIVUS_MAINTENANCE_STATE_DIR="$MAINTENANCE_DIR"
+export NIVUS_DATA_DIR="$DATA_DIR"
+export NIVUS_MAINTENANCE_STATE_PATH="$MAINTENANCE_DIR/state.json"
 RUNTIME_UID=$(sed -n 's/^NIVUS_RUNTIME_UID=//p' .env)
 RUNTIME_GID=$(sed -n 's/^NIVUS_RUNTIME_GID=//p' .env)
 HOST_UID=$(id -u)
 HOST_GID=$(id -g)
+[[ ! -e "$DATA_DIR" && ! -L "$DATA_DIR" && ! -e "$MAINTENANCE_DIR" && ! -L "$MAINTENANCE_DIR" ]] || { echo "Smoke temp path already exists; refusing to reuse it." >&2; exit 2; }
 
 MOSQUITTO_IMAGE=$(awk '$1 == "image:" && $2 ~ /^eclipse-mosquitto:/ {print $2; exit}' docker-compose.yml)
 [[ "$MOSQUITTO_IMAGE" =~ ^eclipse-mosquitto:2@sha256:[a-f0-9]{64}$ ]] || { echo "Imagem Mosquitto fixada por digest não encontrada no Compose." >&2; exit 2; }
@@ -46,6 +52,8 @@ docker image inspect nivus-edge-api:local nivus-edge-web:local >/dev/null
 if ! docker image inspect "$MOSQUITTO_IMAGE" >/dev/null 2>&1; then docker pull "$MOSQUITTO_IMAGE"; fi
 install -d -m 700 "$SECRETS_DIR"
 install -d -m 750 "$DATA_DIR" "$MOSQ_DATA_DIR"
+install -d -m 755 "$APP_DIR/runtime-state"
+install -d -m 755 "$MAINTENANCE_DIR"
 rm -f -- "$SECRETS_DIR/jwt_secret" "$SECRETS_DIR"/mqtt_*_password \
   "$SECRETS_DIR/mosquitto_passwords" "$SECRETS_DIR/mosquitto_acl" \
   "$SECRETS_DIR/tls.key" "$SECRETS_DIR/tls.crt"
@@ -65,9 +73,12 @@ chmod 444 "$SECRETS_DIR/tls.key" "$SECRETS_DIR/tls.crt"
 docker run --rm --user 0 --network none \
   --mount "type=bind,source=$DATA_DIR,target=/data" \
   --mount "type=bind,source=$MOSQ_DATA_DIR,target=/mosq" \
+  --mount "type=bind,source=$MAINTENANCE_DIR,target=/maintenance" \
   --env "RUNTIME_UID=$RUNTIME_UID" --env "RUNTIME_GID=$RUNTIME_GID" \
   --entrypoint /bin/sh nivus-edge-api:local -ec \
-  'chown -R "$RUNTIME_UID:$RUNTIME_GID" /data; chmod 750 /data; chown -R 1883:1883 /mosq; chmod 750 /mosq'
+  'chown -R "$RUNTIME_UID:$RUNTIME_GID" /data /maintenance; chmod 700 /data; chmod 2750 /maintenance; chown -R 1883:1883 /mosq; chmod 750 /mosq'
+[[ $(stat -c "%a" "$MAINTENANCE_DIR") == 2750 ]]
+[[ $(stat -c "%u:%g" "$MAINTENANCE_DIR") == "$RUNTIME_UID:$RUNTIME_GID" ]]
 
 cleanup() {
   local rc=$?
@@ -77,9 +88,28 @@ cleanup() {
   docker run --rm --user 0 --network none \
     --mount "type=bind,source=$DATA_DIR,target=/data" \
     --mount "type=bind,source=$MOSQ_DATA_DIR,target=/mosq" \
+    --mount "type=bind,source=$MAINTENANCE_DIR,target=/maintenance" \
     --env "HOST_UID=$HOST_UID" --env "HOST_GID=$HOST_GID" \
     --entrypoint /bin/sh nivus-edge-api:local -ec \
-    'chown -R "$HOST_UID:$HOST_GID" /data /mosq; chmod 750 /data /mosq' >/dev/null 2>&1 || true
+    'chown -R "$HOST_UID:$HOST_GID" /data /mosq /maintenance; chmod 750 /data /mosq; chmod 755 /maintenance' >/dev/null 2>&1 || true
+  if (( rc == 0 )); then
+    if [[ "$MAINTENANCE_DIR" == "/tmp/$PROJECT-maintenance" ]]; then
+      rm -rf -- "$MAINTENANCE_DIR" 2>/dev/null || true
+    else
+      echo "Refusing to remove unexpected maintenance staging path: $MAINTENANCE_DIR" >&2
+      rc=1
+    fi
+    if [[ "$DATA_DIR" == "/tmp/$PROJECT-data" ]]; then
+      rm -rf -- "$DATA_DIR" 2>/dev/null || true
+    else
+      echo "Refusing to remove unexpected data staging path: $DATA_DIR" >&2
+      rc=1
+    fi
+  else
+    echo "Keeping isolated smoke data for diagnosis: $DATA_DIR and $MAINTENANCE_DIR" >&2
+  fi
+  rm -f -- "$NIVUS_HELP_BIN/nivus"
+  rmdir -- "$NIVUS_HELP_BIN" 2>/dev/null || true
   if (( rc == 0 )); then echo "SMOKE_CLEANUP=containers-stopped; staging preserved under $APP_DIR"; else echo "SMOKE_CLEANUP=containers-stopped; staging kept for diagnosis" >&2; fi
   exit "$rc"
 }
@@ -123,23 +153,109 @@ echo "frontend_index_and_asset=ok ($JS_ASSET)"
 AUTH_STATUS=$(curl -k -sS --connect-timeout 2 --max-time 5 -o /dev/null -w '%{http_code}' https://127.0.0.1:28443/api/telemetry)
 [[ "$AUTH_STATUS" == 401 ]]
 echo "unauthenticated_telemetry_http=$AUTH_STATUS"
+python3 deploy/nivusctl help | grep -q 'sudo nivus maintenance disable'
+MAINT_UNAUTH_STATUS=$(curl -k -sS --connect-timeout 2 --max-time 5 -o /dev/null -w '%{http_code}' https://127.0.0.1:28443/api/maintenance)
+[[ "$MAINT_UNAUTH_STATUS" == 401 ]]
+echo "unauthenticated_maintenance_http=$MAINT_UNAUTH_STATUS"
+install -d -m 755 "$NIVUS_HELP_BIN"
+ln -s "$APP_DIR/deploy/nivusctl" "$NIVUS_HELP_BIN/nivus"
+"$NIVUS_HELP_BIN/nivus" help | grep -q 'usage: nivus '
 
 echo '===MQTT_TO_SQLITE==='
-TIMESTAMP=$(date +%s)
-MQTT_PASSWORD=$(cat "$SECRETS_DIR/mqtt_agent_password")
-PAYLOAD=$(printf '{"node":"%s","timestamp":%s,"cpu_percent":5.2,"memory_percent":42.0,"disk_percent":20.0,"temperature":57.0,"temperature_source":"coretemp: Package id 0","motherboard_temperature":null,"gpu_temperature":47.0,"gpu_temperature_source":"amdgpu: edge","gpu_hotspot_temperature":68.0,"gpu_hotspot_source":"amdgpu: junction","power_consumption":17.6}' "$PROJECT" "$TIMESTAMP")
-docker compose -p "$PROJECT" exec -T mqtt mosquitto_pub \
-  -h 127.0.0.1 -p 1883 -u nivus-agent -P "$MQTT_PASSWORD" \
-  -t nivus/edge/telemetry -q 1 -m "$PAYLOAD"
-for attempt in $(seq 1 15); do
-  DB_RESULT=$(docker compose -p "$PROJECT" exec -T api python -c \
-    'import sqlite3,sys; c=sqlite3.connect("/data/nivus.db"); check=c.execute("PRAGMA quick_check").fetchone()[0]; row=c.execute("SELECT COUNT(*),temperature_source,temperature,gpu_temperature,gpu_hotspot_temperature FROM telemetry WHERE node=?", (sys.argv[1],)).fetchone(); assert row == (1,"coretemp: Package id 0",57.0,47.0,68.0), row; print(check, row[0]); c.close()' \
-    "$PROJECT")
-  [[ "$DB_RESULT" == 'ok 1' ]] && break
-  sleep 1
-done
+ADMIN_TOKEN=$(docker compose -p "$PROJECT" exec -T api python -c \
+  'from database import get_db_connection; from security import create_access_token,hash_password; c=get_db_connection(); c.execute("INSERT OR REPLACE INTO users (username,password,role,must_change_password) VALUES (?,?,?,0)", ("smoke-maint-admin",hash_password("SmokeOnly-Password-1"),"admin")); c.commit(); c.close(); print(create_access_token("smoke-maint-admin","admin"))')
+[[ -n "$ADMIN_TOKEN" ]]
+VIEWER_TOKEN=$(docker compose -p "$PROJECT" exec -T api python -c \
+  'from database import get_db_connection; from security import create_access_token,hash_password; c=get_db_connection(); c.execute("INSERT OR REPLACE INTO users (username,password,role,must_change_password) VALUES (?,?,?,0)", ("smoke-maint-viewer",hash_password("SmokeOnly-Password-2"),"viewer")); c.commit(); c.close(); print(create_access_token("smoke-maint-viewer","viewer"))')
+[[ -n "$VIEWER_TOKEN" ]]
+VIEWER_MAINT_STATUS=$(curl -k -sS --connect-timeout 2 --max-time 5 -o /dev/null -w '%{http_code}' \
+  -X POST -H "Authorization: Bearer $VIEWER_TOKEN" -H 'Content-Type: application/json' \
+  -d '{"enabled":true}' https://127.0.0.1:28443/api/maintenance)
+[[ "$VIEWER_MAINT_STATUS" == 403 ]]
+echo "viewer_maintenance_write_http=$VIEWER_MAINT_STATUS"
+
+get_telemetry_count() {
+  docker compose -p "$PROJECT" exec -T api python -c \
+    'import sqlite3,sys; c=sqlite3.connect("/data/nivus.db"); print(c.execute("SELECT COUNT(*) FROM telemetry WHERE node=?", (sys.argv[1],)).fetchone()[0]); c.close()' \
+    "$PROJECT"
+}
+
+publish_smoke_sample() {
+  local timestamp payload password
+  timestamp=$(date +%s)
+  password=$(cat "$SECRETS_DIR/mqtt_agent_password")
+  payload=$(printf '{"node":"%s","timestamp":%s,"cpu_percent":5.2,"memory_percent":42.0,"disk_percent":20.0,"temperature":57.0,"temperature_source":"coretemp: Package id 0","motherboard_temperature":null,"gpu_temperature":47.0,"gpu_temperature_source":"amdgpu: edge","gpu_hotspot_temperature":68.0,"gpu_hotspot_source":"amdgpu: junction","power_consumption":17.6}' "$PROJECT" "$timestamp")
+  docker compose -p "$PROJECT" exec -T mqtt mosquitto_pub \
+    -h 127.0.0.1 -p 1883 -u nivus-agent -P "$password" \
+    -t nivus/edge/telemetry -q 1 -m "$payload"
+}
+
+wait_for_telemetry_count() {
+  local expected="$1" actual=0
+  for attempt in $(seq 1 15); do
+    actual=$(get_telemetry_count)
+    if [[ "$actual" == "$expected" ]]; then return 0; fi
+    sleep 1
+  done
+  echo "Esperava $expected amostras MQTT; encontrei $actual." >&2
+  return 1
+}
+
+assert_telemetry_count_unchanged() {
+  local expected="$1" actual
+  sleep 3
+  actual=$(get_telemetry_count)
+  [[ "$actual" == "$expected" ]] || {
+    echo "A manutenção deveria manter $expected amostras; encontrei $actual." >&2
+    return 1
+  }
+}
+
+publish_smoke_sample
+wait_for_telemetry_count 1
+DB_RESULT=$(docker compose -p "$PROJECT" exec -T api python -c \
+  'import sqlite3,sys; c=sqlite3.connect("/data/nivus.db"); check=c.execute("PRAGMA quick_check").fetchone()[0]; row=c.execute("SELECT COUNT(*),temperature_source,temperature,gpu_temperature,gpu_hotspot_temperature FROM telemetry WHERE node=?", (sys.argv[1],)).fetchone(); assert row == (1,"coretemp: Package id 0",57.0,47.0,68.0), row; print(check, row[0]); c.close()' \
+  "$PROJECT")
 [[ "$DB_RESULT" == 'ok 1' ]]
 echo "sqlite_check_and_sample=$DB_RESULT"
+
+echo '===MAINTENANCE_MODE==='
+API_STATE=$(curl -kfsS --connect-timeout 2 --max-time 5 \
+  -H "Authorization: Bearer $ADMIN_TOKEN" https://127.0.0.1:28443/api/maintenance)
+grep -q '"enabled":false' <<< "$API_STATE"
+curl -kfsS --connect-timeout 2 --max-time 5 -X POST \
+  -H "Authorization: Bearer $ADMIN_TOKEN" -H 'Content-Type: application/json' \
+  -d '{"enabled":true}' https://127.0.0.1:28443/api/maintenance | grep -q '"enabled":true'
+STATE_METADATA=$(docker compose -p "$PROJECT" exec -T api python -c \
+  'import os,stat,sys; st=os.stat(sys.argv[1]); print(f"{stat.S_IMODE(st.st_mode):o}:{st.st_uid}:{st.st_gid}")' \
+  /run/nivus-maintenance/state.json)
+[[ "$STATE_METADATA" == "640:$RUNTIME_UID:$RUNTIME_GID" ]]
+docker run --rm --user "$HOST_UID:$RUNTIME_GID" --network none \
+  --mount "type=bind,source=$MAINTENANCE_DIR,target=/maintenance,readonly" \
+  --entrypoint /bin/sh nivus-edge-api:local -ec 'test -r /maintenance/state.json'
+run_nivusctl() {
+  local -a privilege=()
+  if [[ $EUID -ne 0 ]]; then privilege=(sudo); fi
+  "${privilege[@]}" env \
+    NIVUS_DB_PATH="$DATA_DIR/nivus.db" \
+    NIVUS_MAINTENANCE_STATE_PATH="$MAINTENANCE_DIR/state.json" \
+    python3 deploy/nivusctl "$@"
+}
+run_nivusctl maintenance status | grep -q 'ATIVO'
+publish_smoke_sample
+assert_telemetry_count_unchanged 1
+curl -kfsS --connect-timeout 2 --max-time 5 https://127.0.0.1:28443/health | grep -q '"status":"ok"'
+run_nivusctl maintenance disable | grep -q 'inativo'
+publish_smoke_sample
+wait_for_telemetry_count 2
+run_nivusctl maintenance enable | grep -q 'ATIVO'
+curl -kfsS --connect-timeout 2 --max-time 5 -X POST \
+  -H "Authorization: Bearer $ADMIN_TOKEN" -H 'Content-Type: application/json' \
+  -d '{"enabled":false}' https://127.0.0.1:28443/api/maintenance | grep -q '"enabled":false'
+publish_smoke_sample
+wait_for_telemetry_count 3
+[[ $(get_telemetry_count) == 3 ]]
+echo 'maintenance_api_cli_toggle=passed'
 echo '===CANDIDATE_CONTAINER_RESOURCES==='
 docker stats --no-stream --format '{{.Name}} {{.MemUsage}} {{.CPUPerc}}' "$API_ID" "$MQTT_ID" "$WORKER_ID" "$WEB_ID"
 if [[ "${NIVUS_STAGING_REQUIRE_LEGACY_HOST:-1}" == "1" ]]; then

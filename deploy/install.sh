@@ -15,6 +15,9 @@ READY=0
 STACK_STARTED=0
 AGENT_STARTED=0
 CURRENT_CREATED=0
+TMPFILES_CREATED=0
+CTL_LINK_CREATED=0
+NIVUS_LINK_CREATED=0
 RELEASE_DIR=
 rollback_install() {
   rc=$?
@@ -23,6 +26,12 @@ rollback_install() {
     echo "Instalação não concluiu; parando somente a candidata Compose. Dados e segredos são preservados." >&2
     if [[ $AGENT_STARTED -eq 1 ]]; then systemctl disable --now nivus-compose-telemetry.service 2>/dev/null || true; fi
     if [[ $STACK_STARTED -eq 1 && -d "$CURRENT" ]]; then (cd "$CURRENT" && docker compose down) || true; fi
+    if [[ $CTL_LINK_CREATED -eq 1 ]]; then rm -f -- /usr/local/bin/nivusctl; fi
+    if [[ $NIVUS_LINK_CREATED -eq 1 ]]; then rm -f -- /usr/local/bin/nivus; fi
+    if [[ $TMPFILES_CREATED -eq 1 ]]; then
+      rm -f -- /etc/tmpfiles.d/nivus-maintenance.conf
+      rmdir /run/nivus-maintenance 2>/dev/null || true
+    fi
     if [[ $CURRENT_CREATED -eq 1 ]]; then rm -f -- "$CURRENT"; fi
     echo "Seus serviços systemd/Nginx existentes não foram modificados." >&2
   fi
@@ -33,6 +42,8 @@ trap rollback_install ERR INT TERM
 . /etc/os-release
 [[ ${ID:-} == ubuntu ]] || { echo "Suporte inicial somente a Ubuntu Server." >&2; exit 2; }
 [[ $(uname -m) == x86_64 ]] || { echo "Este pacote inicial foi preparado para x86_64/amd64." >&2; exit 2; }
+[[ ! -e /usr/local/bin/nivusctl && ! -L /usr/local/bin/nivusctl ]] || { echo "/usr/local/bin/nivusctl já existe; instalação interrompida sem substituí-lo." >&2; exit 2; }
+[[ ! -e /usr/local/bin/nivus && ! -L /usr/local/bin/nivus ]] || { echo "/usr/local/bin/nivus já existe; instalação interrompida sem substituí-lo." >&2; exit 2; }
 SYSTEMD_VERSION=$(systemctl --version | awk 'NR==1 {print $2}')
 [[ $(printf '%s\n' 247 "$SYSTEMD_VERSION" | sort -V | head -n1) == 247 ]] || { echo "systemd 247 ou superior é necessário para credenciais seguras do serviço de telemetria." >&2; exit 2; }
 NEED_APT=0
@@ -88,7 +99,8 @@ fi
 ln -s "$RELEASE_DIR" "$CURRENT"
 CURRENT_CREATED=1
 install -d -m 700 "$ETC_ROOT" "$SECRET_DIR"
-install -d -m 750 "$DATA_ROOT/data" "$DATA_ROOT/mosquitto"
+install -d -m 700 "$DATA_ROOT/data"
+install -d -m 750 "$DATA_ROOT/mosquitto"
 if ! id -u nivus-telemetry >/dev/null 2>&1; then
   useradd --system --home-dir /var/lib/nivus-telemetry --create-home --shell /usr/sbin/nologin nivus-telemetry
 fi
@@ -126,6 +138,7 @@ if [[ ! -e "$CURRENT/.env" ]]; then
     "NIVUS_DATA_DIR=$DATA_ROOT/data" \
     "NIVUS_MOSQUITTO_DATA_DIR=$DATA_ROOT/mosquitto" \
     "NIVUS_SECRET_DIR=$SECRET_DIR" \
+    'NIVUS_MAINTENANCE_STATE_DIR=/run/nivus-maintenance' \
     "NIVUS_RUNTIME_UID=$RUNTIME_ID" \
     "NIVUS_RUNTIME_GID=$RUNTIME_ID" \
     'NIVUS_API_MEMORY_LIMIT=256m' \
@@ -140,8 +153,21 @@ if [[ ! -e "$CURRENT/.env" ]]; then
 fi
 RUNTIME_UID=$(sed -n 's/^NIVUS_RUNTIME_UID=//p' "$CURRENT/.env")
 RUNTIME_GID=$(sed -n 's/^NIVUS_RUNTIME_GID=//p' "$CURRENT/.env")
+[[ "$RUNTIME_UID" =~ ^[0-9]+$ && "$RUNTIME_GID" =~ ^[0-9]+$ ]] || { echo "IDs de runtime inválidos no .env." >&2; exit 2; }
 chown "$RUNTIME_UID:$RUNTIME_GID" "$DATA_ROOT/data"
-chmod 750 "$DATA_ROOT/data"
+chmod 700 "$DATA_ROOT/data"
+if [[ -e /etc/tmpfiles.d/nivus-maintenance.conf || -e /run/nivus-maintenance ]]; then
+  echo "Caminho de estado de manutenção já existe; instalação interrompida sem substituí-lo." >&2
+  exit 2
+fi
+if ! getent group "$RUNTIME_GID" >/dev/null 2>&1; then
+  groupadd --system --gid "$RUNTIME_GID" "nivus-runtime-$RUNTIME_GID"
+fi
+usermod --append --groups "$RUNTIME_GID" nivus-telemetry
+printf 'd /run/nivus-maintenance 2750 %s %s - -\n' "$RUNTIME_UID" "$RUNTIME_GID" > /etc/tmpfiles.d/nivus-maintenance.conf
+chmod 644 /etc/tmpfiles.d/nivus-maintenance.conf
+TMPFILES_CREATED=1
+systemd-tmpfiles --create /etc/tmpfiles.d/nivus-maintenance.conf
 python3 -m venv "$INSTALL_ROOT/venv"
 "$INSTALL_ROOT/venv/bin/python" -m pip install --no-cache-dir -r "$CURRENT/telemetry/requirements.txt"
 install -m 644 "$CURRENT/deploy/nivus-compose-telemetry.service" /etc/systemd/system/nivus-compose-telemetry.service
@@ -154,6 +180,7 @@ NIVUS_NODE_NAME=nivus-edge-node
 NIVUS_DISK_PATH=/
 EOF
 chmod 644 "$ETC_ROOT/telemetry.env"
+chmod 0755 "$CURRENT/deploy/nivusctl"
 (cd "$CURRENT" && docker compose config --quiet)
 STACK_STARTED=1
 (cd "$CURRENT" && docker compose up -d --build)
@@ -172,6 +199,10 @@ if [[ "$USER_COUNT" == 0 ]]; then
 fi
 systemctl daemon-reload
 AGENT_STARTED=1
+ln -s "$CURRENT/deploy/nivusctl" /usr/local/bin/nivus
+NIVUS_LINK_CREATED=1
+ln -s "$CURRENT/deploy/nivusctl" /usr/local/bin/nivusctl
+CTL_LINK_CREATED=1
 systemctl enable --now nivus-compose-telemetry.service
 READY=1
 trap - ERR INT TERM

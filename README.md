@@ -22,6 +22,7 @@ O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não sign
 - Home Assistant, Zigbee, sensores residenciais, medidores, câmeras, interfone e integração com inversor/baterias.
 - Automação residencial real, VPN integrada ao produto e ações remotas em dispositivos.
 - Inferência local, consulta à biblioteca de PDFs, fila de trabalhos entre máquinas, transferência P2P e conectores para provedores comerciais com limites de uso.
+- Modo de manutenção reversível na aba Configuração e CLI (`nivus maintenance enable|disable|status`), com `nivus help`; está em desenvolvimento na issue #26 e ainda aguarda CI/publicação, portanto não está disponível no notebook.
 - Instalação limpa validada, reboot, atualização com rollback e matriz de hardware x86_64.
 - O executor externo de desenvolvimento foi integrado no PR #3. A chave do provedor está configurada como Secret segundo confirmação do mantenedor, mas as duas primeiras chamadas falharam (HTTP 503 e timeout síncrono); uma correção com polling em segundo plano e exclusão da interação está em revisão. Até uma chamada end-to-end passar, o executor não deve ser considerado funcional. O notebook é suporte opcional; GitHub Actions é o executor principal.
 
@@ -53,11 +54,11 @@ O roteiro detalhado para contribuições está em [CONTRIBUTING.md](CONTRIBUTING
 | `backend/api/dependencies.py` | Identidade e autorização das rotas |
 | `backend/database.py` | SQLite, conexões e migrações aditivas |
 | `backend/security.py` | Hash de senha, JWT e validações de segurança |
-| `backend/services/` e `backend/mqtt_worker.py` | Publicação MQTT e processamento de eventos |
+| `backend/services/` e `backend/mqtt_worker.py` | Serviços de domínio, manutenção reversível e processamento MQTT |
 | `telemetry/agent.py` | Amostras de recursos do host e envio MQTT |
 | `telemetry/hardware_sensors.py` | Classificação de temperaturas CPU/APU, placa-mãe e GPU |
 | `frontend/src/components/` | Login e componentes visuais do dashboard |
-| `deploy/` | Compose, Nginx, Mosquitto, instalador candidato e operações |
+| `deploy/` | Compose, Nginx, Mosquitto, instalador candidato, `nivus` CLI e operações |
 | `docs/` | Visão, arquitetura, decisões, configuração, roadmap e status |
 | `PROGRESS.html` | Página estática dos marcos; não lê a telemetria do host |
 

@@ -26,6 +26,8 @@ Entregas existentes: API modular, autenticação por senha/JWT, telemetria de ho
 
 Critérios já observados: login funcional; API exige token; health HTTPS responde; o SQLite candidato passa `quick_check` e recebe novas amostras; o coletor não reinicia; os serviços antigos continuam ativos.
 
+**Operação de manutenção (issue #26):** oferecer uma pausa controlada de workloads opcionais sem desligar o dashboard, API ou autenticação. O estado deve ser reversível pelo mesmo comando, com retorno ao modo normal no reboot. Está em implementação e não faz parte da release ativa até CI, revisão e publicação.
+
 ### Fase 1 — Instalação, recuperação e portabilidade
 
 **Estado: próxima prioridade.**

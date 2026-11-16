@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users } from 'lucide-react';
+import { Settings, Users } from 'lucide-react';
 
 export default function DashboardNavigation({ token, isAdmin, activeTab, setActiveTab, handleLogout }) {
   return (
@@ -10,6 +10,11 @@ export default function DashboardNavigation({ token, isAdmin, activeTab, setActi
           {isAdmin && (
             <button onClick={() => setActiveTab('users')} style={{ backgroundColor: activeTab === 'users' ? '#a855f7' : '#1e293b', color: '#ffffff', border: '1px solid #334155', padding: '0.5rem 1.2rem', borderRadius: '0.375rem', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <Users size={16} /> Gestão de Utilizadores
+            </button>
+          )}
+          {isAdmin && (
+            <button onClick={() => setActiveTab('settings')} style={{ backgroundColor: activeTab === 'settings' ? '#38bdf8' : '#1e293b', color: activeTab === 'settings' ? '#0f172a' : '#f8fafc', border: '1px solid #334155', padding: '0.5rem 1.2rem', borderRadius: '0.375rem', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Settings size={16} /> Configuração
             </button>
           )}
           <button onClick={handleLogout} style={{ marginLeft: 'auto', backgroundColor: 'transparent', border: '1px solid #ef4444', color: '#f87171', padding: '0.4rem 0.8rem', borderRadius: '0.375rem', cursor: 'pointer' }}>Terminar Sessão</button>
