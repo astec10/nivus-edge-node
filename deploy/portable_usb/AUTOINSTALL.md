@@ -25,7 +25,16 @@ Em seguida gere o seed. O comando relê o inventário atual e exige que caminho,
 
     sudo python3 deploy/portable_usb/generate_autoinstall.py \
       --selection /var/tmp/nivus-usb-selection.json \
-      --output /var/tmp/nivus-usb-seed\n\nPara gerar também uma ISO privada de configuração NoCloud, use uma pasta nova e acrescente `--build-seed-iso`:\n\n    sudo python3 deploy/portable_usb/generate_autoinstall.py \\\n      --selection /var/tmp/nivus-usb-selection.json \\\n      --output /var/tmp/nivus-usb-seed-with-iso \\\n      --build-seed-iso\n\nA ISO `nivus-autoinstall-seed.iso` e seu checksum `.sha256` ficam dentro dessa pasta. A ISO contém a configuração e o hash da senha; mantenha-a privada.
+      --output /var/tmp/nivus-usb-seed
+
+Para gerar também uma ISO privada de configuração NoCloud, use uma pasta nova e acrescente `--build-seed-iso`:
+
+    sudo python3 deploy/portable_usb/generate_autoinstall.py \
+      --selection /var/tmp/nivus-usb-selection.json \
+      --output /var/tmp/nivus-usb-seed-with-iso \
+      --build-seed-iso
+
+A ISO `nivus-autoinstall-seed.iso` e seu checksum `.sha256` ficam dentro dessa pasta. A ISO contém a configuração e o hash da senha; mantenha-a privada.
 
 O gerador pergunta usuário, hostname e senha do Ubuntu. A senha é digitada sem aparecer e transformada localmente com openssl; apenas o hash entra no arquivo user-data. O diretório de saída usa modo 0700, os arquivos usam 0600, e uma pasta existente nunca é sobrescrita.
 
