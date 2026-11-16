@@ -12,7 +12,7 @@ O alvo de distribuição é Ubuntu Server minimal x86_64/amd64. “Alvo” não 
 
 **Fundação do nó de borda: funcionando numa instalação Ubuntu de teste.** A API modular, o painel, o broker, o worker e o coletor Compose foram instalados em paralelo no notebook CCE U25. Health HTTPS, autenticação, login, persistência SQLite e aumento contínuo de telemetria foram verificados. A instalação systemd/Nginx anterior permaneceu ativa. Veja [`PROJECT_STATUS.md`](PROJECT_STATUS.md) para evidência e limites.
 
-**Instalação portátil: validada por CI hospedada, ainda sem qualificação universal.** O run 43662375766 passou build/smoke Compose e instalação, backup, restauração e rollback em runners Ubuntu descartáveis do GitHub. O operador não usará VMs no computador pessoal. Faltam reboot em hardware, sensores reais adicionais e teste em outras plataformas x86_64; a candidata não é suportada em qualquer computador ainda.
+**Instalação portátil: em implementação, sem qualificação universal.** O formato escolhido é Ubuntu Server completo instalado no USB, com raiz e NIVUS_DATA persistentes. O PR #34 gera seed revisável, seleciona e revalida o alvo e acrescenta uma etapa pós-boot para preparar o armazenamento persistente e instalar o Compose. O commit anterior 9722b93 passou CI antes da etapa pós-boot; a CI da revisão atual ainda está pendente. O operador não usará VMs no computador pessoal.
 
 **Multi-nó, Home Assistant, Zigbee, sensores domésticos, vídeo, IA local, P2P e provedores comerciais: planejados.** O painel atual representa o nó instalado; não existe ainda um coordenador multi-nó ou scheduler de IA.
 
@@ -30,14 +30,14 @@ Critérios já observados: login funcional; API exige token; health HTTPS respon
 
 ### Fase 1 — Instalação, recuperação e portabilidade
 
-**Estado: em andamento; integração de persistência merged, imagem inicializável pendente.**
+**Estado: em andamento; formato escolhido, seleção/seed e instalador pós-boot em revisão.**
 
-**Issue #29 — Ubuntu + Nivus Live USB com dados persistentes:** a integração inicial de storage foi integrada pelo PR #31. Uma partição ext4 `NIVUS_DATA` é montada em `/var/lib/nivus`; symlinks preservam os caminhos de dados, configuração/segredos, releases e Docker. Um guard systemd valida mount, filesystem, rótulo, marcador e layout antes de Docker/coletor; a ausência do volume bloqueia os serviços. O workflow `Live USB storage` passou em runner Ubuntu hospedado com partição loop-backed. Ainda não há ISO bootável nem decisão final entre Casper Live com overlay e Ubuntu completo instalado no USB. A imagem, boot, smoke de login/Compose e persistência após reboot precisam ser concluídos; UEFI/BIOS e hardware Intel/AMD requerem teste físico.
+**Issue #29 — Ubuntu instalado em USB com dados persistentes:** o formato escolhido é Ubuntu Server completo, não Casper Live. A integração de storage entrou pelo PR #31; a partição ext4 `NIVUS_DATA` monta em `/var/lib/nivus`, com guard antes do Docker/coletor. O PR #34 prepara o destino pelo serial e modelo, gera seed Subiquity com confirmação manual do armazenamento e acrescenta um instalador pós-boot do Nivus. A CI do código anterior passou com loop ext4 e schema oficial; a CI da etapa pós-boot está pendente. Ainda não existe mídia Ubuntu customizada nem validação física. Faltam executar Subiquity até o primeiro boot, instalar Nivus, reiniciar, verificar persistência/recuperação e testar UEFI/BIOS Intel/AMD.
 
 Siga [`VM_VALIDATION.md`](VM_VALIDATION.md) como roteiro executável e registre a evidência em [`PROJECT_STATUS.md`](PROJECT_STATUS.md). O script de restauração está implementado; só declare a etapa concluída após teste real em clone descartável com backup, restore, validação e rollback.
 
-1. Fechar o formato da mídia: Casper Live verdadeiro com overlay e volume persistente, ou Ubuntu completo instalado no USB. A ISO oficial Ubuntu Server inicia o instalador, não um Live Server persistente; se a meta continuar sendo Live verdadeiro, documentar o construtor Casper e a manutenção por atualização de imagem.
-2. Construir a imagem e o primeiro smoke em runner Ubuntu hospedado pelo GitHub a cada pull request para `main` e push em `main`; não iniciar VMs no computador do operador.
+1. Formato decidido: Ubuntu Server completo instalado no USB, com raiz e dados persistentes; usar mídia Ubuntu inicializável separada, seed NoCloud privado e confirmação humana do destino. Não é Casper Live.
+2. Passar a CI hospedada para o seletor, seed Subiquity, instalador pós-boot, guard e smoke de Compose; não iniciar VMs no computador do operador.
 3. Registrar RAM livre, CPU, disco, espaço de build, portas, versões do Ubuntu/Docker/Compose e tempo de instalação.
 4. Exercitar boot, reinicialização, persistência, instalação, backup, restore e rollback no runner descartável hospedado pelo CI, sem alterar o notebook de teste.
 5. Preservar as evidências e logs sanitizados do runner como artefatos da execução; repetir o fluxo após mudança nos scripts operacionais.
