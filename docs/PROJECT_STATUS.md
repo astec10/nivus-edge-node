@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-16 01:28 UTC
+Atualizado: 2026-11-16 02:26 UTC
 Licença: AGPL-3.0-only
 
 ## Resumo verificado
@@ -17,17 +17,17 @@ O operador decidiu não usar VMs no computador pessoal. Os testes repetíveis us
 
 ## Estado do notebook de teste
 
-A candidata Docker Compose continua paralela à instalação systemd/Nginx anterior. Segundo a saída enviada pelo operador, o pacote térmico `20261115T015200Z` compilou API e interface, migrou o SQLite, reiniciou os serviços candidatos, passou `quick_check`, preservou imagens de rollback e recebeu nova amostra com origem `coretemp: Package id 0`. Health HTTPS e API sem token 401 também passaram. Valores e contagens reais de telemetria não são publicados. A candidata continua publicada na porta 8443; o Nginx legado permanece como padrão na porta 443.
+O operador aplicou a release do PR #20 em 16/11/2026. O script reconstruiu API e dashboard, validou a migração SQLite com `quick_check=ok`, confirmou uma nova amostra do coletor e promoveu o Nginx antes de reiniciar o Ubuntu.
 
-A candidata ainda está em 8443 e a interface antiga em 443; por isso o endereço sem porta ainda mostra a versão antiga. Um pacote reversível de promoção está em staging remoto e passou verificações somente de leitura: hash, sintaxe Bash, arquivos de backup, porta 8444 livre, health 200 e 401. A execução exige sudo interativo do operador. Ele recompila somente o painel, promove a nova dashboard a 443, preserva a leve em 8444 e mantém `/PROGRESS.html` e `/progress.js` no mesmo endereço. Ainda não está ativa em 443.
+Após o reboot, a inspeção SSH somente de leitura confirmou a release `/opt/nivus-compose/releases/20261116T015555Z-969a1bd062b138cba9d1286930ca7779ffbde6ff`; containers web, API, worker e MQTT ativos; API/MQTT saudáveis; `nivus-compose-telemetry.service` ativo; HTTPS principal sem sufixo de porta e a versão leve em 8444 respondendo HTTP 200; `/health` respondendo `{"status":"ok","node":"nivus-edge-node"}`; e API de telemetria sem token retornando 401. Esses checks confirmam serviço e autorização, não substituem o teste visual da troca entre versões.
+
+O rollback da release está em `/home/nivus/nivus-backups/nivus-update-20261116T015555Z`. O painel `/PROGRESS.html` e seu script também respondem HTTP 200, mas o HTML ainda contém o status antigo de promoção pendente. A correção da fonte e a republicação estão em andamento; não publicar valores ou contagens reais de sensores.
 
 ## Melhoria térmica e gráficos
 
-O agente classifica CPU/APU por fonte/label, prioriza o pacote `coretemp` no CCE e mantém placa-mãe/GPU como opcionais. Leituras ausentes não reaproveitam valor antigo. A origem `coretemp` foi observada em amostra nova na candidata Compose. Neste notebook, placa-mãe, GPU e hotspot continuam indisponíveis quando o sistema/driver não os expõe.
+O PR #20 foi integrado ao main e aplicado no notebook. A build confirmou os componentes API/web e a migração SQLite; a saída de implantação e a leitura pós-reboot confirmaram coleta contínua com origem térmica coretemp. Valores reais não são publicados. Placa-mãe, GPU e hotspot continuam dependentes dos sensores expostos pelo sistema e driver do equipamento.
 
-O update aplicado contém cartões térmicos, gráficos com períodos múltiplos e detalhes após três segundos. A CPU/APU foi observada por `coretemp`; placa-mãe, GPU e hotspot dependem de sensores expostos pelo equipamento. Os extremos do tooltip descrevem a janela exibida, não máximos históricos nem limites seguros do hardware. Esta branch substitui o link entre portas por um seletor no cabeçalho que alterna, sem recarregar a página, entre a dashboard atual e um painel leve baseado na interface anterior. Ambos compartilham o estado de sessão e a API dentro da mesma aplicação; somente a preferência de visualização fica em `localStorage`. O painel anterior é carregado sob demanda e os comandos do relé continuam manuais. A seleção ainda aguarda CI e publicação; nenhum update foi aplicado no notebook.
-
-O PR #20, ainda em revisão, agrupa os controles do gráfico e adiciona um aviso sonoro opcional pelo navegador. O som não aciona hardware físico e ainda não foi publicado no notebook.
+A dashboard contém os cartões térmicos, períodos e seleção conjunta de séries, detalhes após três segundos e aviso sonoro opcional pelo navegador. O seletor atual/leve é implementado no mesmo estado React e guarda apenas a preferência de versão em `localStorage`; o backend mantém a sessão/token na aplicação. Os dois endereços respondem 200, mas a alternância real em ambas as direções, logout e expiração ainda aguardam conferência no navegador. O painel leve foi preservado em HTTPS 8444.
 
 ## Regra automática do relé por bateria
 
@@ -35,21 +35,23 @@ O comportamento solicitado é desligar `nivus/edge/relay1` quando a bateria do d
 
 ## Acesso sem sufixo de porta
 
-Instalações limpas passam a preferir HTTPS 443 quando livre; quando a porta já está ocupada, o instalador preserva o serviço existente e escolhe uma alternativa. No notebook, a candidata ainda depende da promoção Nginx para aparecer em `https://IP/`. A LAN pode usar IP reservado no roteador. DDNS e acesso remoto não foram configurados; o plano é combinar nome DNS com VPN, sem publicar o painel diretamente na Internet.
+A dashboard principal está disponível em HTTPS na porta 443, portanto `https://IP/` não exige porta explícita. A versão leve continua em HTTPS 8444 para preservar compatibilidade e rollback. O IP da LAN pode ser reservado no roteador. DDNS e VPN de acesso remoto não foram configurados; o plano continua sendo combinar um nome DNS com VPN e não encaminhar painel ou SSH diretamente à Internet.
 
 ## Escopo ainda pendente
 
-- Executar a promoção reversível do dashboard candidato para HTTPS 443, confirmar o acesso ao endereço sem porta e o link para a versão leve em 8444.
-- Confirmar a nova mudança de porta e o controle visual por CI hospedada; o operador não usará VMs no computador pessoal.
-- Issue #22: integrar uma fonte identificada e recente de bateria e associá-la ao relé; manter a automação inativa até validação.
-- Issue #23: comparar as cinco propostas de interface e as melhorias comuns; escolher o tema antes de substituir o layout.
-- Issue #24: validar a alternância em ambas as direções, logout e expiração do token na mesma origem; a preferência de visualização não armazena nem transfere JWT.
-- Issue #21: relógio digital de Brasília em 24 horas, ao lado da gestão de usuários, sincronizado por três fontes com fallback identificado.
-- Medir disponibilidade de sensores, consumo e compatibilidade em mais máquinas Intel e AMD.
-- Projetar cadastro e atualização coordenada dos nós, com pacotes assinados, implantação gradual, checagens de saúde e rollback por nó.
-- Preservar autenticação, backup, restore e isolamento; não usar IA sozinha para decisões físicas críticas.
+- Issue #25: corrigir e republicar `PROGRESS.html`, que ainda mostra a promoção como pendente, e validar a troca de dashboard sem novo login, logout e expiração.
+- Issue #21 e #23: aba Configuração com relógio Brasília, formatos 12/24h e data, fuso/GMT, servidores NTP redundantes sem mostrar a fonte no relógio e temas selecionáveis.
+- Issue #26: modo Manutenção reversível pela dashboard e CLI para pausar apenas workloads opcionais allowlisted; reboot volta ao modo normal. Não implementado.
+- Issue #22: integrar fonte identificada e recente da bateria do dispositivo móvel e associá-la ao relé; manter comandos manuais até então.
+- Fase 1: instalação limpa, recuperação e medição em mais hardware; a CI hospedada não substitui a matriz física Intel/AMD de três faixas de geração.
+- Fase 2: identidade/cadastro/heartbeat multi-nó, telemetria agregada e rollout de releases assinadas com canário, saúde e rollback por nó.
+- Fase 3: Home Assistant, Zigbee, energia e câmeras em leitura antes de automação física.
+- Fase 4: inferência local e biblioteca documental consultável com fonte, licença, citações e limites de recursos.
+- Fase 5: fila de tarefas entre nós com quotas, leases, cancelamento, isolamento e artefatos verificados.
+- Fase 6: conectores comerciais com quotas, custos e aprovação explícita para dados que saem da rede local.
+- Executor de desenvolvimento: concluir uma proposta end-to-end e manter CI/revisão humana antes de merge/deploy.
 
-Nenhum suporte universal x86_64, automação doméstica, coordenador multi-nó ou execução distribuída de IA é declarado até implementação e evidência específicas.
+Nenhuma compatibilidade universal x86_64, automação doméstica, coordenador multi-nó ou execução distribuída de IA é declarada até existir implementação e evidência específicas.
 
 ## Orquestração de desenvolvimento com IA
 
