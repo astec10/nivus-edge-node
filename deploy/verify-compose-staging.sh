@@ -230,7 +230,9 @@ STATE_METADATA=$(docker compose -p "$PROJECT" exec -T api python -c \
   'import os,stat,sys; st=os.stat(sys.argv[1]); print(f"{stat.S_IMODE(st.st_mode):o}:{st.st_uid}:{st.st_gid}")' \
   /run/nivus-maintenance/state.json)
 [[ "$STATE_METADATA" == "640:$RUNTIME_UID:$RUNTIME_GID" ]]
-sudo -u "#$HOST_UID" -g "#$RUNTIME_GID" test -r "$MAINTENANCE_DIR/state.json"
+docker run --rm --user "$HOST_UID:$RUNTIME_GID" --network none \
+  --mount "type=bind,source=$MAINTENANCE_DIR,target=/maintenance,readonly" \
+  --entrypoint /bin/sh nivus-edge-api:local -ec 'test -r /maintenance/state.json'
 run_nivusctl() {
   local -a privilege=()
   if [[ $EUID -ne 0 ]]; then privilege=(sudo); fi
