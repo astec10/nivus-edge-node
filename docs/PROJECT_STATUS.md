@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-16 17:56 UTC
+Atualizado: 2026-11-16 18:13 UTC
 Licença: AGPL-3.0-only
 
 ## Resumo verificado
@@ -15,12 +15,13 @@ O run 43662375766 passou nos dois jobs Ubuntu 22.04 amd64: build/smoke Compose e
 
 O operador decidiu não usar VMs no computador pessoal. Os testes repetíveis usam runners descartáveis hospedados pelo GitHub Actions. CI cobre o fluxo de software; não certifica hardware físico nem sensores.
 
-## Ubuntu + Nivus Live USB
+## Ubuntu + Nivus instalado em USB
 
-O PR #31 foi integrado à main. A primeira peça instala a integração de persistência para uma partição ext4 NIVUS_DATA montada em /var/lib/nivus: dados SQLite/Mosquitto, configuração e segredos, releases do Nivus e Docker ficam nos caminhos persistentes, preservando os caminhos esperados pelo instalador atual. O guard de boot verifica montagem real, ext4, rótulo, marcador e diretórios necessários; Docker e o coletor dependem dessa verificação e não iniciam em overlay volátil quando a partição falta ou é inválida.
+O PR #31 integrou a persistência ext4 `NIVUS_DATA` em `/var/lib/nivus`, com symlinks para dados SQLite/Mosquitto, configuração e segredos, releases e Docker. O guard de boot bloqueia Docker e o coletor se a montagem real, filesystem, rótulo, marcador ou diretórios não forem válidos. O workflow de storage passou em runner Ubuntu 22.04 com ext4 em loop device.
 
-O workflow Live USB storage passou em runner Ubuntu 22.04 usando uma partição ext4 em loop device; os workflows gerais de CI do PR também passaram. Os scripts não formatam nem rotulam dispositivos e o integrador recusa substituir diretórios não vazios. **Ainda não existe uma ISO/imagem inicializável**. O operador confirmou Casper Live verdadeiro: inicialização direta do pendrive, raiz volátil/overlay e área ext4 NIVUS_DATA persistente em /var/lib/nivus. Faltam construtor hospedado, artefato, smoke de inicialização/serviços, persistência após reboot e matriz física UEFI/BIOS e Intel/AMD. Veja [deploy/live-usb/README.md](../deploy/live-usb/README.md).
+O operador confirmou uma instalação completa de Ubuntu Server minimal no pendrive, para usar a máquina como nó portátil e temporário em outro computador x86_64. O sistema operacional e os dados devem persistir entre reinicializações; a instalação não deve alterar o disco interno do computador hospedeiro. O formato escolhido não é Casper Live com raiz volátil.
 
+Ainda não existe instalador/imagem Nivus para esse uso. O PR #33 está sendo atualizado para refletir a decisão. Faltam seleção segura do pendrive, layout raiz/EFI + `NIVUS_DATA`, artefato reproduzível, instalação Nivus, boot/auth/health em CI hospedada, prova de persistência após reboot e validação física UEFI/BIOS e Intel/AMD.
 ## Estado do notebook de teste
 
 O operador aplicou a release do PR #20 em 16/11/2026. O script reconstruiu API e dashboard, validou a migração SQLite com `quick_check=ok`, confirmou uma nova amostra do coletor e promoveu o Nginx antes de reiniciar o Ubuntu.
