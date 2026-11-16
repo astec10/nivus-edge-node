@@ -28,6 +28,8 @@ Critérios já observados: login funcional; API exige token; health HTTPS respon
 
 **Operação de manutenção (issue #26):** implementação merged no PR #28, com `nivus help` e controle administrativo; CI hospedada aprovada. A pausa interrompe amostragem/publicação de telemetria do host e gravação de novas amostras MQTT, sem desligar API, painel, health ou broker. A publicação e o teste no notebook CCE U25 ainda estão pendentes.
 
+**Relógio, temas e sincronização de hora (issues #21/#23):** o PR #37 integrou preferências de visualização e temas; o PR #40 acrescentou a leitura/configuração NTP do host com controlador restrito, e o PR #41 corrigiu o nome temporário do rollback. CI hospedada aprovada. O pacote está em `main`, mas a instalação e validação visual no notebook ainda estão pendentes. O NTP do host só é aplicado explicitamente por administrador quando `systemd-timesyncd` já está ativo.
+
 ### Fase 1 — Instalação, recuperação e portabilidade
 
 **Estado: em andamento; instalação física e recuperação ainda não validadas.**
