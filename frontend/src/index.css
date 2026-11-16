@@ -1678,3 +1678,5 @@ code {
 .login-panel__toggle:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
 .dashboard-root[data-theme="cupertino"] .login-panel__toggle { border-color: #cbd5e1; color: #0f172a; background: #fff; }
 .dashboard-root[data-theme="eink"] .login-panel__toggle { border-radius: 0; color: #fff; background: #000; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; text-transform: uppercase; }
+
+.login-panel__form[hidden] { display: none; }
