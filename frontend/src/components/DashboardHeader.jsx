@@ -45,7 +45,7 @@ export default function DashboardHeader({ token, userPayload, fetchData, isOnlin
             <span>{legacyActive ? 'Versão atual' : 'Versão leve'}</span>
             <span className="legacy-dashboard-track" aria-hidden="true"><span /></span>
           </button>
-          <button className="dashboard-refresh-button" onClick={() => fetchData()}>Atualizar</button>
+          <button type="button" className="dashboard-refresh-button" onClick={() => fetchData()}>Atualizar</button>
         </div>
       </div>
     </header>
