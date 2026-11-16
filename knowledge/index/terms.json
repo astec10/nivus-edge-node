@@ -216,6 +216,8 @@
     "doc-project-roadmap"
   ],
   "48": [
+    "doc-ai-context",
+    "doc-project-status",
     "doc-vision"
   ],
   "5": [
@@ -1169,6 +1171,7 @@
   ],
   "atraso": [
     "doc-ai-module-workplan",
+    "doc-project-status",
     "doc-project-roadmap"
   ],
   "atrav": [
@@ -4026,7 +4029,9 @@
     "doc-video-research-index"
   ],
   "espera": [
-    "doc-ai-workflow"
+    "doc-ai-context",
+    "doc-ai-workflow",
+    "doc-project-status"
   ],
   "esperando": [
     "doc-project-status"
@@ -4287,6 +4292,7 @@
     "doc-ai-executor-implementation"
   ],
   "exibir": [
+    "doc-project-status",
     "doc-project-roadmap"
   ],
   "exig": [
@@ -6817,7 +6823,6 @@
   "mostra": [
     "doc-ai-context",
     "doc-ai-executor-implementation",
-    "doc-project-status",
     "doc-vision"
   ],
   "mostram": [
@@ -8019,7 +8024,9 @@
     "doc-ai-development-orchestration"
   ],
   "ponto": [
-    "doc-ai-development-orchestration"
+    "doc-ai-context",
+    "doc-ai-development-orchestration",
+    "doc-project-status"
   ],
   "pontos": [
     "doc-vision"
@@ -8905,7 +8912,8 @@
     "doc-module-map"
   ],
   "relato": [
-    "doc-ai-development-orchestration"
+    "doc-ai-development-orchestration",
+    "doc-project-status"
   ],
   "relay1": [
     "doc-project-status"
@@ -9128,6 +9136,7 @@
     "ai-development-persistent-worker"
   ],
   "restaura": [
+    "doc-ai-context",
     "doc-project-status",
     "doc-project-roadmap"
   ],
@@ -9136,6 +9145,7 @@
     "doc-vision"
   ],
   "restaurou": [
+    "doc-project-status",
     "doc-project-roadmap"
   ],
   "restore": [
@@ -10203,6 +10213,7 @@
     "ref-multipaz-developer-website"
   ],
   "tamb": [
+    "doc-ai-context",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-project-status",
@@ -10911,12 +10922,12 @@
     "doc-project-status"
   ],
   "valor": [
+    "doc-ai-context",
     "doc-ai-executor-implementation",
     "doc-project-status",
     "ref-multipaz-developer-website"
   ],
   "valores": [
-    "doc-ai-context",
     "doc-project-status",
     "doc-project-roadmap"
   ],
@@ -11665,6 +11676,7 @@
     "doc-ai-development-orchestration"
   ],
   "ém": [
+    "doc-ai-context",
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
