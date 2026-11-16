@@ -50,7 +50,7 @@ touch "$ROOTFS/.nivus-live-image-root"
 bash "$REPO_ROOT/deploy/live-usb/install-image-integration.sh" "$ROOTFS"
 [[ "$(readlink "$ROOTFS/var/lib/nivus-compose")" == "/var/lib/nivus/compose" ]]
 [[ "$(readlink "$ROOTFS/etc/nivus-compose")" == "/var/lib/nivus/config" ]]
-[[ "$(readlink "$ROOTFS/opt/nivus-compose")" == "/var/lib/nivus/releases" ]]
+[[ "$(readlink "$ROOTFS/opt/nivus-compose")" == "/var/lib/nivus" ]]
 [[ "$(readlink "$ROOTFS/var/lib/docker")" == "/var/lib/nivus/docker" ]]
 [[ -x "$ROOTFS/usr/local/libexec/nivus-data-volume-guard" ]]
 [[ -L "$ROOTFS/etc/systemd/system/local-fs.target.wants/var-lib-nivus.mount" ]]
