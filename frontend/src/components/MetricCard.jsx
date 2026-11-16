@@ -10,11 +10,34 @@ const cardStyle = {
   minWidth: 0,
 };
 
-function MetricCard({ label, value, hint, details, detailsLabel }) {
+function getSparklinePoints(values) {
+  if (!Array.isArray(values)) return null;
+  const numeric = values.map(Number).filter(Number.isFinite);
+  if (numeric.length < 2) return null;
+  const min = Math.min(...numeric);
+  const max = Math.max(...numeric);
+  const span = max - min || 1;
+  return numeric.map((value, index) => {
+    const x = 2 + (index / (numeric.length - 1)) * 116;
+    const y = 26 - ((value - min) / span) * 22;
+    return x.toFixed(1) + ',' + y.toFixed(1);
+  }).join(' ');
+}
+
+function MetricCard({ label, value, hint, details, detailsLabel, metricId, primary = false, sparklineValues = [], gaugeValue, gaugeMax = 100 }) {
   const tooltipId = useId();
   const [visible, setVisible] = useState(false);
   const [position, setPosition] = useState({ left: 16, top: 16, width: 320 });
   const showTimer = useRef(null);
+  const numericGauge = Number(gaugeValue);
+  const numericMax = Number(gaugeMax);
+  const hasGaugeValue = gaugeValue !== null && gaugeValue !== undefined && Number.isFinite(numericGauge) && numericMax > 0;
+  const gaugeProgress = hasGaugeValue ? Math.max(0, Math.min(100, (numericGauge / numericMax) * 100)) : 0;
+  const sparkline = getSparklinePoints(sparklineValues);
+  const gaugeStyle = {
+    '--metric-progress': gaugeProgress + '%',
+    '--metric-angle': (gaugeProgress * 1.8 - 90) + 'deg',
+  };
 
   const clearTimer = () => {
     if (showTimer.current !== null) {
@@ -70,7 +93,7 @@ function MetricCard({ label, value, hint, details, detailsLabel }) {
           pointerEvents: 'none',
         }}
       >
-        <strong style={{ display: 'block', marginBottom: '0.55rem' }}>{detailsLabel || `${label} · detalhes`}</strong>
+        <strong style={{ display: 'block', marginBottom: '0.55rem' }}>{detailsLabel || (label + ' · detalhes')}</strong>
         {details}
         <small style={{ display: 'block', color: '#94a3b8', marginTop: '0.6rem' }}>Detalhe calculado pelas amostras exibidas no período selecionado.</small>
       </div>,
@@ -81,24 +104,34 @@ function MetricCard({ label, value, hint, details, detailsLabel }) {
   return (
     <>
       <div
-        className="metric-card"
+        className={'metric-card' + (primary ? ' metric-card--primary' : '')}
+        data-metric={metricId || 'other'}
+        data-has-value={String(hasGaugeValue)}
         tabIndex={0}
         role="group"
-        aria-label={`${label}: ${value}. Mantenha o ponteiro ou o foco por 3 segundos para ver detalhes.`}
+        aria-label={label + ': ' + value + '. Mantenha o ponteiro ou o foco por 3 segundos para ver detalhes.'}
         aria-describedby={visible ? tooltipId : undefined}
         onPointerEnter={startDwell}
         onPointerLeave={hideDetails}
         onFocus={startDwell}
         onBlur={hideDetails}
-        style={{
-          ...cardStyle,
-          cursor: 'help',
-          outlineOffset: '3px',
-        }}
+        style={{ ...cardStyle, cursor: 'help', outlineOffset: '3px' }}
       >
-        <span style={{ color: '#94a3b8' }}>{label}</span>
-        <div style={{ fontSize: '1.8rem', fontWeight: 'bold', lineHeight: 1.3 }}>{value}</div>
-        {hint && <small style={{ display: 'block', color: '#94a3b8', minHeight: '1.1rem' }}>{hint}</small>}
+        <span className="metric-card-label">{label}</span>
+        <div className="metric-card-visual">
+          <div className="metric-card-reading">
+            <div className="metric-card-value">{value}</div>
+            {sparkline && (
+              <svg className="metric-card-sparkline" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true">
+                <polyline points={sparkline} fill="none" vectorEffect="non-scaling-stroke" />
+              </svg>
+            )}
+          </div>
+          <div className="metric-card-gauge" data-has-value={String(hasGaugeValue)} style={gaugeStyle} aria-hidden="true">
+            <span className="metric-card-gauge-value">{value}</span>
+          </div>
+        </div>
+        {hint && <small className="metric-card-hint">{hint}</small>}
       </div>
       {tooltip}
     </>
