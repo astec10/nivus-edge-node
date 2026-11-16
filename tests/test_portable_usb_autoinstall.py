@@ -18,6 +18,7 @@ from deploy.portable_usb.generate_autoinstall import (  # noqa: E402
     MINIMUM_DISK_BYTES,
     GenerationError,
     build_autoinstall_user_data,
+    build_seed_iso,
     early_validation_code,
     validate_account,
     validate_selection,
@@ -198,6 +199,58 @@ class PortableUsbAutoinstallTests(unittest.TestCase):
                 "nivus-node",
                 "plaintext-password",
             )
+
+    def test_seed_iso_is_private_and_has_checksum_without_overwrite(self) -> None:
+        device = selection_record(usb_disk(size=64 * GIB))["device"]
+        user_data = build_autoinstall_user_data(
+            device, "nivus", "nivus-node", "$6$test-salt$test-hash"
+        )
+        with tempfile.TemporaryDirectory() as temp_dir:
+            seed_dir = Path(temp_dir) / "seed"
+            seed_dir.mkdir(mode=0o700)
+            (seed_dir / "user-data").write_text(user_data, encoding="utf-8")
+            (seed_dir / "meta-data").write_text("instance-id: test\\n", encoding="utf-8")
+
+            def fake_cloud_localds(command, **kwargs):
+                Path(command[2]).write_bytes(b"synthetic-no-cloud-iso")
+                return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
+
+            with mock.patch(
+                "deploy.portable_usb.generate_autoinstall.shutil.which",
+                return_value="/usr/bin/cloud-localds",
+            ), mock.patch(
+                "deploy.portable_usb.generate_autoinstall.subprocess.run",
+                side_effect=fake_cloud_localds,
+            ) as run:
+                iso_path = build_seed_iso(seed_dir)
+
+            self.assertEqual(iso_path.name, "nivus-autoinstall-seed.iso")
+            self.assertEqual(iso_path.read_bytes(), b"synthetic-no-cloud-iso")
+            self.assertEqual(iso_path.stat().st_mode & 0o777, 0o600)
+            checksum = iso_path.with_suffix(iso_path.suffix + ".sha256")
+            self.assertIn(hashlib.sha256(iso_path.read_bytes()).hexdigest(), checksum.read_text())
+            self.assertEqual(run.call_count, 1)
+            self.assertEqual(run.call_args.args[0][1], "--filesystem=iso")
+
+            with mock.patch(
+                "deploy.portable_usb.generate_autoinstall.shutil.which",
+                return_value="/usr/bin/cloud-localds",
+            ), mock.patch(
+                "deploy.portable_usb.generate_autoinstall.subprocess.run",
+            ) as run_again:
+                with self.assertRaises(GenerationError):
+                    build_seed_iso(seed_dir)
+                run_again.assert_not_called()
+
+    def test_seed_iso_requires_cloud_localds(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            seed_dir = Path(temp_dir)
+            with mock.patch(
+                "deploy.portable_usb.generate_autoinstall.shutil.which",
+                return_value=None,
+            ):
+                with self.assertRaises(GenerationError):
+                    build_seed_iso(seed_dir)
 
     def test_seed_is_private_and_never_overwrites_existing_directory(self) -> None:
         device = selection_record(usb_disk(size=64 * GIB))["device"]
