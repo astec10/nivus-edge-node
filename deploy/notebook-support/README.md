@@ -28,6 +28,8 @@ Esse recorte reduz a superfície, mas não elimina o risco residual de código o
 5. O script verifica a impressão SHA-256 do pacote oficial, instala dependências necessárias, cria o usuário nivus-support e o serviço systemd. Ele não adiciona a conta ao grupo Docker nem altera os serviços, dados ou dashboard do Nivus.
 6. Confira Settings → Actions → Runners: o runner nivus-notebook-support deve aparecer como **Idle**.
 
+Se o instalador falhar antes de iniciar o registro no GitHub, ele desfaz a conta de serviço e os diretórios parciais. Se falhar depois de iniciar o registro, preserva os arquivos e para o serviço quando possível, pois o GitHub pode já ter cadastrado o runner. Confira **Settings → Actions → Runners** antes de repetir. Se o runner aparecer, use o fluxo de remoção abaixo com um token novo. Se não aparecer, envie apenas a mensagem final do instalador para receber orientação; nunca compartilhe tokens.
+
 A instalação usa aproximadamente 230 MB para baixar o pacote do runner, além de espaço para ferramentas e workspaces dos jobs. O limite systemd de memória do serviço é 2 GiB; o runner pode usar os dois núcleos. O notebook precisa estar ligado e conectado à Internet para receber um job. Se estiver desligado, os runners hospedados e a fila do executor continuam funcionando.
 
 ## Executar uma validação no notebook
