@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+DATA_ROOT="${1:-/var/lib/nivus}"
+EXPECTED_LABEL="NIVUS_DATA"
+MARKER="${DATA_ROOT}/.nivus-data-volume"
+fail() { printf 'Nivus persistent storage: %s\n' "$*" >&2; exit 1; }
+
+[[ "$DATA_ROOT" == /* && "$DATA_ROOT" != "/" ]] || fail "caminho do volume inválido."
+[[ ! -L "$DATA_ROOT" ]] || fail "o ponto de montagem não pode ser um link simbólico."
+[[ -d "$DATA_ROOT" ]] || fail "ponto de montagem ausente: $DATA_ROOT"
+mountpoint -q -- "$DATA_ROOT" || fail "partição persistente não está montada em $DATA_ROOT."
+FSTYPE=$(findmnt -n -o FSTYPE --mountpoint "$DATA_ROOT" 2>/dev/null || true)
+[[ "$FSTYPE" == "ext4" ]] || fail "esperado ext4 em $DATA_ROOT; encontrado ${FSTYPE:-nenhum}."
+SOURCE=$(findmnt -n -o SOURCE --mountpoint "$DATA_ROOT" 2>/dev/null || true)
+[[ -n "$SOURCE" && -b "$SOURCE" ]] || fail "origem do volume não é um dispositivo de bloco."
+LABEL=$(blkid -s LABEL -o value "$SOURCE" 2>/dev/null || true)
+[[ "$LABEL" == "$EXPECTED_LABEL" ]] || fail "rótulo esperado $EXPECTED_LABEL; encontrado ${LABEL:-nenhum}."
+[[ -f "$MARKER" && ! -L "$MARKER" ]] || fail "marcador de volume Nivus ausente ou inválido."
+[[ "$(cat -- "$MARKER")" == "nivus-data-volume-v1" ]] || fail "versão do marcador persistente não reconhecida."
+for directory in compose config releases docker; do
+  [[ -d "$DATA_ROOT/$directory" && ! -L "$DATA_ROOT/$directory" ]] || fail "diretório persistente ausente ou inválido: $directory."
+done
+
+printf 'Nivus persistent storage: OK (%s, ext4, label=%s).\n' "$DATA_ROOT" "$LABEL"
