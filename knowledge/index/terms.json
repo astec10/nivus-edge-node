@@ -933,7 +933,6 @@
     "video-wgqdaqqto90"
   ],
   "armazenamento": [
-    "doc-ai-context",
     "doc-ai-executor-implementation",
     "doc-project-roadmap",
     "doc-vision"
@@ -1337,7 +1336,8 @@
     "doc-vision"
   ],
   "base": [
-    "doc-video-research-index"
+    "doc-video-research-index",
+    "doc-project-roadmap"
   ],
   "baseada": [
     "doc-ai-development-orchestration"
@@ -1693,6 +1693,8 @@
     "doc-video-research-index"
   ],
   "casper": [
+    "doc-ai-context",
+    "doc-project-status",
     "doc-project-roadmap"
   ],
   "cat": [
@@ -2109,7 +2111,6 @@
   "completo": [
     "doc-ai-workflow",
     "doc-project-status",
-    "doc-project-roadmap",
     "doc-vision"
   ],
   "completos": [
@@ -2321,7 +2322,8 @@
   "confirmado": [
     "doc-ai-development-orchestration",
     "doc-video-research-index",
-    "doc-project-status"
+    "doc-project-status",
+    "doc-project-roadmap"
   ],
   "confirmados": [
     "doc-video-research-index"
@@ -2347,6 +2349,7 @@
     "ai-development-persistent-worker"
   ],
   "confirmou": [
+    "doc-ai-context",
     "doc-project-status"
   ],
   "conflitos": [
@@ -2412,6 +2415,7 @@
     "doc-vision"
   ],
   "construtor": [
+    "doc-ai-context",
     "doc-project-status",
     "doc-project-roadmap",
     "ref-multipaz-developer-website"
@@ -2531,7 +2535,6 @@
     "doc-vision"
   ],
   "continuar": [
-    "doc-project-roadmap",
     "doc-vision",
     "ref-multipaz-developer-website"
   ],
@@ -2605,6 +2608,9 @@
   ],
   "conversas": [
     "doc-ai-module-workplan"
+  ],
+  "convert": [
+    "doc-project-roadmap"
   ],
   "converter": [
     "doc-ai-development-orchestration"
@@ -3240,11 +3246,14 @@
     "doc-project-status"
   ],
   "direta": [
-    "doc-video-research-index"
+    "doc-video-research-index",
+    "doc-project-status"
   ],
   "diretamente": [
+    "doc-ai-context",
     "doc-module-map",
     "doc-project-status",
+    "doc-project-roadmap",
     "doc-vision"
   ],
   "disable": [
@@ -3561,7 +3570,8 @@
     "doc-vision"
   ],
   "ela": [
-    "doc-ai-development-orchestration"
+    "doc-ai-development-orchestration",
+    "doc-project-roadmap"
   ],
   "ele": [
     "doc-ai-development-orchestration",
@@ -4049,6 +4059,9 @@
     "doc-ai-executor-implementation",
     "doc-project-status"
   ],
+  "executado": [
+    "doc-project-roadmap"
+  ],
   "executam": [
     "doc-vision"
   ],
@@ -4340,15 +4353,10 @@
     "doc-vision"
   ],
   "fazer": [
-    "doc-ai-development-orchestration",
-    "doc-project-status"
+    "doc-ai-development-orchestration"
   ],
   "features": [
     "doc-vision"
-  ],
-  "fechar": [
-    "doc-project-status",
-    "doc-project-roadmap"
   ],
   "federation": [
     "networked-gpu-versus-task-federation"
@@ -4383,7 +4391,8 @@
   ],
   "ficar": [
     "doc-ai-development-orchestration",
-    "doc-ai-executor-implementation"
+    "doc-ai-executor-implementation",
+    "doc-project-roadmap"
   ],
   "ficou": [
     "doc-vision"
@@ -4415,8 +4424,7 @@
   "final": [
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
-    "doc-project-status",
-    "doc-project-roadmap"
+    "doc-project-status"
   ],
   "financeiro": [
     "doc-ai-executor-implementation",
@@ -4723,7 +4731,6 @@
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "doc-video-research-index",
-    "doc-project-status",
     "ref-multipaz-developer-website"
   ],
   "gerenci": [
@@ -5209,6 +5216,7 @@
     "doc-module-map"
   ],
   "implementar": [
+    "doc-project-roadmap",
     "doc-vision"
   ],
   "importadas": [
@@ -5384,6 +5392,12 @@
   "inicializ": [
     "doc-project-status",
     "doc-project-roadmap"
+  ],
+  "inicializa": [
+    "doc-project-status"
+  ],
+  "inicializado": [
+    "doc-ai-context"
   ],
   "iniciam": [
     "doc-project-status",
@@ -6121,6 +6135,9 @@
   "lr": [
     "doc-module-map"
   ],
+  "lts": [
+    "doc-project-roadmap"
+  ],
   "m": [
     "doc-ai-context",
     "doc-ai-workflow",
@@ -6404,9 +6421,6 @@
     "doc-ai-development-orchestration",
     "ai-development-persistent-worker"
   ],
-  "meta": [
-    "doc-project-roadmap"
-  ],
   "metadado": [
     "doc-video-research-index"
   ],
@@ -6540,9 +6554,6 @@
     "doc-ai-module-workplan",
     "doc-project-status",
     "ref-multipaz-developer-website"
-  ],
-  "montar": [
-    "doc-project-status"
   ],
   "moradores": [
     "doc-vision"
@@ -7236,6 +7247,7 @@
     "local-inference-hardware-fit"
   ],
   "overlay": [
+    "doc-ai-context",
     "doc-project-status",
     "doc-project-roadmap"
   ],
@@ -7463,6 +7475,11 @@
   ],
   "pending": [
     "video-yc5sg321g0y"
+  ],
+  "pendrive": [
+    "doc-ai-context",
+    "doc-project-status",
+    "doc-project-roadmap"
   ],
   "pequena": [
     "doc-ai-context",
@@ -7698,6 +7715,9 @@
   "poe": [
     "doc-project-roadmap",
     "doc-vision"
+  ],
+  "pois": [
+    "doc-project-roadmap"
   ],
   "pol": [
     "doc-ai-workflow",
@@ -8301,8 +8321,11 @@
     "doc-vision"
   ],
   "raiz": [
+    "doc-ai-context",
     "doc-ai-workflow",
-    "doc-module-map"
+    "doc-module-map",
+    "doc-project-status",
+    "doc-project-roadmap"
   ],
   "ram": [
     "doc-ai-workflow",
@@ -9323,7 +9346,6 @@
   "sendo": [
     "doc-ai-executor-implementation",
     "doc-project-status",
-    "doc-project-roadmap",
     "doc-vision"
   ],
   "senha": [
@@ -9356,6 +9378,7 @@
   "separada": [
     "doc-ai-context",
     "doc-ai-module-workplan",
+    "doc-project-roadmap",
     "doc-vision"
   ],
   "separadamente": [
@@ -9371,6 +9394,7 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-project-roadmap",
     "ref-multipaz-developer-website"
   ],
   "separados": [
@@ -9547,7 +9571,8 @@
     "ref-multipaz-developer-website"
   ],
   "sistema": [
-    "doc-project-status"
+    "doc-project-status",
+    "doc-project-roadmap"
   ],
   "sistemas": [
     "doc-ai-context"
@@ -9597,7 +9622,8 @@
     "doc-ai-executor-implementation"
   ],
   "solicitado": [
-    "doc-project-status"
+    "doc-project-status",
+    "doc-project-roadmap"
   ],
   "solicite": [
     "doc-ai-context"
@@ -9693,6 +9719,7 @@
     "doc-project-roadmap"
   ],
   "storage": [
+    "doc-ai-context",
     "doc-project-status",
     "doc-project-roadmap"
   ],
@@ -10000,7 +10027,6 @@
     "doc-project-roadmap"
   ],
   "testar": [
-    "doc-project-status",
     "doc-vision"
   ],
   "teste": [
@@ -10566,6 +10592,8 @@
     "doc-vision"
   ],
   "verdadeiro": [
+    "doc-ai-context",
+    "doc-project-status",
     "doc-project-roadmap"
   ],
   "verific": [
@@ -10763,8 +10791,10 @@
     "doc-vision"
   ],
   "vol": [
+    "doc-ai-context",
     "doc-module-map",
-    "doc-project-status"
+    "doc-project-status",
+    "doc-project-roadmap"
   ],
   "voltam": [
     "doc-ai-development-orchestration"
@@ -11038,7 +11068,9 @@
     "doc-vision"
   ],
   "área": [
-    "doc-ai-context"
+    "doc-ai-context",
+    "doc-project-status",
+    "doc-project-roadmap"
   ],
   "áreas": [
     "doc-vision"
@@ -11102,6 +11134,7 @@
     "doc-project-status"
   ],
   "átil": [
+    "doc-ai-context",
     "doc-module-map",
     "doc-project-status",
     "doc-project-roadmap"
@@ -11363,6 +11396,7 @@
   "ê": [
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
+    "doc-project-roadmap",
     "doc-vision"
   ],
   "êmera": [
@@ -11453,10 +11487,6 @@
     "doc-ai-context",
     "doc-ai-workflow",
     "doc-video-research-index",
-    "doc-project-status",
-    "doc-project-roadmap"
-  ],
-  "ídia": [
     "doc-project-status",
     "doc-project-roadmap"
   ],
