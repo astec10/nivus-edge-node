@@ -22,8 +22,48 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  propose:
+  duplicate_guard:
     if: >-
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
+      (
+      (github.event_name == 'issues' && github.event.action == 'labeled' && github.event.label.name == 'ai:ready') ||
+      (github.event_name == 'workflow_dispatch' && inputs.reviewed_and_authorized == true)
+      )
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    permissions:
+      pull-requests: read
+    outputs:
+      existing_pr: ${{ steps.check.outputs.existing_pr }}
+    env:
+      ISSUE_NUMBER: ${{ inputs.issue_number || github.event.issue.number }}
+      REPOSITORY: ${{ github.repository }}
+    steps:
+      - name: Skip if this issue already has an open proposal
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          [[ "$ISSUE_NUMBER" =~ ^[1-9][0-9]*$ ]]
+          existing_pr="$(gh api --paginate "repos/$REPOSITORY/pulls?state=open&per_page=100" \
+            | jq -r --arg prefix "ai/issue-${ISSUE_NUMBER}-run-" '.[] | select(.head.ref | startswith($prefix)) | .html_url' \
+            | sed -n '1p')"
+          if [[ -n "$existing_pr" ]]; then
+            echo "existing_pr=true" >> "$GITHUB_OUTPUT"
+            echo "An open proposal already exists for issue #$ISSUE_NUMBER; no model call will run."
+            echo "Existing proposal: $existing_pr"
+          else
+            echo "existing_pr=false" >> "$GITHUB_OUTPUT"
+            echo "No open proposal found; validated task may continue."
+          fi
+
+  propose:
+    needs: duplicate_guard
+    if: >-
+      needs.duplicate_guard.result == 'success' &&
+      needs.duplicate_guard.outputs.existing_pr == 'false' &&
       github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
       (
       (github.event_name == 'issues' && github.event.action == 'labeled' && github.event.label.name == 'ai:ready') ||
@@ -123,7 +163,7 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
-      issues: read
+      issues: write
       pull-requests: write
     env:
       ISSUE_NUMBER: ${{ inputs.issue_number || github.event.issue.number }}
@@ -140,10 +180,25 @@ jobs:
           [[ "$PROPOSAL_BRANCH" =~ ^ai/issue-[1-9][0-9]*-run-[0-9]+$ ]]
           base_branch="$(gh api "repos/$REPOSITORY" --jq '.default_branch')"
           [[ -n "$base_branch" ]]
-          gh pr create \
+          pr_url="$(gh pr create \
             --draft \
             --base "$base_branch" \
             --head "$PROPOSAL_BRANCH" \
             --title "AI proposal for issue #${ISSUE_NUMBER}" \
-            --body "Generated from a validated public/synthetic task. The proposal passed the Ubuntu CI workflow. Human review and approval are required before merge or deployment. Closes #${ISSUE_NUMBER}. Workflow: https://github.com/${REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            --body "Generated from a validated public/synthetic task. The proposal passed the Ubuntu CI workflow. Human review and approval are required before merge or deployment. Closes #${ISSUE_NUMBER}. Workflow: https://github.com/${REPOSITORY}/actions/runs/${GITHUB_RUN_ID}")"
+          echo "Created draft: $pr_url"
+
+          labels="$(gh issue view "$ISSUE_NUMBER" --repo "$REPOSITORY" --json labels --jq '.labels[].name')"
+          label_args=()
+          while IFS= read -r label; do
+            if [[ "$label" == "ai:ready" || "$label" == "ai:queued" ]]; then
+              label_args+=(--remove-label "$label")
+            fi
+          done <<< "$labels"
+          if (("${#label_args[@]}")); then
+            gh issue edit "$ISSUE_NUMBER" --repo "$REPOSITORY" "${label_args[@]}"
+          fi
+
+          gh issue comment "$ISSUE_NUMBER" --repo "$REPOSITORY" \
+            --body "Draft proposal opened after CI passed: $pr_url. Human review is required before merge or deployment. Queue labels were cleared to prevent an obsolete ready state."
 
