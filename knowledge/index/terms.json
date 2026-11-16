@@ -121,7 +121,8 @@
     "doc-vision"
   ],
   "30": [
-    "doc-ai-executor-implementation"
+    "doc-ai-executor-implementation",
+    "doc-project-status"
   ],
   "31": [
     "doc-project-roadmap"
@@ -244,6 +245,9 @@
     "doc-project-roadmap"
   ],
   "969a1bd062b138cba9d1286930ca7779ffbde6ff": [
+    "doc-project-status"
+  ],
+  "972814d": [
     "doc-project-status"
   ],
   "a": [
@@ -753,10 +757,12 @@
   ],
   "anterior": [
     "doc-ai-executor-implementation",
+    "doc-project-status",
     "doc-project-roadmap"
   ],
   "anteriores": [
-    "doc-ai-executor-implementation"
+    "doc-ai-executor-implementation",
+    "doc-project-status"
   ],
   "antes": [
     "doc-ai-context",
@@ -1930,6 +1936,7 @@
     "doc-vision"
   ],
   "clone": [
+    "doc-project-status",
     "doc-project-roadmap"
   ],
   "cloud": [
@@ -2733,7 +2740,8 @@
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
-    "doc-ai-module-workplan"
+    "doc-ai-module-workplan",
+    "doc-project-status"
   ],
   "criar": [
     "doc-ai-context",
@@ -3200,7 +3208,6 @@
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
     "doc-video-research-index",
-    "doc-project-status",
     "doc-vision",
     "ref-multipaz-developer-website"
   ],
@@ -5205,6 +5212,7 @@
   ],
   "imagens": [
     "doc-ai-workflow",
+    "doc-project-status",
     "doc-vision"
   ],
   "imediato": [
@@ -6068,6 +6076,9 @@
   "limpeza": [
     "doc-project-status"
   ],
+  "limpo": [
+    "doc-project-status"
+  ],
   "link": [
     "doc-video-research-index",
     "video-yc5sg321g0y"
@@ -6702,7 +6713,6 @@
   ],
   "necess": [
     "doc-ai-context",
-    "doc-project-status",
     "doc-vision"
   ],
   "necessidade": [
@@ -6719,6 +6729,9 @@
     "video-vqxbftjq0m4",
     "video-yc5sg321g0y",
     "video-gq3bewdjeos"
+  ],
+  "nele": [
+    "doc-project-status"
   ],
   "nem": [
     "doc-ai-context",
@@ -6755,7 +6768,6 @@
   "neste": [
     "doc-ai-context",
     "doc-ai-development-orchestration",
-    "doc-project-status",
     "ref-multipaz-developer-website"
   ],
   "network": [
@@ -7312,7 +7324,6 @@
     "ai-development-persistent-worker"
   ],
   "pacote": [
-    "doc-project-status",
     "doc-vision"
   ],
   "pacotes": [
@@ -7410,7 +7421,6 @@
     "ref-multipaz-developer-website"
   ],
   "passar": [
-    "doc-project-status",
     "doc-project-roadmap"
   ],
   "passaram": [
@@ -7929,7 +7939,8 @@
   ],
   "preserva": [
     "doc-ai-workflow",
-    "doc-video-research-index"
+    "doc-video-research-index",
+    "doc-project-status"
   ],
   "preservado": [
     "doc-project-status"
@@ -8007,9 +8018,6 @@
   ],
   "privados": [
     "doc-ai-context"
-  ],
-  "privilegiada": [
-    "doc-project-status"
   ],
   "problem": [
     "doc-video-research-index",
@@ -8459,8 +8467,7 @@
   ],
   "recebeu": [
     "doc-ai-context",
-    "doc-ai-executor-implementation",
-    "doc-project-status"
+    "doc-ai-executor-implementation"
   ],
   "recebido": [
     "doc-ai-development-orchestration"
@@ -8679,10 +8686,10 @@
     "doc-project-status"
   ],
   "remota": [
-    "doc-video-research-index"
+    "doc-video-research-index",
+    "doc-project-status"
   ],
   "remotamente": [
-    "doc-project-status",
     "doc-vision"
   ],
   "remote": [
@@ -10583,6 +10590,9 @@
   "validadas": [
     "doc-project-roadmap"
   ],
+  "validado": [
+    "doc-project-status"
+  ],
   "validados": [
     "doc-ai-development-orchestration"
   ],
@@ -11119,7 +11129,6 @@
   ],
   "ária": [
     "doc-video-research-index",
-    "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
     "ref-multipaz-developer-website"
@@ -11269,7 +11278,6 @@
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
-    "doc-project-status",
     "doc-vision"
   ],
   "ço": [
