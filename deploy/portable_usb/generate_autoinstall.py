@@ -219,7 +219,6 @@ def build_autoinstall_user_data(
             "type": "disk",
             "id": "nivus-usb",
             "serial": device["serial"],
-            "model": device["model"],
             "ptable": "gpt",
             "wipe": "superblock",
             "grub_device": True,
