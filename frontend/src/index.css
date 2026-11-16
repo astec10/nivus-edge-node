@@ -867,3 +867,425 @@ code {
     flex: 1 1 auto;
   }
 }
+
+
+.dashboard-navigation {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #334155;
+  padding-bottom: 0.75rem;
+}
+
+.dashboard-nav-button,
+.dashboard-nav-logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.35rem;
+  border: 1px solid #334155;
+  border-radius: 0.45rem;
+  padding: 0.45rem 0.9rem;
+  color: #f8fafc;
+  background: #1e293b;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dashboard-nav-button:hover,
+.dashboard-nav-logout:hover {
+  border-color: #38bdf8;
+}
+
+.dashboard-nav-button:focus-visible,
+.dashboard-nav-logout:focus-visible,
+.display-preference-field select:focus-visible,
+.display-preference-toggles input:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+.dashboard-nav-button.is-active {
+  border-color: #0891b2;
+  color: #0f172a;
+  background: #38bdf8;
+}
+
+.dashboard-nav-button--users.is-active {
+  border-color: #a855f7;
+  color: #fff;
+  background: #7e22ce;
+}
+
+.dashboard-nav-button__icon {
+  line-height: 1;
+}
+
+.dashboard-nav-logout {
+  margin-left: auto;
+  border-color: #ef4444;
+  color: #f87171;
+  background: transparent;
+}
+
+.clock-display {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 0.05rem;
+  min-width: max-content;
+  padding: 0 0.45rem;
+  color: #e2e8f0;
+  text-align: center;
+}
+
+.clock-display__time {
+  font: 700 0.9rem/1.2 ui-monospace, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.clock-display__date {
+  color: #94a3b8;
+  font: 0.68rem/1.2 ui-monospace, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.display-preference-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  align-items: start;
+  gap: 0.75rem 1rem;
+  margin-top: 0.85rem;
+}
+
+.display-preference-field {
+  display: grid;
+  gap: 0.35rem;
+  color: #cbd5e1;
+  font-size: 0.82rem;
+}
+
+.display-preference-field select {
+  width: 100%;
+  min-height: 2.35rem;
+  border: 1px solid #475569;
+  border-radius: 0.45rem;
+  padding: 0.4rem 0.55rem;
+  color: #f8fafc;
+  background: #0f172a;
+  font: inherit;
+}
+
+.display-preference-hint {
+  align-self: end;
+  color: #94a3b8;
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+.display-preference-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 1.2rem;
+  margin-top: 1rem;
+}
+
+.display-preference-toggles label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #cbd5e1;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.display-preference-save-status {
+  margin-top: 0.7rem;
+  color: #86efac;
+  font-size: 0.74rem;
+}
+
+.settings-explanation {
+  margin: 0.6rem 0 0;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.dashboard-root[data-theme="bento"] {
+  --text: #d4d4d8;
+  --text-h: #fafafa;
+  background: #09090b !important;
+  color: #fafafa !important;
+}
+
+.dashboard-root[data-theme="bento"] .dashboard-panel,
+.dashboard-root[data-theme="bento"] .telemetry-chart-panel,
+.dashboard-root[data-theme="bento"] .settings-card,
+.dashboard-root[data-theme="bento"] .metric-card,
+.dashboard-root[data-theme="bento"] .login-panel {
+  border-color: #27272a !important;
+  border-radius: 0.6rem !important;
+  background-color: #111113 !important;
+  box-shadow: none !important;
+}
+
+.dashboard-root[data-theme="glass"] {
+  --text: #dbeafe;
+  --text-h: #f8fafc;
+  background: radial-gradient(ellipse at 10% 0%, #075985 0, transparent 36%), radial-gradient(ellipse at 90% 12%, #6b21a8 0, transparent 32%), #08111f !important;
+  color: #f8fafc !important;
+}
+
+.dashboard-root[data-theme="glass"] .dashboard-panel,
+.dashboard-root[data-theme="glass"] .telemetry-chart-panel,
+.dashboard-root[data-theme="glass"] .settings-card,
+.dashboard-root[data-theme="glass"] .metric-card,
+.dashboard-root[data-theme="glass"] .login-panel {
+  border-color: #67e8f966 !important;
+  border-radius: 0.9rem !important;
+  background-color: rgba(15, 23, 42, 0.82) !important;
+  box-shadow: 0 0 22px rgba(34, 211, 238, 0.08) !important;
+  backdrop-filter: blur(6px);
+}
+
+.dashboard-root[data-theme="scada"] {
+  --text: #d1d5db;
+  --text-h: #f3f4f6;
+  background: #0b0f0c !important;
+  color: #f3f4f6 !important;
+}
+
+.dashboard-root[data-theme="scada"] .dashboard-panel,
+.dashboard-root[data-theme="scada"] .telemetry-chart-panel,
+.dashboard-root[data-theme="scada"] .settings-card,
+.dashboard-root[data-theme="scada"] .metric-card,
+.dashboard-root[data-theme="scada"] .login-panel {
+  border-color: #47534a !important;
+  border-radius: 0.25rem !important;
+  background-color: #171c18 !important;
+  box-shadow: inset 0 0 0 1px #ffffff08 !important;
+}
+
+.dashboard-root[data-theme="cupertino"] {
+  --text: #334155;
+  --text-h: #0f172a;
+  background: #e8edf4 !important;
+  color: #0f172a !important;
+}
+
+.dashboard-root[data-theme="cupertino"] .dashboard-panel,
+.dashboard-root[data-theme="cupertino"] .telemetry-chart-panel,
+.dashboard-root[data-theme="cupertino"] .settings-card,
+.dashboard-root[data-theme="cupertino"] .metric-card,
+.dashboard-root[data-theme="cupertino"] .login-panel {
+  border-color: #cbd5e1 !important;
+  border-radius: 1.1rem !important;
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  box-shadow: 0 10px 28px #0f172a18 !important;
+}
+
+.dashboard-root[data-theme="cupertino"] .metric-card span,
+.dashboard-root[data-theme="cupertino"] .dashboard-panel-heading h3,
+.dashboard-root[data-theme="cupertino"] .telemetry-chart-heading h3,
+.dashboard-root[data-theme="cupertino"] .display-preference-field,
+.dashboard-root[data-theme="cupertino"] .dashboard-panel-copy {
+  color: #334155 !important;
+}
+
+.dashboard-root[data-theme="cupertino"] .dashboard-nav-button,
+.dashboard-root[data-theme="cupertino"] .display-preference-field select {
+  border-color: #cbd5e1;
+  color: #0f172a;
+  background-color: #f8fafc;
+}
+
+.dashboard-root[data-theme="eink"] {
+  --text: #fff;
+  --text-h: #fff;
+  background: #000 !important;
+  color: #fff !important;
+}
+
+.dashboard-root[data-theme="eink"] .dashboard-panel,
+.dashboard-root[data-theme="eink"] .telemetry-chart-panel,
+.dashboard-root[data-theme="eink"] .settings-card,
+.dashboard-root[data-theme="eink"] .metric-card,
+.dashboard-root[data-theme="eink"] .login-panel {
+  border-color: #e5e7eb !important;
+  border-radius: 0.2rem !important;
+  background-color: #000 !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.dashboard-root[data-theme="eink"] .dashboard-nav-button.is-active,
+.dashboard-root[data-theme="eink"] .dashboard-nav-logout {
+  border-color: #ff4d00 !important;
+  color: #ff4d00 !important;
+}
+
+.dashboard-root[data-high-contrast="true"] .dashboard-panel,
+.dashboard-root[data-high-contrast="true"] .telemetry-chart-panel,
+.dashboard-root[data-high-contrast="true"] .settings-card,
+.dashboard-root[data-high-contrast="true"] .metric-card {
+  outline: 1px solid currentColor;
+  outline-offset: -1px;
+}
+
+.dashboard-root[data-high-contrast="true"] :focus-visible {
+  outline: 3px solid #ffbf00 !important;
+  outline-offset: 3px;
+}
+
+.dashboard-root[data-reduced-motion="true"] *,
+.dashboard-root[data-reduced-motion="true"] *::before,
+.dashboard-root[data-reduced-motion="true"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+  transition-duration: 0.01ms !important;
+}
+
+@media (max-width: 640px) {
+  .dashboard-navigation {
+    gap: 0.4rem;
+  }
+
+  .clock-display {
+    flex: 1 1 auto;
+    align-content: center;
+    justify-items: start;
+    padding: 0.35rem 0.5rem;
+    text-align: left;
+  }
+
+  .dashboard-nav-logout {
+    margin-left: 0;
+  }
+}
+
+
+.dashboard-root[data-theme="bento"] .user-management-panel,
+.dashboard-root[data-theme="bento"] .user-management-card {
+  border-color: #27272a !important;
+  border-radius: 0.6rem !important;
+  background-color: #111113 !important;
+  box-shadow: none !important;
+}
+
+.dashboard-root[data-theme="glass"] .user-management-panel,
+.dashboard-root[data-theme="glass"] .user-management-card {
+  border-color: #67e8f966 !important;
+  border-radius: 0.9rem !important;
+  background-color: rgba(15, 23, 42, 0.82) !important;
+  box-shadow: 0 0 22px rgba(34, 211, 238, 0.08) !important;
+  backdrop-filter: blur(6px);
+}
+
+.dashboard-root[data-theme="scada"] .user-management-panel,
+.dashboard-root[data-theme="scada"] .user-management-card {
+  border-color: #47534a !important;
+  border-radius: 0.25rem !important;
+  background-color: #171c18 !important;
+  box-shadow: inset 0 0 0 1px #ffffff08 !important;
+}
+
+.dashboard-root[data-theme="cupertino"] .user-management-panel,
+.dashboard-root[data-theme="cupertino"] .user-management-card {
+  border-color: #cbd5e1 !important;
+  border-radius: 1.1rem !important;
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  box-shadow: 0 10px 28px #0f172a18 !important;
+}
+
+.dashboard-root[data-theme="cupertino"] .user-management-panel h2,
+.dashboard-root[data-theme="cupertino"] .user-management-panel h3 {
+  color: #0f172a !important;
+}
+
+.dashboard-root[data-theme="eink"] .user-management-panel,
+.dashboard-root[data-theme="eink"] .user-management-card {
+  border-color: #e5e7eb !important;
+  border-radius: 0.2rem !important;
+  background-color: #000 !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.dashboard-root[data-theme="eink"] .user-management-panel h2,
+.dashboard-root[data-theme="eink"] .user-management-panel h3 {
+  color: #fff !important;
+}
+
+
+.dashboard-root[data-theme="cupertino"] .settings-card-heading p,
+.dashboard-root[data-theme="cupertino"] .settings-explanation,
+.dashboard-root[data-theme="cupertino"] .display-preference-hint {
+  color: #475569 !important;
+}
+
+.dashboard-root[data-theme="cupertino"] .maintenance-status {
+  border-color: #64748b;
+  color: #334155;
+}
+
+.dashboard-root[data-theme="cupertino"] .maintenance-details div {
+  border-color: #cbd5e1;
+  background: #e2e8f0;
+}
+
+.dashboard-root[data-theme="cupertino"] .display-preference-field select {
+  background: #fff;
+}
+
+.dashboard-root[data-theme="cupertino"] .user-management-panel p,
+.dashboard-root[data-theme="cupertino"] .user-management-panel label,
+.dashboard-root[data-theme="cupertino"] .user-management-panel small,
+.dashboard-root[data-theme="cupertino"] .user-management-panel td,
+.dashboard-root[data-theme="cupertino"] .user-management-panel th {
+  color: #334155 !important;
+}
+
+.dashboard-root[data-theme="cupertino"] .user-management-panel input,
+.dashboard-root[data-theme="cupertino"] .user-management-panel select {
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+  background-color: #fff !important;
+}
+
+.dashboard-root[data-theme="cupertino"] .user-management-panel button {
+  color: #0f172a !important;
+}
+
+.dashboard-root[data-theme="eink"] .display-preference-hint,
+.dashboard-root[data-theme="eink"] .settings-card-heading p,
+.dashboard-root[data-theme="eink"] .settings-explanation {
+  color: #d4d4d8 !important;
+}
+
+
+.dashboard-root[data-theme="cupertino"] .dashboard-nav-button.is-active {
+  border-color: #0284c7 !important;
+  color: #fff !important;
+  background-color: #0ea5e9 !important;
+}
+
+.dashboard-root[data-theme="cupertino"] .dashboard-nav-button--users.is-active {
+  border-color: #7e22ce !important;
+  color: #fff !important;
+  background-color: #7e22ce !important;
+}
+
+.dashboard-root[data-theme="cupertino"] .dashboard-nav-logout {
+  border-color: #dc2626 !important;
+  color: #b91c1c !important;
+  background-color: transparent !important;
+}

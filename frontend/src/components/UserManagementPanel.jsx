@@ -5,13 +5,13 @@ export default function UserManagementPanel({ token, isAdmin, activeTab, newUser
   return (
     <>
       {token && isAdmin && activeTab === 'users' && (
-        <div style={{ backgroundColor: '#1e293b', border: '1px solid #334155', padding: '2rem', borderRadius: '0.75rem', marginBottom: '2rem' }}>
+        <div className="user-management-panel" style={{ backgroundColor: '#1e293b', border: '1px solid #334155', padding: '2rem', borderRadius: '0.75rem', marginBottom: '2rem' }}>
           <h2 style={{ marginTop: 0, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Users style={{ color: '#a855f7' }} /> Gestão de Utilizadores e Credenciais
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
             
-            <div style={{ backgroundColor: '#0f172a', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
+            <div className="user-management-card" style={{ backgroundColor: '#0f172a', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
               <h3 style={{ marginTop: 0, color: '#38bdf8' }}><UserPlus size={18} /> Registar Novo Utilizador</h3>
               <form onSubmit={handleSaveUser} autoComplete="off">
                 <div style={{ marginBottom: '1rem' }}>

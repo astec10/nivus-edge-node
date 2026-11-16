@@ -10,6 +10,7 @@ import SettingsPanel from './components/SettingsPanel';
 const LegacyDashboardPanel = lazy(() => import('./components/LegacyDashboardPanel'));
 import LegalNotice from './components/LegalNotice';
 import { thresholdOrDefault } from './utils/telemetry';
+import { DEFAULT_DISPLAY_PREFERENCES, loadDisplayPreferences, normalizeDisplayPreferences, saveDisplayPreferences } from './utils/displayPreferences';
 
 const API_BASE = '';
 
@@ -27,6 +28,7 @@ function App() {
   const [error, setError] = useState(null);
   
   const [token, setToken] = useState(localStorage.getItem('nivus_token') || '');
+  const [displayPreferenceState, setDisplayPreferenceState] = useState(() => ({ owner: 'guest', value: { ...DEFAULT_DISPLAY_PREFERENCES } }));
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
@@ -52,6 +54,23 @@ function App() {
   };
 
   const userPayload = token ? parseJwt(token) : null;
+  const displayPreferenceOwner = userPayload?.sub || 'guest';
+  const displayPreferences = displayPreferenceState.owner === displayPreferenceOwner
+    ? displayPreferenceState.value
+    : DEFAULT_DISPLAY_PREFERENCES;
+
+  useEffect(() => {
+    setDisplayPreferenceState({ owner: displayPreferenceOwner, value: loadDisplayPreferences(displayPreferenceOwner) });
+  }, [displayPreferenceOwner]);
+
+  const handleDisplayPreferenceChange = (changes) => {
+    const current = displayPreferenceState.owner === displayPreferenceOwner
+      ? displayPreferenceState.value
+      : loadDisplayPreferences(displayPreferenceOwner);
+    const next = normalizeDisplayPreferences({ ...current, ...changes });
+    setDisplayPreferenceState({ owner: displayPreferenceOwner, value: next });
+    return saveDisplayPreferences(displayPreferenceOwner, next);
+  };
   const handleToggleDashboardVersion = () => {
     const nextVersion = dashboardVersion === 'current' ? 'legacy' : 'current';
     setDashboardVersion(nextVersion);
@@ -426,16 +445,19 @@ function App() {
   const passwordsDoNotMatch = targetConfirmPassword.length > 0 && targetNewPassword !== targetConfirmPassword;
 
   return (
-    <div className="dashboard-root" style={{ minHeight: '100vh', minWidth: 0, backgroundColor: '#0f172a', color: '#f8fafc', padding: 'clamp(0.75rem, 2vw, 1.75rem)', fontFamily: 'system-ui, sans-serif', position: 'relative' }}>
+    <div className="dashboard-root" data-theme={displayPreferences.theme} data-high-contrast={String(displayPreferences.highContrast)} data-reduced-motion={String(displayPreferences.reducedMotion)} style={{ minHeight: '100vh', minWidth: 0, backgroundColor: '#0f172a', color: '#f8fafc', padding: 'clamp(0.75rem, 2vw, 1.75rem)', fontFamily: 'system-ui, sans-serif', position: 'relative' }}>
       <PasswordChangeModal editingUser={editingUser} setEditingUser={setEditingUser} handlePasswordChangeSubmit={handlePasswordChangeSubmit} targetNewPassword={targetNewPassword} setTargetNewPassword={setTargetNewPassword} targetConfirmPassword={targetConfirmPassword} setTargetConfirmPassword={setTargetConfirmPassword} passwordsDoNotMatch={passwordsDoNotMatch} adminAuthPassword={adminAuthPassword} setAdminAuthPassword={setAdminAuthPassword} passwordChangeRequired={passwordChangeRequired} currentUsername={userPayload?.sub || ''} handleLogout={handleLogout} />
       {!passwordChangeRequired && (
         <>
           <DashboardHeader token={token} userPayload={userPayload} fetchData={fetchData} isOnline={isOnline} dashboardVersion={dashboardVersion} onToggleDashboardVersion={handleToggleDashboardVersion} />
-          <DashboardNavigation token={token} isAdmin={isAdmin} activeTab={activeTab} setActiveTab={setActiveTab} handleLogout={handleLogout} />
+          <DashboardNavigation token={token} isAdmin={isAdmin} activeTab={activeTab} setActiveTab={setActiveTab} handleLogout={handleLogout} displayPreferences={displayPreferences} />
           <LoginPanel token={token} handleLogin={handleLogin} username={username} setUsername={setUsername} password={password} setPassword={setPassword} />
           <UserManagementPanel token={token} isAdmin={isAdmin} activeTab={activeTab} newUsername={newUsername} setNewUsername={setNewUsername} newPassword={newPassword} setNewPassword={setNewPassword} newRole={newRole} setNewRole={setNewRole} handleSaveUser={handleSaveUser} usersList={usersList} setEditingUser={setEditingUser} setTargetNewPassword={setTargetNewPassword} setTargetConfirmPassword={setTargetConfirmPassword} setAdminAuthPassword={setAdminAuthPassword} handleDeleteUser={handleDeleteUser} />
-          {activeTab === 'settings' && isAdmin && (
+          {activeTab === 'settings' && token && (
             <SettingsPanel
+              isAdmin={isAdmin}
+              displayPreferences={displayPreferences}
+              onDisplayPreferenceChange={handleDisplayPreferenceChange}
               maintenanceState={maintenanceState}
               maintenanceMessage={maintenanceMessage}
               maintenanceBusy={maintenanceBusy}

@@ -1,25 +1,53 @@
 import React from 'react';
 import { Settings, Users } from 'lucide-react';
+import ClockDisplay from './ClockDisplay';
+import { DEFAULT_DISPLAY_PREFERENCES } from '../utils/displayPreferences';
 
-export default function DashboardNavigation({ token, isAdmin, activeTab, setActiveTab, handleLogout }) {
+function NavigationButton({ active, className = '', onClick, children, label }) {
   return (
-    <>
-      {token && (
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid #334155', paddingBottom: '0.75rem' }}>
-          <button onClick={() => setActiveTab('dashboard')} style={{ backgroundColor: activeTab === 'dashboard' ? '#38bdf8' : '#1e293b', color: activeTab === 'dashboard' ? '#0f172a' : '#f8fafc', border: '1px solid #334155', padding: '0.5rem 1.2rem', borderRadius: '0.375rem', cursor: 'pointer', fontWeight: '600' }}>📊 Painel</button>
-          {isAdmin && (
-            <button onClick={() => setActiveTab('users')} style={{ backgroundColor: activeTab === 'users' ? '#a855f7' : '#1e293b', color: '#ffffff', border: '1px solid #334155', padding: '0.5rem 1.2rem', borderRadius: '0.375rem', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Users size={16} /> Gestão de Utilizadores
-            </button>
-          )}
-          {isAdmin && (
-            <button onClick={() => setActiveTab('settings')} style={{ backgroundColor: activeTab === 'settings' ? '#38bdf8' : '#1e293b', color: activeTab === 'settings' ? '#0f172a' : '#f8fafc', border: '1px solid #334155', padding: '0.5rem 1.2rem', borderRadius: '0.375rem', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Settings size={16} /> Configuração
-            </button>
-          )}
-          <button onClick={handleLogout} style={{ marginLeft: 'auto', backgroundColor: 'transparent', border: '1px solid #ef4444', color: '#f87171', padding: '0.4rem 0.8rem', borderRadius: '0.375rem', cursor: 'pointer' }}>Terminar Sessão</button>
-        </div>
+    <button
+      type="button"
+      className={`dashboard-nav-button ${className} ${active ? 'is-active' : ''}`}
+      aria-current={active ? 'page' : undefined}
+      onClick={onClick}
+    >
+      {label && <span className="dashboard-nav-button__icon" aria-hidden="true">{label}</span>}
+      {children}
+    </button>
+  );
+}
+
+export default function DashboardNavigation({
+  token,
+  isAdmin,
+  activeTab,
+  setActiveTab,
+  handleLogout,
+  displayPreferences = DEFAULT_DISPLAY_PREFERENCES,
+}) {
+  if (!token) return null;
+
+  return (
+    <nav className="dashboard-navigation" aria-label="Navegação principal">
+      <NavigationButton active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} label="▦">
+        Painel
+      </NavigationButton>
+      {isAdmin && (
+        <NavigationButton
+          active={activeTab === 'users'}
+          className="dashboard-nav-button--users"
+          onClick={() => setActiveTab('users')}
+        >
+          <Users size={16} aria-hidden="true" /> Gestão de Utilizadores
+        </NavigationButton>
       )}
-    </>
+      <ClockDisplay preferences={displayPreferences} />
+      <NavigationButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')}>
+        <Settings size={16} aria-hidden="true" /> Configuração
+      </NavigationButton>
+      <button className="dashboard-nav-logout" type="button" onClick={handleLogout}>
+        Terminar Sessão
+      </button>
+    </nav>
   );
 }
