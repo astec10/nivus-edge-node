@@ -26,7 +26,9 @@ def _load_authenticated_user(token: str) -> dict:
 
         if row is None or row["role"] != payload["role"]:
             raise HTTPException(status_code=401, detail="Token inválido")
-        payload["password_change_required"] = bool(row["must_change_password"])
+        payload["password_change_required"] = bool(row["must_change_password"]) or bool(
+            payload.get("password_change_required")
+        )
         return payload
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Token inválido")
