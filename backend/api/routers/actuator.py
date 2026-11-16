@@ -25,7 +25,7 @@ def send_actuator_command(
     conn = get_db_connection()
     try:
         conn.execute(
-            "INSERT INTO actuator_audit (topic, command) VALUES (?, ?)",
+            "INSERT INTO actuator_audit (topic, command, source) VALUES (?, ?, 'manual')",
             (payload.topic, payload.command),
         )
         conn.commit()
