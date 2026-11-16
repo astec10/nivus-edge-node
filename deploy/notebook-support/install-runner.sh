@@ -12,6 +12,35 @@ fail() {
   printf 'Erro: %s\n' "$*" >&2
   exit 1
 }
+tmp_dir=""
+created_user=0
+registration_attempted=0
+unit_name=""
+
+cleanup() {
+  local status=$?
+  trap - EXIT
+  if (( status != 0 )); then
+    if (( registration_attempted == 0 )); then
+      if (( created_user == 1 )); then
+        rm -rf -- "$RUNNER_DIR" "$RUNNER_HOME"
+        userdel "$RUNNER_USER" 2>/dev/null || true
+        printf '[rollback] Falha antes de iniciar o registro; a conta e os diretórios parciais foram removidos.\n' >&2
+      fi
+    else
+      if [[ -n "$unit_name" ]]; then
+        systemctl stop "$unit_name" >/dev/null 2>&1 || true
+      fi
+      printf '[atenção] O registro no GitHub pode ter sido concluído. A instalação local foi preservada para recuperação; confira Settings > Actions > Runners antes de tentar novamente.\n' >&2
+    fi
+  fi
+  if [[ -n "$tmp_dir" ]]; then
+    rm -rf -- "$tmp_dir"
+  fi
+  unset RUNNER_REGISTRATION_TOKEN || true
+  exit "$status"
+}
+trap cleanup EXIT
 [[ "$EUID" -eq 0 ]] || fail "execute com sudo: sudo bash deploy/notebook-support/install-runner.sh"
 [[ -r /etc/os-release ]] || fail "sistema operacional não identificado"
 # shellcheck disable=SC1091
@@ -26,7 +55,6 @@ if id "$RUNNER_USER" >/dev/null 2>&1 || [[ -e "$RUNNER_DIR" || -e "$RUNNER_HOME"
   fail "há restos ou uma instalação existente; confira o README antes de remover qualquer coisa"
 fi
 tmp_dir="$(mktemp -d /tmp/nivus-runner-install.XXXXXX)"
-trap 'rm -rf -- "$tmp_dir"; unset RUNNER_REGISTRATION_TOKEN || true' EXIT
 archive="$tmp_dir/actions-runner.tar.gz"
 download_url="https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz"
 printf '[1/6] Baixando o runner oficial v%s...\n' "$RUNNER_VERSION"
@@ -35,6 +63,7 @@ printf '%s  %s\n' "$RUNNER_SHA256" "$archive" | sha256sum --check --status \
   || fail "o SHA-256 do pacote do runner não corresponde ao release oficial"
 printf '[2/6] Criando conta de serviço sem login e diretórios isolados...\n'
 useradd --system --create-home --home-dir "$RUNNER_HOME" --shell /usr/sbin/nologin "$RUNNER_USER"
+created_user=1
 install -d -o "$RUNNER_USER" -g "$RUNNER_USER" -m 0750 "$RUNNER_DIR"
 printf '[3/6] Instalando dependências documentadas pelo runner...\n'
 tar -xzf "$archive" -C "$RUNNER_DIR"
@@ -47,6 +76,7 @@ read -r -s -p "Token temporário de registro: " RUNNER_REGISTRATION_TOKEN
 printf '\n'
 [[ -n "$RUNNER_REGISTRATION_TOKEN" ]] || fail "token vazio"
 printf '[4/6] Registrando somente o runner auxiliar deste repositório...\n'
+registration_attempted=1
 runuser -u "$RUNNER_USER" -- env NIVUS_RUNNER_TOKEN="$RUNNER_REGISTRATION_TOKEN" \
   bash -c 'cd /opt/nivus-notebook-support && ./config.sh --url https://github.com/astec10/nivus-edge-node --token "$NIVUS_RUNNER_TOKEN" --name nivus-notebook-support --labels nivus-support --work _work --unattended'
 unset RUNNER_REGISTRATION_TOKEN
