@@ -16,7 +16,7 @@ Ao abrir um pull request ou enviar uma alteração para `main`:
 
 ## Testes que não devem rodar no notebook ativo
 
-`deploy/test-restore-rollback.sh` injeta falha para verificar a recuperação. Não rode esse script no notebook de teste nem em qualquer máquina com dados importantes. A rotina deve ser executada somente dentro do workflow remoto que cria um ambiente descartável para cada execução. O notebook permanece disponível para telemetria real e validações de leitura.
+`deploy/test-restore-rollback.sh` injeta falha para verificar a recuperação. Não rode esse script no notebook de teste nem em qualquer máquina com dados importantes. A rotina deve ser executada somente dentro do workflow remoto que cria um ambiente descartável para cada execução. Um workflow manual opcional do notebook pode validar apenas a branch padrão após merge; ele não roda restore, rollback, instalação ou código de PR e não substitui os testes hospedados. Consulte [deploy/notebook-support/README.md](../deploy/notebook-support/README.md).
 
 ## Limites
 
