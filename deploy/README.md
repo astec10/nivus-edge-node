@@ -23,6 +23,19 @@ O instalador cria segredos em /etc/nivus-compose/secrets, um certificado TLS aut
 
 O navegador avisará que o certificado é autoassinado. Não exponha a instalação diretamente à Internet.
 
+## Atualizar uma instalação Compose existente
+
+Use um clone limpo da origem oficial e execute o atualizador como administrador:
+
+    git clone --depth 1 https://github.com/astec10/nivus-edge-node.git /tmp/nivus-edge-node-update
+    sudo bash /tmp/nivus-edge-node-update/deploy/update.sh
+
+O atualizador aceita somente uma instalação Compose ativa no caminho esperado. Ele valida health e autenticação antes de começar, compila API e dashboard sequencialmente com imagens versionadas, cria backup SQLite consistente, guarda a unidade systemd, troca a release e valida containers, HTTPS, HTTP 401, SQLite, página `/PROGRESS.html` e coleta. A release anterior e o backup são mantidos. Se a validação falhar depois da troca, tenta voltar ao symlink e aos serviços anteriores. O banco não é substituído automaticamente durante rollback; a cópia permanece disponível para recuperação.
+
+O atualizador não altera o Nginx do host, os segredos externos ou o dashboard legado em 8444. Não use `deploy/install.sh` para atualizar uma instalação existente: esse script é somente para a instalação inicial. Este mecanismo é manual, não atualiza outros nós e precisa de Internet e espaço/memória para construir imagens.
+
+A execução no CCE U25 ainda precisa ser feita e conferida no navegador; CI hospedada não substitui essa validação.
+
 O broker e os serviços que o usam ficam numa rede Docker interna. O coletor do host resolve o IP atual do broker por um `ExecStartPre` privilegiado e grava somente esse endereço em `/run`; a senha continua sendo entregue como credencial systemd ao processo sem privilégios. Não altere o agente para conectar a um `localhost`/porta publicada: redes `internal` não publicam a porta MQTT no host. O helper é executado a cada início do coletor para acompanhar a recriação do container.
 
 ## Modo de manutenção e ajuda da CLI
@@ -39,7 +52,7 @@ Para retomar a operação normal imediatamente, sem reiniciar:
 
     sudo nivus maintenance disable
 
-API, autenticação, dashboard, health checks, SQLite existente e broker MQTT continuam ativos. A manutenção não desliga serviços alheios nem os processos Nivus; o agente deixa de amostrar/publicar e o worker descarta novas amostras recebidas. O estado ativo fica em `/run/nivus-maintenance`, e o boot retorna automaticamente ao modo normal. O mesmo controle aparece na aba Configuração para administradores. Essas funções ainda estão em desenvolvimento nesta branch e não podem ser usadas no notebook até a publicação da release.
+API, autenticação, dashboard, health checks, SQLite existente e broker MQTT continuam ativos. A manutenção não desliga serviços alheios nem os processos Nivus; o agente deixa de amostrar/publicar e o worker descarta novas amostras recebidas. O estado ativo fica em `/run/nivus-maintenance`, e o boot retorna automaticamente ao modo normal. O mesmo controle aparece na aba Configuração para administradores. A implementação foi integrada à main pelo PR #28. A release do notebook de teste ainda precisa ser atualizada e validada para disponibilizar os controles nesse host.
 
 ## Verificar, backup e parar
 
@@ -85,7 +98,7 @@ Este pacote descreve a candidata Compose e não inclui detalhes de implantação
 - Temperatura pode não estar disponível. Potência continua sendo estimativa, não medição elétrica.
 - O broker/ACL cobre agente, worker, health check e o tópico de relé existente. Sensores e atuadores externos precisam de usuários/tópicos próprios antes de conexão.
 - O painel atual não é ainda o painel multi-nó/domótico planejado.
-- Atualização automática com rollback de versão ainda não foi implementada; faça backup e preserve a release atual antes de atualizar.
+- O atualizador manual reversível está em `deploy/update.sh`; atualizações automáticas de frota ainda não foram implementadas.
 - Controlar Docker equivale a poder administrativo alto no host; não adicione usuários ao grupo docker sem compreender esse privilégio.
 
 ## Medição ao vivo no CCE U25
