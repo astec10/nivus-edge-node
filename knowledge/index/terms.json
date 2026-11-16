@@ -109,9 +109,6 @@
     "doc-project-status",
     "doc-project-roadmap"
   ],
-  "27": [
-    "doc-project-status"
-  ],
   "28": [
     "doc-ai-context",
     "doc-project-status",
@@ -193,6 +190,9 @@
   ],
   "503": [
     "doc-ai-executor-implementation",
+    "doc-project-status"
+  ],
+  "56": [
     "doc-project-status"
   ],
   "6": [
