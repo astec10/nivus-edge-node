@@ -418,7 +418,7 @@ def build_seed_iso(seed_dir: Path) -> Path:
             os.chmod(temporary_iso, 0o600)
             os.link(temporary_iso, output)
             digest = hashlib.sha256(output.read_bytes()).hexdigest()
-            _write_new_file(checksum, f"{digest}  {output.name}\\n")
+            _write_new_file(checksum, f"{digest}  {output.name}\n")
     except FileExistsError as exc:
         raise GenerationError("a ISO ou checksum já existe; nenhum arquivo foi sobrescrito.") from exc
     except (OSError, subprocess.CalledProcessError) as exc:
