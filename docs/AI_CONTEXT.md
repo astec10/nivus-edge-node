@@ -14,7 +14,7 @@ Criar uma plataforma local-first, modular e econômica para monitorar nós x86_6
 - Telemetria local está presente no nó de teste, mas telemetria agregada entre nós não é pré-requisito para o executor de desenvolvimento; será útil quando o Nó Master estiver operacional.
 - Multi-nó, biblioteca compartilhada em runtime, Home Assistant, Zigbee, IA local, P2P e scheduler distribuído continuam planejados até evidência de implementação.
 - O operador não usará VMs no computador pessoal. Use CI hospedada ou simulações; não solicite instalação local de VM.
-- Issue #29: o operador escolheu Ubuntu Server completo instalado no USB (não Casper Live), com raiz e `NIVUS_DATA` persistentes. O PR #34 gera seleção/seed Subiquity revisáveis e acrescenta um instalador pós-boot; todos os checks hospedados passaram no commit `51f336711f23b9341ea459606a754e5730de000f`; teste real de boot/reboot ainda está pendente. Ainda não há ISO Ubuntu customizada nem validação física.
+- Issue #29: Ubuntu Server completo instalado no USB, com raiz e `NIVUS_DATA` persistentes. O PR #34 foi integrado à `main` no commit `703efa4128f60460910b05ab344b60b082006a7e`; os checks hospedados passaram no head `3a1621dc11d2532853ef83b9ab5ea47f64cfaca5`. A seleção do alvo, seed Subiquity e bootstrap pós-boot estão no código, mas ainda faltam instalar e reiniciar por um USB físico, verificar dados e serviços e testar recuperação. Não há ISO Ubuntu customizada nem qualificação física.
 - Acesso atual usa senha/JWT. USB e biometria são opcionais e não estão implementadas.
 
 ## Regras invariáveis
