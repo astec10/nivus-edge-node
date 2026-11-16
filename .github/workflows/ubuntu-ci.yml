@@ -70,7 +70,7 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          mkdir -p data mosquitto secrets runtime-state
+          mkdir -p data mosquitto secrets runtime-state runtime-time-sync
           cat > .env <<EOF
           NIVUS_BIND_ADDRESS=127.0.0.1
           NIVUS_NODE_NAME=compose-config-check
@@ -79,6 +79,7 @@ jobs:
           NIVUS_MOSQUITTO_DATA_DIR=$GITHUB_WORKSPACE/mosquitto
           NIVUS_SECRET_DIR=$GITHUB_WORKSPACE/secrets
           NIVUS_MAINTENANCE_STATE_DIR=$GITHUB_WORKSPACE/runtime-state
+          NIVUS_TIME_SYNC_DIR=$GITHUB_WORKSPACE/runtime-time-sync
           NIVUS_RUNTIME_UID=12001
           NIVUS_RUNTIME_GID=12001
           NIVUS_API_MEMORY_LIMIT=256m
