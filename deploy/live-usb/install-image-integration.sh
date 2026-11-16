@@ -71,7 +71,7 @@ install -m 644 "$SCRIPT_DIR/nivus-compose-telemetry.service.d/10-nivus-data-volu
 
 link_persistent /var/lib/nivus-compose /var/lib/nivus/compose
 link_persistent /etc/nivus-compose /var/lib/nivus/config
-link_persistent /opt/nivus-compose /var/lib/nivus/releases
+link_persistent /opt/nivus-compose /var/lib/nivus
 link_persistent /var/lib/docker /var/lib/nivus/docker
 enable_unit local-fs.target.wants/var-lib-nivus.mount ../var-lib-nivus.mount
 enable_unit multi-user.target.wants/nivus-data-volume-guard.service ../nivus-data-volume-guard.service
