@@ -342,7 +342,7 @@ def _restart_timesyncd() -> bool:
     return False
 
 
-def _restore_config(previous: bytes | None) -> None:
+def _restore_config(previous: bytes | None, timesync_uid: int | None = None) -> None:
     if CONFIG_PATH.is_symlink():
         raise TimeSyncError("config_conflict", "O arquivo NTP tornou-se um link simbólico.")
     if previous is None:
@@ -351,7 +351,12 @@ def _restore_config(previous: bytes | None) -> None:
         except FileNotFoundError:
             pass
     else:
-        _atomic_write(CONFIG_PATH, previous, 0o600, readable_by_uid=_systemd_timesync_uid())
+        _atomic_write(
+            CONFIG_PATH,
+            previous,
+            0o600,
+            readable_by_uid=timesync_uid if timesync_uid is not None else _systemd_timesync_uid(),
+        )
 
 
 def _ensure_configurable() -> None:
@@ -371,17 +376,27 @@ def _ensure_configurable() -> None:
 def apply_servers(value: object) -> dict:
     servers = validate_servers(value)
     _ensure_configurable()
+    timesync_uid = _systemd_timesync_uid()
     previous = _read_managed_config()
     backup_dir = _new_backup(previous)
     old_pointer = _remember_backup(backup_dir)
     try:
         _ensure_configurable()
-        _atomic_write(CONFIG_PATH, render_config(servers), 0o600, readable_by_uid=_systemd_timesync_uid())
+        _atomic_write(CONFIG_PATH, render_config(servers), 0o600, readable_by_uid=timesync_uid)
         if not _restart_timesyncd():
             raise TimeSyncError("restart_failed", "systemd-timesyncd não reiniciou.")
     except Exception as exc:
+        if isinstance(exc, TimeSyncError) and exc.code == "acl_unavailable":
+            try:
+                _restore_pointer(old_pointer)
+            except Exception as rollback_exc:
+                raise TimeSyncError(
+                    "rollback_failed",
+                    "A escrita do ACL NTP falhou e o índice de backup não pôde ser restaurado.",
+                ) from rollback_exc
+            raise
         try:
-            _restore_config(previous)
+            _restore_config(previous, timesync_uid)
             recovered = _restart_timesyncd()
             _restore_pointer(old_pointer)
         except Exception as rollback_exc:
