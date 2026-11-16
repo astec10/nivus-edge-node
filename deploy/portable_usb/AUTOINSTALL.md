@@ -1,12 +1,12 @@
 # Configuração revisável do Ubuntu instalado em USB
 
-Esta etapa gera um seed NoCloud para o instalador Subiquity. Ela não cria uma ISO, não prepara a mídia inicializável, não instala o Nivus e não grava em discos. O instalador é quem fará a gravação, depois da revisão da tela de armazenamento.
+Esta etapa gera um seed NoCloud para o instalador Subiquity. Com `--build-seed-iso`, também cria uma ISO NoCloud de configuração usando `cloud-localds`; essa ISO não inicia o instalador Ubuntu. A etapa não cria mídia Ubuntu inicializável, não instala o Nivus e não grava em discos. O Subiquity fará a gravação após a revisão da tela de armazenamento.
 
 O fluxo requer Ubuntu Server 24.04 LTS ou mais recente. A configuração mantém a seleção de armazenamento interativa; Subiquity mostra a tela para revisão antes de executar o plano. O instalador também roda uma validação antecipada do dispositivo selecionado.
 
 ## Pré-requisitos
 
-- Um computador Ubuntu de preparação com python3, lsblk, findmnt e openssl.
+- Um computador Ubuntu de preparação com python3, lsblk, findmnt e openssl. Para gerar a ISO de configuração, instale também `cloud-image-utils` (`sudo apt install cloud-image-utils`).
 - Uma mídia instaladora Ubuntu Server separada do pendrive de destino.
 - Um pendrive de destino identificado com modelo e número de série únicos, USB, gravável e sem partições montadas.
 - Capacidade mínima de 40 GiB. O plano reserva 1 MiB para BIOS/GRUB, 1 GiB para EFI e 24 GiB para o Ubuntu; o espaço restante forma NIVUS_DATA.
@@ -25,7 +25,7 @@ Em seguida gere o seed. O comando relê o inventário atual e exige que caminho,
 
     sudo python3 deploy/portable_usb/generate_autoinstall.py \
       --selection /var/tmp/nivus-usb-selection.json \
-      --output /var/tmp/nivus-usb-seed
+      --output /var/tmp/nivus-usb-seed\n\nPara gerar também uma ISO privada de configuração NoCloud, use uma pasta nova e acrescente `--build-seed-iso`:\n\n    sudo python3 deploy/portable_usb/generate_autoinstall.py \\\n      --selection /var/tmp/nivus-usb-selection.json \\\n      --output /var/tmp/nivus-usb-seed-with-iso \\\n      --build-seed-iso\n\nA ISO `nivus-autoinstall-seed.iso` e seu checksum `.sha256` ficam dentro dessa pasta. A ISO contém a configuração e o hash da senha; mantenha-a privada.
 
 O gerador pergunta usuário, hostname e senha do Ubuntu. A senha é digitada sem aparecer e transformada localmente com openssl; apenas o hash entra no arquivo user-data. O diretório de saída usa modo 0700, os arquivos usam 0600, e uma pasta existente nunca é sobrescrita.
 
@@ -40,7 +40,7 @@ Trate o diretório como privado porque user-data contém o hash da senha do Ubun
 
 ## Instalar
 
-Disponibilize user-data e meta-data ao instalador Subiquity como um datasource NoCloud, seguindo a documentação oficial de fornecimento de autoinstall. O caminho mais simples para o teste é uma mídia seed separada rotulada CIDATA; a mídia de instalação e o USB de destino também devem ser dispositivos separados. O seed gerado sozinho não é uma ISO nem uma mídia inicializável.
+Disponibilize `user-data` e `meta-data` ao instalador Subiquity como datasource NoCloud. A ISO de configuração gerada pode ser anexada como mídia separada (por exemplo, como CD virtual) ou gravada em uma terceira mídia; a mídia instaladora Ubuntu e o USB de destino também precisam ser separados. A ISO seed não é inicializável e não substitui o instalador Ubuntu.
 
 Inicie o instalador Ubuntu Server 24.04 ou mais recente. Antes de confirmar a gravação, confira o caminho, modelo, serial e capacidade na tela de armazenamento e compare com TARGET-IDENTITY.txt. Cancele se a tela mostrar outro disco ou qualquer divergência. O plano formata o USB selecionado e remove seus dados.
 
