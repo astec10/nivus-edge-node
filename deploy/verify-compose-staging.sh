@@ -149,7 +149,10 @@ grep -qi 'nivus-dashboard' <<< "$INDEX_HTML"
 JS_ASSET=$(sed -n 's/.*src="\([^"]*\.js\)".*/\1/p' <<< "$INDEX_HTML" | head -n 1)
 [[ -n "$JS_ASSET" ]]
 curl -kfsS --connect-timeout 2 --max-time 5 "https://127.0.0.1:28443$JS_ASSET" -o /dev/null
-echo "frontend_index_and_asset=ok ($JS_ASSET)"
+PROGRESS_HTML=$(curl -kfsS --connect-timeout 2 --max-time 5 https://127.0.0.1:28443/PROGRESS.html)
+grep -q 'id="milestones"' <<< "$PROGRESS_HTML"
+curl -kfsS --connect-timeout 2 --max-time 5 https://127.0.0.1:28443/progress.js | grep -q 'filterStatus'
+echo "frontend_index_asset_and_progress=ok ($JS_ASSET)"
 AUTH_STATUS=$(curl -k -sS --connect-timeout 2 --max-time 5 -o /dev/null -w '%{http_code}' https://127.0.0.1:28443/api/telemetry)
 [[ "$AUTH_STATUS" == 401 ]]
 echo "unauthenticated_telemetry_http=$AUTH_STATUS"
