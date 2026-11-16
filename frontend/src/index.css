@@ -682,3 +682,96 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+
+.login-panel {
+  width: 50%;
+  max-width: 720px;
+  min-width: 320px;
+  box-sizing: border-box;
+  margin: 0 auto 1.5rem;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  border: 1px solid #334155;
+  border-radius: 0.75rem;
+  background: #1e293b;
+}
+
+.login-panel__intro {
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+.login-panel__form {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.login-panel__form input,
+.login-panel__form button {
+  box-sizing: border-box;
+  min-height: 2.2rem;
+  border-radius: 0.375rem;
+  font: inherit;
+}
+
+.login-panel__form input {
+  width: 150px;
+  min-width: 0;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #334155;
+  color: #f8fafc;
+  background: #0f172a;
+}
+
+.login-panel__form button {
+  padding: 0.4rem 1rem;
+  border: 0;
+  color: white;
+  background: #10b981;
+  cursor: pointer;
+}
+
+.login-panel__form input:focus-visible,
+.login-panel__form button:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+.login-panel__form button:hover {
+  background: #059669;
+}
+
+@media (max-width: 760px) {
+  .login-panel {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .login-panel {
+    align-items: stretch;
+  }
+
+  .login-panel__form {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .login-panel__form input {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .login-panel__form button {
+    flex: 1 1 auto;
+  }
+}
