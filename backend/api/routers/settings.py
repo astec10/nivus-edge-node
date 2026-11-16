@@ -62,6 +62,7 @@ def _raise_time_sync_error(error: TimeSyncControllerError) -> None:
         "config_conflict": 409,
         "client_conflict": 409,
         "client_unavailable": 409,
+        "acl_unavailable": 503,
         "no_rollback": 409,
         "backup_invalid": 409,
         "controller_unavailable": 503,
