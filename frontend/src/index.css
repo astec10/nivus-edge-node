@@ -1224,3 +1224,49 @@ code {
 .dashboard-root[data-theme="eink"] .user-management-panel h3 {
   color: #fff !important;
 }
+
+
+.dashboard-root[data-theme="cupertino"] .settings-card-heading p,
+.dashboard-root[data-theme="cupertino"] .settings-explanation,
+.dashboard-root[data-theme="cupertino"] .display-preference-hint {
+  color: #475569 !important;
+}
+
+.dashboard-root[data-theme="cupertino"] .maintenance-status {
+  border-color: #64748b;
+  color: #334155;
+}
+
+.dashboard-root[data-theme="cupertino"] .maintenance-details div {
+  border-color: #cbd5e1;
+  background: #e2e8f0;
+}
+
+.dashboard-root[data-theme="cupertino"] .display-preference-field select {
+  background: #fff;
+}
+
+.dashboard-root[data-theme="cupertino"] .user-management-panel p,
+.dashboard-root[data-theme="cupertino"] .user-management-panel label,
+.dashboard-root[data-theme="cupertino"] .user-management-panel small,
+.dashboard-root[data-theme="cupertino"] .user-management-panel td,
+.dashboard-root[data-theme="cupertino"] .user-management-panel th {
+  color: #334155 !important;
+}
+
+.dashboard-root[data-theme="cupertino"] .user-management-panel input,
+.dashboard-root[data-theme="cupertino"] .user-management-panel select {
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+  background-color: #fff !important;
+}
+
+.dashboard-root[data-theme="cupertino"] .user-management-panel button {
+  color: #0f172a !important;
+}
+
+.dashboard-root[data-theme="eink"] .display-preference-hint,
+.dashboard-root[data-theme="eink"] .settings-card-heading p,
+.dashboard-root[data-theme="eink"] .settings-explanation {
+  color: #d4d4d8 !important;
+}
