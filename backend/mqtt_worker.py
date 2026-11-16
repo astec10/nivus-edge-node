@@ -57,6 +57,17 @@ def on_message(client, userdata, msg):
         cpu = _number(payload, "cpu_percent", 0, 100)
         memory = _number(payload, "memory_percent", 0, 100)
         disk = _number(payload, "disk_percent", 0, 100)
+        host_battery_percent = _number(payload, "host_battery_percent", 0, 100, nullable=True)
+        host_battery_power_plugged = payload.get("host_battery_power_plugged")
+        if host_battery_power_plugged is not None and not isinstance(host_battery_power_plugged, bool):
+            raise ValueError("host_battery_power_plugged")
+        host_battery_source = payload.get("host_battery_source")
+        if host_battery_source is not None and (
+            not isinstance(host_battery_source, str)
+            or len(host_battery_source) > 128
+            or any(ord(character) < 32 for character in host_battery_source)
+        ):
+            raise ValueError("host_battery_source")
         temperature = _number(payload, "temperature", -40, 150, nullable=True)
         temperature_source = payload.get("temperature_source")
         if temperature_source is not None and (
@@ -113,18 +124,22 @@ def on_message(client, userdata, msg):
         previous = cursor.fetchone()
         cursor.execute(
             """INSERT INTO telemetry
-               (node, timestamp, cpu_percent, memory_percent, disk_percent, temperature,
+               (node, timestamp, cpu_percent, memory_percent, disk_percent,
+                host_battery_percent, host_battery_power_plugged, host_battery_source, temperature,
                 temperature_source, cpu_hotspot_temperature, cpu_hotspot_source,
                 motherboard_temperature, motherboard_temperature_source,
                 gpu_temperature, gpu_temperature_source,
                 gpu_hotspot_temperature, gpu_hotspot_source, power_consumption)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 node,
                 timestamp,
                 cpu,
                 memory,
                 disk,
+                host_battery_percent,
+                int(host_battery_power_plugged) if host_battery_power_plugged is not None else None,
+                host_battery_source,
                 temperature,
                 temperature_source,
                 cpu_hotspot_temperature,
