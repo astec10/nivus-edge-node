@@ -13,14 +13,14 @@ export default function UserManagementPanel({ token, isAdmin, activeTab, newUser
             
             <div style={{ backgroundColor: '#0f172a', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
               <h3 style={{ marginTop: 0, color: '#38bdf8' }}><UserPlus size={18} /> Registar Novo Utilizador</h3>
-              <form onSubmit={handleSaveUser}>
+              <form onSubmit={handleSaveUser} autoComplete="off">
                 <div style={{ marginBottom: '1rem' }}>
                   <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Nome de Utilizador:</label>
-                  <input type="text" value={newUsername} onChange={e => setNewUsername(e.target.value)} required style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: 'white', padding: '0.5rem', borderRadius: '0.375rem' }} />
+                  <input type="text" value={newUsername} onChange={e => setNewUsername(e.target.value)} minLength={1} maxLength={32} pattern="^[A-Za-z0-9_.-]+$" autoComplete="off" title="Use letras, números, ponto, hífen ou sublinhado (1–32 caracteres)." required style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: 'white', padding: '0.5rem', borderRadius: '0.375rem' }} />
                 </div>
                 <div style={{ marginBottom: '1rem' }}>
                   <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Palavra-passe Inicial:</label>
-                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} required style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: 'white', padding: '0.5rem', borderRadius: '0.375rem' }} />
+                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} minLength={12} maxLength={256} autoComplete="new-password" aria-describedby="new-user-password-hint" title="Use de 12 a 256 caracteres." required style={{ width: '100%', backgroundColor: '#1e293b', border: '1px solid #334155', color: 'white', padding: '0.5rem', borderRadius: '0.375rem' }} />
                 </div>
                 <div style={{ marginBottom: '1.25rem' }}>
                   <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Nível de Privilégio:</label>
