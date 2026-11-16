@@ -12,7 +12,7 @@ O alvo de distribuição é Ubuntu Server minimal x86_64/amd64. “Alvo” não 
 
 **Fundação do nó de borda: funcionando numa instalação Ubuntu de teste.** A API modular, o painel, o broker, o worker e o coletor Compose foram instalados em paralelo no notebook CCE U25. Health HTTPS, autenticação, login, persistência SQLite e aumento contínuo de telemetria foram verificados. A instalação systemd/Nginx anterior permaneceu ativa. Veja [`PROJECT_STATUS.md`](PROJECT_STATUS.md) para evidência e limites.
 
-**Instalação portátil: em implementação, sem qualificação universal.** O formato escolhido é Ubuntu Server completo instalado no USB, com raiz e NIVUS_DATA persistentes. O PR #34 gera seed revisável, seleciona e revalida o alvo e acrescenta uma etapa pós-boot para preparar o armazenamento persistente e instalar o Compose. No commit `51f336711f23b9341ea459606a754e5730de000f`, todos os checks hospedados passaram, incluindo schema Subiquity, testes do bootstrap, ext4 em loop, workflows gerais e CodeQL. Essa evidência não substitui a instalação/reinicialização em um USB físico. O operador não usará VMs no computador pessoal.
+**Instalação portátil: código integrado, validação física pendente.** Ubuntu Server completo instalado no USB, com raiz e NIVUS_DATA persistentes. O PR #34 foi integrado à `main` (`703efa4128f60460910b05ab344b60b082006a7e`); todos os checks hospedados passaram no head `3a1621dc11d2532853ef83b9ab5ea47f64cfaca5`, incluindo schema Subiquity, bootstrap, ext4 em loop, smoke Compose, índice e CodeQL. Essa evidência não substitui instalação/reinicialização em USB físico nem teste de compatibilidade. O operador não usará VMs no computador pessoal.
 
 **Multi-nó, Home Assistant, Zigbee, sensores domésticos, vídeo, IA local, P2P e provedores comerciais: planejados.** O painel atual representa o nó instalado; não existe ainda um coordenador multi-nó ou scheduler de IA.
 
@@ -30,14 +30,14 @@ Critérios já observados: login funcional; API exige token; health HTTPS respon
 
 ### Fase 1 — Instalação, recuperação e portabilidade
 
-**Estado: em andamento; formato escolhido, seleção/seed e instalador pós-boot em revisão.**
+**Estado: em andamento; instalação física e recuperação ainda não validadas.**
 
-**Issue #29 — Ubuntu instalado em USB com dados persistentes:** o formato escolhido é Ubuntu Server completo, não Casper Live. A integração de storage entrou pelo PR #31; a partição ext4 `NIVUS_DATA` monta em `/var/lib/nivus`, com guard antes do Docker/coletor. O PR #34 prepara o destino pelo serial e modelo, gera seed Subiquity com confirmação manual do armazenamento e acrescenta um instalador pós-boot do Nivus. A CI do código anterior passou com loop ext4 e schema oficial; a CI da etapa pós-boot está pendente. Ainda não existe mídia Ubuntu customizada nem validação física. Faltam executar Subiquity até o primeiro boot, instalar Nivus, reiniciar, verificar persistência/recuperação e testar UEFI/BIOS Intel/AMD.
+**Issue #29 — Ubuntu instalado em USB com dados persistentes:** Ubuntu Server completo, não Casper Live. O PR #31 integrou `NIVUS_DATA` ext4 em `/var/lib/nivus` e guard antes do Docker/coletor. O PR #34 foi integrado à `main` e acrescenta seleção/revalidação do USB, seed Subiquity com confirmação humana de armazenamento e instalação pós-boot do Compose. Os checks hospedados passaram no head `3a1621dc11d2532853ef83b9ab5ea47f64cfaca5`. Ainda não existe ISO customizada ou validação física; faltam instalação interativa até o primeiro boot, primeiro login, reboot e verificação de persistência/recuperação, além da matriz UEFI/BIOS Intel/AMD.
 
 Siga [`VM_VALIDATION.md`](VM_VALIDATION.md) como roteiro executável e registre a evidência em [`PROJECT_STATUS.md`](PROJECT_STATUS.md). O script de restauração está implementado; só declare a etapa concluída após teste real em clone descartável com backup, restore, validação e rollback.
 
 1. Formato decidido: Ubuntu Server completo instalado no USB, com raiz e dados persistentes; usar mídia Ubuntu inicializável separada, seed NoCloud privado e confirmação humana do destino. Não é Casper Live.
-2. Passar a CI hospedada para o seletor, seed Subiquity, instalador pós-boot, guard e smoke de Compose; não iniciar VMs no computador do operador.
+2. [x] CI hospedada aprovada no head `3a1621dc11d2532853ef83b9ab5ea47f64cfaca5` para seletor, seed/schema Subiquity, bootstrap, guard ext4, smoke Compose, workflows gerais e CodeQL.
 3. Registrar RAM livre, CPU, disco, espaço de build, portas, versões do Ubuntu/Docker/Compose e tempo de instalação.
 4. Exercitar boot, reinicialização, persistência, instalação, backup, restore e rollback no runner descartável hospedado pelo CI, sem alterar o notebook de teste.
 5. Preservar as evidências e logs sanitizados do runner como artefatos da execução; repetir o fluxo após mudança nos scripts operacionais.
