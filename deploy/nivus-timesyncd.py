@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import ipaddress
 import json
 import os
 import re
@@ -37,6 +38,7 @@ OTHER_NTP_CLIENTS = (
     "chronyd.service",
     "ntp.service",
     "ntpd.service",
+    "ntpsec.service",
     "openntpd.service",
 )
 DNS_LABEL = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
@@ -57,6 +59,15 @@ def validate_servers(value: object) -> list[str]:
         if not isinstance(item, str):
             raise TimeSyncError("invalid_servers", "Nome de servidor NTP inválido.")
         host = item.strip().lower().rstrip(".")
+        try:
+            ipaddress.ip_address(host)
+        except ValueError:
+            pass
+        else:
+            raise TimeSyncError(
+                "invalid_servers",
+                "Use nomes DNS válidos, sem URL, porta ou endereço IP.",
+            )
         if (
             not host
             or len(host) > 253
@@ -164,8 +175,15 @@ def _ensure_directory(path: Path, mode: int) -> None:
             raise TimeSyncError("path_unavailable", "Diretório protegido indisponível.") from exc
     except OSError as exc:
         raise TimeSyncError("path_unavailable", "Diretório protegido indisponível.") from exc
-    if not stat.S_ISDIR(info.st_mode) or info.st_uid != os.geteuid():
-        raise TimeSyncError("unsafe_path", "Diretório NTP não pertence ao serviço privilegiado.")
+    if (
+        not stat.S_ISDIR(info.st_mode)
+        or info.st_uid != os.geteuid()
+        or info.st_mode & 0o022
+    ):
+        raise TimeSyncError(
+            "unsafe_path",
+            "Diretório NTP precisa pertencer ao serviço privilegiado e não pode permitir escrita a terceiros.",
+        )
     if created:
         os.chmod(path, mode)
 
