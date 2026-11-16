@@ -11,6 +11,7 @@ Criar uma plataforma local-first, modular e econômica para monitorar nós x86_6
 - Para o estado observado no notebook, evidências de CI e pendências, leia [`PROJECT_STATUS.md`](PROJECT_STATUS.md).
 - Para fases, critérios e dependências, leia [`PROJECT_ROADMAP.md`](PROJECT_ROADMAP.md).
 - Telemetria local está presente no nó de teste, mas telemetria agregada entre nós não é pré-requisito para o executor de desenvolvimento; será útil quando o Nó Master estiver operacional.
+- GitHub-hosted Actions continuam sendo o executor de IA e a CI de PR. O notebook pode receber um runner auxiliar manual somente para validar a branch padrão após merge; nunca processa PR/fork, tarefas de IA, segredos, Docker ou dados do Nivus. A instalação depende de configuração do operador.
 - Multi-nó, biblioteca compartilhada em runtime, Home Assistant, Zigbee, IA local, P2P e scheduler distribuído continuam planejados até evidência de implementação.
 - O operador não usará VMs no computador pessoal. Use CI hospedada ou simulações; não solicite instalação local de VM.
 - Acesso atual usa senha/JWT. USB e biometria são opcionais e não estão implementadas.
