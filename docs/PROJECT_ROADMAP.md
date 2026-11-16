@@ -67,7 +67,7 @@ Para atualizações de frota, o critério adicional é demonstrar uma correção
 
 ### Fase 3 — Integrações domésticas e energia
 
-**Estado: planejada; primeira etapa somente leitura.**
+**Estado: parcialmente em andamento.** A regra limitada da issue #22 (bateria móvel → somente OFF no relé) está em revisão; as demais integrações começam em leitura somente. Home Assistant real e qualquer validação física ainda estão pendentes.
 
 1. Integrar Home Assistant através de uma interface/adaptador documentado e com escopo mínimo.
 2. Ler estados do hub Zigbee, sensores ambientais e de presença sem conceder administração global.

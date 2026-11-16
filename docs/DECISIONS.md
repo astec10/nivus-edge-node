@@ -83,3 +83,12 @@ A preferência de fuso/formato da dashboard permanece no navegador e separada do
 A API sem privilégios usa um socket Unix para um controlador root com operações fechadas: estado, aplicar exatamente três hosts DNS e rollback. O socket é exposto ao container API em montagem somente leitura; o controlador valida UID/GID do peer e não aceita shell, caminhos nem comandos fornecidos pela API. A configuração pertence ao Nivus em \`/etc/systemd/timesyncd.conf.d/90-nivus.conf\`, com backup e recuperação em falha. A interface não mostra fonte no relógio; a lista de hosts aparece somente na aba Configuração.
 
 Padrão: \`a.ntp.br\`, \`b.ntp.br\`, \`c.ntp.br\`. São três servidores do projeto NTP.br, não três operadores independentes. O systemd-timesyncd utiliza fontes disponíveis sequencialmente, não por quorum. Nenhuma consulta externa é feita pelo navegador.
+
+## Automação do relé por bateria móvel — 2026-11-16
+
+- Fonte inicial: sensor de bateria do Home Assistant Companion App; bateria móvel permanece distinta da bateria interna do nó e do banco de 48 V do inversor.
+- Cada fonte é cadastrada explicitamente por administrador e recebe token aleatório, mostrado uma vez e armazenado no SQLite somente como SHA-256. Relatórios usam HTTPS com validação TLS, percentual inteiro 0–100 e timestamp com fuso.
+- Só uma leitura nova, autenticada e com até 60 minutos pode acionar a regra. Em 20% ou menos, enviar somente OFF para o tópico fixo `nivus/edge/relay1`, no máximo uma vez por ciclo baixo. Acima de 20%, apenas rearmar; nunca enviar ON automaticamente, inclusive no boot ou na recuperação.
+- Relatório ausente, expirado, repetido, fora de ordem, token revogado ou broker indisponível não autoriza ON. Falha do broker limita novas tentativas de OFF a uma por cinco minutos.
+- Se houver mais de um celular ativo, qualquer leitura recente em 20% ou menos pode acionar OFF; a interface deve deixar essa regra explícita.
+- Registrar auditoria e distinguir aceitação MQTT de confirmação do relé físico. Manter comando manual de administrador. Validar primeiro com SQLite temporário e publisher MQTT simulado; não enviar comando a relé físico sem etapa de validação autorizada.

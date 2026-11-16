@@ -215,7 +215,7 @@ export default function DashboardPanel({
                 <span className="dashboard-panel-tag">Automação aguardando bateria</span>
               </div>
               <p className="dashboard-panel-copy">
-                Regra definida: desligar <code>nivus/edge/relay1</code> quando a bateria do dispositivo móvel associado estiver em 20% ou menos. A telemetria ainda não fornece esse nível; até a origem ser integrada, os comandos abaixo continuam manuais.
+                Cadastre em Configuração os celulares associados ao relé principal. O modo automático persiste após reinicializações e envia somente OFF quando uma leitura recente indicar bateria em 20% ou menos; leitura ausente, antiga ou repetida não aciona o relé, e a recuperação da bateria nunca envia ON. Os botões abaixo continuam como comandos manuais.
               </p>
               <div className="actuator-command-row">
                 <div>
@@ -232,7 +232,7 @@ export default function DashboardPanel({
                 <strong><History size={14} aria-hidden="true" /> Comandos recentes</strong>
                 {auditLogs.length ? auditLogs.slice(0, 5).map((event) => (
                   <div className="dashboard-event-row" key={event.id}>
-                    <span>{event.command} · {event.topic}</span>
+                    <span>{event.command} · {event.topic}{event.source === 'mobile_battery' ? ' · bateria móvel' : ''}</span>
                     <time>{formatDatabaseTimestamp(event.timestamp)}</time>
                   </div>
                 )) : <small>Nenhum comando registrado.</small>}

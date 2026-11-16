@@ -8,6 +8,7 @@ from api.routers import (
     alerts,
     auth,
     maintenance,
+    mobile_battery,
     settings,
     telemetry,
     users,
@@ -56,3 +57,4 @@ app.include_router(alerts.router)
 app.include_router(settings.router)
 app.include_router(maintenance.router)
 app.include_router(users.router)
+app.include_router(mobile_battery.router)

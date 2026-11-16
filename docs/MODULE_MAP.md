@@ -14,6 +14,11 @@ flowchart TD
   Nginx --> UI[frontend React/Vite]
   UI --> API[backend/main.py FastAPI]
   API --> Routers[backend/api/routers]
+  Phone[Home Assistant Companion App] -->|HTTPS + token por dispositivo| Nginx
+  Routers --> BatteryRouter[backend/api/routers/mobile_battery.py]
+  BatteryRouter --> BatteryService[backend/services/mobile_battery.py]
+  BatteryService --> DB
+  BatteryService --> MQTT
   Routers --> Schemas[backend/api/schemas.py]
   Routers --> Auth[backend/api/dependencies.py + security.py]
   Routers --> DB
@@ -35,6 +40,8 @@ flowchart TD
 | --- | --- | --- |
 | `telemetry/` | métricas do host → MQTT | Coleta CPU, memória, disco, energia estimada e sensores disponíveis; não implementa a política da API. |
 | `backend/api/routers/` | HTTP autenticado ↔ schemas | Endpoints por domínio; exige autorização nas rotas sensíveis. |
+| `backend/api/routers/mobile_battery.py` | Admin JWT + relatório tokenizado | Admin cadastra/revoga; celular envia somente percentual e horário. O cliente não escolhe tópico nem comando. |
+| `backend/services/mobile_battery.py` | Leitura móvel validada → regra + auditoria MQTT | Rejeita leituras antigas/repetidas; publica somente `OFF` em `nivus/edge/relay1` a ≤20%; recuperação acima de 20% rearma sem enviar `ON`. |
 | `backend/services/` | chamadas internas ↔ serviços | MQTT, logs e operações de domínio; não expõe portas diretamente. |
 | `backend/database.py` | conexões ↔ SQLite | Persistência, migrações aditivas e consultas. |
 | `backend/mqtt_worker.py` | MQTT → validação/persistência | Consome telemetria e registra alertas de regra determinística. |

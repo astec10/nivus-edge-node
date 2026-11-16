@@ -5,12 +5,13 @@ Esta árvore descreve somente a candidata local em staging.
 ## Backend
 
 - backend/main.py compõe a aplicação FastAPI e inclui routers.
-- backend/api/routers/ contém autenticação, telemetria, atuadores, alertas, configurações e usuários.
+- backend/api/routers/ contém autenticação, telemetria, atuadores, bateria móvel, alertas, configurações e usuários. `mobile_battery.py` separa cadastro administrativo de relatórios autenticados por token do celular.
 - backend/api/schemas.py define os payloads de entrada.
 - backend/api/dependencies.py valida JWT e papel do usuário.
 - backend/database.py mantém SQLite e inicialização/migração aditiva.
 - backend/services/maintenance.py compartilha o estado volátil do modo de manutenção, registra transições no SQLite e volta ao modo normal após reboot.
 - backend/security.py contém hashing PBKDF2 e helpers JWT.
+- `backend/services/mobile_battery.py` aplica frescor, limiar de 20%, latch por ciclo e publica somente `OFF` no tópico fixo permitido; o broker não confirma o estado físico.
 - backend/services/mqtt.py publica comandos; backend/mqtt_worker.py persiste eventos.
 
 ## Coleta e frontend
