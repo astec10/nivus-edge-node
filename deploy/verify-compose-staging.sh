@@ -35,7 +35,7 @@ PROJECT="nivus-smoke-$(date -u +%Y%m%d-%H%M%S)-$$"
 DATA_DIR="$APP_DIR/data"
 MOSQ_DATA_DIR="$APP_DIR/mosquitto"
 SECRETS_DIR="$APP_DIR/secrets"
-MAINTENANCE_DIR="$APP_DIR/runtime-state/$PROJECT"
+MAINTENANCE_DIR="/tmp/$PROJECT-maintenance"
 NIVUS_HELP_BIN="$APP_DIR/runtime-bin/$PROJECT"
 export NIVUS_MAINTENANCE_STATE_DIR="$MAINTENANCE_DIR"
 export NIVUS_MAINTENANCE_STATE_PATH="$MAINTENANCE_DIR/state.json"
@@ -90,6 +90,12 @@ cleanup() {
     --env "HOST_UID=$HOST_UID" --env "HOST_GID=$HOST_GID" \
     --entrypoint /bin/sh nivus-edge-api:local -ec \
     'chown -R "$HOST_UID:$HOST_GID" /data /mosq /maintenance; chmod 750 /data /mosq; chmod 755 /maintenance' >/dev/null 2>&1 || true
+  if [[ "$MAINTENANCE_DIR" == "/tmp/$PROJECT-maintenance" ]]; then
+    rm -rf -- "$MAINTENANCE_DIR"
+  else
+    echo "Refusing to remove unexpected maintenance staging path: $MAINTENANCE_DIR" >&2
+    rc=1
+  fi
   rm -f -- "$NIVUS_HELP_BIN/nivus"
   rmdir -- "$NIVUS_HELP_BIN" 2>/dev/null || true
   if (( rc == 0 )); then echo "SMOKE_CLEANUP=containers-stopped; staging preserved under $APP_DIR"; else echo "SMOKE_CLEANUP=containers-stopped; staging kept for diagnosis" >&2; fi
@@ -216,13 +222,8 @@ run_nivusctl() {
   "${privilege[@]}" env \
     NIVUS_DB_PATH="$DATA_DIR/nivus.db" \
     NIVUS_MAINTENANCE_STATE_PATH="$MAINTENANCE_DIR/state.json" \
-    NIVUS_DEBUG_MAINTENANCE=1 \
     python3 deploy/nivusctl "$@"
 }
-for check_path in "$APP_DIR" "$APP_DIR/runtime-state" "$MAINTENANCE_DIR" "$MAINTENANCE_DIR/state.json"; do
-  stat -c 'maintenance_path=%a %u:%g %n' "$check_path" 2>&1 || true
-done
-test -r "$MAINTENANCE_DIR/state.json" || echo "maintenance_state_unreadable_to_smoke_uid=$(id -u)"
 run_nivusctl maintenance status | grep -q 'ATIVO'
 publish_smoke_sample
 assert_telemetry_count_unchanged 1
