@@ -1,6 +1,6 @@
 # Ubuntu + Nivus Live USB: persistência
 
-Esta pasta entrega o primeiro componente do issue #29: uma partição ext4 separada para manter os dados e bloquear a inicialização dos serviços Nivus quando o armazenamento não estiver disponível ou íntegro.
+Esta pasta entrega o primeiro componente do issue #29: uma partição ext4 separada para manter os dados e bloquear a inicialização dos serviços Nivus quando o armazenamento não estiver disponível ou íntegro. O formato alvo confirmado é Casper Live verdadeiro, inicializado diretamente do pendrive; a raiz do sistema será volátil/overlay.
 
 ## Estado desta entrega
 
