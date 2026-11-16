@@ -12,12 +12,14 @@ const cardStyle = {
 
 function getSparklinePoints(values) {
   if (!Array.isArray(values)) return null;
-  const numeric = values.map(Number).filter(Number.isFinite);
+  const numeric = values.filter(value => value !== null && value !== undefined && value !== '').map(Number).filter(Number.isFinite);
   if (numeric.length < 2) return null;
-  const min = Math.min(...numeric);
-  const max = Math.max(...numeric);
+  const sampleCount = Math.min(48, numeric.length);
+  const sampled = Array.from({ length: sampleCount }, (_, index) => numeric[Math.round((index / (sampleCount - 1)) * (numeric.length - 1))]);
+  const min = Math.min(...sampled);
+  const max = Math.max(...sampled);
   const span = max - min || 1;
-  return numeric.map((value, index) => {
+  return sampled.map((value, index) => {
     const x = 2 + (index / (numeric.length - 1)) * 116;
     const y = 26 - ((value - min) / span) * 22;
     return x.toFixed(1) + ',' + y.toFixed(1);
@@ -66,6 +68,12 @@ function MetricCard({ label, value, hint, details, detailsLabel, metricId, prima
     setVisible(false);
   };
 
+  const updateSpotlight = event => {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    event.currentTarget.style.setProperty('--pointer-x', (event.clientX - bounds.left) + 'px');
+    event.currentTarget.style.setProperty('--pointer-y', (event.clientY - bounds.top) + 'px');
+  };
+
   useEffect(() => () => {
     if (showTimer.current !== null) window.clearTimeout(showTimer.current);
   }, []);
@@ -112,6 +120,7 @@ function MetricCard({ label, value, hint, details, detailsLabel, metricId, prima
         aria-label={label + ': ' + value + '. Mantenha o ponteiro ou o foco por 3 segundos para ver detalhes.'}
         aria-describedby={visible ? tooltipId : undefined}
         onPointerEnter={startDwell}
+        onPointerMove={updateSpotlight}
         onPointerLeave={hideDetails}
         onFocus={startDwell}
         onBlur={hideDetails}
