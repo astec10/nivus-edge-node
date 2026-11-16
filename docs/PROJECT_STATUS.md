@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-16 16:54 UTC
+Atualizado: 2026-11-16 17:27 UTC
 Licença: AGPL-3.0-only
 
 ## Resumo verificado
@@ -13,7 +13,7 @@ A arquitetura, módulos e limites estão descritos em [ARCHITECTURE.md](ARCHITEC
 
 O run 43662375766 passou nos dois jobs Ubuntu 22.04 amd64: build/smoke Compose e instalação limpa em runner descartável. A integração cobriu MQTT→SQLite, backup consistente, validação sem mutação, rollback induzido por falha de health, restauração normal, HTTPS 200, API sem token 401, `quick_check` e retomada da telemetria. Isso valida o fluxo de software no runner; não substitui reboot em hardware, sensores físicos ou a matriz Intel/AMD.
 
-O operador decidiu não usar VMs no computador pessoal. Os testes repetíveis usam runners descartáveis hospedados pelo GitHub Actions. CI cobre o fluxo de software; não certifica hardware físico nem sensores.
+O operador decidiu não usar VMs no computador pessoal. Os testes repetíveis usam runners descartáveis hospedados pelo GitHub Actions. CI cobre o fluxo de software; não certifica hardware físico nem sensores.\n\n## Ubuntu + Nivus Live USB\n\nO PR #31 foi integrado à main. A primeira peça instala a integração de persistência para uma partição ext4 NIVUS_DATA montada em /var/lib/nivus: dados SQLite/Mosquitto, configuração e segredos, releases do Nivus e Docker ficam nos caminhos persistentes, preservando os caminhos esperados pelo instalador atual. O guard de boot verifica montagem real, ext4, rótulo, marcador e diretórios necessários; Docker e o coletor dependem dessa verificação e não iniciam em overlay volátil quando a partição falta ou é inválida.\n\nO workflow Live USB storage passou em runner Ubuntu 22.04 usando uma partição ext4 em loop device; os workflows gerais de CI do PR também passaram. Os scripts não formatam nem rotulam dispositivos e o integrador recusa substituir diretórios não vazios. **Ainda não existe uma ISO/imagem inicializável**: faltam fechar o formato Live, montar o construtor hospedado, gerar e testar o artefato, validar persistência após reboot em mídia real e fazer a matriz física UEFI/BIOS e Intel/AMD. Veja [deploy/live-usb/README.md](../deploy/live-usb/README.md).
 
 ## Estado do notebook de teste
 
@@ -48,7 +48,7 @@ A implementação de manutenção reversível e `nivus help` foi integrada à `m
 - Issue #26: implementação integrada no PR #28; resta aplicar a release no notebook e confirmar CLI/dashboard e retorno ao modo normal após reboot. A CI hospedada passou, mas não substitui a validação do host.
 - Issue #22: integrar fonte identificada e recente da bateria do dispositivo móvel e associá-la ao relé; manter comandos manuais até então.
 - Fase 1: instalação limpa, recuperação e medição em mais hardware; a CI hospedada não substitui a matriz física Intel/AMD de três faixas de geração.
-- Issue #29: criar Ubuntu + Nivus Live USB com partição ext4 persistente em `/var/lib/nivus`, inicialização segura sem fallback volátil e validação de reboot/SQLite.
+- Issue #29: construir a imagem inicializável Ubuntu + Nivus Live. A integração de partição persistente e guard de boot entrou no PR #31 e passou CI hospedada; o artefato bootável, formato final, reboot em hardware real e compatibilidade UEFI/BIOS ainda estão pendentes.
 - Fase 2: identidade/cadastro/heartbeat multi-nó, telemetria agregada e rollout de releases assinadas com canário, saúde e rollback por nó.
 - Fase 3: Home Assistant, Zigbee, energia e câmeras em leitura antes de automação física.
 - Fase 4: inferência local e biblioteca documental consultável com fonte, licença, citações e limites de recursos.
