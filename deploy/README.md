@@ -38,6 +38,15 @@ A execução no CCE U25 ainda precisa ser feita e conferida no navegador; CI hos
 
 O broker e os serviços que o usam ficam numa rede Docker interna. O coletor do host resolve o IP atual do broker por um `ExecStartPre` privilegiado e grava somente esse endereço em `/run`; a senha continua sendo entregue como credencial systemd ao processo sem privilégios. Não altere o agente para conectar a um `localhost`/porta publicada: redes `internal` não publicam a porta MQTT no host. O helper é executado a cada início do coletor para acompanhar a recriação do container.
 
+
+## Sincronização de hora do Ubuntu
+
+A aba **Configuração → Sincronização de hora do host** mostra se o relógio do Ubuntu está sincronizado. Ela permite ao administrador configurar três hosts NTP e restaurar a configuração anterior. O padrão é `a.ntp.br`, `b.ntp.br` e `c.ntp.br`; são três servidores do projeto NTP.br, não três operadores independentes. O systemd-timesyncd escolhe fontes disponíveis sequencialmente; isso não é votação nem quorum. Consulte [NTP.br](https://www.ntp.br/).
+
+A configuração só é aplicada quando `systemd-timesyncd` já está ativo. O Nivus não instala, inicia nem substitui `chrony`, `ntpd` ou outro cliente de hora. Se outro cliente estiver ativo, ou se `systemd-timesyncd` não estiver disponível, a tela informa que o host não pode ser configurado por essa integração. As preferências de fuso e formato do relógio do painel continuam separadas e não mudam o relógio do Ubuntu.
+
+A API roda sem privilégios e fala com um controlador root por um socket Unix local somente de leitura no container. O controlador aceita apenas consultar estado, aplicar a lista de três nomes DNS ou restaurar o último backup. Ele não executa comandos recebidos da API. Cada alteração salva a configuração Nivus anterior e tenta restaurá-la se o reinício do cliente de hora falhar. Parar o stack para o controlador, mas mantém a fonte NTP aplicada ao Ubuntu; reativá-lo inicia novamente o controlador.
+
 ## Modo de manutenção e ajuda da CLI
 
 Após a instalação, `nivus help` mostra os comandos Nivus e sua função resumida; `nivus help maintenance` mostra os detalhes. Para consultar o estado, execute:
@@ -63,6 +72,7 @@ API, autenticação, dashboard, health checks, SQLite existente e broker MQTT co
 
 Parar remove os containers e a rede temporária, mas mantém banco, estado do Mosquitto, credenciais e imagens. Para reativar:
 
+    sudo systemctl enable --now nivus-time-sync.service
     sudo systemctl enable --now nivus-compose-telemetry.service
     cd /opt/nivus-compose/current && sudo docker compose up -d
 
