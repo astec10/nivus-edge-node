@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-15 20:57 UTC
+Atualizado: 2026-11-16 UTC (com base nas saídas do operador)
 Licença: AGPL-3.0-only
 
 ## Resumo verificado
@@ -17,34 +17,27 @@ O operador decidiu não usar VMs no computador pessoal. Os testes repetíveis us
 
 ## Estado do notebook de teste
 
-A candidata Docker Compose continua paralela à instalação systemd/Nginx anterior. Segundo a saída enviada pelo operador, o pacote térmico `20261115T015200Z` compilou API e interface, migrou o SQLite, reiniciou os serviços candidatos, passou `quick_check`, preservou imagens de rollback e recebeu nova amostra com origem `coretemp: Package id 0`. Health HTTPS e API sem token 401 também passaram. Valores e contagens reais de telemetria não são publicados. A candidata continua publicada na porta 8443; o Nginx legado permanece como padrão na porta 443.
+A saída completa enviada pelo operador confirma que o pacote nivus-update-20261116T000636Z foi aplicado: as imagens da API e do painel foram compiladas, o SQLite passou quick_check, a migração térmica foi concluída e uma nova amostra de telemetria foi gravada. O Nginx passou na validação, health HTTPS respondeu 200 e a API sem token respondeu 401.
 
-A candidata ainda está em 8443 e a interface antiga em 443; por isso o endereço sem porta ainda mostra a versão antiga. Um pacote reversível de promoção está em staging remoto e passou verificações somente de leitura: hash, sintaxe Bash, arquivos de backup, porta 8444 livre, health 200 e 401. A execução exige sudo interativo do operador. Ele recompila somente o painel, promove a nova dashboard a 443, preserva a leve em 8444 e mantém `/PROGRESS.html` e `/progress.js` no mesmo endereço. Ainda não está ativa em 443.
-
+A dashboard nova foi promovida para HTTPS padrão, a versão leve foi preservada em 8444 e a página PROGRESS.html permaneceu publicada. A API Compose ficou limitada ao loopback em 8443. O instalador iniciou o reboot; o encerramento da sessão SSH foi esperado. Uma execução posterior informou que a release já estava ativa e parou no preflight, sem alterar serviços ou dados. Essas informações vêm da saída colada pelo operador e não foram reconferidas por uma nova conexão ao host.
 ## Melhoria térmica e gráficos
 
-O agente classifica CPU/APU por fonte/label, prioriza o pacote `coretemp` no CCE e mantém placa-mãe/GPU como opcionais. Leituras ausentes não reaproveitam valor antigo. A origem `coretemp` foi observada em amostra nova na candidata Compose. Neste notebook, placa-mãe, GPU e hotspot continuam indisponíveis quando o sistema/driver não os expõe.
-
-O update aplicado contém cartões térmicos, gráficos com períodos múltiplos e detalhes após três segundos. A CPU/APU foi observada por `coretemp`; placa-mãe, GPU e hotspot dependem de sensores expostos pelo equipamento. Os extremos do tooltip descrevem a janela exibida, não máximos históricos nem limites seguros do hardware. Esta branch acrescenta no cabeçalho um link discreto para a versão leve, ativado apenas quando `NIVUS_LEGACY_DASHBOARD_PORT` é configurado; o build e a publicação desta nova opção ainda não foram confirmados no notebook.
-
+O pacote aplicado mantém a coleta térmica identificada pela origem do sensor e registra uma amostra nova durante a validação. Neste notebook, a CPU/APU é a única origem observada; placa-mãe, GPU e hotspot continuam opcionais e dependem do driver e do hardware. Não se publica valor real de telemetria. Os extremos do tooltip descrevem a janela exibida, não máximos históricos nem limites seguros do equipamento.
 ## Acesso sem sufixo de porta
 
-Instalações limpas passam a preferir HTTPS 443 quando livre; quando a porta já está ocupada, o instalador preserva o serviço existente e escolhe uma alternativa. No notebook, a candidata ainda depende da promoção Nginx para aparecer em `https://IP/`. A LAN pode usar IP reservado no roteador. DDNS e acesso remoto não foram configurados; o plano é combinar nome DNS com VPN, sem publicar o painel diretamente na Internet.
-
+A saída do update confirma a dashboard principal em HTTPS sem sufixo de porta e preserva a versão leve em 8444. Para a LAN, use reserva DHCP no roteador. DDNS e acesso remoto não foram configurados; o plano é combinar nome DNS com VPN, sem publicar o painel diretamente na Internet.
 ## Escopo ainda pendente
 
-- Executar a promoção reversível do dashboard candidato para HTTPS 443, confirmar o acesso ao endereço sem porta e o link para a versão leve em 8444.
-- Confirmar a nova mudança de porta e o controle visual por CI hospedada; o operador não usará VMs no computador pessoal.
+- Confirmar depois do reboot que a dashboard principal abre em HTTPS padrão, que a versão leve responde em 8444 e que o painel de marcos continua atualizando.
+- Conferir a seleção de gráficos, detalhes após três segundos e disponibilidade de sensores no navegador após o update.
+- Preparar e instalar o runner auxiliar do notebook somente após a revisão e integração da mudança; o registro exige token temporário digitado no terminal.
 - Medir disponibilidade de sensores, consumo e compatibilidade em mais máquinas Intel e AMD.
-- Projetar cadastro e atualização coordenada dos nós, com pacotes assinados, implantação gradual, checagens de saúde e rollback por nó.
+- Projetar cadastro e atualização coordenada dos nós, com pacotes assinados, implantação gradual, checagens de saúde e rollback individual.
 - Preservar autenticação, backup, restore e isolamento; não usar IA sozinha para decisões físicas críticas.
-
-Nenhum suporte universal x86_64, automação doméstica, coordenador multi-nó ou execução distribuída de IA é declarado até implementação e evidência específicas.
-
 ## Orquestração de desenvolvimento com IA
 
 O fluxo persistente com agente, Discord/Jira, roteador de modelos, GitHub PR e aprovação humana está documentado em `docs/AI_DEVELOPMENT_ORCHESTRATION.md`. O cenário completo descrito por um comentarista de vídeo não foi confirmado como uma integração pronta; os componentes são documentados separadamente. `docs/VIDEO_RESEARCH_INDEX.md` cataloga os vídeos e expõe o nível de verificação de cada um. Os metadados, resumos curados e notas atômicas versionados ficam em `knowledge/`; `tools/build_ai_context.py` gera termos lexicais e índice independentes de modelo. A biblioteca consultável e sincronizada dentro do produto continua planejada na Fase 4, não implementada.
 
-O fluxo inicial do executor foi integrado ao `main` no PR #3. A chave `GEMINI_API_KEY` e a variável `NIVUS_AI_BUDGET_MODE=free-tier` foram configuradas no GitHub segundo confirmação do mantenedor; o valor da chave não foi lido. Duas tentativas com a API não produziram proposta: HTTP 503 e timeout após 75 segundos da chamada síncrona. Esta branch corrige o timeout com background polling limitado, códigos de falha úteis, limpeza da interação e remoção da segunda via de disparo que poderia duplicar uma chamada. Os testes offline desta branch passaram; a chamada end-to-end com esta correção ainda não foi observada. O worker continua restrito a caminhos exatos e não executa comandos, não modifica workflows, não aprova, não faz merge nem deploy. A revisão humana permanece obrigatória.
+O fluxo inicial do executor foi integrado ao main no PR #3. A chave GEMINI_API_KEY e a variável NIVUS_AI_BUDGET_MODE=free-tier foram configuradas no GitHub segundo confirmação do mantenedor; o valor da chave não foi lido. A proposta inicial resultou no PR #16 em rascunho, com CI aprovada. O erro de abertura de PR foi corrigido no PR #17; ainda falta confirmar uma nova execução end-to-end após essa correção. O worker usa background polling limitado, não executa comandos sugeridos pela Issue/modelo e aplica alterações somente aos caminhos autorizados. Ele não aprova, faz merge nem deploy; a revisão humana permanece obrigatória.
 
-GitHub Issues e Actions são a fila e execução principais, sem depender do PC ou notebook do operador. O notebook é suporte opcional para painel, inspeção e agregação de relatórios quando estiver online. Telemetria do host não é requisito; agregação de telemetria entre nós será útil quando o Nó Master estiver operacional.
+GitHub Issues e Actions hospedados continuam sendo a fila e o executor de IA principal, sem depender do PC ou notebook do operador. Esta alteração prepara um runner auxiliar manual no notebook para validar somente a branch padrão depois do merge; ele não executará PRs públicos, tarefas de IA nem terá segredos ou acesso ao Docker. O runner ainda não foi instalado. Telemetria agregada entre nós será útil quando o Nó Master estiver operacional.
