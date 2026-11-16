@@ -70,3 +70,11 @@ O worker usa background polling limitado porque chamadas síncronas anteriores e
 ## Modo de manutenção reversível — 2026-11-15
 
 Decisão do operador: oferecer um controle explícito na configuração e comandos `nivus maintenance enable|disable|status`, com `nivus help` para explicar os comandos. A manutenção pausa somente a coleta local do host e a gravação de novas mensagens de telemetria MQTT. API, login, dashboard, health, banco existente e broker continuam disponíveis; serviços não relacionados não são parados. `disable` retoma a operação sem reboot. O marcador temporário fica em `/run`, portanto um reboot também volta ao modo normal. Transições são registradas em SQLite, sem persistir o estado ativo entre boots. A implementação aguarda CI e publicação; ainda não está no notebook.
+
+## Ubuntu + Nivus Live USB — 2026-11-16
+
+Contexto: o operador confirmou que quer iniciar o Ubuntu + Nivus diretamente do pendrive, sem instalar no disco do computador, e manter uma pasta/área persistente entre reinicializações.
+
+Decisão: construir uma mídia Live verdadeira baseada em Casper para x86_64. A raiz do sistema continua volátil/overlay; dados, banco SQLite, configuração, segredos e estado dos serviços ficam na partição ext4 separada `NIVUS_DATA`, montada em `/var/lib/nivus`. Se o volume não estiver íntegro, os serviços Nivus não iniciam.
+
+A versão LTS exata e o processo reprodutível de construção ainda serão definidos na implementação. A imagem só será considerada pronta após boot automatizado em runner, teste de serviço/autenticação e persistência após reinício; testes físicos UEFI/BIOS e Intel/AMD continuam separados.
