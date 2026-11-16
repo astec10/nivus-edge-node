@@ -1,59 +1,64 @@
-# Ubuntu + Nivus Live USB: persistência
+# Ubuntu + Nivus USB portátil: sistema e dados persistentes
 
-Esta pasta entrega o primeiro componente do issue #29: uma partição ext4 separada para manter os dados e bloquear a inicialização dos serviços Nivus quando o armazenamento não estiver disponível ou íntegro. O formato alvo confirmado é Casper Live verdadeiro, inicializado diretamente do pendrive; a raiz do sistema será volátil/overlay.
+O operador confirmou uma instalação completa de Ubuntu Server minimal no pendrive de destino, para usar essa máquina como um nó portátil e temporário em outro computador x86_64. O sistema operacional e os dados permanecem no USB após reinicializações. O instalador não pode instalar nem formatar o disco interno do computador hospedeiro.
 
-## Estado desta entrega
+Este formato é Ubuntu instalado no USB; não é Casper Live com raiz volátil. O PR #31 já entrega a peça de persistência dos dados Nivus. **Ainda não existe um instalador/imagem Nivus pronta para USB.**
 
-O conteúdo abaixo **não é ainda uma ISO inicializável** e não substitui o instalador Ubuntu. Ele integra uma raiz Ubuntu preparada a um volume de dados. O construtor da imagem Live, o artefato ISO/USB e os testes físicos UEFI/BIOS continuam pendentes.
+## Estado atual
 
-Uma edição Live verdadeira usa uma raiz temporária/overlay: mudanças no sistema operacional não sobrevivem automaticamente ao reboot. Esta integração faz com que os dados do Nivus, segredos, releases e arquivos do Docker usem o volume persistente. A montagem e o guard devem ser incluídos na raiz do sistema dentro da imagem, antes de produzir a ISO.
+A integração de storage monta uma partição ext4 chamada `NIVUS_DATA` em `/var/lib/nivus` e preserva os caminhos esperados pelo instalador Compose usando links simbólicos:
 
-## Layout persistente
+- `/var/lib/nivus-compose` -> `/var/lib/nivus/compose` (SQLite e estado Mosquitto).
+- `/etc/nivus-compose` -> `/var/lib/nivus/config` (segredos, TLS e configuração).
+- `/opt/nivus-compose` -> `/var/lib/nivus/releases` (código e releases).
+- `/var/lib/docker` -> `/var/lib/nivus/docker` (imagens, metadados e logs de containers).
 
-A partição ext4 com rótulo NIVUS_DATA é montada em /var/lib/nivus. O instalador Compose existente continua usando os caminhos conhecidos por meio de links simbólicos:
+O guard systemd valida montagem real, ext4, rótulo, marcador e layout antes de Docker/coletor. Se o volume não estiver válido, os serviços não iniciam e não escrevem no lugar errado.
 
-- /var/lib/nivus-compose -> /var/lib/nivus/compose (SQLite e estado Mosquitto).
-- /etc/nivus-compose -> /var/lib/nivus/config (segredos, TLS e configuração).
-- /opt/nivus-compose -> /var/lib/nivus/releases (código e releases).
-- /var/lib/docker -> /var/lib/nivus/docker (imagens, metadados e logs de containers).
+O workflow `Live USB storage` passou em runner Ubuntu hospedado usando ext4 em loop device. Esse teste valida a integração de dados; **não** valida ainda a instalação do Ubuntu no pendrive ou o boot do Nivus.
 
-Backup, restore e atualizações continuam usando os caminhos Nivus já existentes. A imagem precisa estar isolada e sem estado prévio nesses destinos; o integrador recusa substituir diretórios não vazios. A partição deve conter o marcador .nivus-data-volume com a versão nivus-data-volume-v1.
+## Layout planejado
 
-## Preparação do volume
+O instalador deve criar no pendrive selecionado:
 
-Use uma partição ext4 vazia, já formatada e rotulada NIVUS_DATA. Formatar uma partição apaga o conteúdo; a criação de partições e a formatação ficam deliberadamente fora destes scripts.
+1. Partição de boot/EFI.
+2. Raiz Ubuntu Server minimal persistente.
+3. Partição ext4 `NIVUS_DATA` persistente, montada em `/var/lib/nivus`.
 
-No Ubuntu que preparará a mídia, identifique cuidadosamente a partição e confirme o dispositivo antes de continuar:
+O instalador deve identificar e exibir modelo, serial e capacidade do disco de destino e pedir confirmação explícita antes de particionar. Nunca deve presumir que o maior disco é o pendrive. A versão LTS, suporte BIOS/UEFI e Secure Boot serão fixados após os testes de construção.
+
+## Preparação manual do volume atual
+
+Até o instalador USB ficar pronto, use uma partição ext4 vazia, já formatada e rotulada `NIVUS_DATA`. Formatar uma partição apaga seu conteúdo; os helpers abaixo deliberadamente não criam partições nem formatam discos.
+
+No Ubuntu de preparação, identifique cuidadosamente a partição:
 
     lsblk -f
 
-O helper somente aceita uma partição de bloco ext4, não montada, com o rótulo exigido. Ele se recusa a adotar um sistema de arquivos não vazio que não tenha um marcador Nivus reconhecido. Ele cria o marcador e os diretórios necessários, sem formatar, rotular, apagar ou copiar dados.
+O helper aceita somente uma partição de bloco ext4 não montada com o rótulo esperado. Ele se recusa a adotar dados sem marcador reconhecido e cria apenas o marcador/diretórios:
 
     sudo bash deploy/live-usb/prepare-data-volume.sh /dev/sdXN
 
-Substitua /dev/sdXN pelo identificador realmente mostrado por lsblk -f. Não execute esse comando antes de identificar com certeza a partição USB correta.
+Substitua `/dev/sdXN` pelo identificador confirmado por `lsblk -f`. Não use um nome de dispositivo presumido.
 
-## Integrar durante a montagem da imagem
+## Integrar a persistência no Ubuntu instalado
 
-O processo de imagem precisa montar o root filesystem Ubuntu num diretório de staging e criar nele o arquivo vazio .nivus-live-image-root. Em seguida, execute como root:
+O integrador modifica apenas uma raiz Ubuntu preparada que tenha o marcador `.nivus-live-image-root`. Para um fluxo de instalação completo no USB, o futuro instalador deve aplicar a integração à raiz Ubuntu do pendrive antes do primeiro boot:
 
-    sudo bash deploy/live-usb/install-image-integration.sh /caminho/da/raizfs
+    sudo bash deploy/live-usb/install-image-integration.sh /caminho/da/raiz-ubuntu-montada
 
-O integrador altera somente a raiz de staging marcada. Ele recusa a raiz do sistema em execução, destinos conflitantes ou qualquer diretório de dados não vazio. Ele instala:
+Ele instala a montagem `NIVUS_DATA`, o guard, dependências de Docker/coletor e os links de dados. Recusa a raiz do sistema em execução, destinos conflitantes e diretórios de dados não vazios.
 
-- a unidade systemd que monta NIVUS_DATA em /var/lib/nivus;
-- o serviço de verificação de volume;
-- dependências que fazem Docker e o coletor aguardarem o volume validado;
-- links persistentes para dados, configuração, releases e Docker.
+## Marcos restantes
 
-Se a montagem falhar, o volume não for ext4, o rótulo ou marcador não corresponder, ou o ponto não for uma montagem real, o guard falha. Docker e o coletor não iniciam, evitando gravar silenciosamente no overlay temporário. O serviço Nivus não apaga, formata nem tenta reparar filesystem automaticamente.
-
-## Validação
-
-O workflow Live USB storage exercita uma partição ext4 criada sobre loop device em runner hospedado Ubuntu 22.04. Ele confere preparação sem formatação, caminho válido, marcador incorreto, partição desmontada e instalação segura em rootfs de teste. Nenhuma VM local é necessária.
-
-Esse teste comprova o componente de persistência em Linux virtualizado pelo runner, não o boot da ISO. Ainda faltam builder de imagem, smoke de login/Compose após boot, reboot e persistência em mídia real, UEFI/BIOS, Secure Boot, desgaste da mídia, interrupção durante atualização e validação Intel/AMD.
+- Criar instalador/imagem reproduzível de Ubuntu Server minimal x86_64 que instale no USB escolhido.
+- Proteger os discos internos com seleção explícita do alvo e confirmação.
+- Configurar raiz persistente e partição `NIVUS_DATA`.
+- Instalar Nivus no primeiro boot e validar login, HTTPS, API, MQTT e uso sem Internet upstream em runner hospedado.
+- Reiniciar o mesmo USB e verificar SQLite com `PRAGMA quick_check`, configuração, segredos, releases e estado Docker.
+- Documentar atualização, backup, recuperação e comportamento após remoção do USB.
+- Fazer testes físicos UEFI/BIOS e Intel/AMD; CI hospedada não certifica hardware físico.
 
 ## Recuperação
 
-Antes de atualizar uma imagem física, faça backup Nivus e desligue o sistema corretamente. Mantenha uma mídia de recuperação Ubuntu separada. Se o volume não for reconhecido, não formate nem crie um novo marcador sobre dados antigos: preserve a partição e investigue rótulo, sistema de arquivos e conteúdo offline. O guard falha fechado para proteger SQLite, segredos e logs existentes.
+Antes de atualizar uma mídia física, faça backup Nivus e desligue o sistema corretamente. Mantenha uma mídia de recuperação Ubuntu separada. Se o volume não for reconhecido, não formate nem crie um novo marcador sobre dados antigos. Preserve a partição e investigue rótulo, sistema de arquivos e conteúdo offline.
