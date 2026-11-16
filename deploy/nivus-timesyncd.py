@@ -6,6 +6,7 @@ from __future__ import annotations
 import ipaddress
 import json
 import os
+import pwd
 import re
 import socket
 import stat
@@ -216,18 +217,53 @@ def _prepare_socket_directory(path: Path) -> None:
     os.chmod(path, 0o700)
 
 
-def _atomic_write(path: Path, content: bytes, mode: int) -> None:
+def _systemd_timesync_uid() -> int:
+    try:
+        return pwd.getpwnam("systemd-timesync").pw_uid
+    except KeyError as exc:
+        raise TimeSyncError(
+            "client_unavailable",
+            "O usuário do systemd-timesyncd não está disponível no host.",
+        ) from exc
+
+
+def _acl_read_only_for_user(uid: int) -> bytes:
+    undefined_id = 0xFFFFFFFF
+    entries = (
+        struct.pack("<HHI", 0x01, 0o6, undefined_id),
+        struct.pack("<HHI", 0x02, 0o4, uid),
+        struct.pack("<HHI", 0x04, 0o0, undefined_id),
+        struct.pack("<HHI", 0x10, 0o4, undefined_id),
+        struct.pack("<HHI", 0x20, 0o0, undefined_id),
+    )
+    return struct.pack("<I", 0x0002) + b"".join(entries)
+
+
+def _atomic_write(
+    path: Path,
+    content: bytes,
+    mode: int,
+    *,
+    readable_by_uid: int | None = None,
+) -> None:
     _require_existing_directory(path.parent)
     fd, temp_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
     temp_path = Path(temp_name)
     try:
         os.fchmod(fd, mode)
+        if readable_by_uid is not None:
+            try:
+                os.setxattr(fd, "system.posix_acl_access", _acl_read_only_for_user(readable_by_uid))
+            except OSError as exc:
+                raise TimeSyncError(
+                    "acl_unavailable",
+                    "O sistema de arquivos não oferece ACLs para leitura segura do NTP.",
+                ) from exc
         with os.fdopen(fd, "wb") as target:
             target.write(content)
             target.flush()
             os.fsync(target.fileno())
         os.replace(temp_path, path)
-        os.chmod(path, mode)
     finally:
         try:
             temp_path.unlink()
@@ -315,7 +351,7 @@ def _restore_config(previous: bytes | None) -> None:
         except FileNotFoundError:
             pass
     else:
-        _atomic_write(CONFIG_PATH, previous, 0o600)
+        _atomic_write(CONFIG_PATH, previous, 0o600, readable_by_uid=_systemd_timesync_uid())
 
 
 def _ensure_configurable() -> None:
@@ -340,7 +376,7 @@ def apply_servers(value: object) -> dict:
     old_pointer = _remember_backup(backup_dir)
     try:
         _ensure_configurable()
-        _atomic_write(CONFIG_PATH, render_config(servers), 0o600)
+        _atomic_write(CONFIG_PATH, render_config(servers), 0o600, readable_by_uid=_systemd_timesync_uid())
         if not _restart_timesyncd():
             raise TimeSyncError("restart_failed", "systemd-timesyncd não reiniciou.")
     except Exception as exc:
