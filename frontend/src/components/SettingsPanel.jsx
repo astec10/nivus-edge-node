@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { PauseCircle, PlayCircle, RotateCcw, Save, Wrench } from 'lucide-react';
+import MobileBatteryAutomationPanel from './MobileBatteryAutomationPanel';
 import {
   DASHBOARD_THEMES,
   DATE_FORMATS,
@@ -29,6 +30,7 @@ function PreferenceField({ label, value, options, onChange, describedBy }) {
 
 export default function SettingsPanel({
   isAdmin = false,
+  token = '',
   displayPreferences = DEFAULT_DISPLAY_PREFERENCES,
   onDisplayPreferenceChange = () => {},
   maintenanceState,
@@ -253,6 +255,8 @@ export default function SettingsPanel({
             {timeSyncActionMessage || timeSyncState?.message || timeSyncStatusMessage}
           </p>
         </section>
+
+        {isAdmin && <MobileBatteryAutomationPanel token={token} />}
 
         {isAdmin && (
           <section className="settings-card" aria-labelledby="maintenance-title">
