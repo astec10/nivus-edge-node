@@ -42,7 +42,7 @@ Se você quer entender ou modificar o código:
 4. Escolha uma tarefa pequena com resultado verificável. Não trate itens da visão ou do roadmap como recursos já implementados.
 5. Faça as verificações disponíveis para a área alterada, documente os resultados e atualize o estado/decisões se o comportamento mudou.
 
-O roteiro detalhado para contribuições está em [CONTRIBUTING.md](CONTRIBUTING.md). O pacote de instalação é candidato, não uma versão de produção: siga [deploy/README.md](deploy/README.md) e o roteiro de validação em runner Linux remoto em [docs/VM_VALIDATION.md](docs/VM_VALIDATION.md). Nenhuma VM precisa ser iniciada no computador do operador. O pacote Ubuntu + Nivus instalado em USB está em revisão na issue #29; consulte [deploy/portable_usb/README.md](deploy/portable_usb/README.md). Todos os checks hospedados passaram no commit `51f336711f23b9341ea459606a754e5730de000f`; ainda falta validação real de boot/reboot em USB.
+O roteiro de Ubuntu + Nivus instalado em USB foi integrado à `main` pelo PR #34 (`703efa4128f60460910b05ab344b60b082006a7e`); todos os checks hospedados passaram no head `3a1621dc11d2532853ef83b9ab5ea47f64cfaca5`. Consulte [deploy/portable_usb/README.md](deploy/portable_usb/README.md). Ainda faltam instalação, primeiro login, reboot e persistência em um USB físico; não é uma ISO customizada pronta nem uma versão de produção.
 
 ## Mapa do código
 
