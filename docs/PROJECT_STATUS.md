@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-16 21:33 UTC
+Atualizado: 2026-11-16 22:19 UTC
 Licença: AGPL-3.0-only
 
 ## Resumo verificado
@@ -27,11 +27,15 @@ Ainda faltam executar uma instalação real do Subiquity até o primeiro boot, i
 
 ## Configuração visual, NTP e atualização
 
-O PR #36 foi integrado à main (`3ac16cf`) com correções nos filtros e na acessibilidade do quadro de marcos. O PR #37 foi integrado em `f18085b`; os quatro checks hospedados passaram: dashboard/sensores, índice de conhecimento, CodeQL e validação Ubuntu. Ele adiciona relógio digital, formatos de hora/data, fuso IANA/GMT e temas, com preferências por conta. O relógio usa a hora do navegador; configurar fontes NTP no Ubuntu ainda está pendente.
+O PR #36 corrigiu filtros e acessibilidade do quadro de marcos; o PR #37 integrou relógio digital, formatos de hora/data, fuso IANA/GMT e temas. O PR #38 adicionou atualização manual reversível; os PRs #40/#41 instalaram o controlador NTP restrito e corrigiram o staging do atualizador.
 
-O PR #38 foi integrado à `main` no commit `972814d`; o atualizador manual reversível está em `deploy/update.sh`. Ele exige clone Git limpo e `sudo`, cria backup SQLite consistente e preserva a release e imagens anteriores para rollback. Os PRs #40 (`e9aab5f`) e #41 (`2e327ea`) também estão integrados: configuração NTP protegida na aba Configuração, controlador restrito com backup/rollback e correção do link temporário do atualizador. Os checks hospedados passaram nos heads revisados, incluindo smoke Compose Ubuntu 22.04, CodeQL sem novos alertas, dashboard/sensores e índice de conhecimento.
+Os temas completos do PR #43 adicionam layouts Bento, Glass, SCADA, Cupertino e E-Ink, selecionáveis em Configuração. O PR #44 faz os valores dos pontos do gráfico aparecerem imediatamente; só os detalhes ampliados (mínimo/máximo no período, origem e hotspot explicitamente exposto) esperam 3 segundos. O mesmo PR aplica alto contraste e movimento reduzido. Os PRs #44 e #45 passaram pelos checks hospedados; o PR #46 também passou em frontend/sensores, Python, JavaScript/TypeScript, CodeQL, índice e smoke Compose Ubuntu 22.04 amd64.
 
-O pacote atualizado está no `main`, mas não foi aplicado ao notebook nesta sessão. O host continua no release confirmado anteriormente pelo PR #20. Depois da atualização, ainda falta verificar a nova interface no navegador; a hora do host só muda por ação explícita de administrador, se `systemd-timesyncd` já estiver ativo. Nenhuma mudança remota de host foi feita.
+O PR #45 define três fontes de provedores distintos (a.ntp.br, time.google.com, time.cloudflare.com) e permite edição quando systemd-timesyncd está instalado, mesmo parado. Se outro cliente NTP estiver ativo, a alteração é bloqueada. O controlador mantém backup e rollback. A sincronização é failover, não votação.
+
+O PR #46 coleta a bateria interna do nó por psutil no agente de telemetria do host. O cartão e o gráfico mostram N/D quando o sistema não expõe leitura. Esse valor não é a bateria de celular nem a do inversor e não controla o relé.
+
+O atualizador está em deploy/update.sh; ele exige clone Git limpo e sudo, cria backup consistente do SQLite, constrói imagens sequencialmente e preserva a release anterior para rollback. Nenhum dos PRs #43-46 foi confirmado instalado no notebook nesta sessão; a última versão reportada foi c70ed02. É necessário executar o atualizador no notebook e conferir a interface após reiniciar os serviços.
 
 ## Estado do notebook de teste
 
@@ -45,7 +49,7 @@ O rollback da release está em `/home/nivus/nivus-backups/nivus-update-20261116T
 
 O PR #20 foi integrado ao main e aplicado no notebook. A build confirmou os componentes API/web e a migração SQLite; a saída de implantação e a leitura pós-reboot confirmaram coleta contínua com origem térmica coretemp. Valores reais não são publicados. Placa-mãe, GPU e hotspot continuam dependentes dos sensores expostos pelo sistema e driver do equipamento.
 
-A dashboard contém os cartões térmicos, períodos e seleção conjunta de séries, detalhes após três segundos e aviso sonoro opcional pelo navegador. O seletor atual/leve é implementado no mesmo estado React e guarda apenas a preferência de versão em `localStorage`; o backend mantém a sessão/token na aplicação. Os dois endereços respondem 200, mas a alternância real em ambas as direções, logout e expiração ainda aguardam conferência no navegador. O painel leve foi preservado em HTTPS 8444.
+A dashboard contém cartões térmicos, períodos e seleção conjunta de séries. O valor do ponto no gráfico aparece de imediato; a espera de três segundos vale apenas para mínimos/máximos, origem e hotspots explicitamente disponíveis. O aviso sonoro usa o navegador, não um buzzer físico. A bateria interna do nó ganhou cartão e modo de gráfico no PR #46; a regra do relé continua esperando a bateria móvel identificada da issue #22. O seletor atual/leve é implementado no mesmo estado React e guarda apenas a preferência de versão em `localStorage`; o backend mantém a sessão/token na aplicação. Os dois endereços respondem 200, mas a alternância real em ambas as direções, logout e expiração ainda aguardam conferência no navegador. O painel leve foi preservado em HTTPS 8444.
 
 ## Regra automática do relé por bateria
 
@@ -62,7 +66,7 @@ A implementação de manutenção reversível e `nivus help` foi integrada à `m
 ## Escopo ainda pendente
 
 - Issue #25: as correções do quadro de marcos estão na main pelo PR #36; a página atualizada e a troca da dashboard sem novo login ainda aguardam atualização do notebook e validação visual.
-- Issue #21: relógio, formatos, fuso/GMT e preferências foram integrados pelo PR #37; a configuração NTP do host e o controle administrativo entraram pelo PR #40, com a correção do atualizador no PR #41. Falta aplicar a release e validar o estado/uso no host; o navegador não configura o relógio do Ubuntu.
+- Issue #21: preferências/relógio do painel estão nos PRs #37 e #45; a lista NTP usa NTP.br, Google e Cloudflare, permite edição com systemd-timesyncd instalado/parado e preserva outro cliente ativo. Falta aplicar e validar essa versão no host; o navegador não configura o relógio do Ubuntu.
 - Issue #23: os seis temas (Atual, Bento, Glass, SCADA, Cupertino e E-Ink), seleção imediata e preferências locais por conta estão no PR #37. A confirmação visual comparativa no notebook ainda aguarda a atualização e teste no navegador.
 - Issue #26: implementação integrada no PR #28; resta aplicar a release no notebook e confirmar CLI/dashboard e retorno ao modo normal após reboot. A CI hospedada passou, mas não substitui a validação do host.
 - Issue #22: integrar fonte identificada e recente da bateria do dispositivo móvel e associá-la ao relé; manter comandos manuais até então.
