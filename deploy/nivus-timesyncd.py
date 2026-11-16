@@ -162,17 +162,9 @@ def read_host_status() -> dict:
     }
 
 
-def _ensure_directory(path: Path, mode: int) -> None:
-    created = False
+def _require_existing_directory(path: Path) -> None:
     try:
         info = path.lstat()
-    except FileNotFoundError:
-        try:
-            path.mkdir(parents=True, mode=mode, exist_ok=True)
-            created = True
-            info = path.lstat()
-        except OSError as exc:
-            raise TimeSyncError("path_unavailable", "Diretório protegido indisponível.") from exc
     except OSError as exc:
         raise TimeSyncError("path_unavailable", "Diretório protegido indisponível.") from exc
     if (
@@ -184,12 +176,48 @@ def _ensure_directory(path: Path, mode: int) -> None:
             "unsafe_path",
             "Diretório NTP precisa pertencer ao serviço privilegiado e não pode permitir escrita a terceiros.",
         )
-    if created:
-        os.chmod(path, mode)
+
+
+def _ensure_private_directory(path: Path) -> None:
+    try:
+        path.mkdir(parents=True, mode=0o700, exist_ok=True)
+        info = path.lstat()
+    except OSError as exc:
+        raise TimeSyncError("path_unavailable", "Diretório protegido indisponível.") from exc
+    if (
+        not stat.S_ISDIR(info.st_mode)
+        or info.st_uid != os.geteuid()
+        or info.st_mode & 0o077
+    ):
+        raise TimeSyncError(
+            "unsafe_path",
+            "Diretório NTP privado precisa pertencer ao serviço privilegiado.",
+        )
+    os.chmod(path, 0o700)
+
+
+def _prepare_socket_directory(path: Path) -> None:
+    try:
+        path.mkdir(parents=True, mode=0o700, exist_ok=True)
+        info = path.lstat()
+    except OSError as exc:
+        raise TimeSyncError("path_unavailable", "Diretório do socket NTP indisponível.") from exc
+    if not stat.S_ISDIR(info.st_mode):
+        raise TimeSyncError("unsafe_path", "O caminho do socket NTP não é um diretório.")
+    if info.st_uid == 0:
+        if info.st_mode & 0o022 or info.st_mode & 0o007:
+            raise TimeSyncError("unsafe_path", "Diretório do socket NTP não é privado.")
+    elif info.st_uid == RUNTIME_UID:
+        if info.st_mode & 0o077:
+            raise TimeSyncError("unsafe_path", "Diretório do socket NTP não é privado.")
+    else:
+        raise TimeSyncError("unsafe_path", "Diretório do socket NTP tem proprietário inesperado.")
+    os.chown(path, RUNTIME_UID, RUNTIME_GID)
+    os.chmod(path, 0o700)
 
 
 def _atomic_write(path: Path, content: bytes, mode: int) -> None:
-    _ensure_directory(path.parent, 0o755)
+    _require_existing_directory(path.parent)
     fd, temp_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
     temp_path = Path(temp_name)
     try:
@@ -232,7 +260,7 @@ def _read_managed_config() -> bytes | None:
 
 
 def _new_backup(previous: bytes | None) -> Path:
-    _ensure_directory(BACKUP_ROOT, 0o700)
+    _ensure_private_directory(BACKUP_ROOT)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     backup_dir = Path(tempfile.mkdtemp(prefix=f"{stamp}-", dir=BACKUP_ROOT))
     os.chmod(backup_dir, 0o700)
@@ -482,9 +510,7 @@ def serve() -> None:
     if not 0 < RUNTIME_UID < 65536 or not 0 < RUNTIME_GID < 65536:
         raise SystemExit("UID/GID de runtime inválido.")
     socket_dir = SOCKET_PATH.parent
-    _ensure_directory(socket_dir, 0o750)
-    os.chown(socket_dir, 0, RUNTIME_GID)
-    os.chmod(socket_dir, 0o710)
+    _prepare_socket_directory(socket_dir)
     if os.path.lexists(SOCKET_PATH):
         raise SystemExit("O socket NTP já existe; o controlador recusou substituir o caminho.")
     server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
