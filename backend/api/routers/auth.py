@@ -50,7 +50,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
             attempt = {"failures": 0, "locked_until": None}
 
         cursor.execute(
-            "SELECT username, password, role FROM users WHERE username = ?",
+            "SELECT username, password, role, must_change_password FROM users WHERE username = ?",
             (username,),
         )
         user = cursor.fetchone()
@@ -59,8 +59,8 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
         )
 
         if not valid_password:
-            # Update the counter atomically so simultaneous failed logins do not
-            # race to insert the same username into the unique login_attempts table.
+            # Use one SQLite UPSERT so concurrent failures cannot race between
+            # reading and inserting the unique username counter.
             lock_time = now + timedelta(minutes=15)
             cursor.execute(
                 """
@@ -88,9 +88,13 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
             )
         cursor.execute("DELETE FROM login_attempts WHERE username = ?", (username,))
         conn.commit()
+        password_change_required = bool(user["must_change_password"])
         return {
-            "access_token": create_access_token(user["username"], user["role"]),
+            "access_token": create_access_token(
+                user["username"], user["role"], password_change_required
+            ),
             "token_type": "bearer",
+            "password_change_required": password_change_required,
         }
     finally:
         conn.close()
