@@ -59,7 +59,7 @@ O plano prepara a persistência para banco, segredos, configurações, releases 
 
 ## Limites e validação pendente
 
-A CI usa inventários de discos sintéticos em runner Ubuntu hospedado. Ela não particiona discos nem substitui a validação do schema/runtime pelo Subiquity de cada ISO. Ainda faltam integrar o seed a uma ISO reprodutível, instalar o Nivus no primeiro boot, testar reinício e persistência, verificar recuperação/rollback e validar firmware UEFI e BIOS em mídia física Intel/AMD. Não há declaração de compatibilidade de boot universal até essa matriz passar.
+A CI usa inventários de discos sintéticos em runner Ubuntu hospedado, não particiona discos e valida um seed representativo pelo validador/schema oficial da linha Subiquity Ubuntu 24.04, fixado a um commit. Isso não executa o instalador nem substitui validação no runtime de cada ISO. Ainda faltam integrar o seed a mídia inicializável reprodutível, instalar o Nivus no primeiro boot, testar reinício e persistência, verificar recuperação/rollback e validar firmware UEFI/BIOS em hardware físico Intel/AMD. Não há declaração de compatibilidade de boot universal até essa matriz passar.
 
 Referências oficiais:
 
