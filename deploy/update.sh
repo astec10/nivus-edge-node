@@ -125,8 +125,8 @@ ACTIVE_SHA=
 if [[ -s "$CURRENT/.nivus-revision" ]]; then
   ACTIVE_SHA=$(cat "$CURRENT/.nivus-revision")
 else
-  ACTIVE_NAME=\${OLD_RELEASE##*/}
-  ACTIVE_SHA=\${ACTIVE_NAME##*-}
+  ACTIVE_NAME=${OLD_RELEASE##*/}
+  ACTIVE_SHA=${ACTIVE_NAME##*-}
 fi
 if [[ "$ACTIVE_SHA" == "$TARGET_SHA" ]]; then
   echo "A release $TARGET_SHA já está ativa; nenhuma alteração necessária."
@@ -135,7 +135,7 @@ if [[ "$ACTIVE_SHA" == "$TARGET_SHA" ]]; then
 fi
 
 STAMP=$(date -u +%Y%m%dT%H%M%SZ)
-SHORT_SHA=\${TARGET_SHA:0:12}
+SHORT_SHA=${TARGET_SHA:0:12}
 NEW_RELEASE="$RELEASES/$STAMP-$TARGET_SHA"
 [[ ! -e "$NEW_RELEASE" && ! -L "$NEW_RELEASE" ]] || { echo "Pasta da release já existe." >&2; exit 2; }
 install -d -m 755 "$RELEASES" "$NEW_RELEASE"
@@ -166,7 +166,7 @@ docker image inspect "nivus-edge-api:update-$SHORT_SHA" "nivus-edge-web:update-$
 echo "[2/5] Criando backup SQLite consistente e preservando o serviço."
 BACKUP_OUTPUT=$(bash "$CURRENT/deploy/backup.sh")
 printf '%s\n' "$BACKUP_OUTPUT"
-BACKUP_DIR=$(printf '%s\n' "$BACKUP_OUTPUT" | sed -n 's/^Backup SQLite consistent and configuration saved in //p' | tail -n1)
+BACKUP_DIR=$(printf '%s\n' "$BACKUP_OUTPUT" | sed -n 's/^Backup SQLite consistente e configuração salvos em //p' | tail -n1)
 [[ "$BACKUP_DIR" == "$BACKUP_ROOT"/* && -d "$BACKUP_DIR" ]] || {
   echo "Não foi possível confirmar o diretório do backup." >&2
   exit 2
@@ -248,6 +248,6 @@ echo "[5/5] Atualização concluída; release anterior e backup foram mantidos."
 printf 'Release ativa: %s\n' "$TARGET_SHA"
 printf 'Backup consistente: %s\n' "$BACKUP_DIR"
 printf 'Health HTTPS: 200; telemetria sem token: %s\n' "$AUTH_STATUS"
+rm -f -- "$OVERRIDE_FILE"
 READY=1
 trap - ERR INT TERM
-rm -f -- "$OVERRIDE_FILE"
