@@ -46,6 +46,7 @@ function App() {
   const [maintenanceState, setMaintenanceState] = useState(null);
   const [maintenanceMessage, setMaintenanceMessage] = useState('');
   const [maintenanceBusy, setMaintenanceBusy] = useState(false);
+  const [hostTimeSync, setHostTimeSync] = useState(null);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [soundStatus, setSoundStatus] = useState('Aviso sonoro do navegador desativado.');
 
@@ -78,6 +79,40 @@ function App() {
   };
   const passwordChangeRequired = userPayload?.password_change_required === true;
   const isAdmin = userPayload?.role === 'admin';
+
+  useEffect(() => {
+    if (!token || passwordChangeRequired || activeTab !== 'settings') {
+      if (!token || passwordChangeRequired) setHostTimeSync(null);
+      return undefined;
+    }
+    let cancelled = false;
+    const refreshHostTimeSync = async () => {
+      try {
+        const response = await axios.get(`${API_BASE}/api/settings/time-sync`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!cancelled) setHostTimeSync(response.data);
+      } catch (err) {
+        if (!cancelled) {
+          setHostTimeSync({
+            state: 'unavailable',
+            can_configure: false,
+            configured_servers: [],
+            suggested_servers: ['a.ntp.br', 'b.ntp.br', 'c.ntp.br'],
+            has_rollback: false,
+            message: err.response?.data?.detail || 'Não foi possível consultar o estado do relógio do host.'
+          });
+        }
+      }
+    };
+    void refreshHostTimeSync();
+    const interval = setInterval(refreshHostTimeSync, 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [token, activeTab, passwordChangeRequired]);
+
   const alertAudioContextRef = useRef(null);
   const lastAlertTimeRef = useRef(0);
 
@@ -408,6 +443,32 @@ function App() {
     }
   };
 
+  const handleApplyHostTimeSync = async (servers) => {
+    if (!isAdmin) return { ok: false, message: 'Somente administrador pode alterar o NTP do host.' };
+    try {
+      const response = await axios.post(`${API_BASE}/api/settings/time-sync`, { servers }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setHostTimeSync(response.data);
+      return { ok: true, data: response.data };
+    } catch (err) {
+      return { ok: false, message: err.response?.data?.detail || 'Não foi possível configurar o NTP do host.' };
+    }
+  };
+
+  const handleRollbackHostTimeSync = async () => {
+    if (!isAdmin) return { ok: false, message: 'Somente administrador pode restaurar o NTP do host.' };
+    try {
+      const response = await axios.post(`${API_BASE}/api/settings/time-sync/rollback`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setHostTimeSync(response.data);
+      return { ok: true, data: response.data };
+    } catch (err) {
+      return { ok: false, message: err.response?.data?.detail || 'Não foi possível restaurar a configuração NTP.' };
+    }
+  };
+
   const handleToggleMaintenance = async (enabled) => {
     if (!isAdmin) return false;
     if (enabled && !window.confirm('A coleta e a gravação de novas amostras serão pausadas até você retomar a operação. Continuar?')) return false;
@@ -462,6 +523,9 @@ function App() {
               maintenanceMessage={maintenanceMessage}
               maintenanceBusy={maintenanceBusy}
               onToggleMaintenance={handleToggleMaintenance}
+              timeSyncState={hostTimeSync}
+              onApplyTimeSync={handleApplyHostTimeSync}
+              onRollbackTimeSync={handleRollbackHostTimeSync}
             />
           )}
           {dashboardVersion === 'current' ? (

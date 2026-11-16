@@ -239,6 +239,102 @@
   background: #f59e0b12;
 }
 
+.time-sync-status--synchronized {
+  border-color: #34d399;
+  color: #a7f3d0;
+  background: #10b98112;
+}
+
+.time-sync-status--degraded {
+  border-color: #fbbf24;
+  color: #fde68a;
+  background: #f59e0b12;
+}
+
+.time-sync-status--managed_elsewhere {
+  border-color: #a78bfa;
+  color: #ddd6fe;
+  background: #8b5cf612;
+}
+
+.time-sync-status--unavailable,
+.time-sync-status--unknown {
+  border-color: #64748b;
+  color: #cbd5e1;
+  background: #64748b12;
+}
+
+.settings-explanation {
+  max-width: 680px;
+  margin: 1rem 0;
+  color: #a9b9cf;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.time-sync-form {
+  margin-top: 1rem;
+}
+
+.time-sync-server-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: 0.75rem;
+}
+
+.time-sync-server-grid label {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  color: #cbd5e1;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.time-sync-server-grid input {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #475569;
+  border-radius: 0.55rem;
+  color: #f8fafc;
+  background: #0f172a;
+  font: 500 0.95rem ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.time-sync-server-grid input:focus-visible {
+  outline: 3px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+.time-sync-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.85rem;
+}
+
+.time-sync-actions .time-sync-rollback {
+  border-color: #64748b;
+  color: #e2e8f0;
+  background: #334155;
+}
+
+.time-sync-readonly {
+  margin: 1rem 0 0;
+  color: #cbd5e1;
+  overflow-wrap: anywhere;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.time-sync-feedback {
+  min-height: 1.4em;
+  margin: 0.8rem 0 0;
+  color: #a9b9cf;
+  font-size: 0.9rem;
+}
+
 .maintenance-details {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -312,5 +408,9 @@
 
   .maintenance-toggle {
     width: 100%;
+  }
+
+  .time-sync-actions {
+    flex-direction: column;
   }
 }

@@ -10,6 +10,7 @@ if [[ ! -d "$APP" ]]; then
   exit 2
 fi
 systemctl disable --now nivus-compose-telemetry.service 2>/dev/null || true
+systemctl disable --now nivus-time-sync.service 2>/dev/null || true
 cd "$APP"
 docker compose down
 cat <<'EOF'

@@ -12,7 +12,17 @@ RELEASES="$INSTALL_ROOT/releases"
 CURRENT="$INSTALL_ROOT/current"
 SERVICE=nivus-compose-telemetry.service
 UNIT_FILE="/etc/systemd/system/$SERVICE"
+TIME_SYNC_SERVICE=nivus-time-sync.service
+TIME_SYNC_UNIT_FILE="/etc/systemd/system/$TIME_SYNC_SERVICE"
+TIME_SYNC_ENV=/etc/nivus-compose/time-sync.env
+TIME_SYNC_DROPIN_DIR=/etc/systemd/timesyncd.conf.d
+TIME_SYNC_BACKUP_DIR=/var/backups/nivus-compose/time-sync
 BACKUP_ROOT=/var/backups/nivus-compose
+TIME_SYNC_WAS_PRESENT=0
+TIME_SYNC_WAS_ACTIVE=0
+TIME_SYNC_WAS_ENABLED=0
+TIME_SYNC_DROPIN_DIR_CREATED=0
+TIME_SYNC_BACKUP_DIR_CREATED=0
 SWITCHED=0
 READY=0
 OVERRIDE_FILE=
@@ -38,13 +48,36 @@ fail_and_rollback() {
   trap - ERR INT TERM
   if [[ $SWITCHED -eq 1 && $READY -eq 0 ]]; then
     set +e
-    echo "A atualização falhou após a troca; voltando à release anterior." >&2
+    echo "A promoção falhou; restaurando a release anterior e seus serviços." >&2
     systemctl stop "$SERVICE" >/dev/null 2>&1
-    local rollback_link="$INSTALL_ROOT/.current-rollback-$(date -u +%Y%m%dT%H%M%SZ)-$$"
+    systemctl stop "$TIME_SYNC_SERVICE" >/dev/null 2>&1 || true
+    local rollback_link="$INSTALL_ROOT/.current-rollback-$(date -u +%Y%m%dT%H%M%SZ)-$"
     if ln -s "$OLD_RELEASE" "$rollback_link" && mv -Tf -- "$rollback_link" "$CURRENT"; then
       if [[ -n "$BACKUP_DIR" && -s "$BACKUP_DIR/$SERVICE" ]]; then
         cp -a "$BACKUP_DIR/$SERVICE" "$UNIT_FILE"
+      fi
+      if [[ -n "$BACKUP_DIR" && -s "$BACKUP_DIR/time-sync-state" ]]; then
+        local previous_present previous_active previous_enabled
+        read -r previous_present previous_active previous_enabled < "$BACKUP_DIR/time-sync-state"
+        if [[ "$previous_present" == 1 && -s "$BACKUP_DIR/$TIME_SYNC_SERVICE" ]]; then
+          cp -a "$BACKUP_DIR/$TIME_SYNC_SERVICE" "$TIME_SYNC_UNIT_FILE"
+        else
+          rm -f -- "$TIME_SYNC_UNIT_FILE"
+        fi
+        if [[ -s "$BACKUP_DIR/time-sync.env" ]]; then
+          cp -a "$BACKUP_DIR/time-sync.env" "$TIME_SYNC_ENV"
+        else
+          rm -f -- "$TIME_SYNC_ENV"
+        fi
         systemctl daemon-reload
+        if [[ "$previous_present" == 1 ]]; then
+          if [[ "$previous_enabled" == 1 ]]; then systemctl enable "$TIME_SYNC_SERVICE" >/dev/null 2>&1; else systemctl disable "$TIME_SYNC_SERVICE" >/dev/null 2>&1; fi
+          if [[ "$previous_active" == 1 ]]; then systemctl start "$TIME_SYNC_SERVICE" >/dev/null 2>&1; else systemctl stop "$TIME_SYNC_SERVICE" >/dev/null 2>&1; fi
+        else
+          systemctl disable "$TIME_SYNC_SERVICE" >/dev/null 2>&1 || true
+        fi
+        if [[ "$TIME_SYNC_DROPIN_DIR_CREATED" == 1 ]]; then rmdir "$TIME_SYNC_DROPIN_DIR" 2>/dev/null || true; fi
+        if [[ "$TIME_SYNC_BACKUP_DIR_CREATED" == 1 ]]; then rmdir "$TIME_SYNC_BACKUP_DIR" 2>/dev/null || true; fi
       fi
       compose_release "$OLD_RELEASE" up -d --no-build
       systemctl restart "$SERVICE"
@@ -104,6 +137,37 @@ case "$OLD_RELEASE" in "$RELEASES"/*) ;; *) echo "Release ativa fora de $RELEASE
   echo "Serviço ou segredos externos não encontrados." >&2
   exit 2
 }
+if systemctl cat "$TIME_SYNC_SERVICE" >/dev/null 2>&1; then
+  [[ -s "$TIME_SYNC_UNIT_FILE" ]] || { echo "A unidade NTP existente não pertence ao atualizador Nivus; atualização recusada." >&2; exit 2; }
+  grep -q "ExecStart=/usr/bin/python3 /opt/nivus-compose/current/deploy/nivus-timesyncd.py" "$TIME_SYNC_UNIT_FILE" || {
+    echo "A unidade NTP existente não corresponde ao controlador Nivus; atualização recusada." >&2
+    exit 2
+  }
+  TIME_SYNC_WAS_PRESENT=1
+  systemctl is-active --quiet "$TIME_SYNC_SERVICE" && TIME_SYNC_WAS_ACTIVE=1 || true
+  systemctl is-enabled --quiet "$TIME_SYNC_SERVICE" && TIME_SYNC_WAS_ENABLED=1 || true
+elif [[ -e "$TIME_SYNC_UNIT_FILE" || -L "$TIME_SYNC_UNIT_FILE" ]]; then
+  echo "Há um arquivo de unidade NTP conflitante; atualização recusada." >&2
+  exit 2
+fi
+if [[ -e "$TIME_SYNC_ENV" || -L "$TIME_SYNC_ENV" ]]; then
+  [[ -f "$TIME_SYNC_ENV" && ! -L "$TIME_SYNC_ENV" ]] || { echo "Ambiente do controlador NTP inválido; atualização recusada." >&2; exit 2; }
+fi
+validate_protected_dir() {
+  local path=$1 owner mode
+  [[ -d "$path" && ! -L "$path" ]] || return 1
+  owner=$(stat -c '%u' "$path")
+  mode=$(stat -c '%a' "$path")
+  [[ "$owner" == 0 && "$mode" =~ ^[0-7]{3,4}$ ]] && (( (8#$mode & 0022) == 0 ))
+}
+for protected_dir in "$TIME_SYNC_DROPIN_DIR" "$TIME_SYNC_BACKUP_DIR"; do
+  if [[ -e "$protected_dir" || -L "$protected_dir" ]]; then
+    validate_protected_dir "$protected_dir" || {
+      echo "Diretório NTP existente não é seguro; atualização recusada sem alterá-lo." >&2
+      exit 2
+    }
+  fi
+done
 systemctl is-active --quiet docker.service
 systemctl is-active --quiet "$SERVICE"
 
@@ -173,6 +237,20 @@ BACKUP_DIR=$(printf '%s\n' "$BACKUP_OUTPUT" | sed -n 's/^Backup SQLite consisten
 }
 cp -a "$UNIT_FILE" "$BACKUP_DIR/$SERVICE"
 chmod 600 "$BACKUP_DIR/$SERVICE"
+printf '%s %s %s\n' "$TIME_SYNC_WAS_PRESENT" "$TIME_SYNC_WAS_ACTIVE" "$TIME_SYNC_WAS_ENABLED" > "$BACKUP_DIR/time-sync-state"
+chmod 600 "$BACKUP_DIR/time-sync-state"
+if [[ "$TIME_SYNC_WAS_PRESENT" == 1 ]]; then
+  cp -a "$TIME_SYNC_UNIT_FILE" "$BACKUP_DIR/$TIME_SYNC_SERVICE"
+  chmod 600 "$BACKUP_DIR/$TIME_SYNC_SERVICE"
+fi
+if [[ -f "$TIME_SYNC_ENV" && ! -L "$TIME_SYNC_ENV" ]]; then
+  cp -a "$TIME_SYNC_ENV" "$BACKUP_DIR/time-sync.env"
+  chmod 600 "$BACKUP_DIR/time-sync.env"
+fi
+if ! grep -q '^NIVUS_TIME_SYNC_DIR=' "$NEW_RELEASE/.env"; then
+  printf 'NIVUS_TIME_SYNC_DIR=/run/nivus-time-sync\n' >> "$NEW_RELEASE/.env"
+fi
+
 
 TELEMETRY_BEFORE=$(python3 - "$DATA_DIR/nivus.db" <<'PY'
 import sqlite3, sys
@@ -187,13 +265,40 @@ PY
 )
 
 echo "[3/5] Trocando release e reiniciando os serviços Nivus."
+SWITCHED=1
 systemctl stop "$SERVICE"
 NEW_LINK="$INSTALL_ROOT/.current-update-$STAMP"
 ln -s "$NEW_RELEASE" "$NEW_LINK"
 mv -Tf -- "$NEW_LINK" "$CURRENT"
-SWITCHED=1
+if [[ ! -e "$TIME_SYNC_DROPIN_DIR" && ! -L "$TIME_SYNC_DROPIN_DIR" ]]; then
+  install -d -m 755 "$TIME_SYNC_DROPIN_DIR"
+  TIME_SYNC_DROPIN_DIR_CREATED=1
+elif ! validate_protected_dir "$TIME_SYNC_DROPIN_DIR"; then
+  echo "Diretório de configuração timesyncd inválido; abortando." >&2
+  exit 2
+fi
+if [[ ! -e "$TIME_SYNC_BACKUP_DIR" && ! -L "$TIME_SYNC_BACKUP_DIR" ]]; then
+  install -d -m 700 "$TIME_SYNC_BACKUP_DIR"
+  TIME_SYNC_BACKUP_DIR_CREATED=1
+elif ! validate_protected_dir "$TIME_SYNC_BACKUP_DIR"; then
+  echo "Diretório de backup NTP inválido; abortando." >&2
+  exit 2
+fi
+RUNTIME_UID=$(sed -n 's/^NIVUS_RUNTIME_UID=//p' "$CURRENT/.env" | tr -d '\r' | tail -n1)
+RUNTIME_GID=$(sed -n 's/^NIVUS_RUNTIME_GID=//p' "$CURRENT/.env" | tr -d '\r' | tail -n1)
+[[ "$RUNTIME_UID" =~ ^[1-9][0-9]{0,4}$ && "$RUNTIME_GID" =~ ^[1-9][0-9]{0,4}$ ]] || {
+  echo "UID/GID de runtime inválidos para o controlador NTP." >&2
+  exit 2
+}
+install -d -m 700 /etc/nivus-compose
+printf 'NIVUS_RUNTIME_UID=%s\nNIVUS_RUNTIME_GID=%s\n' "$RUNTIME_UID" "$RUNTIME_GID" > "$TIME_SYNC_ENV"
+chmod 600 "$TIME_SYNC_ENV"
 install -m 644 "$NEW_RELEASE/deploy/nivus-compose-telemetry.service" "$UNIT_FILE"
+install -m 644 "$NEW_RELEASE/deploy/nivus-time-sync.service" "$TIME_SYNC_UNIT_FILE"
 systemctl daemon-reload
+systemctl enable --now "$TIME_SYNC_SERVICE"
+systemctl restart "$TIME_SYNC_SERVICE"
+systemctl is-active --quiet "$TIME_SYNC_SERVICE"
 new_compose up -d --no-build
 systemctl restart "$SERVICE"
 

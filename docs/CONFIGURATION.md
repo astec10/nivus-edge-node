@@ -19,3 +19,12 @@ Configure valores de MQTT conforme broker local. O arquivo .env.example contém 
 
 
 Para a candidata Compose, consulte `deploy/README.md` e `.env.example`. Não reutilize o banco do notebook nem segredos de produção numa instalação de teste.
+
+
+## Hora do host
+
+A preferência de fuso, hora e data altera apenas a apresentação no navegador. Para configurar a hora do Ubuntu, a API fornece \`GET /api/settings/time-sync\` a usuários autenticados e limita \`POST /api/settings/time-sync\` e \`POST /api/settings/time-sync/rollback\` a administradores.
+
+O controlador raiz opera somente sobre \`/etc/systemd/timesyncd.conf.d/90-nivus.conf\`. Ele só aplica mudanças se \`systemd-timesyncd.service\` já estiver ativo e nenhum outro cliente NTP listado estiver ativo. Ele não instala nem substitui clientes. Os nomes DNS são validados na API e novamente no controlador privilegiado; URLs, portas, endereços IP e fontes repetidas são recusados. A lista padrão é \`a.ntp.br\`, \`b.ntp.br\`, \`c.ntp.br\`, três servidores do mesmo projeto NTP.br. O systemd-timesyncd usa as fontes disponíveis sequencialmente; não há quorum.
+
+Antes de cada mudança o controlador salva a configuração Nivus anterior em \`/var/backups/nivus-compose/time-sync\`. Em falha no reinício ele tenta restaurar a configuração e o índice de backup. O endpoint de rollback restaura a configuração Nivus anterior. O serviço API acessa o controlador por \`/run/nivus-time-sync/control.sock\`, montado como somente leitura no container e autorizado por credenciais Unix do peer; não há \`sudo\` geral nem comandos arbitrários.

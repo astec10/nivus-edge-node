@@ -1,3 +1,5 @@
+import ipaddress
+import re
 from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
@@ -19,6 +21,34 @@ class ActuatorCommand(BaseModel):
 class SettingUpdate(BaseModel):
     key: Literal["temp_threshold", "cpu_threshold"]
     value: str
+
+
+class TimeSyncUpdate(BaseModel):
+    servers: list[str] = Field(min_length=3, max_length=3)
+
+    @field_validator("servers")
+    @classmethod
+    def validate_servers(cls, value: list[str]) -> list[str]:
+        label = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
+        normalized = []
+        for item in value:
+            host = item.strip().lower().rstrip(".")
+            try:
+                ipaddress.ip_address(host)
+            except ValueError:
+                pass
+            else:
+                raise ValueError("Use nomes DNS, não endereços IP.")
+            if (
+                not host
+                or len(host) > 253
+                or any(not label.fullmatch(part) for part in host.split("."))
+            ):
+                raise ValueError("Use nomes DNS sem URL, porta ou espaços internos.")
+            normalized.append(host)
+        if len(set(normalized)) != 3:
+            raise ValueError("Os três servidores NTP precisam ser diferentes.")
+        return normalized
 
 
 class MaintenanceUpdate(BaseModel):

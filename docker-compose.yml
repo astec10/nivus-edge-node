@@ -35,6 +35,10 @@ services:
       - type: bind
         source: ${NIVUS_MAINTENANCE_STATE_DIR:-/run/nivus-maintenance}
         target: /run/nivus-maintenance
+      - type: bind
+        source: ${NIVUS_TIME_SYNC_DIR:-/run/nivus-time-sync}
+        target: /run/nivus-time-sync
+        read_only: true
     networks:
       - web_private
       - mqtt_private
