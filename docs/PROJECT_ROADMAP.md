@@ -30,18 +30,19 @@ Critérios já observados: login funcional; API exige token; health HTTPS respon
 
 ### Fase 1 — Instalação, recuperação e portabilidade
 
-**Estado: próxima prioridade.**
+**Estado: em andamento; integração de persistência merged, imagem inicializável pendente.**
 
-**Issue #29 — Ubuntu + Nivus Live USB com dados persistentes:** comparar Ubuntu Server Live com overlay e instalação portátil; manter uma partição ext4 persistente (rótulo sugerido `NIVUS_DATA`) montada em `/var/lib/nivus`. SQLite, segredos, configurações e logs não podem cair silenciosamente em armazenamento volátil quando a partição faltar. A imagem e o primeiro smoke serão gerados por CI hospedada; boot UEFI/BIOS e persistência após reboot precisam de validação física em equipamento x86_64.
+**Issue #29 — Ubuntu + Nivus Live USB com dados persistentes:** a integração inicial de storage foi integrada pelo PR #31. Uma partição ext4 `NIVUS_DATA` é montada em `/var/lib/nivus`; symlinks preservam os caminhos de dados, configuração/segredos, releases e Docker. Um guard systemd valida mount, filesystem, rótulo, marcador e layout antes de Docker/coletor; a ausência do volume bloqueia os serviços. O workflow `Live USB storage` passou em runner Ubuntu hospedado com partição loop-backed. Ainda não há ISO bootável nem decisão final entre Casper Live com overlay e Ubuntu completo instalado no USB. A imagem, boot, smoke de login/Compose e persistência após reboot precisam ser concluídos; UEFI/BIOS e hardware Intel/AMD requerem teste físico.
 
 Siga [`VM_VALIDATION.md`](VM_VALIDATION.md) como roteiro executável e registre a evidência em [`PROJECT_STATUS.md`](PROJECT_STATUS.md). O script de restauração está implementado; só declare a etapa concluída após teste real em clone descartável com backup, restore, validação e rollback.
 
-1. Executar o workflow em runner Ubuntu hospedado pelo GitHub a cada pull request para `main` e push em `main`; não iniciar VMs no computador do operador.
-2. Registrar RAM livre, CPU, disco, espaço de build, portas, versões do Ubuntu/Docker/Compose e tempo de instalação.
-3. Exercitar reboot, persistência, instalação, backup, restore e rollback no runner descartável hospedado pelo CI, sem alterar o notebook de teste.
-4. Preservar as evidências e logs sanitizados do runner como artefatos da execução; repetir o fluxo após mudança nos scripts operacionais.
-5. Qualificar seis máquinas de referência: Intel e AMD, cada fabricante nas faixas de geração antiga, intermediária e recente. Não repetir a suíte inteira por commit; usar a bateria física de compatibilidade documentada em [`TEST_STRATEGY.md`](TEST_STRATEGY.md).
-6. Documentar erros recuperáveis, como falta de disco, portas ocupadas, falha APT e interrupção durante o bootstrap.
+1. Fechar o formato da mídia: Casper Live verdadeiro com overlay e volume persistente, ou Ubuntu completo instalado no USB. A ISO oficial Ubuntu Server inicia o instalador, não um Live Server persistente; se a meta continuar sendo Live verdadeiro, documentar o construtor Casper e a manutenção por atualização de imagem.
+2. Construir a imagem e o primeiro smoke em runner Ubuntu hospedado pelo GitHub a cada pull request para `main` e push em `main`; não iniciar VMs no computador do operador.
+3. Registrar RAM livre, CPU, disco, espaço de build, portas, versões do Ubuntu/Docker/Compose e tempo de instalação.
+4. Exercitar boot, reinicialização, persistência, instalação, backup, restore e rollback no runner descartável hospedado pelo CI, sem alterar o notebook de teste.
+5. Preservar as evidências e logs sanitizados do runner como artefatos da execução; repetir o fluxo após mudança nos scripts operacionais.
+6. Qualificar seis máquinas de referência: Intel e AMD, cada fabricante nas faixas de geração antiga, intermediária e recente. Não repetir a suíte inteira por commit; usar a bateria física de compatibilidade documentada em [`TEST_STRATEGY.md`](TEST_STRATEGY.md).
+7. Documentar erros recuperáveis, como falta de disco, portas ocupadas, falha APT e interrupção durante o bootstrap.
 
 Critério de saída: uma pessoa que siga o README consegue instalar, autenticar, ver telemetria depois do reboot e restaurar um backup; o procedimento não remove dados ao falhar e não interfere em serviços preexistentes.
 
