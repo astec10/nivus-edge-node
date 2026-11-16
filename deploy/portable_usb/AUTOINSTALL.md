@@ -49,7 +49,7 @@ Trate o diretório como privado porque user-data contém o hash da senha do Ubun
 
 ## Instalar
 
-Disponibilize `user-data` e `meta-data` ao instalador Subiquity como datasource NoCloud. A ISO de configuração gerada pode ser anexada como mídia separada (por exemplo, como CD virtual) ou gravada em uma terceira mídia; a mídia instaladora Ubuntu e o USB de destino também precisam ser separados. A ISO seed não é inicializável e não substitui o instalador Ubuntu.
+Disponibilize `user-data` e `meta-data` ao instalador Subiquity como datasource NoCloud. A ISO de configuração gerada pode ser anexada como mídia separada (por exemplo, como CD virtual) ou gravada em uma terceira mídia; a mídia instaladora Ubuntu e o USB de destino também precisam ser separados. A ISO seed não é inicializável e não substitui o instalador Ubuntu. Inicie a mídia Ubuntu sem acrescentar `autoinstall` à linha de comando do kernel: a documentação do Subiquity informa que esse parâmetro ignora o pedido de confirmação antes de alterar o disco. Mantenha a confirmação e confira o destino na tela de armazenamento.
 
 Inicie o instalador Ubuntu Server 24.04 ou mais recente. Antes de confirmar a gravação, confira o caminho, modelo, serial e capacidade na tela de armazenamento e compare com TARGET-IDENTITY.txt. Cancele se a tela mostrar outro disco ou qualquer divergência. O plano formata o USB selecionado e remove seus dados.
 
