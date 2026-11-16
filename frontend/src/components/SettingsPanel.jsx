@@ -173,7 +173,7 @@ export default function SettingsPanel({
               <h3 id="time-sync-title">Sincronização de hora do host</h3>
               <p>Estado observado no Ubuntu. O fuso e os formatos do relógio do painel continuam sendo preferências do navegador.</p>
             </div>
-            <span className={\`maintenance-status time-sync-status time-sync-status--\${timeSyncState?.state || 'unknown'}\`} role="status">
+            <span className={"maintenance-status time-sync-status time-sync-status--" + (timeSyncState?.state || 'unknown')} role="status">
               {timeSyncStatusLabel}
             </span>
           </div>
