@@ -8,7 +8,7 @@ import socket
 from pathlib import Path
 
 
-DEFAULT_SERVERS = ["a.ntp.br", "b.ntp.br", "c.ntp.br"]
+DEFAULT_SERVERS = ["a.ntp.br", "time.google.com", "time.cloudflare.com"]
 SOCKET_PATH = Path(os.environ.get("NIVUS_TIME_SYNC_SOCKET", "/run/nivus-time-sync/control.sock"))
 MAX_RESPONSE_BYTES = 8192
 
