@@ -1,7 +1,7 @@
 import React from 'react';
 import { Activity, CircleCheck, CircleX, Lock, Unlock } from 'lucide-react';
 
-export default function DashboardHeader({ token, userPayload, fetchData, isOnline, dashboardVersion, onToggleDashboardVersion, isTempCritical = false }) {
+export default function DashboardHeader({ token, userPayload, fetchData, isOnline, dashboardVersion, onToggleDashboardVersion, isTempCritical = false, loginExpanded = false, onToggleLogin = () => {} }) {
   const legacyActive = dashboardVersion === 'legacy';
   const authenticated = Boolean(token);
   const sessionLabel = authenticated ? ('Sessão: ' + userPayload?.sub + ' (' + userPayload?.role + ')') : 'Não Autenticado';
@@ -25,10 +25,24 @@ export default function DashboardHeader({ token, userPayload, fetchData, isOnlin
             {isOnline ? <CircleCheck size={14} aria-hidden="true" /> : <CircleX size={14} aria-hidden="true" />}
             <span>{isOnline ? 'API online' : 'API offline'}</span>
           </div>
-          <div className="dashboard-auth-status" data-authenticated={authenticated ? 'true' : 'false'}>
-            {authenticated ? <Unlock size={14} aria-hidden="true" /> : <Lock size={14} aria-hidden="true" />}
-            <span>{sessionLabel}</span>
-          </div>
+          {authenticated ? (
+            <div className="dashboard-auth-status" data-authenticated="true">
+              <Unlock size={14} aria-hidden="true" />
+              <span>{sessionLabel}</span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="dashboard-auth-status"
+              data-authenticated="false"
+              aria-expanded={loginExpanded}
+              aria-controls="nivus-login-form"
+              onClick={onToggleLogin}
+            >
+              <Lock size={14} aria-hidden="true" />
+              <span>Não Autenticado</span>
+            </button>
+          )}
           <div className={'dashboard-header-alert-chip' + (isTempCritical ? ' is-active' : '')} role="status" aria-live="polite">
             {isTempCritical ? 'Alerta térmico' : 'Sem alerta térmico'}
           </div>
