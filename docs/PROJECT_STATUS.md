@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-16 01:23 UTC
+Atualizado: 2026-11-16 01:25 UTC
 Licença: AGPL-3.0-only
 
 ## Resumo verificado
@@ -27,6 +27,8 @@ O agente classifica CPU/APU por fonte/label, prioriza o pacote `coretemp` no CCE
 
 O update aplicado contém cartões térmicos, gráficos com períodos múltiplos e detalhes após três segundos. A CPU/APU foi observada por `coretemp`; placa-mãe, GPU e hotspot dependem de sensores expostos pelo equipamento. Os extremos do tooltip descrevem a janela exibida, não máximos históricos nem limites seguros do hardware. Esta branch acrescenta no cabeçalho um link discreto para a versão leve, ativado apenas quando `NIVUS_LEGACY_DASHBOARD_PORT` é configurado; o build e a publicação desta nova opção ainda não foram confirmados no notebook.
 
+O PR #20, ainda em revisão, agrupa os controles do gráfico e adiciona um aviso sonoro opcional pelo navegador. O som não aciona hardware físico e ainda não foi publicado no notebook.
+
 ## Regra automática do relé por bateria
 
 O comportamento solicitado é desligar `nivus/edge/relay1` quando a bateria do dispositivo móvel associado estiver em 20% ou menos. O contrato de telemetria MQTT e a tabela SQLite atuais não incluem nível de bateria nem identificam o aparelho associado ao relé. Portanto, o modo automático ainda não está ativo; o painel mantém os comandos manuais até haver uma fonte de bateria identificada, leitura recente e associação segura. A interface informa essa pendência e não envia comandos automáticos com dados ausentes.
@@ -39,7 +41,8 @@ Instalações limpas passam a preferir HTTPS 443 quando livre; quando a porta j�
 
 - Executar a promoção reversível do dashboard candidato para HTTPS 443, confirmar o acesso ao endereço sem porta e o link para a versão leve em 8444.
 - Confirmar a nova mudança de porta e o controle visual por CI hospedada; o operador não usará VMs no computador pessoal.
-- Implementar a origem e identidade da telemetria de bateria para a regra do relé; manter a automação inativa até a leitura estar validada.
+- Issue #22: integrar uma fonte identificada e recente de bateria e associá-la ao relé; manter a automação inativa até validação.
+- Issue #23: comparar as cinco propostas de interface e as melhorias comuns; escolher o tema antes de substituir o layout.
 - Issue #21: relógio digital de Brasília em 24 horas, ao lado da gestão de usuários, sincronizado por três fontes com fallback identificado.
 - Medir disponibilidade de sensores, consumo e compatibilidade em mais máquinas Intel e AMD.
 - Projetar cadastro e atualização coordenada dos nós, com pacotes assinados, implantação gradual, checagens de saúde e rollback por nó.
