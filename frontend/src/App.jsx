@@ -43,6 +43,7 @@ function App() {
   };
 
   const userPayload = token ? parseJwt(token) : null;
+  const passwordChangeRequired = userPayload?.password_change_required === true;
   const isAdmin = userPayload?.role === 'admin';
   const lastAlertTimeRef = useRef(0);
 
@@ -78,6 +79,12 @@ function App() {
       localStorage.setItem('nivus_token', newToken);
       setUsername('');
       setPassword('');
+      if (res.data.password_change_required) {
+        setAdminAuthPassword(password);
+        alert('Primeiro acesso: defina sua senha definitiva para continuar.');
+        return;
+      }
+      setAdminAuthPassword('');
       alert('Autenticado com sucesso!');
       fetchData(newToken);
     } catch (err) {
@@ -105,6 +112,15 @@ function App() {
       setError(null);
 
       if (!currentToken) {
+        setTelemetry([]);
+        setSystemLogs([]);
+        setAuditLogs([]);
+        setAlertsHistory([]);
+        setUsersList([]);
+        return;
+      }
+
+      if (parseJwt(currentToken)?.password_change_required) {
         setTelemetry([]);
         setSystemLogs([]);
         setAuditLogs([]);
@@ -173,7 +189,7 @@ function App() {
             : []
         );
         if (invalidFields.has('password')) {
-          alert('A palavra-passe precisa ter de 12 a 256 caracteres.');
+          alert('A senha precisa ter de 8 a 256 caracteres, com pelo menos uma letra e um número.');
         } else if (invalidFields.has('username')) {
           alert('O utilizador precisa ter até 32 caracteres e usar apenas letras, números, ponto, hífen ou sublinhado.');
         } else {
@@ -193,7 +209,36 @@ function App() {
       alert('As senhas não coincidem!');
       return;
     }
+    const hasLetter = /\\p{L}/u.test(targetNewPassword);
+    const hasNumber = /\\p{N}/u.test(targetNewPassword);
+    if (targetNewPassword.length < 8 || targetNewPassword.length > 256 || !hasLetter || !hasNumber) {
+      alert('Use uma senha de 8 a 256 caracteres, com pelo menos uma letra e um número.');
+      return;
+    }
     try {
+      if (passwordChangeRequired) {
+        if (!adminAuthPassword) {
+          alert('A sessão temporária expirou. Saia e entre novamente para continuar.');
+          return;
+        }
+        const response = await axios.post(`${API_BASE}/api/users/first-login-password`, {
+          current_password: adminAuthPassword,
+          new_password: targetNewPassword
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const replacementToken = response.data.access_token;
+        setToken(replacementToken);
+        localStorage.setItem('nivus_token', replacementToken);
+        setEditingUser(null);
+        setAdminAuthPassword('');
+        setTargetNewPassword('');
+        setTargetConfirmPassword('');
+        alert('Senha atualizada. Acesso liberado.');
+        fetchData(replacementToken);
+        return;
+      }
+
       await axios.post(`${API_BASE}/api/users/change-password`, {
         username: editingUser,
         new_password: targetNewPassword,
@@ -207,8 +252,13 @@ function App() {
       setTargetNewPassword('');
       setTargetConfirmPassword('');
       fetchData();
-    } catch {
-      alert('Falha na autenticação do Administrador ou erro no servidor.');
+    } catch (err) {
+      const statusCode = err.response?.status;
+      if (statusCode === 401) {
+        alert('Senha atual incorreta ou sessão expirada.');
+      } else {
+        alert('Não foi possível alterar a senha. Verifique os requisitos e tente novamente.');
+      }
     }
   };
 
@@ -278,12 +328,16 @@ function App() {
 
   return (
     <div className="dashboard-root" style={{ minHeight: '100vh', minWidth: 0, backgroundColor: '#0f172a', color: '#f8fafc', padding: 'clamp(0.75rem, 2vw, 1.75rem)', fontFamily: 'system-ui, sans-serif', position: 'relative' }}>
-      <PasswordChangeModal editingUser={editingUser} setEditingUser={setEditingUser} handlePasswordChangeSubmit={handlePasswordChangeSubmit} targetNewPassword={targetNewPassword} setTargetNewPassword={setTargetNewPassword} targetConfirmPassword={targetConfirmPassword} setTargetConfirmPassword={setTargetConfirmPassword} passwordsDoNotMatch={passwordsDoNotMatch} adminAuthPassword={adminAuthPassword} setAdminAuthPassword={setAdminAuthPassword} />
-      <DashboardHeader token={token} userPayload={userPayload} fetchData={fetchData} isOnline={isOnline} />
-      <DashboardNavigation token={token} isAdmin={isAdmin} activeTab={activeTab} setActiveTab={setActiveTab} handleLogout={handleLogout} />
-      <LoginPanel token={token} handleLogin={handleLogin} username={username} setUsername={setUsername} password={password} setPassword={setPassword} />
-      <UserManagementPanel token={token} isAdmin={isAdmin} activeTab={activeTab} newUsername={newUsername} setNewUsername={setNewUsername} newPassword={newPassword} setNewPassword={setNewPassword} newRole={newRole} setNewRole={setNewRole} handleSaveUser={handleSaveUser} usersList={usersList} setEditingUser={setEditingUser} setTargetNewPassword={setTargetNewPassword} setTargetConfirmPassword={setTargetConfirmPassword} setAdminAuthPassword={setAdminAuthPassword} handleDeleteUser={handleDeleteUser} />
-      <DashboardPanel activeTab={activeTab} error={error} latest={latest} settings={settings} isAdmin={isAdmin} isTempCritical={isTempCritical} handleUpdateSetting={handleUpdateSetting} telemetry={telemetry} handleActuatorCommand={handleActuatorCommand} actuatorMessage={actuatorMessage} settingsStatus={settingsStatus} systemLogs={systemLogs} auditLogs={auditLogs} alertsHistory={alertsHistory} />
+      <PasswordChangeModal editingUser={editingUser} setEditingUser={setEditingUser} handlePasswordChangeSubmit={handlePasswordChangeSubmit} targetNewPassword={targetNewPassword} setTargetNewPassword={setTargetNewPassword} targetConfirmPassword={targetConfirmPassword} setTargetConfirmPassword={setTargetConfirmPassword} passwordsDoNotMatch={passwordsDoNotMatch} adminAuthPassword={adminAuthPassword} setAdminAuthPassword={setAdminAuthPassword} passwordChangeRequired={passwordChangeRequired} currentUsername={userPayload?.sub || ''} handleLogout={handleLogout} />
+      {!passwordChangeRequired && (
+        <>
+          <DashboardHeader token={token} userPayload={userPayload} fetchData={fetchData} isOnline={isOnline} />
+          <DashboardNavigation token={token} isAdmin={isAdmin} activeTab={activeTab} setActiveTab={setActiveTab} handleLogout={handleLogout} />
+          <LoginPanel token={token} handleLogin={handleLogin} username={username} setUsername={setUsername} password={password} setPassword={setPassword} />
+          <UserManagementPanel token={token} isAdmin={isAdmin} activeTab={activeTab} newUsername={newUsername} setNewUsername={setNewUsername} newPassword={newPassword} setNewPassword={setNewPassword} newRole={newRole} setNewRole={setNewRole} handleSaveUser={handleSaveUser} usersList={usersList} setEditingUser={setEditingUser} setTargetNewPassword={setTargetNewPassword} setTargetConfirmPassword={setTargetConfirmPassword} setAdminAuthPassword={setAdminAuthPassword} handleDeleteUser={handleDeleteUser} />
+          <DashboardPanel activeTab={activeTab} error={error} latest={latest} settings={settings} isAdmin={isAdmin} isTempCritical={isTempCritical} handleUpdateSetting={handleUpdateSetting} telemetry={telemetry} handleActuatorCommand={handleActuatorCommand} actuatorMessage={actuatorMessage} settingsStatus={settingsStatus} systemLogs={systemLogs} auditLogs={auditLogs} alertsHistory={alertsHistory} />
+        </>
+      )}
       <LegalNotice />
     </div>
   );
