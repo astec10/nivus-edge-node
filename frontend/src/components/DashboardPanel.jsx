@@ -48,7 +48,7 @@ function formatDatabaseTimestamp(value) {
 }
 
 function alertDescription(alertType) {
-  if (alertType === 'TEMPERATURE_HIGH') return { name: 'Temperatura CPU/APU', unit: '°C' };
+  if (alertType === 'TEMPERATURE_HIGH') return { name: 'Temperatura da CPU', unit: '°C' };
   if (alertType === 'CPU_HIGH') return { name: 'Uso de CPU', unit: '%' };
   return { name: alertType || 'Alerta', unit: '' };
 }
@@ -129,7 +129,7 @@ export default function DashboardPanel({
           </p>
           {isTempCritical && (
             <div className="dashboard-temperature-alert" role="alert">
-              Temperatura CPU/APU acima do limite configurado: {formatMetric(latest?.temperature, '°C')}.
+              Temperatura da CPU acima do limite configurado: {formatMetric(latest?.temperature, '°C')}.
             </div>
           )}
 
@@ -138,17 +138,17 @@ export default function DashboardPanel({
             <MetricCard label="Memória" metricId="memory" primary sparklineValues={chartRows.map(sample => sample.memory_percent)} gaugeValue={latest?.memory_percent} gaugeMax={100} value={formatMetric(latest?.memory_percent, '%')} details={<RangeDetails samples={chartRows} metric="memory_percent" unit="%" />} />
             <MetricCard label="Disco" metricId="disk" gaugeValue={latest?.disk_percent} gaugeMax={100} value={formatMetric(latest?.disk_percent, '%')} details={<RangeDetails samples={chartRows} metric="disk_percent" unit="%" />} />
             <MetricCard
-              label="CPU / APU"
+              label="CPU (pacote)"
               metricId="cpu-thermal"
               gaugeValue={latest?.temperature_source ? latest.temperature : null}
               gaugeMax={120}
               value={formatMetric(latest?.temperature_source ? latest.temperature : null, '°C')}
               hint={latest?.temperature_source || 'Sensor térmico não exposto'}
               details={<MetricDetails samples={temperatureSamples} metrics={[
-                { label: 'CPU / APU', key: 'temperature', source: 'temperature_source' },
+                { label: 'CPU (pacote)', key: 'temperature', source: 'temperature_source' },
                 { label: 'CPU hotspot', key: 'cpu_hotspot_temperature', source: 'cpu_hotspot_source' },
               ]} />}
-              detailsLabel="Temperatura de CPU / APU"
+              detailsLabel="Temperatura do pacote da CPU"
             />
             <MetricCard
               label={graphicsLabel}
