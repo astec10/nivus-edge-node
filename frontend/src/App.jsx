@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { lazy, Suspense, useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import PasswordChangeModal from './components/PasswordChangeModal';
 import DashboardHeader from './components/DashboardHeader';
@@ -6,6 +6,7 @@ import DashboardNavigation from './components/DashboardNavigation';
 import LoginPanel from './components/LoginPanel';
 import UserManagementPanel from './components/UserManagementPanel';
 import DashboardPanel from './components/DashboardPanel';
+const LegacyDashboardPanel = lazy(() => import('./components/LegacyDashboardPanel'));
 import LegalNotice from './components/LegalNotice';
 import { thresholdOrDefault } from './utils/telemetry';
 
@@ -13,6 +14,8 @@ const API_BASE = '';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [dashboardVersion, setDashboardVersion] = useState(() => localStorage.getItem('nivus_dashboard_version') === 'legacy' ? 'legacy' : 'current');
+  const [legacyRelayState, setLegacyRelayState] = useState(false);
   const [telemetry, setTelemetry] = useState([]);
   const [systemLogs, setSystemLogs] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
@@ -37,32 +40,92 @@ function App() {
 
   const [actuatorMessage, setActuatorMessage] = useState('');
   const [settingsStatus, setSettingsStatus] = useState('');
+  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [soundStatus, setSoundStatus] = useState('Aviso sonoro do navegador desativado.');
 
   const parseJwt = (t) => {
     try { return JSON.parse(atob(t.split('.')[1])); } catch { return null; }
   };
 
   const userPayload = token ? parseJwt(token) : null;
+  const handleToggleDashboardVersion = () => {
+    const nextVersion = dashboardVersion === 'current' ? 'legacy' : 'current';
+    setDashboardVersion(nextVersion);
+    localStorage.setItem('nivus_dashboard_version', nextVersion);
+  };
+  const passwordChangeRequired = userPayload?.password_change_required === true;
   const isAdmin = userPayload?.role === 'admin';
+  const alertAudioContextRef = useRef(null);
   const lastAlertTimeRef = useRef(0);
 
-  const playAlertSound = () => {
-    try {
-      const now = Date.now();
-      if (now - lastAlertTimeRef.current < 30000) return;
-      lastAlertTimeRef.current = now;
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
-      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.2);
-    } catch {}
+  const emitAlertTone = (audioCtx) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.2);
   };
+
+  const closeAlertAudioContext = () => {
+    const audioCtx = alertAudioContextRef.current;
+    alertAudioContextRef.current = null;
+    if (audioCtx && audioCtx.state !== 'closed') {
+      void audioCtx.close().catch(() => {});
+    }
+  };
+
+  const playAlertSound = async () => {
+    const audioCtx = alertAudioContextRef.current;
+    if (!audioCtx || audioCtx.state === 'closed' || Date.now() - lastAlertTimeRef.current < 30000) return;
+    try {
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+      if (audioCtx.state !== 'running') return;
+      lastAlertTimeRef.current = Date.now();
+      emitAlertTone(audioCtx);
+    } catch {
+      setSoundStatus('O navegador bloqueou a reprodução do aviso sonoro.');
+    }
+  };
+
+  const handleToggleAlertSound = async () => {
+    if (soundEnabled) {
+      setSoundEnabled(false);
+      setSoundStatus('Aviso sonoro do navegador desativado.');
+      closeAlertAudioContext();
+      return;
+    }
+
+    const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextConstructor) {
+      setSoundStatus('Este navegador não oferece áudio para o aviso.');
+      return;
+    }
+
+    let audioCtx;
+    try {
+      audioCtx = new AudioContextConstructor();
+      await audioCtx.resume();
+      alertAudioContextRef.current = audioCtx;
+      setSoundEnabled(true);
+      setSoundStatus('Som do navegador ativado; buzzer físico não está integrado.');
+      lastAlertTimeRef.current = Date.now();
+      emitAlertTone(audioCtx);
+    } catch {
+      if (audioCtx && audioCtx.state !== 'closed') void audioCtx.close().catch(() => {});
+      alertAudioContextRef.current = null;
+      setSoundStatus('Não foi possível ativar o áudio neste navegador.');
+    }
+  };
+
+  useEffect(() => () => {
+    const audioCtx = alertAudioContextRef.current;
+    alertAudioContextRef.current = null;
+    if (audioCtx && audioCtx.state !== 'closed') void audioCtx.close().catch(() => {});
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -78,13 +141,21 @@ function App() {
       localStorage.setItem('nivus_token', newToken);
       setUsername('');
       setPassword('');
+      setAdminAuthPassword('');
+      if (res.data.password_change_required) {
+        alert('Primeiro acesso: defina sua senha definitiva para continuar.');
+        return;
+      }
       alert('Autenticado com sucesso!');
       fetchData(newToken);
     } catch (err) {
-      if (err.response && err.response.status === 429) {
-        alert(err.response.data.detail || 'Conta bloqueada temporariamente.');
+      const statusCode = err.response?.status;
+      if (statusCode === 429) {
+        alert(err.response?.data?.detail || 'Conta bloqueada temporariamente.');
+      } else if (statusCode === 401) {
+        alert('Utilizador ou palavra-passe inválidos.');
       } else {
-        alert('Erro de autenticação.');
+        alert('Não foi possível autenticar. Verifique a ligação ao Nivus e tente novamente.');
       }
     }
   };
@@ -92,7 +163,13 @@ function App() {
   const handleLogout = () => {
     setToken('');
     localStorage.removeItem('nivus_token');
+    setAdminAuthPassword('');
+    setTargetNewPassword('');
+    setTargetConfirmPassword('');
     setActiveTab('dashboard');
+    setSoundEnabled(false);
+    setSoundStatus('Aviso sonoro do navegador desativado.');
+    closeAlertAudioContext();
   };
 
   const fetchData = async (currentToken = token) => {
@@ -102,6 +179,15 @@ function App() {
       setError(null);
 
       if (!currentToken) {
+        setTelemetry([]);
+        setSystemLogs([]);
+        setAuditLogs([]);
+        setAlertsHistory([]);
+        setUsersList([]);
+        return;
+      }
+
+      if (parseJwt(currentToken)?.password_change_required) {
         setTelemetry([]);
         setSystemLogs([]);
         setAuditLogs([]);
@@ -158,8 +244,29 @@ function App() {
       setNewUsername('');
       setNewPassword('');
       fetchData();
-    } catch {
-      alert('Erro ao guardar utilizador.');
+    } catch (err) {
+      const statusCode = err.response?.status;
+      if (statusCode === 409) {
+        alert('Esse nome de utilizador já está registado.');
+      } else if (statusCode === 422) {
+        const details = err.response?.data?.detail;
+        const invalidFields = new Set(
+          Array.isArray(details)
+            ? details.map(issue => Array.isArray(issue?.loc) ? issue.loc[issue.loc.length - 1] : null)
+            : []
+        );
+        if (invalidFields.has('password')) {
+          alert('A senha precisa ter de 8 a 256 caracteres, com pelo menos uma letra e um número.');
+        } else if (invalidFields.has('username')) {
+          alert('O utilizador precisa ter até 32 caracteres e usar apenas letras, números, ponto, hífen ou sublinhado.');
+        } else {
+          alert('Confira os campos do formulário e tente novamente.');
+        }
+      } else if (statusCode === 401) {
+        alert('A sessão expirou ou não tem autorização. Entre novamente como administrador.');
+      } else {
+        alert('Não foi possível guardar o utilizador. Tente novamente.');
+      }
     }
   };
 
@@ -169,7 +276,31 @@ function App() {
       alert('As senhas não coincidem!');
       return;
     }
+    const hasLetter = Array.from(targetNewPassword).some(character => character.toLowerCase() !== character.toUpperCase());
+    const hasNumber = /[0-9]/.test(targetNewPassword);
+    if (targetNewPassword.length < 8 || targetNewPassword.length > 256 || !hasLetter || !hasNumber) {
+      alert('Use uma senha de 8 a 256 caracteres, com pelo menos uma letra e um número.');
+      return;
+    }
     try {
+      if (passwordChangeRequired) {
+        const response = await axios.post(`${API_BASE}/api/users/first-login-password`, {
+          new_password: targetNewPassword
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const replacementToken = response.data.access_token;
+        setToken(replacementToken);
+        localStorage.setItem('nivus_token', replacementToken);
+        setEditingUser(null);
+        setAdminAuthPassword('');
+        setTargetNewPassword('');
+        setTargetConfirmPassword('');
+        alert('Senha atualizada. Acesso liberado.');
+        fetchData(replacementToken);
+        return;
+      }
+
       await axios.post(`${API_BASE}/api/users/change-password`, {
         username: editingUser,
         new_password: targetNewPassword,
@@ -183,8 +314,13 @@ function App() {
       setTargetNewPassword('');
       setTargetConfirmPassword('');
       fetchData();
-    } catch {
-      alert('Falha na autenticação do Administrador ou erro no servidor.');
+    } catch (err) {
+      const statusCode = err.response?.status;
+      if (statusCode === 401) {
+        alert('Senha atual incorreta ou sessão expirada.');
+      } else {
+        alert('Não foi possível alterar a senha. Verifique os requisitos e tente novamente.');
+      }
     }
   };
 
@@ -218,6 +354,12 @@ function App() {
     }
   };
 
+  const handleLegacyRelayToggle = async () => {
+    const nextCommand = legacyRelayState ? 'OFF' : 'ON';
+    const accepted = await handleActuatorCommand('nivus/edge/relay1', nextCommand);
+    if (accepted) setLegacyRelayState(nextCommand === 'ON');
+  };
+
   const handleUpdateSetting = async (key, value) => {
     if (!isAdmin) {
       setSettingsStatus('Somente administrador pode alterar os limites.');
@@ -243,23 +385,32 @@ function App() {
 
   const latest = telemetry.length > 0 ? telemetry[telemetry.length - 1] : null;
   const tempLimit = thresholdOrDefault(settings.temp_threshold, 75);
-  const cpuLimit = thresholdOrDefault(settings.cpu_threshold, 90);
   const isTempCritical = latest && Number.isFinite(latest.temperature) && latest.temperature > tempLimit;
-  const isCpuCritical = latest && latest.cpu_percent > cpuLimit;
-  const hasActiveAlert = isTempCritical || isCpuCritical;
 
-  useEffect(() => { if (hasActiveAlert) playAlertSound(); }, [hasActiveAlert]);
+  useEffect(() => {
+    if (isTempCritical && soundEnabled) void playAlertSound();
+  }, [isTempCritical, soundEnabled]);
 
   const passwordsDoNotMatch = targetConfirmPassword.length > 0 && targetNewPassword !== targetConfirmPassword;
 
   return (
     <div className="dashboard-root" style={{ minHeight: '100vh', minWidth: 0, backgroundColor: '#0f172a', color: '#f8fafc', padding: 'clamp(0.75rem, 2vw, 1.75rem)', fontFamily: 'system-ui, sans-serif', position: 'relative' }}>
-      <PasswordChangeModal editingUser={editingUser} setEditingUser={setEditingUser} handlePasswordChangeSubmit={handlePasswordChangeSubmit} targetNewPassword={targetNewPassword} setTargetNewPassword={setTargetNewPassword} targetConfirmPassword={targetConfirmPassword} setTargetConfirmPassword={setTargetConfirmPassword} passwordsDoNotMatch={passwordsDoNotMatch} adminAuthPassword={adminAuthPassword} setAdminAuthPassword={setAdminAuthPassword} />
-      <DashboardHeader token={token} userPayload={userPayload} fetchData={fetchData} isOnline={isOnline} />
-      <DashboardNavigation token={token} isAdmin={isAdmin} activeTab={activeTab} setActiveTab={setActiveTab} handleLogout={handleLogout} />
-      <LoginPanel token={token} handleLogin={handleLogin} username={username} setUsername={setUsername} password={password} setPassword={setPassword} />
-      <UserManagementPanel token={token} isAdmin={isAdmin} activeTab={activeTab} newUsername={newUsername} setNewUsername={setNewUsername} newPassword={newPassword} setNewPassword={setNewPassword} newRole={newRole} setNewRole={setNewRole} handleSaveUser={handleSaveUser} usersList={usersList} setEditingUser={setEditingUser} setTargetNewPassword={setTargetNewPassword} setTargetConfirmPassword={setTargetConfirmPassword} setAdminAuthPassword={setAdminAuthPassword} handleDeleteUser={handleDeleteUser} />
-      <DashboardPanel activeTab={activeTab} error={error} latest={latest} settings={settings} isAdmin={isAdmin} isTempCritical={isTempCritical} handleUpdateSetting={handleUpdateSetting} telemetry={telemetry} handleActuatorCommand={handleActuatorCommand} actuatorMessage={actuatorMessage} settingsStatus={settingsStatus} systemLogs={systemLogs} auditLogs={auditLogs} alertsHistory={alertsHistory} />
+      <PasswordChangeModal editingUser={editingUser} setEditingUser={setEditingUser} handlePasswordChangeSubmit={handlePasswordChangeSubmit} targetNewPassword={targetNewPassword} setTargetNewPassword={setTargetNewPassword} targetConfirmPassword={targetConfirmPassword} setTargetConfirmPassword={setTargetConfirmPassword} passwordsDoNotMatch={passwordsDoNotMatch} adminAuthPassword={adminAuthPassword} setAdminAuthPassword={setAdminAuthPassword} passwordChangeRequired={passwordChangeRequired} currentUsername={userPayload?.sub || ''} handleLogout={handleLogout} />
+      {!passwordChangeRequired && (
+        <>
+          <DashboardHeader token={token} userPayload={userPayload} fetchData={fetchData} isOnline={isOnline} dashboardVersion={dashboardVersion} onToggleDashboardVersion={handleToggleDashboardVersion} />
+          <DashboardNavigation token={token} isAdmin={isAdmin} activeTab={activeTab} setActiveTab={setActiveTab} handleLogout={handleLogout} />
+          <LoginPanel token={token} handleLogin={handleLogin} username={username} setUsername={setUsername} password={password} setPassword={setPassword} />
+          <UserManagementPanel token={token} isAdmin={isAdmin} activeTab={activeTab} newUsername={newUsername} setNewUsername={setNewUsername} newPassword={newPassword} setNewPassword={setNewPassword} newRole={newRole} setNewRole={setNewRole} handleSaveUser={handleSaveUser} usersList={usersList} setEditingUser={setEditingUser} setTargetNewPassword={setTargetNewPassword} setTargetConfirmPassword={setTargetConfirmPassword} setAdminAuthPassword={setAdminAuthPassword} handleDeleteUser={handleDeleteUser} />
+          {dashboardVersion === 'current' ? (
+            <DashboardPanel activeTab={activeTab} error={error} latest={latest} settings={settings} isAdmin={isAdmin} isTempCritical={isTempCritical} handleUpdateSetting={handleUpdateSetting} telemetry={telemetry} handleActuatorCommand={handleActuatorCommand} actuatorMessage={actuatorMessage} settingsStatus={settingsStatus} soundEnabled={soundEnabled} soundStatus={soundStatus} onToggleAlertSound={handleToggleAlertSound} systemLogs={systemLogs} auditLogs={auditLogs} alertsHistory={alertsHistory} />
+          ) : (
+            <Suspense fallback={<div role="status">Carregando versão leve…</div>}>
+              <LegacyDashboardPanel activeTab={activeTab} error={error} latest={latest} settings={settings} setSettings={setSettings} isAdmin={isAdmin} handleUpdateSetting={handleUpdateSetting} telemetry={telemetry} relayState={legacyRelayState} handleRelayToggle={handleLegacyRelayToggle} systemLogs={systemLogs} />
+            </Suspense>
+          )}
+        </>
+      )}
       <LegalNotice />
     </div>
   );

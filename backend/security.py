@@ -71,13 +71,17 @@ def verify_password(password: str, stored: str) -> bool:
         return False
 
 
-def create_access_token(username: str, role: str) -> str:
+def create_access_token(
+    username: str, role: str, password_change_required: bool = False
+) -> str:
     now = datetime.now(timezone.utc)
+    token_minutes = 10 if password_change_required else ACCESS_TOKEN_EXPIRE_MINUTES
     payload = {
         "sub": username,
         "role": role,
+        "password_change_required": password_change_required,
         "iat": now,
-        "exp": now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+        "exp": now + timedelta(minutes=token_minutes),
     }
     return jwt.encode(payload, load_jwt_secret(), algorithm=ALGORITHM)
 

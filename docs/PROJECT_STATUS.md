@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-15 20:57 UTC
+Atualizado: 2026-11-16 01:28 UTC
 Licença: AGPL-3.0-only
 
 ## Resumo verificado
@@ -25,7 +25,13 @@ A candidata ainda está em 8443 e a interface antiga em 443; por isso o endereç
 
 O agente classifica CPU/APU por fonte/label, prioriza o pacote `coretemp` no CCE e mantém placa-mãe/GPU como opcionais. Leituras ausentes não reaproveitam valor antigo. A origem `coretemp` foi observada em amostra nova na candidata Compose. Neste notebook, placa-mãe, GPU e hotspot continuam indisponíveis quando o sistema/driver não os expõe.
 
-O update aplicado contém cartões térmicos, gráficos com períodos múltiplos e detalhes após três segundos. A CPU/APU foi observada por `coretemp`; placa-mãe, GPU e hotspot dependem de sensores expostos pelo equipamento. Os extremos do tooltip descrevem a janela exibida, não máximos históricos nem limites seguros do hardware. Esta branch acrescenta no cabeçalho um link discreto para a versão leve, ativado apenas quando `NIVUS_LEGACY_DASHBOARD_PORT` é configurado; o build e a publicação desta nova opção ainda não foram confirmados no notebook.
+O update aplicado contém cartões térmicos, gráficos com períodos múltiplos e detalhes após três segundos. A CPU/APU foi observada por `coretemp`; placa-mãe, GPU e hotspot dependem de sensores expostos pelo equipamento. Os extremos do tooltip descrevem a janela exibida, não máximos históricos nem limites seguros do hardware. Esta branch substitui o link entre portas por um seletor no cabeçalho que alterna, sem recarregar a página, entre a dashboard atual e um painel leve baseado na interface anterior. Ambos compartilham o estado de sessão e a API dentro da mesma aplicação; somente a preferência de visualização fica em `localStorage`. O painel anterior é carregado sob demanda e os comandos do relé continuam manuais. A seleção ainda aguarda CI e publicação; nenhum update foi aplicado no notebook.
+
+O PR #20, ainda em revisão, agrupa os controles do gráfico e adiciona um aviso sonoro opcional pelo navegador. O som não aciona hardware físico e ainda não foi publicado no notebook.
+
+## Regra automática do relé por bateria
+
+O comportamento solicitado é desligar `nivus/edge/relay1` quando a bateria do dispositivo móvel associado estiver em 20% ou menos. O contrato de telemetria MQTT e a tabela SQLite atuais não incluem nível de bateria nem identificam o aparelho associado ao relé. Portanto, o modo automático ainda não está ativo; o painel mantém os comandos manuais até haver uma fonte de bateria identificada, leitura recente e associação segura. A interface informa essa pendência e não envia comandos automáticos com dados ausentes.
 
 ## Acesso sem sufixo de porta
 
@@ -35,6 +41,10 @@ Instalações limpas passam a preferir HTTPS 443 quando livre; quando a porta j�
 
 - Executar a promoção reversível do dashboard candidato para HTTPS 443, confirmar o acesso ao endereço sem porta e o link para a versão leve em 8444.
 - Confirmar a nova mudança de porta e o controle visual por CI hospedada; o operador não usará VMs no computador pessoal.
+- Issue #22: integrar uma fonte identificada e recente de bateria e associá-la ao relé; manter a automação inativa até validação.
+- Issue #23: comparar as cinco propostas de interface e as melhorias comuns; escolher o tema antes de substituir o layout.
+- Issue #24: validar a alternância em ambas as direções, logout e expiração do token na mesma origem; a preferência de visualização não armazena nem transfere JWT.
+- Issue #21: relógio digital de Brasília em 24 horas, ao lado da gestão de usuários, sincronizado por três fontes com fallback identificado.
 - Medir disponibilidade de sensores, consumo e compatibilidade em mais máquinas Intel e AMD.
 - Projetar cadastro e atualização coordenada dos nós, com pacotes assinados, implantação gradual, checagens de saúde e rollback por nó.
 - Preservar autenticação, backup, restore e isolamento; não usar IA sozinha para decisões físicas críticas.

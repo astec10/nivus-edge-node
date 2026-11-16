@@ -125,8 +125,6 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
-      args:
-        VITE_NIVUS_LEGACY_DASHBOARD_PORT: ${NIVUS_LEGACY_DASHBOARD_PORT:-}
     restart: unless-stopped
     init: true
     read_only: true

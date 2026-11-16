@@ -178,25 +178,31 @@ export default function TelemetryChart({ rows, mode, setMode, range, setRange })
     <section className="telemetry-chart-panel" aria-labelledby="telemetry-chart-title">
       <div className="telemetry-chart-heading">
         <h3 id="telemetry-chart-title"><Activity aria-hidden="true" /> {chart.title}</h3>
-        <div className="telemetry-chart-modes" role="group" aria-label="Conjunto de informações do gráfico">
-          {CHART_MODES.map((option) => (
-            <button key={option.key} type="button" aria-pressed={mode === option.key} onClick={() => setMode(option.key)}>
-              {option.label}
-            </button>
-          ))}
-        </div>
       </div>
 
-      <div className="telemetry-chart-toolbar">
-        <div className="telemetry-chart-ranges" role="group" aria-label="Período do gráfico">
-          {CHART_RANGES.map((option) => (
-            <button key={option.key} type="button" aria-pressed={range === option.key} onClick={() => setRange(option.key)}>
-              {option.label}
-            </button>
-          ))}
+      <div className="telemetry-chart-controls" aria-label="Controles do gráfico">
+        <div className="telemetry-chart-control-group">
+          <span className="telemetry-control-label">Dados</span>
+          <div className="telemetry-chart-modes" role="group" aria-label="Conjunto de informações do gráfico">
+            {CHART_MODES.map((option) => (
+              <button key={option.key} type="button" aria-pressed={mode === option.key} onClick={() => setMode(option.key)}>
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="telemetry-chart-control-group">
+          <span className="telemetry-control-label">Período</span>
+          <div className="telemetry-chart-ranges" role="group" aria-label="Período do gráfico">
+            {CHART_RANGES.map((option) => (
+              <button key={option.key} type="button" aria-pressed={range === option.key} onClick={() => setRange(option.key)}>
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
         <label className="telemetry-chart-type">
-          Tipo
+          <span className="telemetry-control-label">Tipo de gráfico</span>
           <select value={chartType} onChange={(event) => setChartType(event.target.value)} aria-label="Tipo de gráfico">
             {CHART_TYPES.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
           </select>
@@ -204,8 +210,10 @@ export default function TelemetryChart({ rows, mode, setMode, range, setRange })
       </div>
 
       <div className="telemetry-series-toolbar">
-        <div className="telemetry-series-options" role="group" aria-label="Séries visíveis">
-          {chart.series.map(({ key, name, color }) => (
+        <div className="telemetry-series-heading">
+          <span className="telemetry-control-label">Séries visíveis</span>
+          <div className="telemetry-series-options" role="group" aria-label="Séries visíveis">
+            {chart.series.map(({ key, name, color }) => (
             <button
               key={key}
               type="button"
@@ -216,7 +224,8 @@ export default function TelemetryChart({ rows, mode, setMode, range, setRange })
             >
               <span aria-hidden="true" />{name}
             </button>
-          ))}
+            ))}
+          </div>
         </div>
         <button
           className="telemetry-show-all"
