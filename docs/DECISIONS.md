@@ -74,3 +74,12 @@ O worker usa background polling limitado porque chamadas síncronas anteriores e
 ## Modo de manutenção reversível — 2026-11-15
 
 Decisão do operador: oferecer um controle explícito na configuração e comandos `nivus maintenance enable|disable|status`, com `nivus help` para explicar os comandos. A manutenção pausa somente a coleta local do host e a gravação de novas mensagens de telemetria MQTT. API, login, dashboard, health, banco existente e broker continuam disponíveis; serviços não relacionados não são parados. `disable` retoma a operação sem reboot. O marcador temporário fica em `/run`, portanto um reboot também volta ao modo normal. Transições são registradas em SQLite, sem persistir o estado ativo entre boots. A implementação aguarda CI e publicação; ainda não está no notebook.
+
+
+## Sincronização NTP do host — 2026-11-16
+
+A preferência de fuso/formato da dashboard permanece no navegador e separada do relógio do Ubuntu. A integração de host consulta e altera somente o \`systemd-timesyncd\` já ativo. Se outro cliente de hora estiver ativo, ou timesyncd estiver indisponível, a configuração é recusada sem instalar, habilitar ou substituir serviços de hora.
+
+A API sem privilégios usa um socket Unix para um controlador root com operações fechadas: estado, aplicar exatamente três hosts DNS e rollback. O socket é exposto ao container API em montagem somente leitura; o controlador valida UID/GID do peer e não aceita shell, caminhos nem comandos fornecidos pela API. A configuração pertence ao Nivus em \`/etc/systemd/timesyncd.conf.d/90-nivus.conf\`, com backup e recuperação em falha. A interface não mostra fonte no relógio; a lista de hosts aparece somente na aba Configuração.
+
+Padrão: \`a.ntp.br\`, \`b.ntp.br\`, \`c.ntp.br\`. São três servidores do projeto NTP.br, não três operadores independentes. O systemd-timesyncd utiliza fontes disponíveis sequencialmente, não por quorum. Nenhuma consulta externa é feita pelo navegador.
