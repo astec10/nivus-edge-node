@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-16 23:28 UTC
+Atualizado: 2026-11-16 23:38 UTC
 Licença: AGPL-3.0-only
 
 ## Resumo verificado
@@ -77,7 +77,7 @@ A implementação de manutenção reversível e `nivus help` foi integrada à `m
 - Fase 4: inferência local e biblioteca documental consultável com fonte, licença, citações e limites de recursos.
 - Fase 5: fila de tarefas entre nós com quotas, leases, cancelamento, isolamento e artefatos verificados.
 - Fase 6: conectores comerciais com quotas, custos e aprovação explícita para dados que saem da rede local.
-- Executor de desenvolvimento: concluir uma proposta end-to-end e manter CI/revisão humana antes de merge/deploy.
+- Executor de desenvolvimento: o PR #16 contém a primeira proposta gerada para uma tarefa pública/sintética e os checks passaram. A criação automática falhou naquela execução; a correção foi integrada à workflow principal no commit `bec9573`, mas o fluxo automático completo ainda aguarda uma nova chamada autorizada. Manter revisão humana antes de qualquer merge/deploy.
 
 Nenhuma compatibilidade universal x86_64, automação doméstica, coordenador multi-nó ou execução distribuída de IA é declarada até existir implementação e evidência específicas.
 
@@ -85,6 +85,6 @@ Nenhuma compatibilidade universal x86_64, automação doméstica, coordenador mu
 
 O fluxo persistente com agente, Discord/Jira, roteador de modelos, GitHub PR e aprovação humana está documentado em `docs/AI_DEVELOPMENT_ORCHESTRATION.md`. O cenário completo descrito por um comentarista de vídeo não foi confirmado como uma integração pronta; os componentes são documentados separadamente. `docs/VIDEO_RESEARCH_INDEX.md` cataloga os vídeos e expõe o nível de verificação de cada um. Os metadados, resumos curados e notas atômicas versionados ficam em `knowledge/`; `tools/build_ai_context.py` gera termos lexicais e índice independentes de modelo. A biblioteca consultável e sincronizada dentro do produto continua planejada na Fase 4, não implementada.
 
-O fluxo inicial do executor foi integrado ao `main` no PR #3. A chave `GEMINI_API_KEY` e a variável `NIVUS_AI_BUDGET_MODE=free-tier` foram configuradas no GitHub segundo confirmação do mantenedor; o valor da chave não foi lido. Duas tentativas com a API não produziram proposta: HTTP 503 e timeout após 75 segundos da chamada síncrona. Esta branch corrige o timeout com background polling limitado, códigos de falha úteis, limpeza da interação e remoção da segunda via de disparo que poderia duplicar uma chamada. Os testes offline desta branch passaram; a chamada end-to-end com esta correção ainda não foi observada. O worker continua restrito a caminhos exatos e não executa comandos, não modifica workflows, não aprova, não faz merge nem deploy. A revisão humana permanece obrigatória.
+O fluxo do executor foi integrado ao `main` no PR #3. O mantenedor confirmou que `GEMINI_API_KEY` e `NIVUS_AI_BUDGET_MODE=free-tier` estão configuradas; o segredo não foi lido. Duas tentativas anteriores falharam com HTTP 503 e timeout síncrono; a implementação atual faz polling em segundo plano com limites e testes simulados. Uma chamada autorizada para a Issue #6 gerou a proposta documental no PR #16; todos os checks hospedados do PR passaram, mas a abertura automática falhou porque `gh repo view` foi executado sem checkout. O mantenedor abriu o PR #16 manualmente. O commit `bec9573` corrigiu a workflow para consultar o branch padrão pela API sem checkout. Ainda falta uma nova chamada explicitamente autorizada para provar a abertura automática de PR ponta a ponta. O PR #16 permanece draft para revisão humana. O worker limita arquivos aprovados, não executa comandos, não faz merge nem deploy, e mantém a revisão humana obrigatória.
 
 GitHub Issues e Actions são a fila e execução principais, sem depender do PC ou notebook do operador. O notebook é suporte opcional para painel, inspeção e agregação de relatórios quando estiver online. Telemetria do host não é requisito; agregação de telemetria entre nós será útil quando o Nó Master estiver operacional.
