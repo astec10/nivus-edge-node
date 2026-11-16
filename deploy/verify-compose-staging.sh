@@ -216,8 +216,13 @@ run_nivusctl() {
   "${privilege[@]}" env \
     NIVUS_DB_PATH="$DATA_DIR/nivus.db" \
     NIVUS_MAINTENANCE_STATE_PATH="$MAINTENANCE_DIR/state.json" \
+    NIVUS_DEBUG_MAINTENANCE=1 \
     python3 deploy/nivusctl "$@"
 }
+for check_path in "$APP_DIR" "$APP_DIR/runtime-state" "$MAINTENANCE_DIR" "$MAINTENANCE_DIR/state.json"; do
+  stat -c 'maintenance_path=%a %u:%g %n' "$check_path" 2>&1 || true
+done
+test -r "$MAINTENANCE_DIR/state.json" || echo "maintenance_state_unreadable_to_smoke_uid=$(id -u)"
 run_nivusctl maintenance status | grep -q 'ATIVO'
 publish_smoke_sample
 assert_telemetry_count_unchanged 1
