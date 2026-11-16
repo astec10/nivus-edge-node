@@ -81,10 +81,13 @@ function App() {
       alert('Autenticado com sucesso!');
       fetchData(newToken);
     } catch (err) {
-      if (err.response && err.response.status === 429) {
-        alert(err.response.data.detail || 'Conta bloqueada temporariamente.');
+      const statusCode = err.response?.status;
+      if (statusCode === 429) {
+        alert(err.response?.data?.detail || 'Conta bloqueada temporariamente.');
+      } else if (statusCode === 401) {
+        alert('Utilizador ou palavra-passe inválidos.');
       } else {
-        alert('Erro de autenticação.');
+        alert('Não foi possível autenticar. Verifique a ligação ao Nivus e tente novamente.');
       }
     }
   };
@@ -158,8 +161,29 @@ function App() {
       setNewUsername('');
       setNewPassword('');
       fetchData();
-    } catch {
-      alert('Erro ao guardar utilizador.');
+    } catch (err) {
+      const statusCode = err.response?.status;
+      if (statusCode === 409) {
+        alert('Esse nome de utilizador já está registado.');
+      } else if (statusCode === 422) {
+        const details = err.response?.data?.detail;
+        const invalidFields = new Set(
+          Array.isArray(details)
+            ? details.map(issue => Array.isArray(issue?.loc) ? issue.loc[issue.loc.length - 1] : null)
+            : []
+        );
+        if (invalidFields.has('password')) {
+          alert('A palavra-passe precisa ter de 12 a 256 caracteres.');
+        } else if (invalidFields.has('username')) {
+          alert('O utilizador precisa ter até 32 caracteres e usar apenas letras, números, ponto, hífen ou sublinhado.');
+        } else {
+          alert('Confira os campos do formulário e tente novamente.');
+        }
+      } else if (statusCode === 401) {
+        alert('A sessão expirou ou não tem autorização. Entre novamente como administrador.');
+      } else {
+        alert('Não foi possível guardar o utilizador. Tente novamente.');
+      }
     }
   };
 
