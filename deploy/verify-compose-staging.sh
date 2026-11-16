@@ -75,10 +75,11 @@ docker run --rm --user 0 --network none \
   --mount "type=bind,source=$MOSQ_DATA_DIR,target=/mosq" \
   --mount "type=bind,source=$MAINTENANCE_DIR,target=/maintenance" \
   --env "RUNTIME_UID=$RUNTIME_UID" --env "RUNTIME_GID=$RUNTIME_GID" \
+  --env "HOST_GID=$HOST_GID" \
   --entrypoint /bin/sh nivus-edge-api:local -ec \
-  'chown -R "$RUNTIME_UID:$RUNTIME_GID" /data /maintenance; chmod 750 /data; chmod 755 /maintenance; chown -R 1883:1883 /mosq; chmod 750 /mosq'
-[[ $(stat -c "%a" "$MAINTENANCE_DIR") == 755 ]]
-[[ $(stat -c "%u:%g" "$MAINTENANCE_DIR") == "$RUNTIME_UID:$RUNTIME_GID" ]]
+  'chown -R "$RUNTIME_UID:$RUNTIME_GID" /data; chown -R "$RUNTIME_UID:$HOST_GID" /maintenance; chmod 750 /data; chmod 2750 /maintenance; chown -R 1883:1883 /mosq; chmod 750 /mosq'
+[[ $(stat -c "%a" "$MAINTENANCE_DIR") == 2750 ]]
+[[ $(stat -c "%u:%g" "$MAINTENANCE_DIR") == "$RUNTIME_UID:$HOST_GID" ]]
 
 cleanup() {
   local rc=$?
@@ -171,6 +172,8 @@ VIEWER_TOKEN=$(docker compose -p "$PROJECT" exec -T api python -c \
 VIEWER_MAINT_STATUS=$(curl -k -sS --connect-timeout 2 --max-time 5 -o /dev/null -w '%{http_code}' \
   -X POST -H "Authorization: Bearer $VIEWER_TOKEN" -H 'Content-Type: application/json' \
   -d '{"enabled":true}' https://127.0.0.1:28443/api/maintenance)
+[[ $(stat -c "%a:%u:%g" "$MAINTENANCE_DIR/state.json") == "640:$RUNTIME_UID:$HOST_GID" ]]
+test -r "$MAINTENANCE_DIR/state.json"
 [[ "$VIEWER_MAINT_STATUS" == 403 ]]
 echo "viewer_maintenance_write_http=$VIEWER_MAINT_STATUS"
 
@@ -228,9 +231,7 @@ curl -kfsS --connect-timeout 2 --max-time 5 -X POST \
   -d '{"enabled":true}' https://127.0.0.1:28443/api/maintenance | grep -q '"enabled":true'
 run_nivusctl() {
   local -a privilege=()
-  if [[ $EUID -ne 0 ]]; then
-    if [[ "${1:-}" != maintenance || "${2:-}" != status ]]; then privilege=(sudo); fi
-  fi
+  if [[ $EUID -ne 0 ]]; then privilege=(sudo); fi
   "${privilege[@]}" env \
     NIVUS_DB_PATH="$DATA_DIR/nivus.db" \
     NIVUS_MAINTENANCE_STATE_PATH="$MAINTENANCE_DIR/state.json" \

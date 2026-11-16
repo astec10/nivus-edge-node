@@ -159,7 +159,8 @@ if [[ -e /etc/tmpfiles.d/nivus-maintenance.conf || -e /run/nivus-maintenance ]];
   echo "Caminho de estado de manutenção já existe; instalação interrompida sem substituí-lo." >&2
   exit 2
 fi
-printf 'd /run/nivus-maintenance 2775 root %s - -\n' "$RUNTIME_GID" > /etc/tmpfiles.d/nivus-maintenance.conf
+TELEMETRY_GID=$(id -g nivus-telemetry)
+printf 'd /run/nivus-maintenance 2750 %s %s - -\n' "$RUNTIME_UID" "$TELEMETRY_GID" > /etc/tmpfiles.d/nivus-maintenance.conf
 chmod 644 /etc/tmpfiles.d/nivus-maintenance.conf
 TMPFILES_CREATED=1
 systemd-tmpfiles --create /etc/tmpfiles.d/nivus-maintenance.conf

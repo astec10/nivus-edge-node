@@ -91,7 +91,7 @@ def _write_state(state: dict, path: Path) -> None:
                 stream.write("\n")
                 stream.flush()
                 os.fsync(stream.fileno())
-                os.chmod(temporary_name, 0o644)
+                os.chmod(temporary_name, 0o640)
             os.replace(temporary_name, path)
         except Exception:
             try:
