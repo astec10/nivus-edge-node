@@ -44,20 +44,22 @@ export default function SettingsPanel({
   const [preferenceSaveStatus, setPreferenceSaveStatus] = useState('As preferências são aplicadas imediatamente.');
   const suggestedServers = timeSyncState?.suggested_servers?.length === 3
     ? timeSyncState.suggested_servers
-    : ['a.ntp.br', 'b.ntp.br', 'c.ntp.br'];
+    : ['a.ntp.br', 'time.google.com', 'time.cloudflare.com'];
   const configuredServers = timeSyncState?.configured_servers?.length === 3
     ? timeSyncState.configured_servers
     : suggestedServers;
   const hasConfiguredTimeSyncServers = timeSyncState?.configured_servers?.length === 3;
   const timeSyncStatusMessage = timeSyncState?.state === 'managed_elsewhere'
-    ? 'O Nivus preservou o outro cliente de hora ativo e não alterou a configuração.'
+    ? 'Outro cliente de hora está ativo; o Nivus não substitui nem altera essa configuração.'
     : timeSyncState?.state === 'unavailable'
-      ? 'O controlador Nivus ou o systemd-timesyncd não está disponível neste host.'
-      : timeSyncState?.state === 'degraded'
-        ? 'O systemd-timesyncd está ativo, mas ainda não confirmou sincronização.'
-        : timeSyncState?.state === 'synchronized'
-          ? 'O Ubuntu informa que o relógio está sincronizado.'
-          : 'Aguardando o estado do relógio do host.';
+      ? 'systemd-timesyncd não está instalado ou disponível neste host.'
+      : timeSyncState?.state === 'inactive'
+        ? 'systemd-timesyncd está instalado, mas parado. Aplicar as fontes iniciará esse serviço.'
+        : timeSyncState?.state === 'degraded'
+          ? 'systemd-timesyncd está ativo, mas ainda não confirmou sincronização.'
+          : timeSyncState?.state === 'synchronized'
+            ? 'O Ubuntu informa que o relógio está sincronizado.'
+            : 'Aguardando o estado do relógio do host.';
   const serverSignature = JSON.stringify(configuredServers);
   const [timeSyncServers, setTimeSyncServers] = useState(suggestedServers);
   const [timeSyncBusy, setTimeSyncBusy] = useState(false);
@@ -68,7 +70,8 @@ export default function SettingsPanel({
   const timeSyncStatusLabels = {
     synchronized: 'Relógio sincronizado',
     degraded: 'Cliente ativo; sincronização não confirmada',
-    unavailable: 'Cliente ou controlador indisponível',
+    unavailable: 'systemd-timesyncd indisponível',
+    inactive: 'systemd-timesyncd parado',
     managed_elsewhere: 'Outro cliente de hora está ativo',
   };
   const timeSyncStatusLabel = timeSyncStatusLabels[timeSyncState?.state] || 'Consultando o host…';
@@ -189,8 +192,10 @@ export default function SettingsPanel({
           </div>
 
           <p className="settings-explanation">
-            A integração só configura o <code>systemd-timesyncd</code> quando ele já está ativo. Ela não instala nem substitui outro cliente NTP. O padrão usa três servidores do mesmo projeto NTP.br; o systemd tenta as fontes disponíveis em sequência, sem votação.
-            {' '}<a href="https://www.ntp.br/" target="_blank" rel="noreferrer">Informações do NTP.br</a>
+            A integração usa <strong>a.ntp.br</strong>, <strong>time.google.com</strong> e <strong>time.cloudflare.com</strong>, de provedores distintos. Informe nomes DNS, sem prefixo HTTPS ou porta. Se <code>systemd-timesyncd</code> estiver instalado, mas parado, aplicar as fontes iniciará o serviço; outro cliente ativo (como chrony) continua protegido e não será substituído. O systemd tenta as fontes em sequência, como failover, não votação.
+            {' '}<a href="https://www.ntp.br/" target="_blank" rel="noreferrer">NTP.br</a>{' · '}
+            <a href="https://developers.google.com/time" target="_blank" rel="noreferrer">Google Public NTP</a>{' · '}
+            <a href="https://developers.cloudflare.com/time-services/ntp/usage/" target="_blank" rel="noreferrer">Cloudflare NTP</a>
           </p>
 
           {isAdmin ? (
