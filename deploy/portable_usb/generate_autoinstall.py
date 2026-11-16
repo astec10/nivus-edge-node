@@ -15,6 +15,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -377,15 +378,66 @@ def write_seed(output: Path, user_data: str, device: dict[str, Any]) -> None:
         raise
 
 
+
+def build_seed_iso(seed_dir: Path) -> Path:
+    """Build a private NoCloud ISO; this is config media, not a bootable Ubuntu ISO."""
+    seed_dir = seed_dir.expanduser()
+    if seed_dir.is_symlink() or not seed_dir.is_dir():
+        raise GenerationError("a pasta do seed não existe ou não é um diretório seguro.")
+    cloud_localds = shutil.which("cloud-localds")
+    if not cloud_localds:
+        raise GenerationError(
+            "cloud-localds não foi encontrado; instale cloud-image-utils e tente novamente."
+        )
+    user_data = seed_dir / "user-data"
+    meta_data = seed_dir / "meta-data"
+    if any(path.is_symlink() or not path.is_file() for path in (user_data, meta_data)):
+        raise GenerationError("os arquivos user-data/meta-data do seed não estão disponíveis.")
+    output = seed_dir / "nivus-autoinstall-seed.iso"
+    checksum = output.with_suffix(output.suffix + ".sha256")
+    if output.exists() or output.is_symlink() or checksum.exists() or checksum.is_symlink():
+        raise GenerationError("a ISO ou checksum já existe; nenhum arquivo foi sobrescrito.")
+
+    try:
+        with tempfile.TemporaryDirectory(prefix=".nivus-seed-iso-", dir=seed_dir) as temp_dir:
+            temporary_iso = Path(temp_dir) / output.name
+            subprocess.run(
+                [
+                    cloud_localds,
+                    "--filesystem=iso",
+                    str(temporary_iso),
+                    str(user_data),
+                    str(meta_data),
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            if not temporary_iso.is_file() or temporary_iso.stat().st_size == 0:
+                raise GenerationError("cloud-localds não produziu uma ISO de seed válida.")
+            os.chmod(temporary_iso, 0o600)
+            os.link(temporary_iso, output)
+            digest = hashlib.sha256(output.read_bytes()).hexdigest()
+            _write_new_file(checksum, f"{digest}  {output.name}\\n")
+    except FileExistsError as exc:
+        raise GenerationError("a ISO ou checksum já existe; nenhum arquivo foi sobrescrito.") from exc
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise GenerationError("não foi possível criar a ISO NoCloud do seed.") from exc
+    return output
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Gera uma configuração revisável do instalador; não grava em discos."
     )
     parser.add_argument("--selection", required=True, type=Path, help="manifesto criado pelo select_target.py")
     parser.add_argument("--output", required=True, type=Path, help="nova pasta para os arquivos NoCloud")
+    parser.add_argument("--build-seed-iso", action="store_true", help="cria ISO NoCloud privada; requer cloud-localds")
     args = parser.parse_args(argv)
 
     try:
+        if args.build_seed_iso and not shutil.which("cloud-localds"):
+            raise GenerationError("cloud-localds não foi encontrado; instale cloud-image-utils.")
         device = load_and_revalidate_selection(args.selection)
         print(
             f"USB revalidado: {device['path']} | {device['model']} | "
@@ -404,6 +456,10 @@ def main(argv: list[str] | None = None) -> int:
         del password_hash
         write_seed(args.output, user_data, device)
         print(f"Seed privado criado em {args.output.expanduser()}. Nenhum disco foi alterado.")
+        if args.build_seed_iso:
+            iso_path = build_seed_iso(args.output.expanduser())
+            print(f"ISO de configuração criada: {iso_path}")
+            print("A ISO é um seed NoCloud, não uma mídia inicializável do Ubuntu.")
         print("O instalador revalidará o USB e abrirá a tela de armazenamento para confirmação humana.")
         return 0
     except (GenerationError, InspectionError, OSError) as exc:
