@@ -48,7 +48,8 @@ jobs:
           set -Eeuo pipefail
           [[ "$ISSUE_NUMBER" =~ ^[1-9][0-9]*$ ]]
           existing_pr="$(gh api --paginate "repos/$REPOSITORY/pulls?state=open&per_page=100" \
-            --jq ".[] | select(.head.ref | startswith(\\"ai/issue-${ISSUE_NUMBER}-run-\\")) | .html_url" | sed -n '1p')"
+            | jq -r --arg prefix "ai/issue-${ISSUE_NUMBER}-run-" '.[] | select(.head.ref | startswith($prefix)) | .html_url' \
+            | sed -n '1p')"
           if [[ -n "$existing_pr" ]]; then
             echo "existing_pr=true" >> "$GITHUB_OUTPUT"
             echo "An open proposal already exists for issue #$ISSUE_NUMBER; no model call will run."
