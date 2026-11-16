@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
-import { Bell, Cpu, History, Settings, Terminal, Zap } from 'lucide-react';
+import { Bell, Cpu, History, Settings, Terminal, Volume2, VolumeX, Zap } from 'lucide-react';
 import MetricCard from './MetricCard';
 import { describeTelemetryFreshness, formatMetric, getGraphicsLabel, selectTelemetryWindow, summarizeMetric } from '../utils/telemetry';
 
@@ -65,6 +65,9 @@ export default function DashboardPanel({
   handleActuatorCommand,
   actuatorMessage,
   settingsStatus,
+  soundEnabled,
+  soundStatus,
+  onToggleAlertSound,
   systemLogs,
   auditLogs,
   alertsHistory,
@@ -162,11 +165,11 @@ export default function DashboardPanel({
           <div className="dashboard-secondary-grid">
             <section className="dashboard-panel" aria-labelledby="actuator-title">
               <div className="dashboard-panel-heading">
-                <h3 id="actuator-title"><Zap aria-hidden="true" /> Atuador MQTT (opcional)</h3>
-                <span className="dashboard-panel-tag">Manual</span>
+                <h3 id="actuator-title"><Zap aria-hidden="true" /> Atuador MQTT</h3>
+                <span className="dashboard-panel-tag">Automação aguardando bateria</span>
               </div>
               <p className="dashboard-panel-copy">
-                O monitoramento funciona sem atuadores. Este comando envia ON/OFF ao tópico permitido; o broker confirma o recebimento, mas o dispositivo não informa seu estado físico.
+                Regra definida: desligar <code>nivus/edge/relay1</code> quando a bateria do dispositivo móvel associado estiver em 20% ou menos. A telemetria ainda não fornece esse nível; até a origem ser integrada, os comandos abaixo continuam manuais.
               </p>
               <div className="actuator-command-row">
                 <div>
@@ -193,8 +196,24 @@ export default function DashboardPanel({
             <section className="dashboard-panel dashboard-alert-panel" aria-labelledby="alert-settings-title">
               <div className="dashboard-panel-heading">
                 <h3 id="alert-settings-title"><Settings aria-hidden="true" /> Limite de temperatura</h3>
+                <div className="dashboard-temperature-sound">
+                  <button
+                    type="button"
+                    className={`temperature-sound-toggle ${soundEnabled ? (isTempCritical ? 'temperature-sound-critical' : 'temperature-sound-enabled') : 'temperature-sound-disabled'}`}
+                    aria-pressed={soundEnabled}
+                    aria-label={soundEnabled ? 'Desativar aviso sonoro no navegador' : 'Ativar aviso sonoro no navegador'}
+                    title={soundEnabled ? 'Desativar aviso sonoro' : 'Ativar aviso sonoro'}
+                    onClick={onToggleAlertSound}
+                  >
+                    {soundEnabled ? <Volume2 size={15} aria-hidden="true" /> : <VolumeX size={15} aria-hidden="true" />}
+                  </button>
+                  <span>Aviso sonoro</span>
+                </div>
               </div>
               <p className="dashboard-panel-copy">Gera alerta quando a leitura de CPU/APU ultrapassa este valor.</p>
+              <p className="dashboard-sound-status" role="status" aria-live="polite">
+                {soundStatus} O som é reproduzido pelo navegador, não por um buzzer físico.
+              </p>
               <div className="threshold-row">
                 <label htmlFor="temperature-threshold">Limite (°C)</label>
                 <input
