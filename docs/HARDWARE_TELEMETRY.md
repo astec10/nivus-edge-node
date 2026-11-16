@@ -13,6 +13,8 @@ No Windows, LibreHardwareMonitor e o fork mantido de Open Hardware Monitor podem
 - `cpu_hotspot_temperature`/`cpu_hotspot_source` são opcionais e só recebem valor se o driver rotular explicitamente uma leitura de CPU/APU como `hotspot` ou `junction`; não são inferidos das temperaturas de pacote/núcleo.
 - `motherboard_temperature`/`motherboard_temperature_source` e `gpu_temperature`/`gpu_temperature_source` são valores independentes e opcionais.
 - `gpu_hotspot_temperature`/`gpu_hotspot_source` representam somente uma leitura explicitamente rotulada `hotspot` ou `junction` pelo driver da GPU. Não são inferidos a partir da temperatura comum da GPU.
+- `host_battery_percent`, `host_battery_power_plugged` e `host_battery_source` representam somente a bateria interna do nó que o sistema operacional expõe via psutil. Em desktops ou sistemas sem esse sensor, os campos ficam `null` e o painel mostra `N/D`.
+- A bateria interna do nó não é a bateria de um telefone nem do inversor; ela não é associada automaticamente ao relé MQTT nem altera a regra da issue #22.
 - Sensor ausente, inacessível ou sem identificação confiável permanece `null`; a UI apresenta `N/D`. Não usar zero, ACPI genérico nem a última amostra antiga como substituto.
 - Para Intel, preferir o pacote `coretemp` a sensores ACPI genéricos. Para AMD, preferir `Tdie` quando disponível; `Tctl` só deve ser rotulado conforme a semântica fornecida pelo driver. Uma APU pode não expor uma leitura térmica separada da CPU ou GPU.
 - Identificar placa/GPU pelo driver e label. Uma zona `acpitz` ou `thermal_zone0` isolada não prova que a leitura seja CPU ou placa-mãe.

@@ -1620,6 +1620,7 @@ code {
 .dashboard-root[data-theme="eink"] .metric-card[data-metric="motherboard-thermal"] .metric-card-label::before { content: "MB.TEMP. "; color: #ff4d00; }
 .dashboard-root[data-theme="eink"] .metric-card[data-metric="memory"] .metric-card-label::before { content: "MEM. "; color: #ff4d00; }
 .dashboard-root[data-theme="eink"] .metric-card[data-metric="disk"] .metric-card-label::before { content: "DISK. "; color: #ff4d00; }
+.dashboard-root[data-theme="eink"] .metric-card[data-metric="host-battery"] .metric-card-label::before { content: "BATT. "; color: #ff4d00; }
 .dashboard-root[data-theme="eink"] .metric-card[data-metric="power"] .metric-card-label::before { content: "PWR. "; color: #ff4d00; }
 .dashboard-root[data-theme="eink"] .metric-card-value { color: #fff; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
 .dashboard-root[data-theme="eink"] .metric-card-sparkline { display: none; }

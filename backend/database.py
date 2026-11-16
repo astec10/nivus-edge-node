@@ -28,6 +28,9 @@ def init_db():
                 cpu_percent REAL,
                 memory_percent REAL,
                 disk_percent REAL,
+                host_battery_percent REAL,
+                host_battery_power_plugged INTEGER,
+                host_battery_source TEXT,
                 temperature REAL,
                 temperature_source TEXT,
                 cpu_hotspot_temperature REAL,
@@ -99,6 +102,9 @@ def init_db():
             row["name"] for row in conn.execute("PRAGMA table_info(telemetry)")
         }
         for column, definition in (
+            ("host_battery_percent", "REAL"),
+            ("host_battery_power_plugged", "INTEGER"),
+            ("host_battery_source", "TEXT"),
             ("temperature_source", "TEXT"),
             ("cpu_hotspot_temperature", "REAL"),
             ("cpu_hotspot_source", "TEXT"),

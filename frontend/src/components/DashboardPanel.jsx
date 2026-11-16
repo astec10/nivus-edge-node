@@ -113,6 +113,12 @@ export default function DashboardPanel({
   const temperatureSamples = chartRows;
   const graphicsLabel = getGraphicsLabel(latest?.gpu_temperature_source);
   const freshness = describeTelemetryFreshness(latest?.timestamp);
+  const batteryPlugged = latest?.host_battery_power_plugged;
+  const batteryPowerLabel = batteryPlugged === 1 || batteryPlugged === true
+    ? 'Conectado à alimentação'
+    : batteryPlugged === 0 || batteryPlugged === false
+      ? 'Operando pela bateria'
+      : 'Estado de alimentação indisponível';
 
   return (
     <>
@@ -137,6 +143,18 @@ export default function DashboardPanel({
             <MetricCard label="CPU" metricId="cpu" primary sparklineValues={chartRows.map(sample => sample.cpu_percent)} gaugeValue={latest?.cpu_percent} gaugeMax={100} value={formatMetric(latest?.cpu_percent, '%')} details={<RangeDetails samples={chartRows} metric="cpu_percent" unit="%" />} />
             <MetricCard label="Memória" metricId="memory" primary sparklineValues={chartRows.map(sample => sample.memory_percent)} gaugeValue={latest?.memory_percent} gaugeMax={100} value={formatMetric(latest?.memory_percent, '%')} details={<RangeDetails samples={chartRows} metric="memory_percent" unit="%" />} />
             <MetricCard label="Disco" metricId="disk" gaugeValue={latest?.disk_percent} gaugeMax={100} value={formatMetric(latest?.disk_percent, '%')} details={<RangeDetails samples={chartRows} metric="disk_percent" unit="%" />} />
+            <MetricCard
+              label="Bateria do nó"
+              metricId="host-battery"
+              gaugeValue={latest?.host_battery_percent}
+              gaugeMax={100}
+              value={formatMetric(latest?.host_battery_percent, '%')}
+              hint={latest?.host_battery_source ? batteryPowerLabel : 'Sistema sem bateria interna detectável'}
+              details={<MetricDetails samples={chartRows} metrics={[
+                { label: 'Bateria interna do nó', key: 'host_battery_percent', source: 'host_battery_source' },
+              ]} />}
+              detailsLabel="Bateria interna do nó"
+            />
             <MetricCard
               label="CPU (pacote)"
               metricId="cpu-thermal"
