@@ -142,7 +142,7 @@ export default function DashboardPanel({
               metricId="cpu-thermal"
               gaugeValue={latest?.temperature_source ? latest.temperature : null}
               gaugeMax={120}
-              value={formatMetric(latest?.temperature_source ? latest.temperature : null, '°C')
+              value={formatMetric(latest?.temperature_source ? latest.temperature : null, '°C')}
               hint={latest?.temperature_source || 'Sensor térmico não exposto'}
               details={<MetricDetails samples={temperatureSamples} metrics={[
                 { label: 'CPU / APU', key: 'temperature', source: 'temperature_source' },
@@ -155,7 +155,7 @@ export default function DashboardPanel({
               metricId="graphics-thermal"
               gaugeValue={latest?.gpu_temperature}
               gaugeMax={120}
-              value={formatMetric(latest?.gpu_temperature, '°C')
+              value={formatMetric(latest?.gpu_temperature, '°C')}
               hint={latest?.gpu_temperature_source || 'Sensor gráfico não exposto'}
               details={<MetricDetails samples={temperatureSamples} metrics={[
                 { label: 'Gráficos (APU/GPU)', key: 'gpu_temperature', source: 'gpu_temperature_source' },
@@ -168,7 +168,7 @@ export default function DashboardPanel({
               metricId="motherboard-thermal"
               gaugeValue={latest?.motherboard_temperature}
               gaugeMax={120}
-              value={formatMetric(latest?.motherboard_temperature, '°C')
+              value={formatMetric(latest?.motherboard_temperature, '°C')}
               hint={latest?.motherboard_temperature_source || 'Sensor não exposto pelo SO/driver'}
               details={<MetricDetails samples={temperatureSamples} metrics={[{ label: 'Placa-mãe', key: 'motherboard_temperature', source: 'motherboard_temperature_source' }]} />}
               detailsLabel="Temperatura da placa-mãe"
@@ -180,7 +180,7 @@ export default function DashboardPanel({
               sparklineValues={chartRows.map(sample => sample.power_consumption)}
               gaugeValue={latest?.power_consumption}
               gaugeMax={250}
-              value={formatMetric(latest?.power_consumption, ' W')
+              value={formatMetric(latest?.power_consumption, ' W')}
               hint="Estimativa de software; não é medição física"
               details={<RangeDetails samples={chartRows} metric="power_consumption" unit=" W" />}
             />
