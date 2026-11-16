@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-16 19:40 UTC
+Atualizado: 2026-11-16 20:20 UTC
 Licença: AGPL-3.0-only
 
 ## Resumo verificado
@@ -24,6 +24,12 @@ O PR #34 foi integrado à `main` no commit `703efa4128f60460910b05ab344b60b08200
 O fluxo continua usando a mídia oficial inicializável do Ubuntu e um seed NoCloud separado. A tela de armazenamento do Subiquity permanece interativa; a pessoa confere caminho, modelo, serial e capacidade antes de confirmar, porque o instalador apaga o USB escolhido. A primeira instalação do Compose precisa de Internet para instalar pacotes e construir/obter componentes. Depois de instalado, o Nivus local pode operar na LAN sem serviço de nuvem; inferência local e coordenação multi-nó são fases separadas.
 
 Ainda faltam executar uma instalação real do Subiquity até o primeiro boot, instalar Nivus, autenticar no painel, reiniciar e verificar SQLite (`quick_check`), configurações, segredos e Docker persistidos, testar recuperação/rollback e fazer a matriz física UEFI/BIOS Intel/AMD. A CI hospedada e o loop ext4 validam software, não boot em USB físico nem compatibilidade universal. Consulte [deploy/portable_usb/README.md](../deploy/portable_usb/README.md) para o procedimento e seus limites.
+
+## Configuração visual e atualização pendente
+
+O PR #36 foi integrado à main (`3ac16cf`) com correções nos filtros e na acessibilidade do quadro de marcos. O PR #37 foi integrado em `f18085b`; os quatro checks hospedados passaram: dashboard/sensores, índice de conhecimento, CodeQL e validação Ubuntu. Ele adiciona relógio digital, formatos de hora/data, fuso IANA/GMT e temas, com preferências por conta. O relógio usa a hora do navegador; configurar fontes NTP no Ubuntu ainda está pendente.
+
+O notebook ainda não recebeu essas duas mudanças. O atualizador manual reversível está em revisão no PR #38. Até a CI passar, o pacote não deve ser aplicado; depois do merge ainda será necessária a execução privilegiada no notebook e a conferência visual no navegador. Nenhuma mudança foi feita remotamente neste host.
 
 ## Estado do notebook de teste
 
@@ -53,8 +59,8 @@ A implementação de manutenção reversível e `nivus help` foi integrada à `m
 
 ## Escopo ainda pendente
 
-- Issue #25: publicar no notebook a versão atualizada de `PROGRESS.html` e validar a troca de dashboard sem novo login, logout e expiração. O estado HTTP da cópia servida ainda precisa de conferência.
-- Issue #21 e #23: aba Configuração com relógio Brasília, formatos 12/24h e data, fuso/GMT, servidores NTP redundantes sem mostrar a fonte no relógio e temas selecionáveis.
+- Issue #25: as correções do quadro de marcos estão na main pelo PR #36; a página atualizada e a troca da dashboard sem novo login ainda aguardam atualização do notebook e validação visual.
+- Issues #21 e #23: relógio, formatos de hora/data, fuso/GMT e temas estão na main pelo PR #37. A configuração NTP real do host com fontes redundantes permanece pendente; o navegador não configura o relógio do Ubuntu.
 - Issue #26: implementação integrada no PR #28; resta aplicar a release no notebook e confirmar CLI/dashboard e retorno ao modo normal após reboot. A CI hospedada passou, mas não substitui a validação do host.
 - Issue #22: integrar fonte identificada e recente da bateria do dispositivo móvel e associá-la ao relé; manter comandos manuais até então.
 - Fase 1: instalação limpa, recuperação e medição em mais hardware; a CI hospedada não substitui a matriz física Intel/AMD de três faixas de geração.
