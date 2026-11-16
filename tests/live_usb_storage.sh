@@ -5,7 +5,7 @@ set -Eeuo pipefail
 for command in losetup sfdisk mkfs.ext4 mount umount lsblk blkid findmnt; do
   command -v "$command" >/dev/null || { echo "Comando necessário ausente: $command" >&2; exit 2; }
 done
-REPO_ROOT=$(cd -- "$(dirname -- "$0")/../.." && pwd -P)
+REPO_ROOT=$(cd -- "$(dirname -- "$0")/.." && pwd -P)
 TMP=$(mktemp -d)
 LOOP=
 MOUNTED=0
