@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PauseCircle, PlayCircle, Wrench } from 'lucide-react';
 import {
   DASHBOARD_THEMES,
@@ -38,6 +38,13 @@ export default function SettingsPanel({
 }) {
   const enabled = maintenanceState?.enabled === true;
   const offset = formatUtcOffset(displayPreferences.timeZone);
+  const [preferenceSaveStatus, setPreferenceSaveStatus] = useState('As preferências são aplicadas imediatamente.');
+  const updateDisplayPreferences = changes => {
+    const saved = onDisplayPreferenceChange(changes);
+    setPreferenceSaveStatus(saved
+      ? 'Preferências aplicadas e salvas neste navegador para esta conta.'
+      : 'Preferências aplicadas nesta sessão; o navegador não permitiu salvá-las localmente.');
+  };
 
   return (
     <main className="dashboard-content" aria-labelledby="settings-title">
@@ -57,7 +64,7 @@ export default function SettingsPanel({
               label="Fuso horário"
               value={displayPreferences.timeZone}
               options={TIME_ZONES}
-              onChange={timeZone => onDisplayPreferenceChange({ timeZone })}
+              onChange={timeZone => updateDisplayPreferences({ timeZone })}
               describedBy="timezone-offset"
             />
             <p className="display-preference-hint" id="timezone-offset">
@@ -67,19 +74,19 @@ export default function SettingsPanel({
               label="Formato da hora"
               value={displayPreferences.timeFormat}
               options={[{ value: '24h', label: '24 horas' }, { value: '12h', label: '12 horas (AM/PM)' }]}
-              onChange={timeFormat => onDisplayPreferenceChange({ timeFormat })}
+              onChange={timeFormat => updateDisplayPreferences({ timeFormat })}
             />
             <PreferenceField
               label="Formato da data"
               value={displayPreferences.dateFormat}
               options={DATE_FORMATS}
-              onChange={dateFormat => onDisplayPreferenceChange({ dateFormat })}
+              onChange={dateFormat => updateDisplayPreferences({ dateFormat })}
             />
             <PreferenceField
               label="Tema da dashboard completa"
               value={displayPreferences.theme}
               options={DASHBOARD_THEMES}
-              onChange={theme => onDisplayPreferenceChange({ theme })}
+              onChange={theme => updateDisplayPreferences({ theme })}
               describedBy="theme-description"
             />
             <p className="display-preference-hint" id="theme-description">
@@ -92,7 +99,7 @@ export default function SettingsPanel({
               <input
                 type="checkbox"
                 checked={displayPreferences.highContrast}
-                onChange={event => onDisplayPreferenceChange({ highContrast: event.target.checked })}
+                onChange={event => updateDisplayPreferences({ highContrast: event.target.checked })}
               />
               <span>Contraste alto</span>
             </label>
@@ -100,13 +107,13 @@ export default function SettingsPanel({
               <input
                 type="checkbox"
                 checked={displayPreferences.reducedMotion}
-                onChange={event => onDisplayPreferenceChange({ reducedMotion: event.target.checked })}
+                onChange={event => updateDisplayPreferences({ reducedMotion: event.target.checked })}
               />
               <span>Reduzir animações</span>
             </label>
           </div>
           <p className="display-preference-save-status" role="status" aria-live="polite">
-            Preferências aplicadas nesta sessão e guardadas localmente para a conta atual quando permitido pelo navegador.
+            {preferenceSaveStatus}
           </p>
         </section>
 
