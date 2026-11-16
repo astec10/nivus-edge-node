@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-16 20:20 UTC
+Atualizado: 2026-11-16 20:30 UTC
 Licença: AGPL-3.0-only
 
 ## Resumo verificado
@@ -29,7 +29,7 @@ Ainda faltam executar uma instalação real do Subiquity até o primeiro boot, i
 
 O PR #36 foi integrado à main (`3ac16cf`) com correções nos filtros e na acessibilidade do quadro de marcos. O PR #37 foi integrado em `f18085b`; os quatro checks hospedados passaram: dashboard/sensores, índice de conhecimento, CodeQL e validação Ubuntu. Ele adiciona relógio digital, formatos de hora/data, fuso IANA/GMT e temas, com preferências por conta. O relógio usa a hora do navegador; configurar fontes NTP no Ubuntu ainda está pendente.
 
-O notebook ainda não recebeu essas duas mudanças. O atualizador manual reversível está em revisão no PR #38. Até a CI passar, o pacote não deve ser aplicado; depois do merge ainda será necessária a execução privilegiada no notebook e a conferência visual no navegador. Nenhuma mudança foi feita remotamente neste host.
+O PR #38 foi integrado à `main` no commit `972814d`. Os checks hospedados passaram: Ubuntu 22.04 amd64 Compose smoke, índice de conhecimento, dashboard/sensores e CodeQL. O atualizador manual reversível está disponível em `deploy/update.sh`; ele exige clone limpo e execução com `sudo`, cria backup SQLite consistente e preserva a release/imagens anteriores para rollback. O notebook ainda executa a release anterior; o update precisa ser aplicado nesse host e validado visualmente no navegador. Nenhuma mudança remota foi feita nele.
 
 ## Estado do notebook de teste
 
