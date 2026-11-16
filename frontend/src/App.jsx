@@ -197,6 +197,7 @@ function App() {
       });
       const newToken = res.data.access_token;
       setToken(newToken);
+      setLoginExpanded(false);
       localStorage.setItem('nivus_token', newToken);
       setUsername('');
       setPassword('');
@@ -221,6 +222,7 @@ function App() {
 
   const handleLogout = () => {
     setToken('');
+    setLoginExpanded(false);
     localStorage.removeItem('nivus_token');
     setAdminAuthPassword('');
     setTargetNewPassword('');
