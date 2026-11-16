@@ -37,6 +37,8 @@ function App() {
 
   const [actuatorMessage, setActuatorMessage] = useState('');
   const [settingsStatus, setSettingsStatus] = useState('');
+  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [soundStatus, setSoundStatus] = useState('Aviso sonoro do navegador desativado.');
 
   const parseJwt = (t) => {
     try { return JSON.parse(atob(t.split('.')[1])); } catch { return null; }
@@ -45,25 +47,77 @@ function App() {
   const userPayload = token ? parseJwt(token) : null;
   const passwordChangeRequired = userPayload?.password_change_required === true;
   const isAdmin = userPayload?.role === 'admin';
+  const alertAudioContextRef = useRef(null);
   const lastAlertTimeRef = useRef(0);
 
-  const playAlertSound = () => {
-    try {
-      const now = Date.now();
-      if (now - lastAlertTimeRef.current < 30000) return;
-      lastAlertTimeRef.current = now;
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
-      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.2);
-    } catch {}
+  const emitAlertTone = (audioCtx) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.2);
   };
+
+  const closeAlertAudioContext = () => {
+    const audioCtx = alertAudioContextRef.current;
+    alertAudioContextRef.current = null;
+    if (audioCtx && audioCtx.state !== 'closed') {
+      void audioCtx.close().catch(() => {});
+    }
+  };
+
+  const playAlertSound = async () => {
+    const audioCtx = alertAudioContextRef.current;
+    if (!audioCtx || audioCtx.state === 'closed' || Date.now() - lastAlertTimeRef.current < 30000) return;
+    try {
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+      if (audioCtx.state !== 'running') return;
+      lastAlertTimeRef.current = Date.now();
+      emitAlertTone(audioCtx);
+    } catch {
+      setSoundStatus('O navegador bloqueou a reprodução do aviso sonoro.');
+    }
+  };
+
+  const handleToggleAlertSound = async () => {
+    if (soundEnabled) {
+      setSoundEnabled(false);
+      setSoundStatus('Aviso sonoro do navegador desativado.');
+      closeAlertAudioContext();
+      return;
+    }
+
+    const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextConstructor) {
+      setSoundStatus('Este navegador não oferece áudio para o aviso.');
+      return;
+    }
+
+    let audioCtx;
+    try {
+      audioCtx = new AudioContextConstructor();
+      await audioCtx.resume();
+      alertAudioContextRef.current = audioCtx;
+      setSoundEnabled(true);
+      setSoundStatus('Som do navegador ativado; buzzer físico não está integrado.');
+      lastAlertTimeRef.current = Date.now();
+      emitAlertTone(audioCtx);
+    } catch {
+      if (audioCtx && audioCtx.state !== 'closed') void audioCtx.close().catch(() => {});
+      alertAudioContextRef.current = null;
+      setSoundStatus('Não foi possível ativar o áudio neste navegador.');
+    }
+  };
+
+  useEffect(() => () => {
+    const audioCtx = alertAudioContextRef.current;
+    alertAudioContextRef.current = null;
+    if (audioCtx && audioCtx.state !== 'closed') void audioCtx.close().catch(() => {});
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -105,6 +159,9 @@ function App() {
     setTargetNewPassword('');
     setTargetConfirmPassword('');
     setActiveTab('dashboard');
+    setSoundEnabled(false);
+    setSoundStatus('Aviso sonoro do navegador desativado.');
+    closeAlertAudioContext();
   };
 
   const fetchData = async (currentToken = token) => {
@@ -314,12 +371,11 @@ function App() {
 
   const latest = telemetry.length > 0 ? telemetry[telemetry.length - 1] : null;
   const tempLimit = thresholdOrDefault(settings.temp_threshold, 75);
-  const cpuLimit = thresholdOrDefault(settings.cpu_threshold, 90);
   const isTempCritical = latest && Number.isFinite(latest.temperature) && latest.temperature > tempLimit;
-  const isCpuCritical = latest && latest.cpu_percent > cpuLimit;
-  const hasActiveAlert = isTempCritical || isCpuCritical;
 
-  useEffect(() => { if (hasActiveAlert) playAlertSound(); }, [hasActiveAlert]);
+  useEffect(() => {
+    if (isTempCritical && soundEnabled) void playAlertSound();
+  }, [isTempCritical, soundEnabled]);
 
   const passwordsDoNotMatch = targetConfirmPassword.length > 0 && targetNewPassword !== targetConfirmPassword;
 
@@ -332,7 +388,7 @@ function App() {
           <DashboardNavigation token={token} isAdmin={isAdmin} activeTab={activeTab} setActiveTab={setActiveTab} handleLogout={handleLogout} />
           <LoginPanel token={token} handleLogin={handleLogin} username={username} setUsername={setUsername} password={password} setPassword={setPassword} />
           <UserManagementPanel token={token} isAdmin={isAdmin} activeTab={activeTab} newUsername={newUsername} setNewUsername={setNewUsername} newPassword={newPassword} setNewPassword={setNewPassword} newRole={newRole} setNewRole={setNewRole} handleSaveUser={handleSaveUser} usersList={usersList} setEditingUser={setEditingUser} setTargetNewPassword={setTargetNewPassword} setTargetConfirmPassword={setTargetConfirmPassword} setAdminAuthPassword={setAdminAuthPassword} handleDeleteUser={handleDeleteUser} />
-          <DashboardPanel activeTab={activeTab} error={error} latest={latest} settings={settings} isAdmin={isAdmin} isTempCritical={isTempCritical} handleUpdateSetting={handleUpdateSetting} telemetry={telemetry} handleActuatorCommand={handleActuatorCommand} actuatorMessage={actuatorMessage} settingsStatus={settingsStatus} systemLogs={systemLogs} auditLogs={auditLogs} alertsHistory={alertsHistory} />
+          <DashboardPanel activeTab={activeTab} error={error} latest={latest} settings={settings} isAdmin={isAdmin} isTempCritical={isTempCritical} handleUpdateSetting={handleUpdateSetting} telemetry={telemetry} handleActuatorCommand={handleActuatorCommand} actuatorMessage={actuatorMessage} settingsStatus={settingsStatus} soundEnabled={soundEnabled} soundStatus={soundStatus} onToggleAlertSound={handleToggleAlertSound} systemLogs={systemLogs} auditLogs={auditLogs} alertsHistory={alertsHistory} />
         </>
       )}
       <LegalNotice />
