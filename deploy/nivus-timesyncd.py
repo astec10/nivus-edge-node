@@ -17,7 +17,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-DEFAULT_SERVERS = ["a.ntp.br", "b.ntp.br", "c.ntp.br"]
+DEFAULT_SERVERS = ["a.ntp.br", "time.google.com", "time.cloudflare.com"]
 MANAGED_MARKER = "# Managed by Nivus Edge Node. Do not edit manually."
 SOCKET_PATH = Path(os.environ.get("NIVUS_TIME_SYNC_SOCKET", "/run/nivus-time-sync/control.sock"))
 CONFIG_PATH = Path(os.environ.get(
@@ -142,24 +142,42 @@ def _latest_backup_exists() -> bool:
         return False
 
 
+def _timesyncd_unit_loaded() -> bool:
+    result = _run([SYSTEMCTL, "show", "--property=LoadState", "--value", "systemd-timesyncd.service"])
+    return result.returncode == 0 and result.stdout.strip() == "loaded"
+
+
 def read_host_status() -> dict:
     other_client = any(service_active(unit) for unit in OTHER_NTP_CLIENTS)
     timesyncd = service_active("systemd-timesyncd.service")
+    unit_available = timesyncd or _timesyncd_unit_loaded()
     if other_client:
         state = "managed_elsewhere"
         can_configure = False
-    elif not timesyncd:
+        message = "Outro cliente de hora está ativo; o Nivus preservou essa configuração."
+    elif not unit_available:
         state = "unavailable"
         can_configure = False
+        message = "systemd-timesyncd não está instalado ou disponível neste host."
+    elif not timesyncd:
+        state = "inactive"
+        can_configure = True
+        message = "systemd-timesyncd está instalado, mas parado. Aplicar as fontes iniciará esse serviço."
     else:
         state = "synchronized" if _ntp_synchronized() else "degraded"
         can_configure = True
+        message = (
+            "O Ubuntu informa que o relógio está sincronizado."
+            if state == "synchronized"
+            else "systemd-timesyncd está ativo, mas ainda não confirmou sincronização."
+        )
     return {
         "state": state,
         "can_configure": can_configure,
         "configured_servers": _managed_config_servers(),
         "suggested_servers": list(DEFAULT_SERVERS),
         "has_rollback": _latest_backup_exists(),
+        "message": message,
     }
 
 
