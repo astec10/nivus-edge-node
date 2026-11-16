@@ -199,6 +199,11 @@
     "doc-ai-executor-implementation",
     "doc-project-status"
   ],
+  "51f336711f23b9341ea459606a754e5730de000f": [
+    "doc-ai-context",
+    "doc-project-status",
+    "doc-project-roadmap"
+  ],
   "6": [
     "doc-ai-context",
     "doc-ai-workflow",
@@ -239,8 +244,7 @@
     "doc-project-status"
   ],
   "9722b93": [
-    "doc-project-status",
-    "doc-project-roadmap"
+    "doc-project-status"
   ],
   "a": [
     "doc-ai-context",
@@ -1474,6 +1478,7 @@
     "doc-project-roadmap"
   ],
   "bootstrap": [
+    "doc-project-status",
     "doc-project-roadmap"
   ],
   "borda": [
@@ -1823,7 +1828,9 @@
     "doc-ai-module-workplan"
   ],
   "checks": [
-    "doc-project-status"
+    "doc-ai-context",
+    "doc-project-status",
+    "doc-project-roadmap"
   ],
   "checksum": [
     "doc-video-research-index",
@@ -1833,9 +1840,6 @@
   ],
   "checksummed": [
     "networked-gpu-versus-task-federation"
-  ],
-  "checksums": [
-    "doc-project-status"
   ],
   "chipset": [
     "doc-project-roadmap"
@@ -1952,7 +1956,8 @@
     "video-z3wpoywp358"
   ],
   "codeql": [
-    "doc-project-status"
+    "doc-project-status",
+    "doc-project-roadmap"
   ],
   "coding": [
     "video-z3wpoywp358"
@@ -2048,6 +2053,7 @@
     "ai-development-persistent-worker"
   ],
   "commit": [
+    "doc-ai-context",
     "doc-ai-development-orchestration",
     "doc-project-status",
     "doc-project-roadmap",
@@ -2175,6 +2181,7 @@
     "doc-project-roadmap"
   ],
   "comprova": [
+    "doc-project-status",
     "doc-project-roadmap",
     "doc-vision"
   ],
@@ -3882,7 +3889,8 @@
     "doc-ai-context",
     "doc-ai-workflow",
     "doc-ai-executor-implementation",
-    "doc-project-status"
+    "doc-project-status",
+    "doc-project-roadmap"
   ],
   "essas": [
     "doc-ai-development-orchestration"
@@ -5010,8 +5018,10 @@
     "doc-project-roadmap"
   ],
   "hospedados": [
+    "doc-ai-context",
     "doc-ai-development-orchestration",
-    "doc-project-status"
+    "doc-project-status",
+    "doc-project-roadmap"
   ],
   "hospedar": [
     "doc-ai-module-workplan",
@@ -5263,7 +5273,8 @@
     "doc-ai-executor-implementation"
   ],
   "incluindo": [
-    "doc-ai-development-orchestration"
+    "doc-ai-development-orchestration",
+    "doc-project-roadmap"
   ],
   "incompat": [
     "doc-ai-workflow",
@@ -6193,9 +6204,6 @@
     "doc-ai-development-orchestration",
     "ai-development-persistent-worker"
   ],
-  "manifesto": [
-    "doc-project-status"
-  ],
   "mant": [
     "doc-ai-development-orchestration",
     "doc-video-research-index",
@@ -6407,6 +6415,9 @@
   ],
   "mermaid": [
     "doc-module-map"
+  ],
+  "mesclar": [
+    "doc-project-status"
   ],
   "mesh": [
     "doc-vision"
@@ -7380,12 +7391,13 @@
     "ref-multipaz-developer-website"
   ],
   "passar": [
-    "doc-project-status",
     "doc-project-roadmap"
   ],
   "passaram": [
+    "doc-ai-context",
     "doc-ai-executor-implementation",
-    "doc-project-status"
+    "doc-project-status",
+    "doc-project-roadmap"
   ],
   "passe": [
     "doc-ai-development-orchestration"
@@ -7467,12 +7479,12 @@
     "doc-project-status"
   ],
   "pendente": [
+    "doc-ai-context",
     "doc-ai-development-orchestration",
     "doc-project-status",
     "doc-project-roadmap"
   ],
   "pendentes": [
-    "doc-ai-context",
     "doc-project-status",
     "doc-project-roadmap"
   ],
@@ -8974,7 +8986,8 @@
   ],
   "revisar": [
     "doc-ai-workflow",
-    "doc-ai-executor-implementation"
+    "doc-ai-executor-implementation",
+    "doc-project-status"
   ],
   "revise": [
     "doc-ai-executor-implementation"
@@ -9781,7 +9794,8 @@
   "substitui": [
     "doc-ai-development-orchestration",
     "doc-module-map",
-    "doc-project-status"
+    "doc-project-status",
+    "doc-project-roadmap"
   ],
   "substituir": [
     "doc-vision"
@@ -10054,7 +10068,8 @@
   ],
   "testes": [
     "doc-ai-executor-implementation",
-    "doc-project-status"
+    "doc-project-status",
+    "doc-project-roadmap"
   ],
   "text": [
     "doc-ai-development-orchestration",
@@ -10158,7 +10173,10 @@
     "doc-vision"
   ],
   "todos": [
+    "doc-ai-context",
     "doc-ai-workflow",
+    "doc-project-status",
+    "doc-project-roadmap",
     "doc-vision"
   ],
   "token": [
@@ -10931,7 +10949,8 @@
   "workflows": [
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
-    "doc-project-status"
+    "doc-project-status",
+    "doc-project-roadmap"
   ],
   "workspace": [
     "ai-development-persistent-worker"
@@ -11561,7 +11580,8 @@
     "doc-ai-context"
   ],
   "ísico": [
-    "doc-project-status"
+    "doc-project-status",
+    "doc-project-roadmap"
   ],
   "ísicos": [
     "doc-ai-executor-implementation",
