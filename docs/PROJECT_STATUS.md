@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-16 02:57 UTC
+Atualizado: 2026-11-16 16:54 UTC
 Licença: AGPL-3.0-only
 
 ## Resumo verificado
@@ -39,15 +39,16 @@ A dashboard principal está disponível em HTTPS na porta 443, portanto `https:/
 
 ## Modo de manutenção e comando de ajuda
 
-A issue #26 está sendo implementada nesta branch. A proposta oferece `nivus help`, `nivus help maintenance` e `sudo nivus maintenance status`; `sudo nivus maintenance enable` pausa a amostragem/publicação do agente do host e a gravação de novas amostras MQTT; `sudo nivus maintenance disable` retoma o trabalho sem relogar ou reiniciar. O painel traz o mesmo controle na aba Configuração para administradores. API, autenticação, painel, health, broker e dados já gravados permanecem disponíveis. Os processos Nivus continuam iniciados; apenas esses workloads são pausados. O marcador é volátil em `/run`, então reboot retorna ao funcionamento normal. Testes unitários de estado/CLI já passaram localmente; integração Compose, CI e publicação no notebook ainda estão pendentes. Não execute os comandos no notebook até a release ser atualizada.
+A implementação de manutenção reversível e `nivus help` foi integrada à `main` pelo PR #28 em 16/11/2026. A CI hospedada aprovou o smoke Compose Ubuntu, o índice de conhecimento, a dashboard/sensores e o CodeQL. O recurso pausa a amostragem/publicação do agente de telemetria do host e a gravação de novas amostras MQTT; API, autenticação, painel, health, broker e dados existentes continuam ativos. `sudo nivus maintenance disable` retoma a coleta sem reboot; reiniciar o host retorna ao modo normal. O código está no GitHub, mas a release ainda não foi aplicada nem validada visualmente no notebook CCE U25; não considere a função ativa nesse host até essa etapa.
 
 ## Escopo ainda pendente
 
 - Issue #25: corrigir e republicar `PROGRESS.html`, que ainda mostra a promoção como pendente, e validar a troca de dashboard sem novo login, logout e expiração.
 - Issue #21 e #23: aba Configuração com relógio Brasília, formatos 12/24h e data, fuso/GMT, servidores NTP redundantes sem mostrar a fonte no relógio e temas selecionáveis.
-- Issue #26: concluir integração e CI do modo de manutenção e publicar a release; validação de implantação no notebook ainda não realizada.
+- Issue #26: implementação integrada no PR #28; resta aplicar a release no notebook e confirmar CLI/dashboard e retorno ao modo normal após reboot. A CI hospedada passou, mas não substitui a validação do host.
 - Issue #22: integrar fonte identificada e recente da bateria do dispositivo móvel e associá-la ao relé; manter comandos manuais até então.
 - Fase 1: instalação limpa, recuperação e medição em mais hardware; a CI hospedada não substitui a matriz física Intel/AMD de três faixas de geração.
+- Issue #29: criar Ubuntu + Nivus Live USB com partição ext4 persistente em `/var/lib/nivus`, inicialização segura sem fallback volátil e validação de reboot/SQLite.
 - Fase 2: identidade/cadastro/heartbeat multi-nó, telemetria agregada e rollout de releases assinadas com canário, saúde e rollback por nó.
 - Fase 3: Home Assistant, Zigbee, energia e câmeras em leitura antes de automação física.
 - Fase 4: inferência local e biblioteca documental consultável com fonte, licença, citações e limites de recursos.

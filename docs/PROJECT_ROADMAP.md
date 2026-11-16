@@ -26,11 +26,13 @@ Entregas existentes: API modular, autenticação por senha/JWT, telemetria de ho
 
 Critérios já observados: login funcional; API exige token; health HTTPS responde; o SQLite candidato passa `quick_check` e recebe novas amostras; o coletor não reinicia; os serviços antigos continuam ativos.
 
-**Operação de manutenção (issue #26):** oferecer uma pausa controlada de workloads opcionais sem desligar o dashboard, API ou autenticação. O estado deve ser reversível pelo mesmo comando, com retorno ao modo normal no reboot. Está em implementação e não faz parte da release ativa até CI, revisão e publicação.
+**Operação de manutenção (issue #26):** implementação merged no PR #28, com `nivus help` e controle administrativo; CI hospedada aprovada. A pausa interrompe amostragem/publicação de telemetria do host e gravação de novas amostras MQTT, sem desligar API, painel, health ou broker. A publicação e o teste no notebook CCE U25 ainda estão pendentes.
 
 ### Fase 1 — Instalação, recuperação e portabilidade
 
 **Estado: próxima prioridade.**
+
+**Issue #29 — Ubuntu + Nivus Live USB com dados persistentes:** comparar Ubuntu Server Live com overlay e instalação portátil; manter uma partição ext4 persistente (rótulo sugerido `NIVUS_DATA`) montada em `/var/lib/nivus`. SQLite, segredos, configurações e logs não podem cair silenciosamente em armazenamento volátil quando a partição faltar. A imagem e o primeiro smoke serão gerados por CI hospedada; boot UEFI/BIOS e persistência após reboot precisam de validação física em equipamento x86_64.
 
 Siga [`VM_VALIDATION.md`](VM_VALIDATION.md) como roteiro executável e registre a evidência em [`PROJECT_STATUS.md`](PROJECT_STATUS.md). O script de restauração está implementado; só declare a etapa concluída após teste real em clone descartável com backup, restore, validação e rollback.
 
