@@ -87,9 +87,6 @@ def change_temporary_password(
         ).fetchone()
         if user is None or not user["must_change_password"]:
             raise HTTPException(status_code=403, detail="Troca de senha não está pendente.")
-        if not verify_password(payload.current_password, user["password"]):
-            raise HTTPException(status_code=401, detail="Senha temporária incorreta.")
-
         conn.execute(
             "UPDATE users SET password = ?, must_change_password = 0 WHERE username = ?",
             (hash_password(payload.new_password), username),
