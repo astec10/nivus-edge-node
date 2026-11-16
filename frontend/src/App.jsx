@@ -31,6 +31,7 @@ function App() {
   const [displayPreferenceState, setDisplayPreferenceState] = useState(() => ({ owner: 'guest', value: { ...DEFAULT_DISPLAY_PREFERENCES } }));
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [loginExpanded, setLoginExpanded] = useState(false);
 
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -510,9 +511,9 @@ function App() {
       <PasswordChangeModal editingUser={editingUser} setEditingUser={setEditingUser} handlePasswordChangeSubmit={handlePasswordChangeSubmit} targetNewPassword={targetNewPassword} setTargetNewPassword={setTargetNewPassword} targetConfirmPassword={targetConfirmPassword} setTargetConfirmPassword={setTargetConfirmPassword} passwordsDoNotMatch={passwordsDoNotMatch} adminAuthPassword={adminAuthPassword} setAdminAuthPassword={setAdminAuthPassword} passwordChangeRequired={passwordChangeRequired} currentUsername={userPayload?.sub || ''} handleLogout={handleLogout} />
       {!passwordChangeRequired && (
         <>
-          <DashboardHeader token={token} userPayload={userPayload} fetchData={fetchData} isOnline={isOnline} dashboardVersion={dashboardVersion} onToggleDashboardVersion={handleToggleDashboardVersion} isTempCritical={isTempCritical} />
+          <DashboardHeader token={token} userPayload={userPayload} fetchData={fetchData} isOnline={isOnline} dashboardVersion={dashboardVersion} onToggleDashboardVersion={handleToggleDashboardVersion} isTempCritical={isTempCritical} loginExpanded={loginExpanded} onToggleLogin={() => setLoginExpanded(value => !value)} />
           <DashboardNavigation token={token} isAdmin={isAdmin} activeTab={activeTab} setActiveTab={setActiveTab} handleLogout={handleLogout} displayPreferences={displayPreferences} />
-          <LoginPanel token={token} handleLogin={handleLogin} username={username} setUsername={setUsername} password={password} setPassword={setPassword} />
+          <LoginPanel token={token} handleLogin={handleLogin} username={username} setUsername={setUsername} password={password} setPassword={setPassword} expanded={loginExpanded} onToggle={() => setLoginExpanded(value => !value)} />
           <UserManagementPanel token={token} isAdmin={isAdmin} activeTab={activeTab} newUsername={newUsername} setNewUsername={setNewUsername} newPassword={newPassword} setNewPassword={setNewPassword} newRole={newRole} setNewRole={setNewRole} handleSaveUser={handleSaveUser} usersList={usersList} setEditingUser={setEditingUser} setTargetNewPassword={setTargetNewPassword} setTargetConfirmPassword={setTargetConfirmPassword} setAdminAuthPassword={setAdminAuthPassword} handleDeleteUser={handleDeleteUser} />
           {activeTab === 'settings' && token && (
             <SettingsPanel
