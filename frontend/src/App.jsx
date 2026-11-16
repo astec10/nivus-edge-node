@@ -520,6 +520,7 @@ function App() {
           {activeTab === 'settings' && token && (
             <SettingsPanel
               isAdmin={isAdmin}
+              token={token}
               displayPreferences={displayPreferences}
               onDisplayPreferenceChange={handleDisplayPreferenceChange}
               maintenanceState={maintenanceState}
