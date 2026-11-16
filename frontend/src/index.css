@@ -1581,10 +1581,13 @@ code {
 .dashboard-root[data-theme="eink"] .dashboard-panel-heading h3,
 .dashboard-root[data-theme="eink"] .telemetry-chart-heading h3 { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: 0.04em; text-transform: uppercase; }
 .dashboard-root[data-theme="eink"] .metric-card-label { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.04em; }
-.dashboard-root[data-theme="eink"] .metric-card[data-metric="cpu"] .metric-card-label::before { content: "SYS."; color: #ff4d00; }
-.dashboard-root[data-theme="eink"] .metric-card[data-metric="memory"] .metric-card-label::before { content: "MEM."; color: #ff4d00; }
-.dashboard-root[data-theme="eink"] .metric-card[data-metric="disk"] .metric-card-label::before { content: "DISK."; color: #ff4d00; }
-.dashboard-root[data-theme="eink"] .metric-card[data-metric="power"] .metric-card-label::before { content: "PWR."; color: #ff4d00; }
+.dashboard-root[data-theme="eink"] .metric-card[data-metric="cpu"] .metric-card-label::before { content: "SYS. "; color: #ff4d00; }
+.dashboard-root[data-theme="eink"] .metric-card[data-metric="cpu-thermal"] .metric-card-label::before { content: "CPU.TEMP. "; color: #ff4d00; }
+.dashboard-root[data-theme="eink"] .metric-card[data-metric="graphics-thermal"] .metric-card-label::before { content: "GPU.TEMP. "; color: #ff4d00; }
+.dashboard-root[data-theme="eink"] .metric-card[data-metric="motherboard-thermal"] .metric-card-label::before { content: "MB.TEMP. "; color: #ff4d00; }
+.dashboard-root[data-theme="eink"] .metric-card[data-metric="memory"] .metric-card-label::before { content: "MEM. "; color: #ff4d00; }
+.dashboard-root[data-theme="eink"] .metric-card[data-metric="disk"] .metric-card-label::before { content: "DISK. "; color: #ff4d00; }
+.dashboard-root[data-theme="eink"] .metric-card[data-metric="power"] .metric-card-label::before { content: "PWR. "; color: #ff4d00; }
 .dashboard-root[data-theme="eink"] .metric-card-value { color: #fff; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
 .dashboard-root[data-theme="eink"] .metric-card-sparkline { display: none; }
 .dashboard-root[data-theme="eink"] .metric-card { box-shadow: 2px 2px 0 #ff4d00 !important; }
