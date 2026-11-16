@@ -27,7 +27,7 @@ def _mqtt_password():
     return os.environ.get("NIVUS_MQTT_PASSWORD")
 TOPIC = os.environ.get("NIVUS_TELEMETRY_TOPIC", "nivus/edge/telemetry")
 NODE_NAME = os.environ.get("NIVUS_NODE_NAME", "nivus-edge-node")
-from hardware_sensors import get_thermal_metrics
+from hardware_sensors import get_host_battery_metrics, get_thermal_metrics
 from services.maintenance import maintenance_enabled
 
 
@@ -70,6 +70,7 @@ def main():
                 "memory_percent": psutil.virtual_memory().percent,
                 "disk_percent": psutil.disk_usage(DISK_PATH).percent,
                 **get_thermal_metrics(),
+                **get_host_battery_metrics(),
                 "power_consumption": estimate_power_consumption_watts(cpu),
             }
             info = client.publish(TOPIC, json.dumps(payload), qos=1)
