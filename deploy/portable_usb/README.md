@@ -1,37 +1,47 @@
 # Preparação do alvo USB portátil
 
-Esta etapa **apenas identifica e registra** um disco USB escolhido pelo operador. Ela não instala Ubuntu, não particiona, não formata, não monta e não altera dispositivos de bloco. Ainda não é um instalador Nivus completo nem uma imagem inicializável.
+Esta etapa começa a preparar a instalação persistente do Ubuntu Server + Nivus em um pendrive. Os scripts não gravam, particionam, formatam, montam ou alteram dispositivos de bloco.
 
-## Uso
+## Etapas disponíveis
+
+### 1. Selecionar o pendrive
 
 Em uma máquina Ubuntu de preparação, conecte o pendrive de destino e execute:
 
     sudo python3 deploy/portable_usb/select_target.py
 
-O programa lista todos os discos USB que passam pelos critérios de identificação: tipo disco, transporte USB, modelo e número de série presentes e únicos, leitura/gravação habilitada e nenhuma partição montada. Ele também exclui o dispositivo que contém a raiz atual quando consegue mapeá-lo.
+O programa lista discos USB elegíveis mostrando caminho, modelo, número de série e capacidade. Exige serial único, disco gravável e partições desmontadas; também exclui o dispositivo que contém a raiz atual quando consegue mapeá-lo. Não escolhe automaticamente o maior disco.
 
-Escolha o dispositivo conferindo **caminho, modelo, número de série e capacidade**. Registre a seleção digitando o número de série exato:
+Registre a escolha digitando o número de série exato:
 
     sudo python3 deploy/portable_usb/select_target.py \
-      --serial 'NUMERO-DE-SERIE-EXATO' \
+      --serial 'SERIAL-EXATO-DO-USB' \
       --output /var/tmp/nivus-usb-selection.json
 
-O manifesto é criado com permissão `0600`; um arquivo existente nunca é sobrescrito. A confirmação registra a escolha, mas não autoriza particionamento. Se o modelo não expõe um serial único ou o disco tem sistema de arquivos montado, ele não aparece como elegível.
+### 2. Gerar seed revisável do instalador
 
-## Regras de segurança
+Com o manifesto ainda na máquina Ubuntu de preparação:
 
-- Não seleciona o maior disco, não escolhe nenhum alvo automaticamente e não confia apenas no sinal `RM`.
-- Ignora discos SATA/NVMe e discos USB somente leitura.
-- Recusa números de série ausentes, duplicados ou com caracteres de controle.
-- Recusa discos com partições montadas, incluindo mídia do instalador normalmente montada em `/cdrom`.
-- O identificador é apenas uma fotografia da seleção: o futuro instalador deve reler o inventário e confirmar serial, modelo, capacidade e caminho imediatamente antes de escrever.
-- Se a identidade do alvo mudar, estiver ambígua ou não puder ser verificada, a instalação futura deve parar sem escrever.
+    sudo python3 deploy/portable_usb/generate_autoinstall.py \
+      --selection /var/tmp/nivus-usb-selection.json \
+      --output /var/tmp/nivus-usb-seed
 
-## Próximo trabalho necessário
+O gerador relê o inventário atual e exige correspondência de caminho, modelo, serial e capacidade. Pede usuário, hostname e senha do Ubuntu; a senha não aparece no terminal e somente um hash entra no arquivo privado. A pasta de saída deve ser nova e fica protegida em modo 0700; os arquivos usam modo 0600.
 
-Esta etapa ainda precisa ser integrada a um fluxo Subiquity/autoinstall que mostre a identidade do alvo, confirme novamente antes de particionar e crie EFI, raiz Ubuntu persistente e a partição ext4 `NIVUS_DATA` em `/var/lib/nivus`. Depois serão necessários build da mídia, smoke de instalação no runner hospedado, persistência após reinicialização e testes físicos UEFI/BIOS.
+A configuração gerada mantém a seleção de armazenamento interativa e verifica novamente a identidade antes de abrir a tela do Subiquity. Consulte [AUTOINSTALL.md](AUTOINSTALL.md) para preparar o seed e revisar a instalação.
 
-A ISO oficial Ubuntu Server inicia um instalador e a escolha de armazenamento pode sobrescrever o disco escolhido. A referência Subiquity permite casar um disco pelo serial; não se deve usar `size: largest` para este caso:
+## Layout proposto
 
-- [Ubuntu Server: instalação básica](https://ubuntu.com/server/docs/installation/)
-- [Subiquity: referência de autoinstall e seleção de discos](https://canonical-subiquity.readthedocs-hosted.com/en/latest/reference/autoinstall-reference.html)
+O seed planeja BIOS/GRUB, EFI FAT32, raiz Ubuntu ext4 e uma partição ext4 rotulada NIVUS_DATA montada em /var/lib/nivus. A mídia de instalação e o pendrive de destino precisam ser diferentes.
+
+O disco precisa ter pelo menos 40 GiB; o plano usa 1 MiB para BIOS/GRUB, 1 GiB para EFI, 24 GiB para Ubuntu e o restante para NIVUS_DATA. O instalador formata o USB escolhido e apaga os dados existentes nele.
+
+## Limites atuais
+
+Esta branch ainda não cria ISO ou mídia inicializável, não instala os serviços Nivus e não prova reinício/persistência em equipamento físico. Os testes de CI usam inventários sintéticos e não escrevem em discos. A validação com o schema/runtime do Subiquity e testes UEFI/BIOS em mídia física seguem pendentes.
+
+A ISO Ubuntu Server inicia um instalador e a tela de armazenamento pode formatar o disco escolhido. O Subiquity permite identificar o disco pelo serial; a configuração não usa a seleção por maior capacidade:
+
+- [Ubuntu Server: instalação](https://ubuntu.com/server/docs/installation/)
+- [Subiquity: referência de autoinstall](https://canonical-subiquity.readthedocs-hosted.com/en/latest/reference/autoinstall-reference.html)
+- [Curtin: armazenamento](https://curtin.readthedocs.io/en/latest/topics/storage.html)
