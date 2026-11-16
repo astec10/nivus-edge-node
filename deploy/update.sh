@@ -51,7 +51,7 @@ fail_and_rollback() {
     echo "A promoção falhou; restaurando a release anterior e seus serviços." >&2
     systemctl stop "$SERVICE" >/dev/null 2>&1
     systemctl stop "$TIME_SYNC_SERVICE" >/dev/null 2>&1 || true
-    local rollback_link="$INSTALL_ROOT/.current-rollback-$(date -u +%Y%m%dT%H%M%SZ)-$"
+    local rollback_link="$INSTALL_ROOT/.current-rollback-$(date -u +%Y%m%dT%H%M%SZ)-$$"
     if ln -s "$OLD_RELEASE" "$rollback_link" && mv -Tf -- "$rollback_link" "$CURRENT"; then
       if [[ -n "$BACKUP_DIR" && -s "$BACKUP_DIR/$SERVICE" ]]; then
         cp -a "$BACKUP_DIR/$SERVICE" "$UNIT_FILE"
