@@ -38,7 +38,7 @@ O disco precisa ter pelo menos 40 GiB; o plano usa 1 MiB para BIOS/GRUB, 1 GiB p
 
 ## Limites atuais
 
-Esta branch ainda não cria ISO ou mídia inicializável, não instala os serviços Nivus e não prova reinício/persistência em equipamento físico. Os testes de CI usam inventários sintéticos e não escrevem em discos. A validação com o schema/runtime do Subiquity e testes UEFI/BIOS em mídia física seguem pendentes.
+Esta branch ainda não cria ISO ou mídia inicializável, não instala os serviços Nivus e não prova reinício/persistência em equipamento físico. A CI usa inventários sintéticos e não grava em discos; também valida um seed representativo contra o schema oficial Subiquity da linha Ubuntu 24.04. Ainda faltam executar o instalador Subiquity, gerar mídia bootável e testar persistência/boot UEFI/BIOS em hardware físico.
 
 A ISO Ubuntu Server inicia um instalador e a tela de armazenamento pode formatar o disco escolhido. O Subiquity permite identificar o disco pelo serial; a configuração não usa a seleção por maior capacidade:
 
