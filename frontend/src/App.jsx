@@ -69,7 +69,7 @@ function App() {
       : loadDisplayPreferences(displayPreferenceOwner);
     const next = normalizeDisplayPreferences({ ...current, ...changes });
     setDisplayPreferenceState({ owner: displayPreferenceOwner, value: next });
-    saveDisplayPreferences(displayPreferenceOwner, next);
+    return saveDisplayPreferences(displayPreferenceOwner, next);
   };
   const handleToggleDashboardVersion = () => {
     const nextVersion = dashboardVersion === 'current' ? 'legacy' : 'current';
