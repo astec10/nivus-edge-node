@@ -64,7 +64,7 @@ A configuração usa o serial exato em vez de selecionar o maior disco. Um coman
 | Ubuntu | ext4, 24 GiB | Sistema operacional persistente em / |
 | NIVUS_DATA | ext4, restante do USB | Montagem persistente em /var/lib/nivus |
 
-O plano prepara a persistência para banco, segredos, configurações, releases e armazenamento Nivus nesse ponto de montagem. A instalação do Nivus e seu guard de inicialização ainda são etapas seguintes.
+O plano prepara a persistência para banco, segredos, configurações, releases e armazenamento Nivus nesse ponto de montagem. O seed não instala o Nivus. A etapa de primeiro boot `deploy/portable_usb/install_nivus.sh` configura o guard, a persistência e chama o instalador Compose.
 
 ## Limites e validação pendente
 
