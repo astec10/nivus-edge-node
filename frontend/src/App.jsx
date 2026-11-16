@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { lazy, Suspense, useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import PasswordChangeModal from './components/PasswordChangeModal';
 import DashboardHeader from './components/DashboardHeader';
@@ -6,6 +6,7 @@ import DashboardNavigation from './components/DashboardNavigation';
 import LoginPanel from './components/LoginPanel';
 import UserManagementPanel from './components/UserManagementPanel';
 import DashboardPanel from './components/DashboardPanel';
+const LegacyDashboardPanel = lazy(() => import('./components/LegacyDashboardPanel'));
 import LegalNotice from './components/LegalNotice';
 import { thresholdOrDefault } from './utils/telemetry';
 
@@ -13,6 +14,8 @@ const API_BASE = '';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [dashboardVersion, setDashboardVersion] = useState(() => localStorage.getItem('nivus_dashboard_version') === 'legacy' ? 'legacy' : 'current');
+  const [legacyRelayState, setLegacyRelayState] = useState(false);
   const [telemetry, setTelemetry] = useState([]);
   const [systemLogs, setSystemLogs] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
@@ -45,6 +48,11 @@ function App() {
   };
 
   const userPayload = token ? parseJwt(token) : null;
+  const handleToggleDashboardVersion = () => {
+    const nextVersion = dashboardVersion === 'current' ? 'legacy' : 'current';
+    setDashboardVersion(nextVersion);
+    localStorage.setItem('nivus_dashboard_version', nextVersion);
+  };
   const passwordChangeRequired = userPayload?.password_change_required === true;
   const isAdmin = userPayload?.role === 'admin';
   const alertAudioContextRef = useRef(null);
@@ -346,6 +354,12 @@ function App() {
     }
   };
 
+  const handleLegacyRelayToggle = async () => {
+    const nextCommand = legacyRelayState ? 'OFF' : 'ON';
+    const accepted = await handleActuatorCommand('nivus/edge/relay1', nextCommand);
+    if (accepted) setLegacyRelayState(nextCommand === 'ON');
+  };
+
   const handleUpdateSetting = async (key, value) => {
     if (!isAdmin) {
       setSettingsStatus('Somente administrador pode alterar os limites.');
@@ -384,11 +398,17 @@ function App() {
       <PasswordChangeModal editingUser={editingUser} setEditingUser={setEditingUser} handlePasswordChangeSubmit={handlePasswordChangeSubmit} targetNewPassword={targetNewPassword} setTargetNewPassword={setTargetNewPassword} targetConfirmPassword={targetConfirmPassword} setTargetConfirmPassword={setTargetConfirmPassword} passwordsDoNotMatch={passwordsDoNotMatch} adminAuthPassword={adminAuthPassword} setAdminAuthPassword={setAdminAuthPassword} passwordChangeRequired={passwordChangeRequired} currentUsername={userPayload?.sub || ''} handleLogout={handleLogout} />
       {!passwordChangeRequired && (
         <>
-          <DashboardHeader token={token} userPayload={userPayload} fetchData={fetchData} isOnline={isOnline} />
+          <DashboardHeader token={token} userPayload={userPayload} fetchData={fetchData} isOnline={isOnline} dashboardVersion={dashboardVersion} onToggleDashboardVersion={handleToggleDashboardVersion} />
           <DashboardNavigation token={token} isAdmin={isAdmin} activeTab={activeTab} setActiveTab={setActiveTab} handleLogout={handleLogout} />
           <LoginPanel token={token} handleLogin={handleLogin} username={username} setUsername={setUsername} password={password} setPassword={setPassword} />
           <UserManagementPanel token={token} isAdmin={isAdmin} activeTab={activeTab} newUsername={newUsername} setNewUsername={setNewUsername} newPassword={newPassword} setNewPassword={setNewPassword} newRole={newRole} setNewRole={setNewRole} handleSaveUser={handleSaveUser} usersList={usersList} setEditingUser={setEditingUser} setTargetNewPassword={setTargetNewPassword} setTargetConfirmPassword={setTargetConfirmPassword} setAdminAuthPassword={setAdminAuthPassword} handleDeleteUser={handleDeleteUser} />
-          <DashboardPanel activeTab={activeTab} error={error} latest={latest} settings={settings} isAdmin={isAdmin} isTempCritical={isTempCritical} handleUpdateSetting={handleUpdateSetting} telemetry={telemetry} handleActuatorCommand={handleActuatorCommand} actuatorMessage={actuatorMessage} settingsStatus={settingsStatus} soundEnabled={soundEnabled} soundStatus={soundStatus} onToggleAlertSound={handleToggleAlertSound} systemLogs={systemLogs} auditLogs={auditLogs} alertsHistory={alertsHistory} />
+          {dashboardVersion === 'current' ? (
+            <DashboardPanel activeTab={activeTab} error={error} latest={latest} settings={settings} isAdmin={isAdmin} isTempCritical={isTempCritical} handleUpdateSetting={handleUpdateSetting} telemetry={telemetry} handleActuatorCommand={handleActuatorCommand} actuatorMessage={actuatorMessage} settingsStatus={settingsStatus} soundEnabled={soundEnabled} soundStatus={soundStatus} onToggleAlertSound={handleToggleAlertSound} systemLogs={systemLogs} auditLogs={auditLogs} alertsHistory={alertsHistory} />
+          ) : (
+            <Suspense fallback={<div role="status">Carregando versão leve…</div>}>
+              <LegacyDashboardPanel activeTab={activeTab} error={error} latest={latest} settings={settings} setSettings={setSettings} isAdmin={isAdmin} handleUpdateSetting={handleUpdateSetting} telemetry={telemetry} relayState={legacyRelayState} handleRelayToggle={handleLegacyRelayToggle} systemLogs={systemLogs} />
+            </Suspense>
+          )}
         </>
       )}
       <LegalNotice />
