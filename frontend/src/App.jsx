@@ -64,7 +64,10 @@ function App() {
   }, [displayPreferenceOwner]);
 
   const handleDisplayPreferenceChange = (changes) => {
-    const next = normalizeDisplayPreferences({ ...displayPreferences, ...changes });
+    const current = displayPreferenceState.owner === displayPreferenceOwner
+      ? displayPreferenceState.value
+      : loadDisplayPreferences(displayPreferenceOwner);
+    const next = normalizeDisplayPreferences({ ...current, ...changes });
     setDisplayPreferenceState({ owner: displayPreferenceOwner, value: next });
     saveDisplayPreferences(displayPreferenceOwner, next);
   };
