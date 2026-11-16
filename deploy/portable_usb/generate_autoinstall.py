@@ -311,7 +311,8 @@ def build_autoinstall_user_data(
             "storage": {"config": storage_config},
         }
     }
-    return "#cloud-config\n" + json.dumps(config, ensure_ascii=False, indent=2) + "\n"
+    schema_doc = "https://canonical-subiquity.readthedocs-hosted.com/en/latest/reference/autoinstall-reference.html"
+    return "#cloud-config\n# Subiquity schema reference: " + schema_doc + "\n" + json.dumps(config, ensure_ascii=False, indent=2) + "\n"
 
 
 def _write_new_file(path: Path, content: str) -> None:
