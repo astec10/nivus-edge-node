@@ -32,17 +32,19 @@ if ss -H -ltn 'sport = :28443' | grep -q .; then
 fi
 
 PROJECT="nivus-smoke-$(date -u +%Y%m%d-%H%M%S)-$$"
-DATA_DIR="$APP_DIR/data"
+DATA_DIR="/tmp/$PROJECT-data"
 MOSQ_DATA_DIR="$APP_DIR/mosquitto"
 SECRETS_DIR="$APP_DIR/secrets"
 MAINTENANCE_DIR="/tmp/$PROJECT-maintenance"
 NIVUS_HELP_BIN="$APP_DIR/runtime-bin/$PROJECT"
 export NIVUS_MAINTENANCE_STATE_DIR="$MAINTENANCE_DIR"
+export NIVUS_DATA_DIR="$DATA_DIR"
 export NIVUS_MAINTENANCE_STATE_PATH="$MAINTENANCE_DIR/state.json"
 RUNTIME_UID=$(sed -n 's/^NIVUS_RUNTIME_UID=//p' .env)
 RUNTIME_GID=$(sed -n 's/^NIVUS_RUNTIME_GID=//p' .env)
 HOST_UID=$(id -u)
 HOST_GID=$(id -g)
+[[ ! -e "$DATA_DIR" && ! -L "$DATA_DIR" && ! -e "$MAINTENANCE_DIR" && ! -L "$MAINTENANCE_DIR" ]] || { echo "Smoke temp path already exists; refusing to reuse it." >&2; exit 2; }
 
 MOSQUITTO_IMAGE=$(awk '$1 == "image:" && $2 ~ /^eclipse-mosquitto:/ {print $2; exit}' docker-compose.yml)
 [[ "$MOSQUITTO_IMAGE" =~ ^eclipse-mosquitto:2@sha256:[a-f0-9]{64}$ ]] || { echo "Imagem Mosquitto fixada por digest não encontrada no Compose." >&2; exit 2; }
@@ -90,11 +92,21 @@ cleanup() {
     --env "HOST_UID=$HOST_UID" --env "HOST_GID=$HOST_GID" \
     --entrypoint /bin/sh nivus-edge-api:local -ec \
     'chown -R "$HOST_UID:$HOST_GID" /data /mosq /maintenance; chmod 750 /data /mosq; chmod 755 /maintenance' >/dev/null 2>&1 || true
-  if [[ "$MAINTENANCE_DIR" == "/tmp/$PROJECT-maintenance" ]]; then
-    rm -rf -- "$MAINTENANCE_DIR"
+  if (( rc == 0 )); then
+    if [[ "$MAINTENANCE_DIR" == "/tmp/$PROJECT-maintenance" ]]; then
+      rm -rf -- "$MAINTENANCE_DIR" 2>/dev/null || true
+    else
+      echo "Refusing to remove unexpected maintenance staging path: $MAINTENANCE_DIR" >&2
+      rc=1
+    fi
+    if [[ "$DATA_DIR" == "/tmp/$PROJECT-data" ]]; then
+      rm -rf -- "$DATA_DIR" 2>/dev/null || true
+    else
+      echo "Refusing to remove unexpected data staging path: $DATA_DIR" >&2
+      rc=1
+    fi
   else
-    echo "Refusing to remove unexpected maintenance staging path: $MAINTENANCE_DIR" >&2
-    rc=1
+    echo "Keeping isolated smoke data for diagnosis: $DATA_DIR and $MAINTENANCE_DIR" >&2
   fi
   rm -f -- "$NIVUS_HELP_BIN/nivus"
   rmdir -- "$NIVUS_HELP_BIN" 2>/dev/null || true
