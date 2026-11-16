@@ -1170,3 +1170,57 @@ code {
     margin-left: 0;
   }
 }
+
+
+.dashboard-root[data-theme="bento"] .user-management-panel,
+.dashboard-root[data-theme="bento"] .user-management-card {
+  border-color: #27272a !important;
+  border-radius: 0.6rem !important;
+  background-color: #111113 !important;
+  box-shadow: none !important;
+}
+
+.dashboard-root[data-theme="glass"] .user-management-panel,
+.dashboard-root[data-theme="glass"] .user-management-card {
+  border-color: #67e8f966 !important;
+  border-radius: 0.9rem !important;
+  background-color: rgba(15, 23, 42, 0.82) !important;
+  box-shadow: 0 0 22px rgba(34, 211, 238, 0.08) !important;
+  backdrop-filter: blur(6px);
+}
+
+.dashboard-root[data-theme="scada"] .user-management-panel,
+.dashboard-root[data-theme="scada"] .user-management-card {
+  border-color: #47534a !important;
+  border-radius: 0.25rem !important;
+  background-color: #171c18 !important;
+  box-shadow: inset 0 0 0 1px #ffffff08 !important;
+}
+
+.dashboard-root[data-theme="cupertino"] .user-management-panel,
+.dashboard-root[data-theme="cupertino"] .user-management-card {
+  border-color: #cbd5e1 !important;
+  border-radius: 1.1rem !important;
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  box-shadow: 0 10px 28px #0f172a18 !important;
+}
+
+.dashboard-root[data-theme="cupertino"] .user-management-panel h2,
+.dashboard-root[data-theme="cupertino"] .user-management-panel h3 {
+  color: #0f172a !important;
+}
+
+.dashboard-root[data-theme="eink"] .user-management-panel,
+.dashboard-root[data-theme="eink"] .user-management-card {
+  border-color: #e5e7eb !important;
+  border-radius: 0.2rem !important;
+  background-color: #000 !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.dashboard-root[data-theme="eink"] .user-management-panel h2,
+.dashboard-root[data-theme="eink"] .user-management-panel h3 {
+  color: #fff !important;
+}
