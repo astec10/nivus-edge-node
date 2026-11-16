@@ -1,0 +1,13 @@
+[Unit]
+Description=Nivus persistent USB data partition
+Before=docker.service nivus-compose-telemetry.service
+
+[Mount]
+What=/dev/disk/by-label/NIVUS_DATA
+Where=/var/lib/nivus
+Type=ext4
+Options=defaults,noatime
+TimeoutSec=30
+
+[Install]
+WantedBy=local-fs.target
