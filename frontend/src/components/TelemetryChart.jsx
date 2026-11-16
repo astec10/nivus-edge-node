@@ -25,6 +25,7 @@ const CHARTS = {
       { key: 'cpu_percent', name: 'CPU (%)', unit: '%', color: '#fbbf24' },
       { key: 'memory_percent', name: 'Memória (%)', unit: '%', color: '#c084fc' },
       { key: 'disk_percent', name: 'Disco (%)', unit: '%', color: '#34d399' },
+      { key: 'host_battery_percent', name: 'Bateria do nó (%)', unit: '%', color: '#10b981', source: 'host_battery_source' },
       { key: 'power_consumption', name: 'Potência estimada (W)', unit: ' W', color: '#fb923c' },
     ],
   },
@@ -50,6 +51,12 @@ const CHARTS = {
       { key: 'power_consumption', name: 'Potência estimada', unit: ' W', color: '#34d399' },
     ],
   },
+  battery: {
+    title: 'Bateria interna do nó',
+    series: [
+      { key: 'host_battery_percent', name: 'Bateria do nó', unit: '%', color: '#10b981', source: 'host_battery_source' },
+    ],
+  },
 };
 
 const HOTSPOT_DETAILS = [
@@ -62,6 +69,7 @@ const CHART_MODES = [
   { key: 'temperature', label: 'Temperaturas' },
   { key: 'performance', label: 'Uso' },
   { key: 'energy', label: 'Energia' },
+  { key: 'battery', label: 'Bateria do nó' },
 ];
 
 const CHART_TYPES = [
