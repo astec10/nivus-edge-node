@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-16 22:19 UTC
+Atualizado: 2026-11-16 23:28 UTC
 Licença: AGPL-3.0-only
 
 ## Resumo verificado
@@ -35,7 +35,7 @@ O PR #45 define três fontes de provedores distintos (a.ntp.br, time.google.com,
 
 O PR #46 coleta a bateria interna do nó por psutil no agente de telemetria do host. O cartão e o gráfico mostram N/D quando o sistema não expõe leitura. Esse valor não é a bateria de celular nem a do inversor e não controla o relé.
 
-O atualizador está em deploy/update.sh; ele exige clone Git limpo e sudo, cria backup consistente do SQLite, constrói imagens sequencialmente e preserva a release anterior para rollback. Nenhum dos PRs #43-46 foi confirmado instalado no notebook nesta sessão; a última versão reportada foi c70ed02. É necessário executar o atualizador no notebook e conferir a interface após reiniciar os serviços.
+- O atualizador está em deploy/update.sh; exige clone Git limpo e sudo, cria backup consistente do SQLite, constrói as imagens sequencialmente e preserva a release anterior para rollback. A última release confirmada por SSH no notebook é `/opt/nivus-compose/releases/20261116T015555Z-969a1bd062b138cba9d1286930ca7779ffbde6ff` (PR #20); não há confirmação de instalação dos PRs #43-50. A captura enviada em 2026-11-16 ainda mostra o texto antigo sobre esperar 3 segundos no gráfico, enquanto o código atual mostra o tooltip imediatamente. A publicação e a validação visual das mudanças mais recentes continuam pendentes.
 
 ## Estado do notebook de teste
 
@@ -49,11 +49,11 @@ O rollback da release está em `/home/nivus/nivus-backups/nivus-update-20261116T
 
 O PR #20 foi integrado ao main e aplicado no notebook. A build confirmou os componentes API/web e a migração SQLite; a saída de implantação e a leitura pós-reboot confirmaram coleta contínua com origem térmica coretemp. Valores reais não são publicados. Placa-mãe, GPU e hotspot continuam dependentes dos sensores expostos pelo sistema e driver do equipamento.
 
-A dashboard contém cartões térmicos, períodos e seleção conjunta de séries. Valores, mínimos, máximos, origem e hotspots disponíveis aparecem imediatamente no tooltip do gráfico; a pausa de três segundos vale apenas para os detalhes ampliados dos cartões. O aviso sonoro usa o navegador, não um buzzer físico. A bateria interna do nó ganhou cartão e modo de gráfico no PR #46. A issue #22 agora tem implementação candidata para a bateria móvel, ainda em revisão e sem integração real com Home Assistant ou validação física; ela usa token por celular, leitura recente e envia somente OFF a 20% ou menos. O seletor atual/leve é implementado no mesmo estado React e guarda apenas a preferência de versão em `localStorage`; o backend mantém a sessão/token na aplicação. Os dois endereços respondem 200, mas a alternância real em ambas as direções, logout e expiração ainda aguardam conferência no navegador. O painel leve foi preservado em HTTPS 8444.
+A dashboard contém cartões térmicos, períodos e seleção conjunta de séries. O PR #48, integrado à main, mostra imediatamente valor, mínimos/máximos, origem e hotspots disponíveis no tooltip do gráfico; a pausa de três segundos vale apenas para detalhes ampliados dos cartões. A legenda antiga ainda vista na captura do notebook indica que a nova build não foi confirmada visualmente nesse host. O aviso sonoro usa o navegador, não um buzzer físico. A bateria interna do nó ganhou cartão e modo de gráfico no PR #46. A implementação da regra da issue #22 foi integrada no PR #50, com quatro checks hospedados aprovados, mas ainda falta validar a implantação e configurar uma fonte Home Assistant; a regra de bateria interna do nó não é a bateria móvel. O seletor atual/leve guarda apenas a preferência de versão em `localStorage`; o backend mantém sessão/token na aplicação. Os dois endereços responderam 200 na última inspeção, mas a alternância real em ambas as direções, logout e expiração ainda aguardam conferência no navegador. O painel leve foi preservado em HTTPS 8444.
 
 ## Regra automática do relé por bateria
 
-O comportamento solicitado é desligar `nivus/edge/relay1` quando a bateria do dispositivo móvel associado estiver em 20% ou menos. O contrato de telemetria MQTT e a tabela SQLite atuais não incluem nível de bateria nem identificam o aparelho associado ao relé. Portanto, o modo automático ainda não está ativo; o painel mantém os comandos manuais até haver uma fonte de bateria identificada, leitura recente e associação segura. A interface informa essa pendência e não envia comandos automáticos com dados ausentes.
+O PR #50 integrou a implementação da regra solicitada: qualquer dispositivo móvel ativo e cadastrado que envie relatório autenticado, ordenado e com até 60 minutos de idade pode provocar somente `OFF` para o tópico fixo `nivus/edge/relay1` quando a bateria estiver em 20% ou menos. Há trava por ciclo baixo e limite de tentativas em falha do broker; nenhuma leitura ausente, vencida, duplicada ou fora de ordem provoca comando, e a recuperação da carga ou inicialização não envia `ON`. O token aleatório é mostrado uma vez e armazenado como SHA-256. A implementação ainda não está confirmada no notebook, não tem integração real do Home Assistant configurada e não foi testada em relé físico. A aceitação pelo broker não comprova a ação elétrica do relé.
 
 ## Acesso sem sufixo de porta
 
@@ -69,7 +69,7 @@ A implementação de manutenção reversível e `nivus help` foi integrada à `m
 - Issue #21: preferências/relógio do painel estão nos PRs #37 e #45; a lista NTP usa NTP.br, Google e Cloudflare, permite edição com systemd-timesyncd instalado/parado e preserva outro cliente ativo. Falta aplicar e validar essa versão no host; o navegador não configura o relógio do Ubuntu.
 - Issue #23: os seis temas (Atual, Bento, Glass, SCADA, Cupertino e E-Ink), seleção imediata e preferências locais por conta estão no PR #37. A confirmação visual comparativa no notebook ainda aguarda a atualização e teste no navegador.
 - Issue #26: implementação integrada no PR #28; resta aplicar a release no notebook e confirmar CLI/dashboard e retorno ao modo normal após reboot. A CI hospedada passou, mas não substitui a validação do host.
-- Issue #22: implementação candidata em revisão neste branch; o cadastro de celular, token por dispositivo, leitura recente e regra determinística somente OFF estão cobertos por simulações. Merge, implantação, configuração real do Home Assistant e qualquer validação física continuam pendentes.
+- Issue #22: a implementação de bateria móvel foi integrada pelo PR #50 no commit `ba6e0c824fe1b62dd44c7d924a6a2d1074f26e23`; API, persistência, painel administrativo, integração documentada e simulações estão no repositório, e os quatro workflows hospedados passaram. A implantação no notebook, configuração real do Home Assistant e validação do relé físico continuam pendentes; a issue permanece aberta.
 - Fase 1: instalação limpa, recuperação e medição em mais hardware; a CI hospedada não substitui a matriz física Intel/AMD de três faixas de geração.
 - Issue #29: PR #34 integrado com seleção explícita do USB, seed Subiquity revisável e bootstrap pós-boot de Nivus. Pendem instalação e reboot em USB físico, verificação de persistência e recuperação, e matriz UEFI/BIOS Intel/AMD; a CI não substitui essas provas.
 - Fase 2: identidade/cadastro/heartbeat multi-nó, telemetria agregada e rollout de releases assinadas com canário, saúde e rollback por nó.
