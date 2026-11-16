@@ -2,7 +2,9 @@ import React from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 
 const meetsPasswordPolicy = value =>
-  value.length >= 8 && /\\p{L}/u.test(value) && /\\p{N}/u.test(value);
+  value.length >= 8 &&
+  Array.from(value).some(character => character.toLowerCase() !== character.toUpperCase()) &&
+  /[0-9]/.test(value);
 
 export default function PasswordChangeModal({
   editingUser,
