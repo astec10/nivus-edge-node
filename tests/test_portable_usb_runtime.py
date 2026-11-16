@@ -13,6 +13,7 @@ from deploy.portable_usb.configure_runtime import (  # noqa: E402
     MountRecord,
     BlockRecord,
     RuntimeSetupError,
+    UNIT_FILES,
     configure_persistent_paths,
     validate_storage_layout,
 )
@@ -60,9 +61,7 @@ class PortableUsbRuntimeTests(unittest.TestCase):
                     )
 
     def _source_tree(self, repository: Path) -> None:
-        for relative, _destination, _mode in __import__(
-            "deploy.portable_usb.configure_runtime", fromlist=["UNIT_FILES"]
-        ).UNIT_FILES:
+        for relative, _destination, _mode in UNIT_FILES:
             source = repository / relative
             source.parent.mkdir(parents=True, exist_ok=True)
             source.write_text(f"fixture: {relative}\n", encoding="utf-8")
