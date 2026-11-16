@@ -33,6 +33,13 @@ class TimeSyncSchemaTests(unittest.TestCase):
 
 
 class TimeSyncControllerTests(unittest.TestCase):
+    def test_rejects_ip_addresses_in_privileged_helper(self):
+        for address in ("192.0.2.10", "2001:db8::1"):
+            with self.subTest(address=address):
+                with self.assertRaises(time_sync.TimeSyncError) as caught:
+                    time_sync.validate_servers([address, "b.ntp.br", "c.ntp.br"])
+                self.assertEqual(caught.exception.code, "invalid_servers")
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         root = Path(self.temp.name)
