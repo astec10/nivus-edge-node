@@ -887,16 +887,14 @@
   "apagar": [
     "doc-ai-development-orchestration"
   ],
-  "aparece": [
-    "doc-project-status"
-  ],
-  "aparecerem": [
+  "aparecem": [
     "doc-project-status"
   ],
   "aparelho": [
     "doc-project-status"
   ],
   "apenas": [
+    "doc-ai-context",
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
@@ -3088,9 +3086,6 @@
   "degrada": [
     "doc-project-roadmap"
   ],
-  "deixa": [
-    "doc-ai-context"
-  ],
   "deixe": [
     "doc-ai-development-orchestration"
   ],
@@ -3184,7 +3179,6 @@
     "doc-ai-development-orchestration"
   ],
   "depois": [
-    "doc-ai-context",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
@@ -3321,6 +3315,7 @@
     "video-wgqdaqqto90"
   ],
   "detalhes": [
+    "doc-ai-context",
     "doc-project-status"
   ],
   "detec": [
@@ -3663,6 +3658,7 @@
     "doc-vision"
   ],
   "dos": [
+    "doc-ai-context",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-video-research-index",
@@ -4030,11 +4026,7 @@
     "doc-video-research-index"
   ],
   "espera": [
-    "doc-ai-workflow",
-    "doc-project-status"
-  ],
-  "esperam": [
-    "doc-project-status"
+    "doc-ai-workflow"
   ],
   "esperando": [
     "doc-project-status"
@@ -4357,9 +4349,6 @@
   "explicar": [
     "doc-ai-workflow"
   ],
-  "explicitamente": [
-    "doc-project-status"
-  ],
   "explicitar": [
     "doc-ai-module-workplan"
   ],
@@ -4377,9 +4366,6 @@
   ],
   "expostas": [
     "doc-vision"
-  ],
-  "exposto": [
-    "doc-project-status"
   ],
   "expostos": [
     "doc-project-status"
@@ -5247,7 +5233,6 @@
     "doc-project-status"
   ],
   "hotspots": [
-    "doc-ai-context",
     "doc-project-status"
   ],
   "houver": [
@@ -5408,8 +5393,7 @@
     "doc-project-status"
   ],
   "imediato": [
-    "doc-ai-executor-implementation",
-    "doc-project-status"
+    "doc-ai-executor-implementation"
   ],
   "imediatos": [
     "doc-project-roadmap"
@@ -6831,7 +6815,9 @@
     "doc-module-map"
   ],
   "mostra": [
+    "doc-ai-context",
     "doc-ai-executor-implementation",
+    "doc-project-status",
     "doc-vision"
   ],
   "mostram": [
@@ -7468,7 +7454,6 @@
     "doc-ai-workflow"
   ],
   "origem": [
-    "doc-ai-context",
     "doc-ai-workflow",
     "doc-ai-module-workplan",
     "doc-video-research-index",
@@ -7691,6 +7676,7 @@
     "ai-development-persistent-worker"
   ],
   "pausa": [
+    "doc-ai-context",
     "doc-project-status",
     "doc-project-roadmap"
   ],
@@ -8033,11 +8019,9 @@
     "doc-ai-development-orchestration"
   ],
   "ponto": [
-    "doc-ai-development-orchestration",
-    "doc-project-status"
+    "doc-ai-development-orchestration"
   ],
   "pontos": [
-    "doc-project-status",
     "doc-vision"
   ],
   "pool": [
@@ -9144,7 +9128,6 @@
     "ai-development-persistent-worker"
   ],
   "restaura": [
-    "doc-ai-context",
     "doc-project-status",
     "doc-project-roadmap"
   ],
@@ -10502,6 +10485,7 @@
     "doc-vision"
   ],
   "todos": [
+    "doc-ai-context",
     "doc-ai-workflow",
     "doc-project-status",
     "doc-project-roadmap",
@@ -10538,6 +10522,10 @@
     "doc-project-status",
     "video-z3wpoywp358",
     "video-gq3bewdjeos"
+  ],
+  "tooltip": [
+    "doc-ai-context",
+    "doc-project-status"
   ],
   "topic": [
     "video-yc5sg321g0y"
@@ -10880,6 +10868,7 @@
     "doc-ai-development-orchestration"
   ],
   "vale": [
+    "doc-ai-context",
     "doc-project-status"
   ],
   "valida": [
@@ -11532,11 +11521,7 @@
     "doc-project-roadmap",
     "doc-vision"
   ],
-  "áximo": [
-    "doc-project-status"
-  ],
   "áximos": [
-    "doc-ai-context",
     "doc-project-status"
   ],
   "âmera": [
@@ -11769,6 +11754,7 @@
   "étricas": [
     "doc-ai-workflow",
     "doc-module-map",
+    "doc-project-status",
     "doc-vision"
   ],
   "étrico": [
@@ -11923,7 +11909,6 @@
   ],
   "ínimo": [
     "doc-ai-development-orchestration",
-    "doc-project-status",
     "doc-project-roadmap"
   ],
   "ínimos": [
@@ -11944,9 +11929,6 @@
   ],
   "ínuo": [
     "doc-project-roadmap"
-  ],
-  "íodo": [
-    "doc-project-status"
   ],
   "íodos": [
     "doc-project-status"
@@ -12192,6 +12174,7 @@
     "ref-multipaz-developer-website"
   ],
   "ões": [
+    "doc-ai-context",
     "doc-ai-workflow",
     "doc-module-map",
     "doc-project-status",
