@@ -18,12 +18,27 @@ CURRENT_CREATED=0
 TMPFILES_CREATED=0
 CTL_LINK_CREATED=0
 NIVUS_LINK_CREATED=0
+TIME_SYNC_UNIT_INSTALLED=0
+TIME_SYNC_STARTED=0
+TIME_SYNC_DROPIN_DIR_CREATED=0
+TIME_SYNC_BACKUP_DIR_CREATED=0
+TIME_SYNC_UNIT=/etc/systemd/system/nivus-time-sync.service
+TIME_SYNC_ENV=/etc/nivus-compose/time-sync.env
+TIME_SYNC_DROPIN_DIR=/etc/systemd/timesyncd.conf.d
+TIME_SYNC_BACKUP_DIR=/var/backups/nivus-compose/time-sync
 RELEASE_DIR=
 rollback_install() {
   rc=$?
   trap - ERR INT TERM
   if [[ $READY -eq 0 ]]; then
     echo "Instalação não concluiu; parando somente a candidata Compose. Dados e segredos são preservados." >&2
+    if [[ $TIME_SYNC_STARTED -eq 1 ]]; then systemctl disable --now nivus-time-sync.service 2>/dev/null || true; fi
+    if [[ $TIME_SYNC_UNIT_INSTALLED -eq 1 ]]; then
+      rm -f -- "$TIME_SYNC_UNIT" "$TIME_SYNC_ENV"
+      systemctl daemon-reload 2>/dev/null || true
+    fi
+    if [[ $TIME_SYNC_DROPIN_DIR_CREATED -eq 1 ]]; then rmdir "$TIME_SYNC_DROPIN_DIR" 2>/dev/null || true; fi
+    if [[ $TIME_SYNC_BACKUP_DIR_CREATED -eq 1 ]]; then rmdir "$TIME_SYNC_BACKUP_DIR" 2>/dev/null || true; fi
     if [[ $AGENT_STARTED -eq 1 ]]; then systemctl disable --now nivus-compose-telemetry.service 2>/dev/null || true; fi
     if [[ $STACK_STARTED -eq 1 && -d "$CURRENT" ]]; then (cd "$CURRENT" && docker compose down) || true; fi
     if [[ $CTL_LINK_CREATED -eq 1 ]]; then rm -f -- /usr/local/bin/nivusctl; fi
@@ -42,6 +57,14 @@ trap rollback_install ERR INT TERM
 . /etc/os-release
 [[ ${ID:-} == ubuntu ]] || { echo "Suporte inicial somente a Ubuntu Server." >&2; exit 2; }
 [[ $(uname -m) == x86_64 ]] || { echo "Este pacote inicial foi preparado para x86_64/amd64." >&2; exit 2; }
+if systemctl cat nivus-time-sync.service >/dev/null 2>&1 || [[ -e /etc/systemd/system/nivus-time-sync.service || -L /etc/systemd/system/nivus-time-sync.service ]]; then
+  echo "A unidade nivus-time-sync.service já existe; instalação interrompida sem substituí-la." >&2
+  exit 2
+fi
+if [[ -e /etc/nivus-compose/time-sync.env || -L /etc/nivus-compose/time-sync.env ]]; then
+  echo "O ambiente do controlador NTP já existe; instalação interrompida sem substituí-lo." >&2
+  exit 2
+fi
 [[ ! -e /usr/local/bin/nivusctl && ! -L /usr/local/bin/nivusctl ]] || { echo "/usr/local/bin/nivusctl já existe; instalação interrompida sem substituí-lo." >&2; exit 2; }
 [[ ! -e /usr/local/bin/nivus && ! -L /usr/local/bin/nivus ]] || { echo "/usr/local/bin/nivus já existe; instalação interrompida sem substituí-lo." >&2; exit 2; }
 SYSTEMD_VERSION=$(systemctl --version | awk 'NR==1 {print $2}')
@@ -139,6 +162,7 @@ if [[ ! -e "$CURRENT/.env" ]]; then
     "NIVUS_MOSQUITTO_DATA_DIR=$DATA_ROOT/mosquitto" \
     "NIVUS_SECRET_DIR=$SECRET_DIR" \
     'NIVUS_MAINTENANCE_STATE_DIR=/run/nivus-maintenance' \
+    'NIVUS_TIME_SYNC_DIR=/run/nivus-time-sync' \
     "NIVUS_RUNTIME_UID=$RUNTIME_ID" \
     "NIVUS_RUNTIME_GID=$RUNTIME_ID" \
     'NIVUS_API_MEMORY_LIMIT=256m' \
@@ -164,6 +188,27 @@ if ! getent group "$RUNTIME_GID" >/dev/null 2>&1; then
   groupadd --system --gid "$RUNTIME_GID" "nivus-runtime-$RUNTIME_GID"
 fi
 usermod --append --groups "$RUNTIME_GID" nivus-telemetry
+if [[ -e "$TIME_SYNC_DROPIN_DIR" || -L "$TIME_SYNC_DROPIN_DIR" ]]; then
+  [[ -d "$TIME_SYNC_DROPIN_DIR" && ! -L "$TIME_SYNC_DROPIN_DIR" ]] || { echo "Diretório timesyncd inválido; instalação interrompida." >&2; exit 2; }
+else
+  install -d -m 755 "$TIME_SYNC_DROPIN_DIR"
+  TIME_SYNC_DROPIN_DIR_CREATED=1
+fi
+if [[ -e "$TIME_SYNC_BACKUP_DIR" || -L "$TIME_SYNC_BACKUP_DIR" ]]; then
+  [[ -d "$TIME_SYNC_BACKUP_DIR" && ! -L "$TIME_SYNC_BACKUP_DIR" ]] || { echo "Diretório de backup NTP inválido; instalação interrompida." >&2; exit 2; }
+  BACKUP_OWNER=$(stat -c '%u' "$TIME_SYNC_BACKUP_DIR")
+  BACKUP_MODE=$(stat -c '%a' "$TIME_SYNC_BACKUP_DIR")
+  [[ "$BACKUP_OWNER" == 0 && "$BACKUP_MODE" =~ ^[0-7]{3,4}$ ]] && (( (8#$BACKUP_MODE & 0022) == 0 )) || { echo "Diretório de backup NTP não é privado para root." >&2; exit 2; }
+else
+  install -d -m 700 "$TIME_SYNC_BACKUP_DIR"
+  TIME_SYNC_BACKUP_DIR_CREATED=1
+fi
+TIME_SYNC_UNIT_INSTALLED=1
+cat > "$TIME_SYNC_ENV" <<EOF_TIME_SYNC
+NIVUS_RUNTIME_UID=$RUNTIME_UID
+NIVUS_RUNTIME_GID=$RUNTIME_GID
+EOF_TIME_SYNC
+chmod 600 "$TIME_SYNC_ENV"
 printf 'd /run/nivus-maintenance 2750 %s %s - -\n' "$RUNTIME_UID" "$RUNTIME_GID" > /etc/tmpfiles.d/nivus-maintenance.conf
 chmod 644 /etc/tmpfiles.d/nivus-maintenance.conf
 TMPFILES_CREATED=1
@@ -171,7 +216,12 @@ systemd-tmpfiles --create /etc/tmpfiles.d/nivus-maintenance.conf
 python3 -m venv "$INSTALL_ROOT/venv"
 "$INSTALL_ROOT/venv/bin/python" -m pip install --no-cache-dir -r "$CURRENT/telemetry/requirements.txt"
 install -m 644 "$CURRENT/deploy/nivus-compose-telemetry.service" /etc/systemd/system/nivus-compose-telemetry.service
+install -m 644 "$CURRENT/deploy/nivus-time-sync.service" "$TIME_SYNC_UNIT"
 chmod 0755 "$CURRENT/deploy/resolve-mqtt-endpoint.sh"
+systemctl daemon-reload
+TIME_SYNC_STARTED=1
+systemctl enable --now nivus-time-sync.service
+systemctl is-active --quiet nivus-time-sync.service
 cat > "$ETC_ROOT/telemetry.env" <<EOF
 NIVUS_MQTT_PORT=1883
 NIVUS_MQTT_USERNAME=nivus-agent
