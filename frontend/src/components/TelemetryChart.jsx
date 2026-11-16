@@ -19,7 +19,7 @@ const CHARTS = {
   all: {
     title: 'Visão conjunta de telemetria',
     series: [
-      { key: 'temperature', name: 'CPU / APU (°C)', unit: '°C', color: '#f87171', source: 'temperature_source' },
+      { key: 'temperature', name: 'CPU (°C)', unit: '°C', color: '#f87171', source: 'temperature_source' },
       { key: 'motherboard_temperature', name: 'Placa-mãe (°C)', unit: '°C', color: '#a78bfa', source: 'motherboard_temperature_source' },
       { key: 'gpu_temperature', name: 'Gráficos (°C)', unit: '°C', color: '#38bdf8', source: 'gpu_temperature_source' },
       { key: 'cpu_percent', name: 'CPU (%)', unit: '%', color: '#fbbf24' },
@@ -31,7 +31,7 @@ const CHARTS = {
   temperature: {
     title: 'Temperaturas por componente',
     series: [
-      { key: 'temperature', name: 'CPU / APU', unit: '°C', color: '#f87171', source: 'temperature_source' },
+      { key: 'temperature', name: 'CPU (pacote)', unit: '°C', color: '#f87171', source: 'temperature_source' },
       { key: 'motherboard_temperature', name: 'Placa-mãe', unit: '°C', color: '#a78bfa', source: 'motherboard_temperature_source' },
       { key: 'gpu_temperature', name: 'Gráficos (APU/GPU)', unit: '°C', color: '#38bdf8', source: 'gpu_temperature_source' },
     ],
@@ -53,7 +53,7 @@ const CHARTS = {
 };
 
 const HOTSPOT_DETAILS = [
-  { key: 'cpu_hotspot_temperature', name: 'CPU/APU hotspot', unit: '°C', source: 'cpu_hotspot_source' },
+  { key: 'cpu_hotspot_temperature', name: 'CPU hotspot', unit: '°C', source: 'cpu_hotspot_source' },
   { key: 'gpu_hotspot_temperature', name: 'GPU hotspot', unit: '°C', source: 'gpu_hotspot_source' },
 ];
 
@@ -82,7 +82,7 @@ function DelayedChartTooltip({ active, payload, series, rows, selectionKey, mode
     return () => window.clearTimeout(timer);
   }, [active, sampleKey, selectionKey, mode]);
 
-  if (!active || !ready || !sample) return null;
+  if (!active || !sample) return null;
 
   return (
     <div className="telemetry-chart-tooltip">
@@ -93,22 +93,22 @@ function DelayedChartTooltip({ active, payload, series, rows, selectionKey, mode
           <div key={key} className="telemetry-chart-tooltip-row">
             <span style={{ color }}>{name}</span>
             <strong>{formatMetric(sample[key], unit)}</strong>
-            {summary.count > 0 && (
+            {ready && summary.count > 0 && (
               <small className="telemetry-chart-tooltip-meta">
                 Mín {formatMetric(summary.minimum, unit)} · Máx {formatMetric(summary.maximum, unit)} no período
               </small>
             )}
-            {source && <small className="telemetry-chart-tooltip-meta">Fonte: {sample[source] || 'sensor não exposto'}</small>}
+            {ready && source && <small className="telemetry-chart-tooltip-meta">Fonte: {sample[source] || 'sensor não exposto'}</small>}
           </div>
         );
       })}
-      {(mode === 'all' || mode === 'temperature') && HOTSPOT_DETAILS.map(({ key, name, unit, source }) => {
+      {ready && (mode === 'all' || mode === 'temperature') && HOTSPOT_DETAILS.map(({ key, name, unit, source }) => {
         const summary = summarizeMetric(rows, key);
         return (
           <div key={key} className="telemetry-chart-tooltip-row telemetry-chart-tooltip-detail">
             <span>{name} · detalhe</span>
             <strong>{formatMetric(sample[key], unit)}</strong>
-            {summary.count > 0 && (
+            {ready && summary.count > 0 && (
               <small className="telemetry-chart-tooltip-meta">
                 Mín {formatMetric(summary.minimum, unit)} · Máx {formatMetric(summary.maximum, unit)} no período
               </small>
@@ -239,7 +239,7 @@ export default function TelemetryChart({ rows, mode, setMode, range, setRange })
       <div className="telemetry-chart-caption">
         <small>{rows.length} amostras no período · até 1000 amostras armazenadas</small>
         {mode === 'all' && <small>°C, %, e W usam escalas próprias; a potência é estimada por software.</small>}
-        <small>Detalhes do ponto após 3 segundos de pausa.</small>
+        <small>Valor do ponto imediato · mínimos, máximos, fonte e hotspot após 3 segundos.</small>
       </div>
 
       <div className="telemetry-chart-canvas">

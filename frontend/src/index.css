@@ -1131,12 +1131,38 @@ code {
   color: #ff4d00 !important;
 }
 
+.dashboard-root[data-high-contrast="true"] {
+  --text: #ffffff !important;
+  --text-h: #ffffff !important;
+  --border: #ffffff !important;
+  color: #ffffff !important;
+  background: #000000 !important;
+  color-scheme: dark;
+}
+
 .dashboard-root[data-high-contrast="true"] .dashboard-panel,
 .dashboard-root[data-high-contrast="true"] .telemetry-chart-panel,
 .dashboard-root[data-high-contrast="true"] .settings-card,
-.dashboard-root[data-high-contrast="true"] .metric-card {
-  outline: 1px solid currentColor;
-  outline-offset: -1px;
+.dashboard-root[data-high-contrast="true"] .metric-card,
+.dashboard-root[data-high-contrast="true"] .login-panel {
+  color: #ffffff !important;
+  background: #000000 !important;
+  border: 2px solid #ffffff !important;
+  outline: none !important;
+}
+
+.dashboard-root[data-high-contrast="true"] input,
+.dashboard-root[data-high-contrast="true"] select,
+.dashboard-root[data-high-contrast="true"] textarea,
+.dashboard-root[data-high-contrast="true"] button {
+  color: #ffffff !important;
+  background: #000000 !important;
+  border-color: #ffffff !important;
+}
+
+.dashboard-root[data-high-contrast="true"] a {
+  color: #7dd3fc !important;
+  text-decoration: underline;
 }
 
 .dashboard-root[data-high-contrast="true"] :focus-visible {
@@ -1147,10 +1173,17 @@ code {
 .dashboard-root[data-reduced-motion="true"] *,
 .dashboard-root[data-reduced-motion="true"] *::before,
 .dashboard-root[data-reduced-motion="true"] *::after {
-  animation-duration: 0.01ms !important;
-  animation-iteration-count: 1 !important;
+  animation: none !important;
+  transition: none !important;
   scroll-behavior: auto !important;
-  transition-duration: 0.01ms !important;
+}
+
+.dashboard-root[data-reduced-motion="true"] .metric-card:hover {
+  transform: none !important;
+}
+
+.dashboard-root[data-reduced-motion="true"] .metric-card::before {
+  display: none !important;
 }
 
 @media (max-width: 640px) {
