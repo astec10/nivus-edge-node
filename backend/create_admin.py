@@ -28,7 +28,7 @@ def main() -> None:
             print("A senha deve ter entre 8 e 256 caracteres. Tente novamente.")
             continue
         if not any(character.isalpha() for character in password) or not any(
-            character.isdigit() for character in password
+            character in "0123456789" for character in password
         ):
             print("A senha precisa conter pelo menos uma letra e um número.")
             continue
