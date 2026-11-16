@@ -153,6 +153,21 @@ fi
 if [[ -e "$TIME_SYNC_ENV" || -L "$TIME_SYNC_ENV" ]]; then
   [[ -f "$TIME_SYNC_ENV" && ! -L "$TIME_SYNC_ENV" ]] || { echo "Ambiente do controlador NTP inválido; atualização recusada." >&2; exit 2; }
 fi
+validate_protected_dir() {
+  local path=$1 owner mode
+  [[ -d "$path" && ! -L "$path" ]] || return 1
+  owner=$(stat -c '%u' "$path")
+  mode=$(stat -c '%a' "$path")
+  [[ "$owner" == 0 && "$mode" =~ ^[0-7]{3,4}$ ]] && (( (8#$mode & 0022) == 0 ))
+}
+for protected_dir in "$TIME_SYNC_DROPIN_DIR" "$TIME_SYNC_BACKUP_DIR"; do
+  if [[ -e "$protected_dir" || -L "$protected_dir" ]]; then
+    validate_protected_dir "$protected_dir" || {
+      echo "Diretório NTP existente não é seguro; atualização recusada sem alterá-lo." >&2
+      exit 2
+    }
+  fi
+done
 systemctl is-active --quiet docker.service
 systemctl is-active --quiet "$SERVICE"
 
@@ -258,19 +273,16 @@ mv -Tf -- "$NEW_LINK" "$CURRENT"
 if [[ ! -e "$TIME_SYNC_DROPIN_DIR" && ! -L "$TIME_SYNC_DROPIN_DIR" ]]; then
   install -d -m 755 "$TIME_SYNC_DROPIN_DIR"
   TIME_SYNC_DROPIN_DIR_CREATED=1
-elif [[ ! -d "$TIME_SYNC_DROPIN_DIR" || -L "$TIME_SYNC_DROPIN_DIR" ]]; then
+elif ! validate_protected_dir "$TIME_SYNC_DROPIN_DIR"; then
   echo "Diretório de configuração timesyncd inválido; abortando." >&2
   exit 2
 fi
 if [[ ! -e "$TIME_SYNC_BACKUP_DIR" && ! -L "$TIME_SYNC_BACKUP_DIR" ]]; then
   install -d -m 700 "$TIME_SYNC_BACKUP_DIR"
   TIME_SYNC_BACKUP_DIR_CREATED=1
-elif [[ ! -d "$TIME_SYNC_BACKUP_DIR" || -L "$TIME_SYNC_BACKUP_DIR" ]]; then
+elif ! validate_protected_dir "$TIME_SYNC_BACKUP_DIR"; then
   echo "Diretório de backup NTP inválido; abortando." >&2
   exit 2
-else
-  chown root:root "$TIME_SYNC_BACKUP_DIR"
-  chmod 700 "$TIME_SYNC_BACKUP_DIR"
 fi
 RUNTIME_UID=$(sed -n 's/^NIVUS_RUNTIME_UID=//p' "$CURRENT/.env" | tr -d '\r' | tail -n1)
 RUNTIME_GID=$(sed -n 's/^NIVUS_RUNTIME_GID=//p' "$CURRENT/.env" | tr -d '\r' | tail -n1)
