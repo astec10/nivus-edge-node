@@ -1,0 +1,43 @@
+name: Portable USB target selection
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "deploy/portable_usb/**"
+      - "tests/test_portable_usb_target_selection.py"
+      - ".github/workflows/portable-usb-target.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "deploy/portable_usb/**"
+      - "tests/test_portable_usb_target_selection.py"
+      - ".github/workflows/portable-usb-target.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portable-usb-target-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  target-selection:
+    name: Explicit USB identity and non-destructive selection
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Compile selection helper
+        run: python -m py_compile deploy/portable_usb/select_target.py
+
+      - name: Run synthetic disk inventory tests
+        run: python -m unittest discover -s tests -p 'test_portable_usb_target_selection.py' -v

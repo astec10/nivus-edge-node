@@ -1,0 +1,74 @@
+name: Portable USB autoinstall seed
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "deploy/portable_usb/**"
+      - "tests/test_portable_usb_*.py"
+      - ".github/workflows/portable-usb-autoinstall.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "deploy/portable_usb/**"
+      - "tests/test_portable_usb_*.py"
+      - ".github/workflows/portable-usb-autoinstall.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portable-usb-autoinstall-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  seed-validation:
+    name: Reviewable seed, serial revalidation, and synthetic disk tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile USB preparation tools
+        run: |
+          python -m py_compile deploy/portable_usb/select_target.py deploy/portable_usb/generate_autoinstall.py deploy/portable_usb/configure_runtime.py
+          bash -n deploy/portable_usb/install_nivus.sh
+
+      - name: Run synthetic USB tests
+        run: python -m unittest discover -s tests -p 'test_portable_usb_*.py' -v
+
+      - name: Install schema validator dependencies
+        run: python -m pip install jsonschema PyYAML
+
+      - name: Fetch Ubuntu 24.04 Subiquity validator and schema
+        run: |
+          subiquity_commit=d007ed5b04e82663f510ab564afb2bb81906de7e
+          curl -fsSL "https://raw.githubusercontent.com/canonical/subiquity/$subiquity_commit/scripts/validate-autoinstall-user-data.py" -o /tmp/validate-autoinstall-user-data.py
+          curl -fsSL "https://raw.githubusercontent.com/canonical/subiquity/$subiquity_commit/autoinstall-schema.json" -o /tmp/autoinstall-schema.json
+
+      - name: Generate representative NoCloud seed
+        run: |
+          python - <<'PY'
+          from deploy.portable_usb.generate_autoinstall import build_autoinstall_user_data
+          device = {
+              "path": "/dev/sdb",
+              "name": "sdb",
+              "model": "Nivus CI USB",
+              "serial": "NIVUS-CI-USB-001",
+              "size_bytes": 64 * 1024**3,
+              "transport": "usb",
+          }
+          text = build_autoinstall_user_data(device, "nivus", "nivus-ci-node", "$6$ci-salt$not-a-real-password-hash")
+          with open("/tmp/nivus-user-data", "w", encoding="utf-8") as stream:
+              stream.write(text)
+          PY
+
+      - name: Validate seed against Ubuntu 24.04 Subiquity schema
+        run: python /tmp/validate-autoinstall-user-data.py --json-schema /tmp/autoinstall-schema.json /tmp/nivus-user-data

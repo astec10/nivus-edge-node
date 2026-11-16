@@ -8,6 +8,10 @@ Separar rotas, schemas, autorização, banco, MQTT e componentes de UI. Preserva
 
 Usar senha e JWT. USB e biometria continuam opcionais. Não conceder admin com base apenas em IP de LAN. Segredo JWT fica fora do Git.
 
+## Ubuntu instalado em USB — 2026-11-16
+
+Decisão do operador: instalar Ubuntu Server completo no pendrive, não usar Casper Live. A raiz do sistema e os dados do Nivus devem persistir após reboot. O layout usa NIVUS_DATA ext4 separado em /var/lib/nivus no mesmo dispositivo USB da raiz. A mídia do instalador é separada, e Subiquity mantém a confirmação manual do alvo. O instalador pós-boot valida que raiz e dados estão no mesmo USB e recusa formatar ou mover dados. O fluxo de instalação inicial requer Internet; operação local após instalação não deve depender de serviços de nuvem.
+
 ## Persistência
 
 Manter SQLite até plano de backup, migração e restauração testado. Não converter banco de produção sem backup consistente.

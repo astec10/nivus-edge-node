@@ -15,11 +15,15 @@ O run 43662375766 passou nos dois jobs Ubuntu 22.04 amd64: build/smoke Compose e
 
 O operador decidiu não usar VMs no computador pessoal. Os testes repetíveis usam runners descartáveis hospedados pelo GitHub Actions. CI cobre o fluxo de software; não certifica hardware físico nem sensores.
 
-## Ubuntu + Nivus Live USB
+## Ubuntu instalado em USB
 
-O PR #31 foi integrado à main. A primeira peça instala a integração de persistência para uma partição ext4 NIVUS_DATA montada em /var/lib/nivus: dados SQLite/Mosquitto, configuração e segredos, releases do Nivus e Docker ficam nos caminhos persistentes, preservando os caminhos esperados pelo instalador atual. O guard de boot verifica montagem real, ext4, rótulo, marcador e diretórios necessários; Docker e o coletor dependem dessa verificação e não iniciam em overlay volátil quando a partição falta ou é inválida.
+A decisão da issue #29 está fechada: Ubuntu Server completo instalado no pendrive, com raiz ext4 e uma partição ext4 separada \`NIVUS_DATA\` para dados persistentes. O objetivo é iniciar outro computador x86_64 sem alterar o disco interno. Não é Casper Live.
 
-O workflow Live USB storage passou em runner Ubuntu 22.04 usando uma partição ext4 em loop device; os workflows gerais de CI do PR também passaram. Os scripts não formatam nem rotulam dispositivos e o integrador recusa substituir diretórios não vazios. **Ainda não existe uma ISO/imagem inicializável**: faltam fechar o formato Live, montar o construtor hospedado, gerar e testar o artefato, validar persistência após reboot em mídia real e fazer a matriz física UEFI/BIOS e Intel/AMD. Veja [deploy/live-usb/README.md](../deploy/live-usb/README.md).
+O PR #34 está aberto. O commit \`9722b93\` passou validação do seletor USB, schema Subiquity 24.04, testes sintéticos e workflows gerais; esse resultado antecede a integração do instalador pós-boot. A branch atual acrescenta \`deploy/portable_usb/install_nivus.sh\` para, depois do primeiro boot, verificar a raiz e NIVUS_DATA no mesmo dispositivo USB, validar ext4/rótulo/fstab/montagem e configurar links e guard persistentes antes de chamar o instalador Compose. No commit `51f336711f23b9341ea459606a754e5730de000f`, todos os checks hospedados passaram: seletor USB, seed/schema Subiquity, bootstrap pós-boot, integração ext4, workflows gerais, índice e CodeQL.
+
+O fluxo continua usando a mídia oficial inicializável do Ubuntu e um seed NoCloud separado. A tela de armazenamento do Subiquity permanece interativa; a pessoa confere caminho, modelo, serial e capacidade antes de confirmar, porque o instalador apaga o USB escolhido. A primeira instalação do Compose precisa de Internet para instalar pacotes e construir/obter componentes. Depois de instalado, o Nivus local pode operar na LAN sem serviço de nuvem; inferência local e coordenação multi-nó são fases separadas.
+
+Ainda faltam revisar/mesclar o PR #34, executar uma instalação real até o primeiro boot, autenticar no painel, reiniciar e validar persistência de SQLite, configurações, segredos e Docker, testar recuperação/rollback e fazer a matriz física UEFI/BIOS Intel/AMD. A CI hospedada não comprova boot em mídia física. A CI hospedada e os testes em loop device não comprovam boot em hardware físico nem compatibilidade universal. Consulte [deploy/portable_usb/README.md](../deploy/portable_usb/README.md) e [deploy/live-usb/README.md](../deploy/live-usb/README.md) para o procedimento e seus limites.
 
 ## Estado do notebook de teste
 

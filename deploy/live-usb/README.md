@@ -1,59 +1,47 @@
-# Ubuntu + Nivus Live USB: persistência
+# Persistência do Ubuntu instalado em USB
 
-Esta pasta entrega o primeiro componente do issue #29: uma partição ext4 separada para manter os dados e bloquear a inicialização dos serviços Nivus quando o armazenamento não estiver disponível ou íntegro.
-
-## Estado desta entrega
-
-O conteúdo abaixo **não é ainda uma ISO inicializável** e não substitui o instalador Ubuntu. Ele integra uma raiz Ubuntu preparada a um volume de dados. O construtor da imagem Live, o artefato ISO/USB e os testes físicos UEFI/BIOS continuam pendentes.
-
-Uma edição Live verdadeira usa uma raiz temporária/overlay: mudanças no sistema operacional não sobrevivem automaticamente ao reboot. Esta integração faz com que os dados do Nivus, segredos, releases e arquivos do Docker usem o volume persistente. A montagem e o guard devem ser incluídos na raiz do sistema dentro da imagem, antes de produzir a ISO.
+O nome histórico desta pasta é \`live-usb\`, mas a mídia definida para o Nivus é **Ubuntu Server instalado integralmente no pendrive**, não Casper Live. A raiz do sistema e os dados sobrevivem a reinicializações.
 
 ## Layout persistente
 
-A partição ext4 com rótulo NIVUS_DATA é montada em /var/lib/nivus. O instalador Compose existente continua usando os caminhos conhecidos por meio de links simbólicos:
+O instalador Subiquity prepara no mesmo USB uma raiz Ubuntu ext4 e a partição ext4 \`NIVUS_DATA\`, montada em \`/var/lib/nivus\`. O instalador Compose usa os caminhos persistentes por links:
 
-- /var/lib/nivus-compose -> /var/lib/nivus/compose (SQLite e estado Mosquitto).
-- /etc/nivus-compose -> /var/lib/nivus/config (segredos, TLS e configuração).
-- /opt/nivus-compose -> /var/lib/nivus/releases (código e releases).
-- /var/lib/docker -> /var/lib/nivus/docker (imagens, metadados e logs de containers).
+- \`/var/lib/nivus-compose\` → \`/var/lib/nivus/compose\` (SQLite e estado Mosquitto).
+- \`/etc/nivus-compose\` → \`/var/lib/nivus/config\` (segredos, TLS e configuração).
+- \`/opt/nivus-compose\` → \`/var/lib/nivus\` (releases ficam em \`/var/lib/nivus/releases\`).
+- \`/var/lib/docker\` → \`/var/lib/nivus/docker\` (imagens, metadados e logs dos containers).
 
-Backup, restore e atualizações continuam usando os caminhos Nivus já existentes. A imagem precisa estar isolada e sem estado prévio nesses destinos; o integrador recusa substituir diretórios não vazios. A partição deve conter o marcador .nivus-data-volume com a versão nivus-data-volume-v1.
+O marcador \`.nivus-data-volume\` identifica o volume como \`nivus-data-volume-v1\`. O guard systemd verifica a montagem real, ext4, rótulo, marcador e diretórios antes de permitir Docker ou o coletor. Se o volume estiver ausente ou inválido, os serviços que gravam dados não iniciam.
 
-## Preparação do volume
+## Instalar Nivus após instalar Ubuntu
 
-Use uma partição ext4 vazia, já formatada e rotulada NIVUS_DATA. Formatar uma partição apaga o conteúdo; a criação de partições e a formatação ficam deliberadamente fora destes scripts.
+A configuração do USB e do seed está em [portable_usb/AUTOINSTALL.md](../portable_usb/AUTOINSTALL.md). A ISO NoCloud é apenas mídia de configuração; use uma mídia Ubuntu Server inicializável separada e mantenha a confirmação de armazenamento do Subiquity ativa. O instalador apaga o USB selecionado. Confira caminho, modelo, serial e capacidade antes de confirmar.
 
-No Ubuntu que preparará a mídia, identifique cuidadosamente a partição e confirme o dispositivo antes de continuar:
+Depois do primeiro boot do Ubuntu instalado no USB, clone o repositório e execute o instalador portátil como root:
 
-    lsblk -f
+    sudo bash deploy/portable_usb/install_nivus.sh
 
-O helper somente aceita uma partição de bloco ext4, não montada, com o rótulo exigido. Ele se recusa a adotar um sistema de arquivos não vazio que não tenha um marcador Nivus reconhecido. Ele cria o marcador e os diretórios necessários, sem formatar, rotular, apagar ou copiar dados.
+O comando confirma que a raiz e \`NIVUS_DATA\` estão em partições ext4 do mesmo dispositivo USB, que a partição de dados está montada para escrita e registrada uma única vez no \`/etc/fstab\`, e que Docker/Nivus ainda não estão em uso. Ele não particiona nem formata discos. Inicializa somente um volume vazio ou um volume que já tenha o marcador reconhecido, instala as unidades systemd e os links persistentes, e chama o instalador Compose existente.
 
-    sudo bash deploy/live-usb/prepare-data-volume.sh /dev/sdXN
+O instalador Compose pede a criação do primeiro administrador no terminal. Na primeira instalação, internet é necessária para instalar pacotes e construir/baixar componentes. Depois que a instalação termina, os serviços locais iniciam no boot e não precisam de um provedor de IA ou serviço em nuvem para monitorar o nó na rede local. Funcionalidades de IA local, VPN e gerenciamento multi-nó continuam em fases próprias.
 
-Substitua /dev/sdXN pelo identificador realmente mostrado por lsblk -f. Não execute esse comando antes de identificar com certeza a partição USB correta.
+Se a etapa Compose falhar depois da integração persistente, corrija a causa e rode o mesmo comando novamente. A configuração dos links e unidades é idempotente e não sobrescreve arquivos conflitantes. O instalador Compose mantém seus próprios procedimentos de rollback e preserva dados/segredos.
 
-## Integrar durante a montagem da imagem
+## Regras de proteção
 
-O processo de imagem precisa montar o root filesystem Ubuntu num diretório de staging e criar nele o arquivo vazio .nivus-live-image-root. Em seguida, execute como root:
-
-    sudo bash deploy/live-usb/install-image-integration.sh /caminho/da/raizfs
-
-O integrador altera somente a raiz de staging marcada. Ele recusa a raiz do sistema em execução, destinos conflitantes ou qualquer diretório de dados não vazio. Ele instala:
-
-- a unidade systemd que monta NIVUS_DATA em /var/lib/nivus;
-- o serviço de verificação de volume;
-- dependências que fazem Docker e o coletor aguardarem o volume validado;
-- links persistentes para dados, configuração, releases e Docker.
-
-Se a montagem falhar, o volume não for ext4, o rótulo ou marcador não corresponder, ou o ponto não for uma montagem real, o guard falha. Docker e o coletor não iniciam, evitando gravar silenciosamente no overlay temporário. O serviço Nivus não apaga, formata nem tenta reparar filesystem automaticamente.
+- Nunca escolha o maior disco automaticamente.
+- Mantenha a mídia Ubuntu, o seed NoCloud e o USB de destino identificáveis e separados.
+- Não confirme o armazenamento até conferir a identidade mostrada pelo Subiquity.
+- O instalador portátil exige raiz e dados no mesmo dispositivo USB; se não puder provar isso, para sem continuar.
+- Não formate ou crie um marcador sobre um volume desconhecido. Faça backup antes de recuperação ou reinstalação.
+- Uma remoção acidental do USB pode corromper SQLite e imagens Docker; desligue o Ubuntu corretamente antes de desconectar.
 
 ## Validação
 
-O workflow Live USB storage exercita uma partição ext4 criada sobre loop device em runner hospedado Ubuntu 22.04. Ele confere preparação sem formatação, caminho válido, marcador incorreto, partição desmontada e instalação segura em rootfs de teste. Nenhuma VM local é necessária.
+A CI hospedada valida o plano de particionamento, o schema do Subiquity, as proteções de seleção e o layout persistente com inventários e arquivos sintéticos. O workflow de storage usa uma partição ext4 em loop device num runner Ubuntu. Esses testes não iniciam um instalador real nem comprovam boot, desligamento ou persistência em hardware físico.
 
-Esse teste comprova o componente de persistência em Linux virtualizado pelo runner, não o boot da ISO. Ainda faltam builder de imagem, smoke de login/Compose após boot, reboot e persistência em mídia real, UEFI/BIOS, Secure Boot, desgaste da mídia, interrupção durante atualização e validação Intel/AMD.
+Ainda exigem validação: instalar por Subiquity até o primeiro boot, executar o instalador Nivus, reiniciar e conferir SQLite \`PRAGMA quick_check\`, segredos, configurações, releases e armazenamento Docker. Também faltam recuperação/rollback numa instalação limpa e uma matriz física UEFI/BIOS Intel/AMD. Não anuncie compatibilidade de boot universal antes desses resultados.
 
 ## Recuperação
 
-Antes de atualizar uma imagem física, faça backup Nivus e desligue o sistema corretamente. Mantenha uma mídia de recuperação Ubuntu separada. Se o volume não for reconhecido, não formate nem crie um novo marcador sobre dados antigos: preserve a partição e investigue rótulo, sistema de arquivos e conteúdo offline. O guard falha fechado para proteger SQLite, segredos e logs existentes.
+Mantenha uma mídia Ubuntu de recuperação separada. Se \`NIVUS_DATA\` não for reconhecido, não formate nem substitua o marcador. Preserve a partição e investigue rótulo, UUID, sistema de arquivos e conteúdo offline. Use o procedimento de backup/restore documentado em [deploy/README.md](../README.md) somente depois de preservar o estado atual.
