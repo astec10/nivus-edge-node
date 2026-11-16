@@ -36,13 +36,14 @@ Critérios já observados: login funcional; API exige token; health HTTPS respon
 
 Siga [`VM_VALIDATION.md`](VM_VALIDATION.md) como roteiro executável e registre a evidência em [`PROJECT_STATUS.md`](PROJECT_STATUS.md). O script de restauração está implementado; só declare a etapa concluída após teste real em clone descartável com backup, restore, validação e rollback.
 
-1. Implementar um construtor reproduzível de Casper Live x86_64 e escolher uma base LTS no workflow. A raiz do sistema será volátil; SQLite, segredos, configuração e estado Nivus ficarão em NIVUS_DATA separado. Não usar a ISO oficial Ubuntu Server sem convertê-la, pois ela inicia o instalador.
-2. Construir a imagem e o primeiro smoke em runner Ubuntu hospedado pelo GitHub a cada pull request para `main` e push em `main`; não iniciar VMs no computador do operador.
-3. Registrar RAM livre, CPU, disco, espaço de build, portas, versões do Ubuntu/Docker/Compose e tempo de instalação.
-4. Exercitar boot, reinicialização, persistência, instalação, backup, restore e rollback no runner descartável hospedado pelo CI, sem alterar o notebook de teste.
-5. Preservar as evidências e logs sanitizados do runner como artefatos da execução; repetir o fluxo após mudança nos scripts operacionais.
-6. Qualificar seis máquinas de referência: Intel e AMD, cada fabricante nas faixas de geração antiga, intermediária e recente. Não repetir a suíte inteira por commit; usar a bateria física de compatibilidade documentada em [`TEST_STRATEGY.md`](TEST_STRATEGY.md).
-7. Documentar erros recuperáveis, como falta de disco, portas ocupadas, falha APT e interrupção durante o bootstrap.
+1. Fixar a base Ubuntu Server minimal LTS e as versões de pacotes/kernel para o alvo x86_64, considerando o CCE U25 e hardware antigo.
+2. Construir um instalador reproduzível que instale o sistema completo no pendrive selecionado, sem usar o disco interno do computador hospedeiro. A seleção deve mostrar modelo, serial e capacidade e exigir confirmação explícita; nunca escolher automaticamente o maior disco.
+3. Criar layout GPT com partição de boot/EFI, raiz persistente e partição ext4 `NIVUS_DATA` montada em `/var/lib/nivus`; documentar limites UEFI/BIOS e Secure Boot.
+4. Gerar instalador/imagem em runner Ubuntu hospedado a cada pull request para `main` e push em `main`; não iniciar VMs no computador do operador.
+5. Instalar Nivus e validar primeiro boot, login, API HTTPS, autenticação 401 sem token, MQTT/telemetria e modo sem Internet upstream, usando hardware descartável virtualizado no CI.
+6. Reiniciar o mesmo USB em runner hospedado e verificar que SQLite, configuração, segredos, releases e dados Docker persistem; validar `PRAGMA quick_check`, backup, restore e rollback.
+7. Preservar logs e checksums como artefatos; documentar preparação, atualização, recuperação e erros recuperáveis sem formatar discos automaticamente.
+8. Qualificar seis máquinas físicas de referência: Intel e AMD, cada fabricante nas faixas de geração antiga, intermediária e recente. Não repetir a suíte inteira por commit; usar a bateria física em `TEST_STRATEGY.md`.
 
 Critério de saída: uma pessoa que siga o README consegue instalar, autenticar, ver telemetria depois do reboot e restaurar um backup; o procedimento não remove dados ao falhar e não interfere em serviços preexistentes.
 
