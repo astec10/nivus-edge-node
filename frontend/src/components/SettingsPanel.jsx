@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { PauseCircle, PlayCircle, Wrench } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { PauseCircle, PlayCircle, RotateCcw, Save, Wrench } from 'lucide-react';
 import {
   DASHBOARD_THEMES,
   DATE_FORMATS,
@@ -35,10 +35,60 @@ export default function SettingsPanel({
   maintenanceMessage,
   maintenanceBusy,
   onToggleMaintenance,
+  timeSyncState,
+  onApplyTimeSync = async () => ({ ok: false, message: 'Controlador indisponível.' }),
+  onRollbackTimeSync = async () => ({ ok: false, message: 'Controlador indisponível.' }),
 }) {
   const enabled = maintenanceState?.enabled === true;
   const offset = formatUtcOffset(displayPreferences.timeZone);
   const [preferenceSaveStatus, setPreferenceSaveStatus] = useState('As preferências são aplicadas imediatamente.');
+  const suggestedServers = timeSyncState?.suggested_servers?.length === 3
+    ? timeSyncState.suggested_servers
+    : ['a.ntp.br', 'b.ntp.br', 'c.ntp.br'];
+  const configuredServers = timeSyncState?.configured_servers?.length === 3
+    ? timeSyncState.configured_servers
+    : suggestedServers;
+  const serverSignature = JSON.stringify(configuredServers);
+  const [timeSyncServers, setTimeSyncServers] = useState(suggestedServers);
+  const [timeSyncBusy, setTimeSyncBusy] = useState(false);
+  const [timeSyncActionMessage, setTimeSyncActionMessage] = useState('');
+  useEffect(() => {
+    setTimeSyncServers(JSON.parse(serverSignature));
+  }, [serverSignature]);
+  const timeSyncStatusLabels = {
+    synchronized: 'Relógio sincronizado',
+    degraded: 'Cliente ativo; sincronização não confirmada',
+    unavailable: 'Cliente ou controlador indisponível',
+    managed_elsewhere: 'Outro cliente de hora está ativo',
+  };
+  const timeSyncStatusLabel = timeSyncStatusLabels[timeSyncState?.state] || 'Consultando o host…';
+  const canConfigureTimeSync = isAdmin && timeSyncState?.can_configure === true;
+  const applyTimeSync = async event => {
+    event.preventDefault();
+    setTimeSyncBusy(true);
+    setTimeSyncActionMessage('Aplicando fontes no host…');
+    try {
+      const result = await onApplyTimeSync(timeSyncServers);
+      setTimeSyncActionMessage(result?.ok
+        ? (result.data?.message || 'Configuração NTP aplicada.')
+        : (result?.message || 'Não foi possível configurar o NTP do host.'));
+    } finally {
+      setTimeSyncBusy(false);
+    }
+  };
+  const rollbackTimeSync = async () => {
+    if (!window.confirm('Restaurar a configuração NTP salva antes da última alteração?')) return;
+    setTimeSyncBusy(true);
+    setTimeSyncActionMessage('Restaurando a configuração anterior…');
+    try {
+      const result = await onRollbackTimeSync();
+      setTimeSyncActionMessage(result?.ok
+        ? (result.data?.message || 'Configuração anterior restaurada.')
+        : (result?.message || 'Não foi possível restaurar a configuração anterior.'));
+    } finally {
+      setTimeSyncBusy(false);
+    }
+  };
   const updateDisplayPreferences = changes => {
     const saved = onDisplayPreferenceChange(changes);
     setPreferenceSaveStatus(saved
@@ -121,12 +171,74 @@ export default function SettingsPanel({
           <div className="settings-card-heading">
             <div>
               <h3 id="time-sync-title">Sincronização de hora do host</h3>
-              <p>O relógio do painel atualiza a cada segundo usando o fuso escolhido.</p>
+              <p>Estado observado no Ubuntu. O fuso e os formatos do relógio do painel continuam sendo preferências do navegador.</p>
             </div>
-            <span className="maintenance-status" role="status">Integração NTP pendente</span>
+            <span className={\`maintenance-status time-sync-status time-sync-status--\${timeSyncState?.state || 'unknown'}\`} role="status">
+              {timeSyncStatusLabel}
+            </span>
           </div>
+
           <p className="settings-explanation">
-            Nesta versão, o relógio usa o horário deste navegador e não consulta serviços externos. O estado do NTP do Ubuntu e a configuração redundante de três fontes ainda não estão ligados à API. A futura configuração só será ativada após detectar o cliente NTP existente e preparar backup e rollback; a lista de fontes não será exibida no relógio.
+            A integração só configura o <code>systemd-timesyncd</code> quando ele já está ativo. Ela não instala nem substitui outro cliente NTP. O padrão usa três servidores NTP.br; o systemd tenta as fontes disponíveis em sequência, sem votação.
+            {' '}<a href="https://www.ntp.br/" target="_blank" rel="noreferrer">Informações do NTP.br</a>
+          </p>
+
+          {isAdmin ? (
+            <form className="time-sync-form" onSubmit={applyTimeSync}>
+              <div className="time-sync-server-grid">
+                {timeSyncServers.map((server, index) => (
+                  <label className="display-preference-field" key={index}>
+                    <span>Servidor NTP {index + 1}</span>
+                    <input
+                      type="text"
+                      value={server}
+                      maxLength={253}
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck="false"
+                      placeholder={suggestedServers[index]}
+                      onChange={event => setTimeSyncServers(previous => previous.map((value, position) => (
+                        position === index ? event.target.value : value
+                      )))}
+                      disabled={timeSyncBusy || !canConfigureTimeSync}
+                    />
+                  </label>
+                ))}
+              </div>
+              <div className="time-sync-actions">
+                <button
+                  className="maintenance-toggle"
+                  type="submit"
+                  disabled={timeSyncBusy || !canConfigureTimeSync}
+                >
+                  <Save size={16} aria-hidden="true" />
+                  {timeSyncBusy ? 'Aguarde…' : 'Aplicar fontes'}
+                </button>
+                {timeSyncState?.has_rollback === true && (
+                  <button
+                    className="maintenance-toggle time-sync-rollback"
+                    type="button"
+                    disabled={timeSyncBusy || !canConfigureTimeSync}
+                    onClick={rollbackTimeSync}
+                  >
+                    <RotateCcw size={16} aria-hidden="true" />
+                    Restaurar configuração anterior
+                  </button>
+                )}
+              </div>
+            </form>
+          ) : (
+            <p className="time-sync-readonly">
+              Fontes configuradas: {configuredServers.join(', ')}
+            </p>
+          )}
+
+          <p className="display-preference-save-status" role="status" aria-live="polite">
+            {timeSyncActionMessage || timeSyncState?.message || (timeSyncState?.state === 'managed_elsewhere'
+              ? 'O Nivus preservou o cliente de hora já ativo e não alterou a configuração.'
+              : timeSyncState?.state === 'unavailable'
+                ? 'O controlador Nivus ou o systemd-timesyncd não está disponível neste host.'
+                : 'A configuração do host só pode ser alterada por um administrador.')}
           </p>
         </section>
 
