@@ -86,11 +86,7 @@ def update_host_time_sync(
         result = apply_host_time_sync(payload.servers)
     except TimeSyncControllerError as error:
         _raise_time_sync_error(error)
-    logger.info(
-        "Fontes NTP do host alteradas pelo administrador %s: %s",
-        admin,
-        ", ".join(result.get("configured_servers", [])),
-    )
+    logger.info("Fontes NTP do host alteradas pelo administrador.")
     return result
 
 
@@ -100,5 +96,5 @@ def restore_host_time_sync(admin: str = Depends(get_current_admin)):
         result = rollback_host_time_sync()
     except TimeSyncControllerError as error:
         _raise_time_sync_error(error)
-    logger.warning("Configuração NTP anterior restaurada pelo administrador %s", admin)
+    logger.warning("Configuração NTP anterior restaurada.")
     return result
