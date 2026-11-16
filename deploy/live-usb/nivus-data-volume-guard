@@ -18,5 +18,8 @@ LABEL=$(blkid -s LABEL -o value "$SOURCE" 2>/dev/null || true)
 [[ "$LABEL" == "$EXPECTED_LABEL" ]] || fail "rótulo esperado $EXPECTED_LABEL; encontrado ${LABEL:-nenhum}."
 [[ -f "$MARKER" && ! -L "$MARKER" ]] || fail "marcador de volume Nivus ausente ou inválido."
 [[ "$(cat -- "$MARKER")" == "nivus-data-volume-v1" ]] || fail "versão do marcador persistente não reconhecida."
+for directory in compose config releases docker; do
+  [[ -d "$DATA_ROOT/$directory" && ! -L "$DATA_ROOT/$directory" ]] || fail "diretório persistente ausente ou inválido: $directory."
+done
 
 printf 'Nivus persistent storage: OK (%s, ext4, label=%s).\n' "$DATA_ROOT" "$LABEL"
