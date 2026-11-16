@@ -28,7 +28,7 @@ Critérios já observados: login funcional; API exige token; health HTTPS respon
 
 **Operação de manutenção (issue #26):** implementação merged no PR #28, com `nivus help` e controle administrativo; CI hospedada aprovada. A pausa interrompe amostragem/publicação de telemetria do host e gravação de novas amostras MQTT, sem desligar API, painel, health ou broker. A publicação e o teste no notebook CCE U25 ainda estão pendentes.
 
-**Relógio, interface e sensores (issues #21/#23):** PR #37 integrou preferências do relógio; PRs #40/#41 adicionaram controle NTP restrito; PR #43 integrou cinco temas funcionais; PR #44 restaurou os valores imediatos no gráfico e corrigiu contraste/movimento; PR #45 adicionou provedores NTP distintos e edição segura quando systemd-timesyncd está instalado; PR #46 adicionou bateria interna do nó. Os checks hospedados passaram. A última versão comunicada do notebook é c70ed02, anterior aos PRs #43-46; aplicar e validar esses recursos no host continua pendente.
+**Relógio, interface e sensores (issues #21/#23):** PR #37 integrou preferências do relógio; PRs #40/#41 adicionaram controle NTP restrito; PR #43 integrou cinco temas funcionais; PR #44 restaurou os valores imediatos no gráfico e corrigiu contraste/movimento; PR #45 adicionou provedores NTP distintos e edição segura quando systemd-timesyncd está instalado; PR #46 adicionou bateria interna do nó; PR #48 tornou imediato o tooltip e seus metadados. Os checks hospedados passaram. A última release confirmada por SSH no notebook é `969a1bd` (PR #20); a captura recebida em 2026-11-16 ainda contém a legenda antiga de espera do gráfico. A aplicação e validação visual pós-PR #48 continuam pendentes.
 
 ### Fase 1 — Instalação, recuperação e portabilidade
 
@@ -67,7 +67,7 @@ Para atualizações de frota, o critério adicional é demonstrar uma correção
 
 ### Fase 3 — Integrações domésticas e energia
 
-**Estado: parcialmente em andamento.** A regra limitada da issue #22 (bateria móvel → somente OFF no relé) está em revisão; as demais integrações começam em leitura somente. Home Assistant real e qualquer validação física ainda estão pendentes.
+**Estado: parcialmente em andamento.** A primeira regra limitada de atuador (issue #22: bateria móvel → somente OFF no relé) foi integrada pelo PR #50 no commit `ba6e0c824fe1b62dd44c7d924a6a2d1074f26e23`; os quatro workflows hospedados passaram. A regra só opera após cadastro do dispositivo e envio de relatórios válidos pela integração Home Assistant, ainda não configurada ou validada em hardware. As demais integrações começam em leitura somente; nenhuma ação física foi testada.
 
 1. Integrar Home Assistant através de uma interface/adaptador documentado e com escopo mínimo.
 2. Ler estados do hub Zigbee, sensores ambientais e de presença sem conceder administração global.
