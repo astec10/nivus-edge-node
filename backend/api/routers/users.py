@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.dependencies import get_current_admin
-from api.schemas import PasswordChange, UserCreate
+from api.dependencies import get_current_admin, get_password_change_user
+from api.schemas import PasswordChange, PasswordRotation, UserCreate
 from database import get_db_connection
-from security import hash_password, verify_password
+from security import create_access_token, hash_password, verify_password
 
 
 router = APIRouter(prefix="/api/users", tags=["users"])
@@ -33,7 +33,8 @@ def create_or_update_user(
         if exists is not None:
             raise HTTPException(status_code=409, detail="Este utilizador já existe.")
         conn.execute(
-            "INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
+            "INSERT INTO users "
+            "(username, password, role, must_change_password) VALUES (?, ?, ?, 1)",
             (payload.username, hash_password(payload.password), payload.role),
         )
         conn.commit()
@@ -60,9 +61,10 @@ def change_user_password(
                 status_code=401, detail="Senha de Administrador incorreta."
             )
 
+        must_change_password = int(payload.username != admin_username)
         cursor = conn.execute(
-            "UPDATE users SET password = ? WHERE username = ?",
-            (hash_password(payload.new_password), payload.username),
+            "UPDATE users SET password = ?, must_change_password = ? WHERE username = ?",
+            (hash_password(payload.new_password), must_change_password, payload.username),
         )
         if cursor.rowcount == 0:
             raise HTTPException(status_code=404, detail="Utilizador não encontrado.")
@@ -70,6 +72,37 @@ def change_user_password(
     finally:
         conn.close()
     return {"status": "success", "message": "Senha alterada com sucesso."}
+
+
+@router.post("/first-login-password")
+def change_temporary_password(
+    payload: PasswordRotation,
+    username: str = Depends(get_password_change_user),
+):
+    conn = get_db_connection()
+    try:
+        user = conn.execute(
+            "SELECT password, role, must_change_password FROM users WHERE username = ?",
+            (username,),
+        ).fetchone()
+        if user is None or not user["must_change_password"]:
+            raise HTTPException(status_code=403, detail="Troca de senha não está pendente.")
+        if not verify_password(payload.current_password, user["password"]):
+            raise HTTPException(status_code=401, detail="Senha temporária incorreta.")
+
+        conn.execute(
+            "UPDATE users SET password = ?, must_change_password = 0 WHERE username = ?",
+            (hash_password(payload.new_password), username),
+        )
+        conn.commit()
+        access_token = create_access_token(username, user["role"])
+    finally:
+        conn.close()
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "password_change_required": False,
+    }
 
 
 @router.delete("/{username}")
