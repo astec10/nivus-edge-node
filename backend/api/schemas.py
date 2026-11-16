@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field, field_validator
 def validate_password_policy(value: str) -> str:
     if not any(character.isalpha() for character in value):
         raise ValueError("A senha deve conter pelo menos uma letra.")
-    if not any(character.isdigit() for character in value):
+    if not any(character in "0123456789" for character in value):
         raise ValueError("A senha deve conter pelo menos um número.")
     return value
 
