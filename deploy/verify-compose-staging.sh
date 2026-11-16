@@ -36,15 +36,17 @@ DATA_DIR="/tmp/$PROJECT-data"
 MOSQ_DATA_DIR="$APP_DIR/mosquitto"
 SECRETS_DIR="$APP_DIR/secrets"
 MAINTENANCE_DIR="/tmp/$PROJECT-maintenance"
+TIME_SYNC_DIR="/tmp/$PROJECT-time-sync"
 NIVUS_HELP_BIN="$APP_DIR/runtime-bin/$PROJECT"
 export NIVUS_MAINTENANCE_STATE_DIR="$MAINTENANCE_DIR"
+export NIVUS_TIME_SYNC_DIR="$TIME_SYNC_DIR"
 export NIVUS_DATA_DIR="$DATA_DIR"
 export NIVUS_MAINTENANCE_STATE_PATH="$MAINTENANCE_DIR/state.json"
 RUNTIME_UID=$(sed -n 's/^NIVUS_RUNTIME_UID=//p' .env)
 RUNTIME_GID=$(sed -n 's/^NIVUS_RUNTIME_GID=//p' .env)
 HOST_UID=$(id -u)
 HOST_GID=$(id -g)
-[[ ! -e "$DATA_DIR" && ! -L "$DATA_DIR" && ! -e "$MAINTENANCE_DIR" && ! -L "$MAINTENANCE_DIR" ]] || { echo "Smoke temp path already exists; refusing to reuse it." >&2; exit 2; }
+[[ ! -e "$DATA_DIR" && ! -L "$DATA_DIR" && ! -e "$MAINTENANCE_DIR" && ! -L "$MAINTENANCE_DIR" && ! -e "$TIME_SYNC_DIR" && ! -L "$TIME_SYNC_DIR" ]] || { echo "Smoke temp path already exists; refusing to reuse it." >&2; exit 2; }
 
 MOSQUITTO_IMAGE=$(awk '$1 == "image:" && $2 ~ /^eclipse-mosquitto:/ {print $2; exit}' docker-compose.yml)
 [[ "$MOSQUITTO_IMAGE" =~ ^eclipse-mosquitto:2@sha256:[a-f0-9]{64}$ ]] || { echo "Imagem Mosquitto fixada por digest não encontrada no Compose." >&2; exit 2; }
@@ -53,7 +55,7 @@ if ! docker image inspect "$MOSQUITTO_IMAGE" >/dev/null 2>&1; then docker pull "
 install -d -m 700 "$SECRETS_DIR"
 install -d -m 750 "$DATA_DIR" "$MOSQ_DATA_DIR"
 install -d -m 755 "$APP_DIR/runtime-state"
-install -d -m 755 "$MAINTENANCE_DIR"
+install -d -m 755 "$MAINTENANCE_DIR" "$TIME_SYNC_DIR"
 rm -f -- "$SECRETS_DIR/jwt_secret" "$SECRETS_DIR"/mqtt_*_password \
   "$SECRETS_DIR/mosquitto_passwords" "$SECRETS_DIR/mosquitto_acl" \
   "$SECRETS_DIR/tls.key" "$SECRETS_DIR/tls.crt"
@@ -97,6 +99,12 @@ cleanup() {
       rm -rf -- "$MAINTENANCE_DIR" 2>/dev/null || true
     else
       echo "Refusing to remove unexpected maintenance staging path: $MAINTENANCE_DIR" >&2
+      rc=1
+    fi
+    if [[ "$TIME_SYNC_DIR" == "/tmp/$PROJECT-time-sync" ]]; then
+      rm -rf -- "$TIME_SYNC_DIR" 2>/dev/null || true
+    else
+      echo "Refusing to remove unexpected time-sync staging path: $TIME_SYNC_DIR" >&2
       rc=1
     fi
     if [[ "$DATA_DIR" == "/tmp/$PROJECT-data" ]]; then
