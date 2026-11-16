@@ -61,7 +61,8 @@ def init_db():
             CREATE TABLE IF NOT EXISTS users (
                 username TEXT PRIMARY KEY,
                 password TEXT NOT NULL,
-                role TEXT NOT NULL
+                role TEXT NOT NULL,
+                must_change_password INTEGER NOT NULL DEFAULT 0
             );
             CREATE TABLE IF NOT EXISTS login_attempts (
                 username TEXT PRIMARY KEY,
@@ -70,6 +71,15 @@ def init_db():
             );
             """
         )
+
+        # Migrate account records without forcing existing users to rotate passwords.
+        user_columns = {
+            row["name"] for row in conn.execute("PRAGMA table_info(users)")
+        }
+        if "must_change_password" not in user_columns:
+            conn.execute(
+                "ALTER TABLE users ADD COLUMN must_change_password INTEGER NOT NULL DEFAULT 0"
+            )
 
         # Migrate existing databases without modifying existing alert records.
         alert_columns = {
