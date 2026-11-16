@@ -59,26 +59,22 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
         )
 
         if not valid_password:
-            if attempt:
-                failures = attempt["failures"] + 1
-                if failures >= 5:
-                    lock_time = now + timedelta(minutes=15)
-                    cursor.execute(
-                        "UPDATE login_attempts SET failures = ?, locked_until = ? "
-                        "WHERE username = ?",
-                        (failures, lock_time.isoformat(), username),
-                    )
-                else:
-                    cursor.execute(
-                        "UPDATE login_attempts SET failures = ? WHERE username = ?",
-                        (failures, username),
-                    )
-            else:
-                cursor.execute(
-                    "INSERT INTO login_attempts (username, failures, locked_until) "
-                    "VALUES (?, 1, NULL)",
-                    (username,),
-                )
+            # Use one SQLite UPSERT so concurrent failures cannot race between
+            # reading and inserting the unique username counter.
+            lock_time = now + timedelta(minutes=15)
+            cursor.execute(
+                """
+                INSERT INTO login_attempts (username, failures, locked_until)
+                VALUES (?, 1, NULL)
+                ON CONFLICT(username) DO UPDATE SET
+                    failures = login_attempts.failures + 1,
+                    locked_until = CASE
+                        WHEN login_attempts.failures + 1 >= 5 THEN ?
+                        ELSE login_attempts.locked_until
+                    END
+                """,
+                (username, lock_time.isoformat()),
+            )
             conn.commit()
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
