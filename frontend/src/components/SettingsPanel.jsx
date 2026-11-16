@@ -48,6 +48,16 @@ export default function SettingsPanel({
   const configuredServers = timeSyncState?.configured_servers?.length === 3
     ? timeSyncState.configured_servers
     : suggestedServers;
+  const hasConfiguredTimeSyncServers = timeSyncState?.configured_servers?.length === 3;
+  const timeSyncStatusMessage = timeSyncState?.state === 'managed_elsewhere'
+    ? 'O Nivus preservou o outro cliente de hora ativo e não alterou a configuração.'
+    : timeSyncState?.state === 'unavailable'
+      ? 'O controlador Nivus ou o systemd-timesyncd não está disponível neste host.'
+      : timeSyncState?.state === 'degraded'
+        ? 'O systemd-timesyncd está ativo, mas ainda não confirmou sincronização.'
+        : timeSyncState?.state === 'synchronized'
+          ? 'O Ubuntu informa que o relógio está sincronizado.'
+          : 'Aguardando o estado do relógio do host.';
   const serverSignature = JSON.stringify(configuredServers);
   const [timeSyncServers, setTimeSyncServers] = useState(suggestedServers);
   const [timeSyncBusy, setTimeSyncBusy] = useState(false);
@@ -179,7 +189,7 @@ export default function SettingsPanel({
           </div>
 
           <p className="settings-explanation">
-            A integração só configura o <code>systemd-timesyncd</code> quando ele já está ativo. Ela não instala nem substitui outro cliente NTP. O padrão usa três servidores NTP.br; o systemd tenta as fontes disponíveis em sequência, sem votação.
+            A integração só configura o <code>systemd-timesyncd</code> quando ele já está ativo. Ela não instala nem substitui outro cliente NTP. O padrão usa três servidores do mesmo projeto NTP.br; o systemd tenta as fontes disponíveis em sequência, sem votação.
             {' '}<a href="https://www.ntp.br/" target="_blank" rel="noreferrer">Informações do NTP.br</a>
           </p>
 
@@ -229,16 +239,13 @@ export default function SettingsPanel({
             </form>
           ) : (
             <p className="time-sync-readonly">
-              Fontes configuradas: {configuredServers.join(', ')}
+              {hasConfiguredTimeSyncServers ? 'Fontes NTP configuradas: ' : 'Sugestões (ainda não configuradas): '}
+              {configuredServers.join(', ')}
             </p>
           )}
 
           <p className="display-preference-save-status" role="status" aria-live="polite">
-            {timeSyncActionMessage || timeSyncState?.message || (timeSyncState?.state === 'managed_elsewhere'
-              ? 'O Nivus preservou o cliente de hora já ativo e não alterou a configuração.'
-              : timeSyncState?.state === 'unavailable'
-                ? 'O controlador Nivus ou o systemd-timesyncd não está disponível neste host.'
-                : 'A configuração do host só pode ser alterada por um administrador.')}
+            {timeSyncActionMessage || timeSyncState?.message || timeSyncStatusMessage}
           </p>
         </section>
 
