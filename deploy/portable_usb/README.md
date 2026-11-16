@@ -24,9 +24,9 @@ Com o manifesto ainda na máquina Ubuntu de preparação:
 
     sudo python3 deploy/portable_usb/generate_autoinstall.py \
       --selection /var/tmp/nivus-usb-selection.json \
-      --output /var/tmp/nivus-usb-seed\n\nOpcionalmente, instale `cloud-image-utils` e acrescente `--build-seed-iso` ao comando para criar `nivus-autoinstall-seed.iso` e um checksum. Essa ISO é apenas a mídia de configuração NoCloud; não inicia o Ubuntu nem substitui a mídia instaladora. Ela contém configuração privada e o hash da senha, portanto não a publique.
+      --output /var/tmp/nivus-usb-seed
 
-O gerador relê o inventário atual e exige correspondência de caminho, modelo, serial e capacidade. Pede usuário, hostname e senha do Ubuntu; a senha não aparece no terminal e somente um hash entra no arquivo privado. A pasta de saída deve ser nova e fica protegida em modo 0700; os arquivos usam modo 0600.
+Opcionalmente, instale `cloud-image-utils` e acrescente `--build-seed-iso` ao comando para criar `nivus-autoinstall-seed.iso` e um checksum. Essa ISO é apenas a mídia de configuração NoCloud; não inicia o Ubuntu nem substitui a mídia instaladora. Ela contém configuração privada e o hash da senha, portanto não a publique.
 
 A configuração gerada mantém a seleção de armazenamento interativa e verifica novamente a identidade antes de abrir a tela do Subiquity. Consulte [AUTOINSTALL.md](AUTOINSTALL.md) para preparar o seed e revisar a instalação.
 
