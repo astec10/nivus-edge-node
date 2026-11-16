@@ -2,12 +2,12 @@
 
 Este executor é infraestrutura de desenvolvimento do repositório. Não roda no runtime do nó Nivus e não é o scheduler multi-nó da Fase 5.
 
-## Estado verificado em 2026-11-15
+## Estado verificado em 2026-11-16
 
 - O fluxo inicial foi integrado ao `main` no PR #3. Ele valida tarefas públicas/sintéticas em GitHub Issues, restringe alterações a caminhos aprovados e cria um PR em rascunho depois da CI.
 - A chave `GEMINI_API_KEY` e a variável `NIVUS_AI_BUDGET_MODE=free-tier` foram configuradas no GitHub segundo confirmação do mantenedor. O valor da chave nunca foi lido ou enviado ao chat. O mantenedor informou que usa um projeto Google sem faturamento; isso é uma configuração externa e não pode ser verificada pelo executor.
 - Duas tentativas reais anteriores não produziram proposta: a primeira recebeu HTTP 503; a segunda terminou no timeout de 75 segundos da chamada síncrona e foi exibida incorretamente como `None`.
-- Esta alteração troca a chamada síncrona por execução Gemini em segundo plano com polling limitado, erros sanitizados com código estável e exclusão da interação depois de recuperar a resposta. Os testes locais simulados passaram; a chamada end-to-end com este código ainda depende de CI/PR e de uma nova execução autorizada.
+- O adaptador atual envia uma única chamada, consulta interações em segundo plano por até quatro minutos, registra metadados sanitizados e tenta excluir a interação; os testes simulados cobrem sucesso, falha, timeout e exclusão. Uma chamada explicitamente autorizada para a Issue #6 gerou a proposta documental do PR #16. A validação do PR passou, mas a etapa de abertura automática falhou porque `gh repo view` exige um checkout; o mantenedor abriu o draft manualmente. A workflow principal foi corrigida no commit `bec9573` para ler o branch padrão pela API sem checkout. Ainda não houve uma nova chamada autorizada para confirmar a abertura automática após essa correção.
 - O executor não aprova, faz merge, implanta ou controla dispositivos domésticos. A revisão humana continua obrigatória.
 
 ## Implementação e limites
@@ -33,7 +33,7 @@ Este executor é infraestrutura de desenvolvimento do repositório. Não roda no
 
 ## Próximo marco
 
-O marco imediato é confirmar uma proposta end-to-end usando uma Issue pública/sintética, verificar que o relatório mostra uso de tokens e `interaction_deleted=true`, e confirmar que a CI passa antes de criar um PR em rascunho. Depois disso, a próxima entrega documentada é a Fase 1 de portabilidade/recuperação: primeiro concluir a verificação hospedada dos PRs de sensores e dashboard; não usar VMs no computador do operador. CI em runner remoto não certifica hardware Intel/AMD nem sensores físicos.
+O PR #16 continua em rascunho para revisão humana; os checks hospedados desse PR passaram. A geração da proposta está observada, mas a criação automática do draft falhou naquela tentativa; a workflow main contém a correção `bec9573`, ainda sem uma nova chamada end-to-end autorizada. Próximo marco do executor: revisar o PR #16 e, quando o mantenedor autorizar explicitamente uma nova tarefa pública/sintética, confirmar relatório de uso, exclusão da interação e abertura automática do draft. Não repetir chamadas automaticamente. Em paralelo, aplicar a release atualizada do dashboard no notebook; a CI hospedada não certifica hardware Intel/AMD nem sensores físicos.
 
 Issues e GitHub Actions são o estado durável e o executor principal; nenhuma máquina do operador precisa ficar ligada. O notebook CCE é suporte opcional para análise e relatórios, não um runner self-hosted para um repositório público.
 
