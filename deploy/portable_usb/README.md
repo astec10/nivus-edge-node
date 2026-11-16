@@ -24,7 +24,7 @@ Com o manifesto ainda na máquina Ubuntu de preparação:
 
     sudo python3 deploy/portable_usb/generate_autoinstall.py \
       --selection /var/tmp/nivus-usb-selection.json \
-      --output /var/tmp/nivus-usb-seed
+      --output /var/tmp/nivus-usb-seed\n\nOpcionalmente, instale `cloud-image-utils` e acrescente `--build-seed-iso` ao comando para criar `nivus-autoinstall-seed.iso` e um checksum. Essa ISO é apenas a mídia de configuração NoCloud; não inicia o Ubuntu nem substitui a mídia instaladora. Ela contém configuração privada e o hash da senha, portanto não a publique.
 
 O gerador relê o inventário atual e exige correspondência de caminho, modelo, serial e capacidade. Pede usuário, hostname e senha do Ubuntu; a senha não aparece no terminal e somente um hash entra no arquivo privado. A pasta de saída deve ser nova e fica protegida em modo 0700; os arquivos usam modo 0600.
 
@@ -38,7 +38,7 @@ O disco precisa ter pelo menos 40 GiB; o plano usa 1 MiB para BIOS/GRUB, 1 GiB p
 
 ## Limites atuais
 
-Esta branch ainda não cria ISO ou mídia inicializável, não instala os serviços Nivus e não prova reinício/persistência em equipamento físico. A CI usa inventários sintéticos e não grava em discos; também valida um seed representativo contra o schema oficial Subiquity da linha Ubuntu 24.04. Ainda faltam executar o instalador Subiquity, gerar mídia bootável e testar persistência/boot UEFI/BIOS em hardware físico.
+Esta branch cria opcionalmente uma ISO NoCloud de configuração, mas ainda não cria a mídia inicializável do Ubuntu, não instala os serviços Nivus e não prova reinício/persistência em equipamento físico. A CI usa inventários sintéticos e não grava em discos; valida um seed pelo schema oficial Subiquity da linha Ubuntu 24.04 e testa a geração da ISO com uma saída sintética. Ainda faltam executar o instalador Subiquity, integrar ou documentar a mídia inicializável completa, instalar Nivus e testar persistência/boot UEFI/BIOS em hardware físico.
 
 A ISO Ubuntu Server inicia um instalador e a tela de armazenamento pode formatar o disco escolhido. O Subiquity permite identificar o disco pelo serial; a configuração não usa a seleção por maior capacidade:
 
