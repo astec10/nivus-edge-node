@@ -136,7 +136,8 @@ class PortableUsbAutoinstallTests(unittest.TestCase):
         )
 
         self.assertTrue(user_data.startswith("#cloud-config\n"))
-        config = json.loads(user_data.split("\n", 1)[1])["autoinstall"]
+        body = user_data.split("\n", 2)[2]
+        config = json.loads(body)["autoinstall"]
         self.assertEqual(config["interactive-sections"], ["storage"])
         self.assertEqual(config["identity"]["username"], "nivus")
         storage = config["storage"]["config"]
