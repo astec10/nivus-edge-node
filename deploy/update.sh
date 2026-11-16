@@ -48,7 +48,7 @@ fail_and_rollback() {
   trap - ERR INT TERM
   if [[ $SWITCHED -eq 1 && $READY -eq 0 ]]; then
     set +e
-    echo "A atualização falhou após a troca; voltando à release anterior." >&2
+    echo "A promoção falhou; restaurando a release anterior e seus serviços." >&2
     systemctl stop "$SERVICE" >/dev/null 2>&1
     systemctl stop "$TIME_SYNC_SERVICE" >/dev/null 2>&1 || true
     local rollback_link="$INSTALL_ROOT/.current-rollback-$(date -u +%Y%m%dT%H%M%SZ)-$"
@@ -250,11 +250,11 @@ PY
 )
 
 echo "[3/5] Trocando release e reiniciando os serviços Nivus."
+SWITCHED=1
 systemctl stop "$SERVICE"
 NEW_LINK="$INSTALL_ROOT/.current-update-$STAMP"
 ln -s "$NEW_RELEASE" "$NEW_LINK"
 mv -Tf -- "$NEW_LINK" "$CURRENT"
-SWITCHED=1
 if [[ ! -e "$TIME_SYNC_DROPIN_DIR" && ! -L "$TIME_SYNC_DROPIN_DIR" ]]; then
   install -d -m 755 "$TIME_SYNC_DROPIN_DIR"
   TIME_SYNC_DROPIN_DIR_CREATED=1
