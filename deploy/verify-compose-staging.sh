@@ -226,7 +226,10 @@ grep -q '"enabled":false' <<< "$API_STATE"
 curl -kfsS --connect-timeout 2 --max-time 5 -X POST \
   -H "Authorization: Bearer $ADMIN_TOKEN" -H 'Content-Type: application/json' \
   -d '{"enabled":true}' https://127.0.0.1:28443/api/maintenance | grep -q '"enabled":true'
-[[ $(stat -c "%a:%u:%g" "$MAINTENANCE_DIR/state.json") == "640:$RUNTIME_UID:$RUNTIME_GID" ]]
+STATE_METADATA=$(docker compose -p "$PROJECT" exec -T api python -c \
+  'import os,stat,sys; st=os.stat(sys.argv[1]); print(f"{stat.S_IMODE(st.st_mode):o}:{st.st_uid}:{st.st_gid}")' \
+  /run/nivus-maintenance/state.json)
+[[ "$STATE_METADATA" == "640:$RUNTIME_UID:$RUNTIME_GID" ]]
 sudo -u "#$HOST_UID" -g "#$RUNTIME_GID" test -r "$MAINTENANCE_DIR/state.json"
 run_nivusctl() {
   local -a privilege=()
