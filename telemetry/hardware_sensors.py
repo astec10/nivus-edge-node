@@ -150,3 +150,33 @@ def get_thermal_metrics():
             f"{gpu_hotspot['source']}: {gpu_hotspot['label']}" if gpu_hotspot else None
         ),
     }
+
+
+def get_host_battery_metrics():
+    """Return the host's internal battery state when the OS exposes one."""
+    try:
+        battery = psutil.sensors_battery()
+    except (psutil.Error, AttributeError, NotImplementedError):
+        battery = None
+    if battery is None:
+        return {
+            "host_battery_percent": None,
+            "host_battery_power_plugged": None,
+            "host_battery_source": None,
+        }
+
+    percent = getattr(battery, "percent", None)
+    if not _valid_battery_percent(percent):
+        percent = None
+    plugged = getattr(battery, "power_plugged", None)
+    if not isinstance(plugged, bool):
+        plugged = None
+    return {
+        "host_battery_percent": float(percent) if percent is not None else None,
+        "host_battery_power_plugged": plugged,
+        "host_battery_source": "psutil: internal host battery" if percent is not None else None,
+    }
+
+
+def _valid_battery_percent(value):
+    return isinstance(value, (int, float)) and math.isfinite(value) and 0 <= value <= 100
