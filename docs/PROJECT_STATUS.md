@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-16 17:27 UTC
+Atualizado: 2026-11-16 19:40 UTC
 Licença: AGPL-3.0-only
 
 ## Resumo verificado
@@ -19,11 +19,11 @@ O operador decidiu não usar VMs no computador pessoal. Os testes repetíveis us
 
 A decisão da issue #29 está fechada: Ubuntu Server completo instalado no pendrive, com raiz ext4 e uma partição ext4 separada \`NIVUS_DATA\` para dados persistentes. O objetivo é iniciar outro computador x86_64 sem alterar o disco interno. Não é Casper Live.
 
-O PR #34 está aberto. O commit \`9722b93\` passou validação do seletor USB, schema Subiquity 24.04, testes sintéticos e workflows gerais; esse resultado antecede a integração do instalador pós-boot. A branch atual acrescenta \`deploy/portable_usb/install_nivus.sh\` para, depois do primeiro boot, verificar a raiz e NIVUS_DATA no mesmo dispositivo USB, validar ext4/rótulo/fstab/montagem e configurar links e guard persistentes antes de chamar o instalador Compose. No commit `51f336711f23b9341ea459606a754e5730de000f`, todos os checks hospedados passaram: seletor USB, seed/schema Subiquity, bootstrap pós-boot, integração ext4, workflows gerais, índice e CodeQL.
+O PR #34 foi integrado à `main` no commit `703efa4128f60460910b05ab344b60b082006a7e`. Todos os checks hospedados passaram no head `3a1621dc11d2532853ef83b9ab5ea47f64cfaca5`: seletor USB, seed/schema Subiquity, bootstrap pós-boot, integração ext4, smoke Compose, workflows gerais, índice e CodeQL. `deploy/portable_usb/install_nivus.sh` valida raiz e `NIVUS_DATA` no mesmo dispositivo USB, verifica ext4/rótulo/fstab/montagem e configura caminhos e guard persistentes antes de chamar o instalador Compose.
 
 O fluxo continua usando a mídia oficial inicializável do Ubuntu e um seed NoCloud separado. A tela de armazenamento do Subiquity permanece interativa; a pessoa confere caminho, modelo, serial e capacidade antes de confirmar, porque o instalador apaga o USB escolhido. A primeira instalação do Compose precisa de Internet para instalar pacotes e construir/obter componentes. Depois de instalado, o Nivus local pode operar na LAN sem serviço de nuvem; inferência local e coordenação multi-nó são fases separadas.
 
-Ainda faltam revisar/mesclar o PR #34, executar uma instalação real até o primeiro boot, autenticar no painel, reiniciar e validar persistência de SQLite, configurações, segredos e Docker, testar recuperação/rollback e fazer a matriz física UEFI/BIOS Intel/AMD. A CI hospedada não comprova boot em mídia física. A CI hospedada e os testes em loop device não comprovam boot em hardware físico nem compatibilidade universal. Consulte [deploy/portable_usb/README.md](../deploy/portable_usb/README.md) e [deploy/live-usb/README.md](../deploy/live-usb/README.md) para o procedimento e seus limites.
+Ainda faltam executar uma instalação real do Subiquity até o primeiro boot, instalar Nivus, autenticar no painel, reiniciar e verificar SQLite (`quick_check`), configurações, segredos e Docker persistidos, testar recuperação/rollback e fazer a matriz física UEFI/BIOS Intel/AMD. A CI hospedada e o loop ext4 validam software, não boot em USB físico nem compatibilidade universal. Consulte [deploy/portable_usb/README.md](../deploy/portable_usb/README.md) para o procedimento e seus limites.
 
 ## Estado do notebook de teste
 
@@ -31,7 +31,7 @@ O operador aplicou a release do PR #20 em 16/11/2026. O script reconstruiu API e
 
 Após o reboot, a inspeção SSH somente de leitura confirmou a release `/opt/nivus-compose/releases/20261116T015555Z-969a1bd062b138cba9d1286930ca7779ffbde6ff`; containers web, API, worker e MQTT ativos; API/MQTT saudáveis; `nivus-compose-telemetry.service` ativo; HTTPS principal sem sufixo de porta e a versão leve em 8444 respondendo HTTP 200; `/health` respondendo `{"status":"ok","node":"nivus-edge-node"}`; e API de telemetria sem token retornando 401. Esses checks confirmam serviço e autorização, não substituem o teste visual da troca entre versões.
 
-O rollback da release está em `/home/nivus/nivus-backups/nivus-update-20261116T015555Z`. O painel `/PROGRESS.html` e seu script também respondem HTTP 200, mas o HTML ainda contém o status antigo de promoção pendente. A correção da fonte e a republicação estão em andamento; não publicar valores ou contagens reais de sensores.
+O rollback da release está em `/home/nivus/nivus-backups/nivus-update-20261116T015555Z`. A fonte versionada de `/PROGRESS.html` foi alinhada ao merge do PR #34; a cópia servida no notebook não foi reconfirmada nesta rodada. Não publicar valores ou contagens reais de sensores.
 
 ## Melhoria térmica e gráficos
 
@@ -53,12 +53,12 @@ A implementação de manutenção reversível e `nivus help` foi integrada à `m
 
 ## Escopo ainda pendente
 
-- Issue #25: corrigir e republicar `PROGRESS.html`, que ainda mostra a promoção como pendente, e validar a troca de dashboard sem novo login, logout e expiração.
+- Issue #25: publicar no notebook a versão atualizada de `PROGRESS.html` e validar a troca de dashboard sem novo login, logout e expiração. O estado HTTP da cópia servida ainda precisa de conferência.
 - Issue #21 e #23: aba Configuração com relógio Brasília, formatos 12/24h e data, fuso/GMT, servidores NTP redundantes sem mostrar a fonte no relógio e temas selecionáveis.
 - Issue #26: implementação integrada no PR #28; resta aplicar a release no notebook e confirmar CLI/dashboard e retorno ao modo normal após reboot. A CI hospedada passou, mas não substitui a validação do host.
 - Issue #22: integrar fonte identificada e recente da bateria do dispositivo móvel e associá-la ao relé; manter comandos manuais até então.
 - Fase 1: instalação limpa, recuperação e medição em mais hardware; a CI hospedada não substitui a matriz física Intel/AMD de três faixas de geração.
-- Issue #29: construir a imagem inicializável Ubuntu + Nivus Live. A integração de partição persistente e guard de boot entrou no PR #31 e passou CI hospedada; o artefato bootável, formato final, reboot em hardware real e compatibilidade UEFI/BIOS ainda estão pendentes.
+- Issue #29: PR #34 integrado com seleção explícita do USB, seed Subiquity revisável e bootstrap pós-boot de Nivus. Pendem instalação e reboot em USB físico, verificação de persistência e recuperação, e matriz UEFI/BIOS Intel/AMD; a CI não substitui essas provas.
 - Fase 2: identidade/cadastro/heartbeat multi-nó, telemetria agregada e rollout de releases assinadas com canário, saúde e rollback por nó.
 - Fase 3: Home Assistant, Zigbee, energia e câmeras em leitura antes de automação física.
 - Fase 4: inferência local e biblioteca documental consultável com fonte, licença, citações e limites de recursos.
