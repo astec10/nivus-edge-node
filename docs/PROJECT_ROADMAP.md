@@ -28,7 +28,7 @@ Critérios já observados: login funcional; API exige token; health HTTPS respon
 
 **Operação de manutenção (issue #26):** implementação merged no PR #28, com `nivus help` e controle administrativo; CI hospedada aprovada. A pausa interrompe amostragem/publicação de telemetria do host e gravação de novas amostras MQTT, sem desligar API, painel, health ou broker. A publicação e o teste no notebook CCE U25 ainda estão pendentes.
 
-**Relógio, temas e sincronização de hora (issues #21/#23):** o PR #37 integrou preferências de visualização e temas; o PR #40 acrescentou a leitura/configuração NTP do host com controlador restrito, e o PR #41 corrigiu o nome temporário do rollback. CI hospedada aprovada. O pacote está em `main`, mas a instalação e validação visual no notebook ainda estão pendentes. O NTP do host só é aplicado explicitamente por administrador quando `systemd-timesyncd` já está ativo.
+**Relógio, interface e sensores (issues #21/#23):** PR #37 integrou preferências do relógio; PRs #40/#41 adicionaram controle NTP restrito; PR #43 integrou cinco temas funcionais; PR #44 restaurou os valores imediatos no gráfico e corrigiu contraste/movimento; PR #45 adicionou provedores NTP distintos e edição segura quando systemd-timesyncd está instalado; PR #46 adicionou bateria interna do nó. Os checks hospedados passaram. A última versão comunicada do notebook é c70ed02, anterior aos PRs #43-46; aplicar e validar esses recursos no host continua pendente.
 
 ### Fase 1 — Instalação, recuperação e portabilidade
 
