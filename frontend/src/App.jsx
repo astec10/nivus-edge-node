@@ -79,12 +79,11 @@ function App() {
       localStorage.setItem('nivus_token', newToken);
       setUsername('');
       setPassword('');
+      setAdminAuthPassword('');
       if (res.data.password_change_required) {
-        setAdminAuthPassword(password);
         alert('Primeiro acesso: defina sua senha definitiva para continuar.');
         return;
       }
-      setAdminAuthPassword('');
       alert('Autenticado com sucesso!');
       fetchData(newToken);
     } catch (err) {
@@ -102,6 +101,9 @@ function App() {
   const handleLogout = () => {
     setToken('');
     localStorage.removeItem('nivus_token');
+    setAdminAuthPassword('');
+    setTargetNewPassword('');
+    setTargetConfirmPassword('');
     setActiveTab('dashboard');
   };
 
@@ -209,20 +211,15 @@ function App() {
       alert('As senhas não coincidem!');
       return;
     }
-    const hasLetter = /\\p{L}/u.test(targetNewPassword);
-    const hasNumber = /\\p{N}/u.test(targetNewPassword);
+    const hasLetter = Array.from(targetNewPassword).some(character => character.toLowerCase() !== character.toUpperCase());
+    const hasNumber = /[0-9]/.test(targetNewPassword);
     if (targetNewPassword.length < 8 || targetNewPassword.length > 256 || !hasLetter || !hasNumber) {
       alert('Use uma senha de 8 a 256 caracteres, com pelo menos uma letra e um número.');
       return;
     }
     try {
       if (passwordChangeRequired) {
-        if (!adminAuthPassword) {
-          alert('A sessão temporária expirou. Saia e entre novamente para continuar.');
-          return;
-        }
         const response = await axios.post(`${API_BASE}/api/users/first-login-password`, {
-          current_password: adminAuthPassword,
           new_password: targetNewPassword
         }, {
           headers: { Authorization: `Bearer ${token}` }
