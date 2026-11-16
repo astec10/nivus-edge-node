@@ -81,6 +81,7 @@ function MetricCard({ label, value, hint, details, detailsLabel }) {
   return (
     <>
       <div
+        className="metric-card"
         tabIndex={0}
         role="group"
         aria-label={`${label}: ${value}. Mantenha o ponteiro ou o foco por 3 segundos para ver detalhes.`}
