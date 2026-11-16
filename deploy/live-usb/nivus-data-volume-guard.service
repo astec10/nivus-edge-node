@@ -1,0 +1,13 @@
+[Unit]
+Description=Validate the Nivus persistent data partition
+Requires=var-lib-nivus.mount
+After=var-lib-nivus.mount
+Before=docker.service nivus-compose-telemetry.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/nivus-data-volume-guard
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
