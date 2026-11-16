@@ -53,6 +53,15 @@ function alertDescription(alertType) {
   return { name: alertType || 'Alerta', unit: '' };
 }
 
+function systemLogTone(log) {
+  const text = String(log).toUpperCase();
+  if (/ERROR|CRITICAL|FALHA/.test(text)) return 'system-log-entry--error';
+  if (/WARN|WARNING|AVISO/.test(text)) return 'system-log-entry--warning';
+  if (/MQTT/.test(text)) return 'system-log-entry--mqtt';
+  if (/INFO/.test(text)) return 'system-log-entry--info';
+  return '';
+}
+
 export default function DashboardPanel({
   activeTab,
   error,
@@ -77,9 +86,14 @@ export default function DashboardPanel({
   const [thresholdDraft, setThresholdDraft] = useState(settings.temp_threshold ?? '75');
   const [thresholdDirty, setThresholdDirty] = useState(false);
   const [savingThreshold, setSavingThreshold] = useState(false);
+  const [systemLogQuery, setSystemLogQuery] = useState('');
   const thresholdValue = Number.parseFloat(thresholdDraft);
   const thresholdValid = Number.isFinite(thresholdValue) && thresholdValue >= 0 && thresholdValue <= 150;
   const chartRows = useMemo(() => selectTelemetryWindow(telemetry, chartRange), [telemetry, chartRange]);
+  const visibleSystemLogs = useMemo(() => {
+    const query = systemLogQuery.trim().toLocaleLowerCase();
+    return query ? systemLogs.filter(log => String(log).toLocaleLowerCase().includes(query)) : systemLogs;
+  }, [systemLogs, systemLogQuery]);
 
   useEffect(() => {
     if (!thresholdDirty) setThresholdDraft(settings.temp_threshold ?? '75');
@@ -120,12 +134,15 @@ export default function DashboardPanel({
           )}
 
           <div className="dashboard-metric-grid">
-            <MetricCard label="CPU" value={formatMetric(latest?.cpu_percent, '%')} details={<RangeDetails samples={chartRows} metric="cpu_percent" unit="%" />} />
-            <MetricCard label="Memória" value={formatMetric(latest?.memory_percent, '%')} details={<RangeDetails samples={chartRows} metric="memory_percent" unit="%" />} />
-            <MetricCard label="Disco" value={formatMetric(latest?.disk_percent, '%')} details={<RangeDetails samples={chartRows} metric="disk_percent" unit="%" />} />
+            <MetricCard label="CPU" metricId="cpu" primary sparklineValues={chartRows.map(sample => sample.cpu_percent)} gaugeValue={latest?.cpu_percent} gaugeMax={100} value={formatMetric(latest?.cpu_percent, '%')} details={<RangeDetails samples={chartRows} metric="cpu_percent" unit="%" />} />
+            <MetricCard label="Memória" metricId="memory" primary sparklineValues={chartRows.map(sample => sample.memory_percent)} gaugeValue={latest?.memory_percent} gaugeMax={100} value={formatMetric(latest?.memory_percent, '%')} details={<RangeDetails samples={chartRows} metric="memory_percent" unit="%" />} />
+            <MetricCard label="Disco" metricId="disk" gaugeValue={latest?.disk_percent} gaugeMax={100} value={formatMetric(latest?.disk_percent, '%')} details={<RangeDetails samples={chartRows} metric="disk_percent" unit="%" />} />
             <MetricCard
               label="CPU / APU"
-              value={formatMetric(latest?.temperature_source ? latest.temperature : null, '°C')}
+              metricId="cpu-thermal"
+              gaugeValue={latest?.temperature_source ? latest.temperature : null}
+              gaugeMax={120}
+              value={formatMetric(latest?.temperature_source ? latest.temperature : null, '°C')
               hint={latest?.temperature_source || 'Sensor térmico não exposto'}
               details={<MetricDetails samples={temperatureSamples} metrics={[
                 { label: 'CPU / APU', key: 'temperature', source: 'temperature_source' },
@@ -135,7 +152,10 @@ export default function DashboardPanel({
             />
             <MetricCard
               label={graphicsLabel}
-              value={formatMetric(latest?.gpu_temperature, '°C')}
+              metricId="graphics-thermal"
+              gaugeValue={latest?.gpu_temperature}
+              gaugeMax={120}
+              value={formatMetric(latest?.gpu_temperature, '°C')
               hint={latest?.gpu_temperature_source || 'Sensor gráfico não exposto'}
               details={<MetricDetails samples={temperatureSamples} metrics={[
                 { label: 'Gráficos (APU/GPU)', key: 'gpu_temperature', source: 'gpu_temperature_source' },
@@ -145,14 +165,22 @@ export default function DashboardPanel({
             />
             <MetricCard
               label="Placa-mãe"
-              value={formatMetric(latest?.motherboard_temperature, '°C')}
+              metricId="motherboard-thermal"
+              gaugeValue={latest?.motherboard_temperature}
+              gaugeMax={120}
+              value={formatMetric(latest?.motherboard_temperature, '°C')
               hint={latest?.motherboard_temperature_source || 'Sensor não exposto pelo SO/driver'}
               details={<MetricDetails samples={temperatureSamples} metrics={[{ label: 'Placa-mãe', key: 'motherboard_temperature', source: 'motherboard_temperature_source' }]} />}
               detailsLabel="Temperatura da placa-mãe"
             />
             <MetricCard
               label="Energia estimada"
-              value={formatMetric(latest?.power_consumption, ' W')}
+              metricId="power"
+              primary
+              sparklineValues={chartRows.map(sample => sample.power_consumption)}
+              gaugeValue={latest?.power_consumption}
+              gaugeMax={250}
+              value={formatMetric(latest?.power_consumption, ' W')
               hint="Estimativa de software; não é medição física"
               details={<RangeDetails samples={chartRows} metric="power_consumption" unit=" W" />}
             />
@@ -214,6 +242,24 @@ export default function DashboardPanel({
               <p className="dashboard-sound-status" role="status" aria-live="polite">
                 {soundStatus} O som é reproduzido pelo navegador, não por um buzzer físico.
               </p>
+              <div className="temperature-threshold-slider">
+                <label className="visually-hidden" htmlFor="temperature-threshold-slider">Limite de temperatura em graus Celsius</label>
+                <input
+                  id="temperature-threshold-slider"
+                  type="range"
+                  min="0"
+                  max="150"
+                  step="0.5"
+                  disabled={!isAdmin || savingThreshold}
+                  value={thresholdValid ? thresholdValue : 75}
+                  style={{ '--threshold-fill': (((thresholdValid ? thresholdValue : 75) / 150) * 100) + '%' }}
+                  aria-valuetext={(thresholdValid ? thresholdValue : 75) + ' graus Celsius'}
+                  onChange={event => {
+                    setThresholdDraft(event.target.value);
+                    setThresholdDirty(true);
+                  }}
+                />
+              </div>
               <div className="threshold-row">
                 <label htmlFor="temperature-threshold">Limite (°C)</label>
                 <input
@@ -268,10 +314,16 @@ export default function DashboardPanel({
               <span className="dashboard-panel-tag">API + worker MQTT</span>
             </div>
             <p className="dashboard-panel-copy">Eventos da aplicação Nivus. Estes registros não incluem logs do Ubuntu, kernel ou de outros containers.</p>
+            <label className="system-log-search">
+              <span className="visually-hidden">Buscar nos logs do Nivus</span>
+              <input type="search" value={systemLogQuery} onChange={event => setSystemLogQuery(event.target.value)} placeholder="Buscar nos logs…" aria-label="Buscar nos logs do Nivus" />
+            </label>
             <div className="system-log-list" aria-live="polite">
-              {systemLogs.length
-                ? systemLogs.map((log, index) => <div key={`${index}-${log}`}>{log}</div>)
-                : <div className="system-log-empty"><Cpu aria-hidden="true" /> Nenhum registro de aplicação disponível ainda.</div>}
+              {visibleSystemLogs.length
+                ? visibleSystemLogs.map((log, index) => <div className={'system-log-entry ' + systemLogTone(log)} key={String(index) + '-' + String(log)}>{String(log)}</div>)
+                : systemLogs.length
+                  ? <div className="system-log-empty">Nenhum log corresponde à busca.</div>
+                  : <div className="system-log-empty"><Cpu aria-hidden="true" /> Nenhum registro de aplicação disponível ainda.</div>}
             </div>
           </section>
         </main>
