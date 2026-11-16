@@ -232,6 +232,29 @@ if [[ -f "$TIME_SYNC_ENV" && ! -L "$TIME_SYNC_ENV" ]]; then
   cp -a "$TIME_SYNC_ENV" "$BACKUP_DIR/time-sync.env"
   chmod 600 "$BACKUP_DIR/time-sync.env"
 fi
+if ! grep -q '^NIVUS_TIME_SYNC_DIR=' "$NEW_RELEASE/.env"; then
+  printf 'NIVUS_TIME_SYNC_DIR=/run/nivus-time-sync\n' >> "$NEW_RELEASE/.env"
+fi
+
+
+TELEMETRY_BEFORE=$(python3 - "$DATA_DIR/nivus.db" <<'PY'
+import sqlite3, sys
+conn = sqlite3.connect(sys.argv[1], timeout=30)
+try:
+    if conn.execute("PRAGMA quick_check").fetchone()[0] != "ok":
+        raise SystemExit("SQLite quick_check falhou antes da atualização")
+    print(conn.execute("SELECT COUNT(*) FROM telemetry").fetchone()[0])
+finally:
+    conn.close()
+PY
+)
+
+echo "[3/5] Trocando release e reiniciando os serviços Nivus."
+systemctl stop "$SERVICE"
+NEW_LINK="$INSTALL_ROOT/.current-update-$STAMP"
+ln -s "$NEW_RELEASE" "$NEW_LINK"
+mv -Tf -- "$NEW_LINK" "$CURRENT"
+SWITCHED=1
 if [[ ! -e "$TIME_SYNC_DROPIN_DIR" && ! -L "$TIME_SYNC_DROPIN_DIR" ]]; then
   install -d -m 755 "$TIME_SYNC_DROPIN_DIR"
   TIME_SYNC_DROPIN_DIR_CREATED=1
@@ -258,28 +281,6 @@ RUNTIME_GID=$(sed -n 's/^NIVUS_RUNTIME_GID=//p' "$CURRENT/.env" | tr -d '\r' | t
 install -d -m 700 /etc/nivus-compose
 printf 'NIVUS_RUNTIME_UID=%s\nNIVUS_RUNTIME_GID=%s\n' "$RUNTIME_UID" "$RUNTIME_GID" > "$TIME_SYNC_ENV"
 chmod 600 "$TIME_SYNC_ENV"
-if ! grep -q '^NIVUS_TIME_SYNC_DIR=' "$NEW_RELEASE/.env"; then
-  printf 'NIVUS_TIME_SYNC_DIR=/run/nivus-time-sync\n' >> "$NEW_RELEASE/.env"
-fi
-
-TELEMETRY_BEFORE=$(python3 - "$DATA_DIR/nivus.db" <<'PY'
-import sqlite3, sys
-conn = sqlite3.connect(sys.argv[1], timeout=30)
-try:
-    if conn.execute("PRAGMA quick_check").fetchone()[0] != "ok":
-        raise SystemExit("SQLite quick_check falhou antes da atualização")
-    print(conn.execute("SELECT COUNT(*) FROM telemetry").fetchone()[0])
-finally:
-    conn.close()
-PY
-)
-
-echo "[3/5] Trocando release e reiniciando os serviços Nivus."
-systemctl stop "$SERVICE"
-NEW_LINK="$INSTALL_ROOT/.current-update-$STAMP"
-ln -s "$NEW_RELEASE" "$NEW_LINK"
-mv -Tf -- "$NEW_LINK" "$CURRENT"
-SWITCHED=1
 install -m 644 "$NEW_RELEASE/deploy/nivus-compose-telemetry.service" "$UNIT_FILE"
 install -m 644 "$NEW_RELEASE/deploy/nivus-time-sync.service" "$TIME_SYNC_UNIT_FILE"
 systemctl daemon-reload
