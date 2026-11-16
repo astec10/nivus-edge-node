@@ -1,4 +1,5 @@
 import importlib.util
+import struct
 import tempfile
 import unittest
 from pathlib import Path
@@ -33,6 +34,20 @@ class TimeSyncSchemaTests(unittest.TestCase):
 
 
 class TimeSyncControllerTests(unittest.TestCase):
+    def test_read_acl_only_grants_named_service_user_access(self):
+        acl = time_sync._acl_read_only_for_user(12345)
+        header = struct.unpack_from("<I", acl, 0)[0]
+        entries = [
+            struct.unpack_from("<HHI", acl, offset)
+            for offset in range(4, len(acl), 8)
+        ]
+        self.assertEqual(header, 0x0002)
+        self.assertEqual(entries[0], (0x01, 0o6, 0xFFFFFFFF))
+        self.assertEqual(entries[1], (0x02, 0o4, 12345))
+        self.assertEqual(entries[2], (0x04, 0o0, 0xFFFFFFFF))
+        self.assertEqual(entries[3], (0x10, 0o4, 0xFFFFFFFF))
+        self.assertEqual(entries[4], (0x20, 0o0, 0xFFFFFFFF))
+
     def test_rejects_ip_addresses_in_privileged_helper(self):
         for address in ("192.0.2.10", "2001:db8::1"):
             with self.subTest(address=address):
@@ -53,6 +68,7 @@ class TimeSyncControllerTests(unittest.TestCase):
             patch.object(time_sync, "service_active", side_effect=lambda unit: unit == "systemd-timesyncd.service"),
             patch.object(time_sync, "_ntp_synchronized", return_value=True),
             patch.object(time_sync, "_restart_timesyncd", return_value=True),
+            patch.object(time_sync, "_systemd_timesync_uid", return_value=65534),
         ]
         for item in self.stack:
             item.start()
