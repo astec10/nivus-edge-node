@@ -36,7 +36,8 @@ Critérios já observados: login funcional; API exige token; health HTTPS respon
 
 Siga [`VM_VALIDATION.md`](VM_VALIDATION.md) como roteiro executável e registre a evidência em [`PROJECT_STATUS.md`](PROJECT_STATUS.md). O script de restauração está implementado; só declare a etapa concluída após teste real em clone descartável com backup, restore, validação e rollback.
 
-1. Fechar o formato da mídia: Casper Live verdadeiro com overlay e volume persistente, ou Ubuntu completo instalado no USB. A ISO oficial Ubuntu Server inicia o instalador, não um Live Server persistente; se a meta continuar sendo Live verdadeiro, documentar o construtor Casper e a manutenção por atualização de imagem.\n2. Construir a imagem e o primeiro smoke em runner Ubuntu hospedado pelo GitHub a cada pull request para `main` e push em `main`; não iniciar VMs no computador do operador.
+1. Fechar o formato da mídia: Casper Live verdadeiro com overlay e volume persistente, ou Ubuntu completo instalado no USB. A ISO oficial Ubuntu Server inicia o instalador, não um Live Server persistente; se a meta continuar sendo Live verdadeiro, documentar o construtor Casper e a manutenção por atualização de imagem.
+2. Construir a imagem e o primeiro smoke em runner Ubuntu hospedado pelo GitHub a cada pull request para `main` e push em `main`; não iniciar VMs no computador do operador.
 3. Registrar RAM livre, CPU, disco, espaço de build, portas, versões do Ubuntu/Docker/Compose e tempo de instalação.
 4. Exercitar boot, reinicialização, persistência, instalação, backup, restore e rollback no runner descartável hospedado pelo CI, sem alterar o notebook de teste.
 5. Preservar as evidências e logs sanitizados do runner como artefatos da execução; repetir o fluxo após mudança nos scripts operacionais.
