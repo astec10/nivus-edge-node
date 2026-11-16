@@ -167,7 +167,7 @@ AUTH_STATUS=$(curl -k -sS --connect-timeout 2 --max-time 4 -o /dev/null -w '%{ht
 [[ "$AUTH_STATUS" == 401 ]]
 USER_COUNT=$(cd "$CURRENT" && docker compose exec -T api python -c 'from database import get_db_connection; c=get_db_connection(); print(c.execute("SELECT COUNT(*) FROM users").fetchone()[0]); c.close()')
 if [[ "$USER_COUNT" == 0 ]]; then
-  echo "Crie a primeira conta administradora. Nome: 1–32 caracteres (letras, números, ponto, hífen ou sublinhado). Senha: 12–256 caracteres; será solicitada duas vezes sem eco."
+  echo "Crie a primeira conta administradora. Nome: 1–32 caracteres (letras, números, ponto, hífen ou sublinhado). Senha temporária: 8–256 caracteres, com uma letra e um número; será solicitada duas vezes sem eco e deverá ser trocada no primeiro acesso."
   (cd "$CURRENT" && docker compose run --rm -it api python create_admin.py)
 fi
 systemctl daemon-reload
