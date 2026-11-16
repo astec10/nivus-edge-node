@@ -1714,3 +1714,68 @@ code {
 .dashboard-root[data-theme="eink"] .login-panel__toggle { border-radius: 0; color: #fff; background: #000; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; text-transform: uppercase; }
 
 .login-panel__form[hidden] { display: none; }
+.mobile-battery-device-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.75rem;
+  max-width: 48rem;
+}
+.mobile-battery-device-form input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.45rem;
+  padding: 0.5rem 0.65rem;
+  color: var(--text-h);
+  background: var(--bg);
+  font: inherit;
+}
+.mobile-battery-device-list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 1rem 0;
+  padding: 0;
+  list-style: none;
+}
+.mobile-battery-device-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+  padding: 0.75rem;
+}
+.mobile-battery-device-meta { display: grid; gap: 0.2rem; min-width: 0; }
+.mobile-battery-device-meta span,
+.mobile-battery-device-meta small { overflow-wrap: anywhere; }
+.mobile-battery-once-token {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 1rem;
+  border: 1px solid #f59e0b;
+  border-radius: 0.55rem;
+  padding: 0.8rem;
+}
+.mobile-battery-once-token p { margin: 0; }
+.mobile-battery-once-token code { display: block; overflow-wrap: anywhere; user-select: all; }
+.mobile-battery-controls { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.mobile-battery-revoke {
+  flex: none;
+  min-height: 2.3rem;
+  border: 1px solid #ef4444;
+  border-radius: 0.45rem;
+  padding: 0.4rem 0.7rem;
+  color: #ef4444;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+.mobile-battery-revoke:focus-visible { outline: 2px solid #ef4444; outline-offset: 2px; }
+.mobile-battery-revoke:disabled { cursor: not-allowed; opacity: 0.6; }
+@media (max-width: 600px) {
+  .mobile-battery-device-form { grid-template-columns: minmax(0, 1fr); }
+  .mobile-battery-device-row { align-items: flex-start; flex-direction: column; }
+}
