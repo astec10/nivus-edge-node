@@ -144,7 +144,7 @@ class PortableUsbAutoinstallTests(unittest.TestCase):
         storage = config["storage"]["config"]
         target = next(item for item in storage if item.get("id") == "nivus-usb")
         self.assertEqual(target["serial"], device["serial"])
-        self.assertEqual(target["model"], device["model"])
+        self.assertNotIn("model", target)
         self.assertNotIn("match", target)
         self.assertNotIn("size", target)
 
