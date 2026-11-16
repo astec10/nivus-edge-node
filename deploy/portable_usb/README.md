@@ -26,7 +26,7 @@ Com o manifesto ainda na máquina Ubuntu de preparação:
       --selection /var/tmp/nivus-usb-selection.json \
       --output /var/tmp/nivus-usb-seed
 
-Opcionalmente, instale `cloud-image-utils` e acrescente `--build-seed-iso` ao comando para criar `nivus-autoinstall-seed.iso` e um checksum. Essa ISO é apenas a mídia de configuração NoCloud; não inicia o Ubuntu nem substitui a mídia instaladora. Ela contém configuração privada e o hash da senha, portanto não a publique.
+Opcionalmente, instale `cloud-image-utils` e acrescente `--build-seed-iso` ao comando para criar `nivus-autoinstall-seed.iso` e um checksum. Essa ISO é apenas a mídia de configuração NoCloud; não inicia o Ubuntu nem substitui a mídia instaladora. Ela contém configuração privada e o hash da senha, portanto não a publique. Ao iniciar o instalador Ubuntu, não acrescente `autoinstall` à linha de boot: mantenha a confirmação do Subiquity e confira o USB alvo antes de confirmar.
 
 A configuração gerada mantém a seleção de armazenamento interativa e verifica novamente a identidade antes de abrir a tela do Subiquity. Consulte [AUTOINSTALL.md](AUTOINSTALL.md) para preparar o seed e revisar a instalação.
 
