@@ -78,17 +78,8 @@ const CHART_TYPES = [
   { key: 'bar', label: 'Barras' },
 ];
 
-function DelayedChartTooltip({ active, payload, series, rows, selectionKey, mode }) {
-  const [ready, setReady] = useState(false);
+function ChartTooltip({ active, payload, series, rows, mode }) {
   const sample = payload?.[0]?.payload;
-  const sampleKey = sample?.timestamp ?? sample?.time;
-
-  useEffect(() => {
-    setReady(false);
-    if (!active || sampleKey == null) return undefined;
-    const timer = window.setTimeout(() => setReady(true), 3000);
-    return () => window.clearTimeout(timer);
-  }, [active, sampleKey, selectionKey, mode]);
 
   if (!active || !sample) return null;
 
@@ -101,22 +92,22 @@ function DelayedChartTooltip({ active, payload, series, rows, selectionKey, mode
           <div key={key} className="telemetry-chart-tooltip-row">
             <span style={{ color }}>{name}</span>
             <strong>{formatMetric(sample[key], unit)}</strong>
-            {ready && summary.count > 0 && (
+            {summary.count > 0 && (
               <small className="telemetry-chart-tooltip-meta">
                 Mín {formatMetric(summary.minimum, unit)} · Máx {formatMetric(summary.maximum, unit)} no período
               </small>
             )}
-            {ready && source && <small className="telemetry-chart-tooltip-meta">Fonte: {sample[source] || 'sensor não exposto'}</small>}
+            {source && <small className="telemetry-chart-tooltip-meta">Fonte: {sample[source] || 'sensor não exposto'}</small>}
           </div>
         );
       })}
-      {ready && (mode === 'all' || mode === 'temperature') && HOTSPOT_DETAILS.map(({ key, name, unit, source }) => {
+      {(mode === 'all' || mode === 'temperature') && HOTSPOT_DETAILS.map(({ key, name, unit, source }) => {
         const summary = summarizeMetric(rows, key);
         return (
           <div key={key} className="telemetry-chart-tooltip-row telemetry-chart-tooltip-detail">
             <span>{name} · detalhe</span>
             <strong>{formatMetric(sample[key], unit)}</strong>
-            {ready && summary.count > 0 && (
+            {summary.count > 0 && (
               <small className="telemetry-chart-tooltip-meta">
                 Mín {formatMetric(summary.minimum, unit)} · Máx {formatMetric(summary.maximum, unit)} no período
               </small>
@@ -128,7 +119,6 @@ function DelayedChartTooltip({ active, payload, series, rows, selectionKey, mode
     </div>
   );
 }
-
 function renderSeries(chartType, series) {
   const props = {
     key: series.key,
@@ -165,7 +155,6 @@ export default function TelemetryChart({ rows, mode, setMode, range, setRange })
   );
   const hasValues = selectedSeries.some(({ key }) => summaries[key].count > 0);
   const units = [...new Set(selectedSeries.map(({ unit }) => unit))];
-  const selectionKey = selectedSeries.map(({ key }) => key).join(',');
 
   useEffect(() => {
     setVisibleKeys(new Set(CHARTS[mode].series.map(({ key }) => key)));
@@ -247,7 +236,7 @@ export default function TelemetryChart({ rows, mode, setMode, range, setRange })
       <div className="telemetry-chart-caption">
         <small>{rows.length} amostras no período · até 1000 amostras armazenadas</small>
         {mode === 'all' && <small>°C, %, e W usam escalas próprias; a potência é estimada por software.</small>}
-        <small>Valor do ponto imediato · mínimos, máximos, fonte e hotspot após 3 segundos.</small>
+        <small>Tooltip do gráfico imediato; os detalhes ampliados dos cartões aparecem após 3 segundos.</small>
       </div>
 
       <div className="telemetry-chart-canvas">
@@ -270,7 +259,7 @@ export default function TelemetryChart({ rows, mode, setMode, range, setRange })
                   {...(index > 1 ? { orientation: 'right', width: 42, offset: 38, tick: { fontSize: 10 } } : {})}
                 />
               ))}
-              <Tooltip content={<DelayedChartTooltip series={selectedSeries} rows={rows} selectionKey={selectionKey} mode={mode} />} />
+              <Tooltip content={<ChartTooltip series={selectedSeries} rows={rows} mode={mode} />} />
               {selectedSeries.map((series) => renderSeries(chartType, series))}
             </ChartComponent>
           </ResponsiveContainer>
