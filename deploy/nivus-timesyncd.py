@@ -152,14 +152,22 @@ def read_host_status() -> dict:
 
 
 def _ensure_directory(path: Path, mode: int) -> None:
-    path.mkdir(parents=True, mode=mode, exist_ok=True)
+    created = False
     try:
         info = path.lstat()
+    except FileNotFoundError:
+        try:
+            path.mkdir(parents=True, mode=mode, exist_ok=True)
+            created = True
+            info = path.lstat()
+        except OSError as exc:
+            raise TimeSyncError("path_unavailable", "Diretório protegido indisponível.") from exc
     except OSError as exc:
         raise TimeSyncError("path_unavailable", "Diretório protegido indisponível.") from exc
     if not stat.S_ISDIR(info.st_mode) or info.st_uid != os.geteuid():
         raise TimeSyncError("unsafe_path", "Diretório NTP não pertence ao serviço privilegiado.")
-    os.chmod(path, mode)
+    if created:
+        os.chmod(path, mode)
 
 
 def _atomic_write(path: Path, content: bytes, mode: int) -> None:
