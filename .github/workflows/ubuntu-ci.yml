@@ -32,7 +32,7 @@ jobs:
           ref: ${{ inputs.source_ref || github.ref }}
 
       - name: Set up Python matching the API image
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
