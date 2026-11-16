@@ -1,8 +1,24 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 
+const MAX_REPORT_AGE_MS = 60 * 60 * 1000;
+const MAX_FUTURE_SKEW_MS = 60 * 1000;
+
+function hasFreshBatteryReading(device) {
+  if (device.last_battery_percent == null || !device.last_observed_at) return false;
+  const observedAt = Date.parse(device.last_observed_at);
+  const age = Date.now() - observedAt;
+  return Number.isFinite(observedAt) && age >= -MAX_FUTURE_SKEW_MS && age <= MAX_REPORT_AGE_MS;
+}
+
+function formatBatteryReading(device) {
+  if (device.last_battery_percent == null) return 'Aguardando leitura';
+  const freshness = hasFreshBatteryReading(device) ? 'leitura recente' : 'leitura desatualizada';
+  return `Bateria ${device.last_battery_percent}% · ${freshness} · ${formatObservedAt(device.last_observed_at)}`;
+}
+
 function formatObservedAt(value) {
-  if (!value) return 'Aguardando primeira leitura';
+  if (!value) return 'horário indisponível';
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
 }
@@ -14,6 +30,13 @@ export default function MobileBatteryAutomationPanel({ token }) {
   const [status, setStatus] = useState('As leituras móveis não usam a bateria interna do nó.');
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
+  const activeDevices = devices.filter(device => device.active);
+  const freshDeviceCount = activeDevices.filter(hasFreshBatteryReading).length;
+  const automationStatus = activeDevices.length === 0
+    ? 'Aguardando cadastro'
+    : freshDeviceCount > 0
+      ? `Ativa · ${freshDeviceCount} leitura(s) recente(s)`
+      : 'Cadastrada · sem leitura recente';
 
   const loadDevices = useCallback(async () => {
     try {
@@ -89,12 +112,12 @@ export default function MobileBatteryAutomationPanel({ token }) {
           <p>Cadastre somente celulares associados ao relé principal. Cada token é mostrado uma única vez e pode ser revogado aqui.</p>
         </div>
         <span className="maintenance-status" role="status">
-          {devices.some(device => device.active) ? 'Automática ativa' : 'Aguardando cadastro'}
+          {automationStatus}
         </span>
       </div>
 
       <p className="settings-explanation">
-        Uma leitura autenticada e recente de até 20% envia OFF uma vez por ciclo baixo. Acima de 20% apenas rearma a regra; nunca envia ON. Sem leitura recente, após reinício ou durante falha de origem, nenhum comando é enviado. O broker só informa aceitação; não confirma o estado físico.
+        Uma leitura autenticada e recente de até 20% envia OFF uma vez por ciclo baixo. Acima de 20% apenas rearma a regra; nunca envia ON. Sem leitura recente, após reinício ou durante falha de origem, nenhum comando é enviado. Se houver mais de um celular ativo, qualquer um com leitura recente em 20% ou menos pode enviar OFF. O broker só informa aceitação; não confirma o estado físico.
       </p>
 
       <form className="mobile-battery-device-form" onSubmit={createDevice}>
@@ -136,9 +159,7 @@ export default function MobileBatteryAutomationPanel({ token }) {
               <strong>{device.name}</strong>
               <span>{device.active ? 'Automação ativa' : 'Credencial revogada'}</span>
               <span>
-                {device.last_battery_percent == null
-                  ? 'Aguardando leitura'
-                  : `Bateria ${device.last_battery_percent}% · ${formatObservedAt(device.last_observed_at)}`}
+                {formatBatteryReading(device)}
               </span>
               {device.low_battery_latched && <small>OFF enviado nesta faixa baixa; aguarda recuperação acima de 20% para rearmar.</small>}
             </div>
