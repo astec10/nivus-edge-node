@@ -1,12 +1,8 @@
 import React from 'react';
 import { Activity, CircleCheck, CircleX, Lock, Unlock } from 'lucide-react';
 
-export default function DashboardHeader({ token, userPayload, fetchData, isOnline }) {
-  const legacyPortValue = import.meta.env.VITE_NIVUS_LEGACY_DASHBOARD_PORT || '';
-  const legacyPort = /^\d{1,5}$/.test(legacyPortValue) ? Number(legacyPortValue) : 0;
-  const legacyDashboardUrl = legacyPort > 0 && legacyPort < 65536
-    ? `${window.location.protocol}//${window.location.hostname}:${legacyPort}/`
-    : '';
+export default function DashboardHeader({ token, userPayload, fetchData, isOnline, dashboardVersion, onToggleDashboardVersion }) {
+  const legacyActive = dashboardVersion === 'legacy';
 
   return (
 <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #334155', paddingBottom: '1rem' }}>
@@ -26,17 +22,17 @@ export default function DashboardHeader({ token, userPayload, fetchData, isOnlin
             {isOnline ? <CircleCheck size={14} aria-hidden="true" /> : <CircleX size={14} aria-hidden="true" />}
             <span>{isOnline ? 'API online' : 'API offline'}</span>
           </div>
-          {legacyDashboardUrl && (
-            <a
-              className="legacy-dashboard-switch"
-              href={legacyDashboardUrl}
-              aria-label="Mudar para a versão anterior e leve da dashboard"
-              title="Abrir a versão anterior e leve da dashboard"
-            >
-              <span>Versão leve</span>
-              <span className="legacy-dashboard-track" aria-hidden="true"><span /></span>
-            </a>
-          )}
+          <button
+            type="button"
+            className="legacy-dashboard-switch"
+            aria-pressed={legacyActive}
+            aria-label={legacyActive ? 'Voltar para a dashboard atual' : 'Mudar para a versão anterior e leve da dashboard'}
+            title={legacyActive ? 'Voltar para a dashboard atual' : 'Abrir a versão anterior e leve da dashboard'}
+            onClick={onToggleDashboardVersion}
+          >
+            <span>{legacyActive ? 'Versão atual' : 'Versão leve'}</span>
+            <span className="legacy-dashboard-track" aria-hidden="true"><span /></span>
+          </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: token ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)', border: `1px solid ${token ? '#10b981' : '#ef4444'}`, padding: '0.4rem 0.8rem', borderRadius: '9999px', fontSize: '0.8rem', color: token ? '#34d399' : '#f87171' }}>
             {token ? <Unlock size={14} /> : <Lock size={14} />}
             <span>{token ? `Sessão: ${userPayload?.sub} (${userPayload?.role})` : 'Não Autenticado'}</span>
