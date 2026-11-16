@@ -91,13 +91,6 @@ def main(argv=None) -> int:
         return 0
     except MaintenanceStateError as exc:
         print(str(exc), file=sys.stderr)
-        if os.environ.get("NIVUS_DEBUG_MAINTENANCE") == "1":
-            print(
-                f"maintenance_debug uid={os.geteuid()} cwd={Path.cwd()} "
-                f"state_path={os.environ.get('NIVUS_MAINTENANCE_STATE_PATH')!r} "
-                f"cause={exc.__cause__!r}",
-                file=sys.stderr,
-            )
         return 1
     except OSError as exc:
         print(f"Não foi possível acessar os arquivos do Nivus: {exc}", file=sys.stderr)

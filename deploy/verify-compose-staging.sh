@@ -74,7 +74,9 @@ docker run --rm --user 0 --network none \
   --mount "type=bind,source=$MAINTENANCE_DIR,target=/maintenance" \
   --env "RUNTIME_UID=$RUNTIME_UID" --env "RUNTIME_GID=$RUNTIME_GID" \
   --entrypoint /bin/sh nivus-edge-api:local -ec \
-  'chown -R "$RUNTIME_UID:$RUNTIME_GID" /data /maintenance; chmod 750 /data; chmod 2775 /maintenance; chown -R 1883:1883 /mosq; chmod 750 /mosq'
+  'chown -R "$RUNTIME_UID:$RUNTIME_GID" /data /maintenance; chmod 750 /data; chmod 755 /maintenance; chown -R 1883:1883 /mosq; chmod 750 /mosq'
+[[ $(stat -c "%a" "$MAINTENANCE_DIR") == 755 ]]
+[[ $(stat -c "%u:%g" "$MAINTENANCE_DIR") == "$RUNTIME_UID:$RUNTIME_GID" ]]
 
 cleanup() {
   local rc=$?
@@ -214,7 +216,6 @@ run_nivusctl() {
   "${privilege[@]}" env \
     NIVUS_DB_PATH="$DATA_DIR/nivus.db" \
     NIVUS_MAINTENANCE_STATE_PATH="$MAINTENANCE_DIR/state.json" \
-    NIVUS_DEBUG_MAINTENANCE=1 \
     python3 deploy/nivusctl "$@"
 }
 run_nivusctl maintenance status | grep -q 'ATIVO'
