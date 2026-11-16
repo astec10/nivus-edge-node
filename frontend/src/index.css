@@ -1645,3 +1645,36 @@ code {
   .dashboard-root[data-theme="bento"] .metric-card::before,
   .dashboard-root[data-theme="glass"] .metric-card-gauge { transition: none; animation: none; }
 }
+
+.dashboard-auth-status {
+  font: inherit;
+  cursor: pointer;
+}
+.dashboard-auth-status:focus-visible { outline: 2px solid #38bdf8; outline-offset: 3px; }
+.login-panel {
+  width: min(100%, 32rem);
+  box-sizing: border-box;
+  margin: 0 0 1rem auto;
+}
+.login-panel__intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.login-panel__toggle {
+  min-height: 2rem;
+  border: 1px solid #475569;
+  border-radius: 0.45rem;
+  padding: 0.35rem 0.65rem;
+  color: #e2e8f0;
+  background: #0f172a;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.login-panel__toggle:hover { border-color: #38bdf8; }
+.login-panel__toggle:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
+.dashboard-root[data-theme="cupertino"] .login-panel__toggle { border-color: #cbd5e1; color: #0f172a; background: #fff; }
+.dashboard-root[data-theme="eink"] .login-panel__toggle { border-radius: 0; color: #fff; background: #000; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; text-transform: uppercase; }
