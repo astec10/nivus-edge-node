@@ -228,7 +228,7 @@ class PortableUsbAutoinstallTests(unittest.TestCase):
             self.assertEqual(iso_path.read_bytes(), b"synthetic-no-cloud-iso")
             self.assertEqual(iso_path.stat().st_mode & 0o777, 0o600)
             checksum = iso_path.with_suffix(iso_path.suffix + ".sha256")
-            self.assertIn(hashlib.sha256(iso_path.read_bytes()).hexdigest(), checksum.read_text())
+            self.assertEqual(\n                checksum.read_text(encoding="utf-8").splitlines(),\n                [f"{hashlib.sha256(iso_path.read_bytes()).hexdigest()}  {iso_path.name}"],\n            )
             self.assertEqual(run.call_count, 1)
             self.assertEqual(run.call_args.args[0][1], "--filesystem=iso")
 
