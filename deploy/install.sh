@@ -99,7 +99,8 @@ fi
 ln -s "$RELEASE_DIR" "$CURRENT"
 CURRENT_CREATED=1
 install -d -m 700 "$ETC_ROOT" "$SECRET_DIR"
-install -d -m 750 "$DATA_ROOT/data" "$DATA_ROOT/mosquitto"
+install -d -m 700 "$DATA_ROOT/data"
+install -d -m 750 "$DATA_ROOT/mosquitto"
 if ! id -u nivus-telemetry >/dev/null 2>&1; then
   useradd --system --home-dir /var/lib/nivus-telemetry --create-home --shell /usr/sbin/nologin nivus-telemetry
 fi
@@ -154,12 +155,16 @@ RUNTIME_UID=$(sed -n 's/^NIVUS_RUNTIME_UID=//p' "$CURRENT/.env")
 RUNTIME_GID=$(sed -n 's/^NIVUS_RUNTIME_GID=//p' "$CURRENT/.env")
 [[ "$RUNTIME_UID" =~ ^[0-9]+$ && "$RUNTIME_GID" =~ ^[0-9]+$ ]] || { echo "IDs de runtime inválidos no .env." >&2; exit 2; }
 chown "$RUNTIME_UID:$RUNTIME_GID" "$DATA_ROOT/data"
-chmod 750 "$DATA_ROOT/data"
+chmod 700 "$DATA_ROOT/data"
 if [[ -e /etc/tmpfiles.d/nivus-maintenance.conf || -e /run/nivus-maintenance ]]; then
   echo "Caminho de estado de manutenção já existe; instalação interrompida sem substituí-lo." >&2
   exit 2
 fi
-printf 'd /run/nivus-maintenance 2775 root %s - -\n' "$RUNTIME_GID" > /etc/tmpfiles.d/nivus-maintenance.conf
+if ! getent group "$RUNTIME_GID" >/dev/null 2>&1; then
+  groupadd --system --gid "$RUNTIME_GID" "nivus-runtime-$RUNTIME_GID"
+fi
+usermod --append --groups "$RUNTIME_GID" nivus-telemetry
+printf 'd /run/nivus-maintenance 2750 %s %s - -\n' "$RUNTIME_UID" "$RUNTIME_GID" > /etc/tmpfiles.d/nivus-maintenance.conf
 chmod 644 /etc/tmpfiles.d/nivus-maintenance.conf
 TMPFILES_CREATED=1
 systemd-tmpfiles --create /etc/tmpfiles.d/nivus-maintenance.conf

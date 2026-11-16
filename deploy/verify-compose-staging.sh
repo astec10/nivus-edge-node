@@ -75,11 +75,10 @@ docker run --rm --user 0 --network none \
   --mount "type=bind,source=$MOSQ_DATA_DIR,target=/mosq" \
   --mount "type=bind,source=$MAINTENANCE_DIR,target=/maintenance" \
   --env "RUNTIME_UID=$RUNTIME_UID" --env "RUNTIME_GID=$RUNTIME_GID" \
-  --env "HOST_GID=$HOST_GID" \
   --entrypoint /bin/sh nivus-edge-api:local -ec \
-  'chown -R "$RUNTIME_UID:$RUNTIME_GID" /data; chown -R "$RUNTIME_UID:$HOST_GID" /maintenance; chmod 750 /data; chmod 2750 /maintenance; chown -R 1883:1883 /mosq; chmod 750 /mosq'
+  'chown -R "$RUNTIME_UID:$RUNTIME_GID" /data /maintenance; chmod 700 /data; chmod 2750 /maintenance; chown -R 1883:1883 /mosq; chmod 750 /mosq'
 [[ $(stat -c "%a" "$MAINTENANCE_DIR") == 2750 ]]
-[[ $(stat -c "%u:%g" "$MAINTENANCE_DIR") == "$RUNTIME_UID:$HOST_GID" ]]
+[[ $(stat -c "%u:%g" "$MAINTENANCE_DIR") == "$RUNTIME_UID:$RUNTIME_GID" ]]
 
 cleanup() {
   local rc=$?
@@ -227,8 +226,8 @@ grep -q '"enabled":false' <<< "$API_STATE"
 curl -kfsS --connect-timeout 2 --max-time 5 -X POST \
   -H "Authorization: Bearer $ADMIN_TOKEN" -H 'Content-Type: application/json' \
   -d '{"enabled":true}' https://127.0.0.1:28443/api/maintenance | grep -q '"enabled":true'
-[[ $(stat -c "%a:%u:%g" "$MAINTENANCE_DIR/state.json") == "640:$RUNTIME_UID:$HOST_GID" ]]
-test -r "$MAINTENANCE_DIR/state.json"
+[[ $(stat -c "%a:%u:%g" "$MAINTENANCE_DIR/state.json") == "640:$RUNTIME_UID:$RUNTIME_GID" ]]
+sudo -u "#$HOST_UID" -g "#$RUNTIME_GID" test -r "$MAINTENANCE_DIR/state.json"
 run_nivusctl() {
   local -a privilege=()
   if [[ $EUID -ne 0 ]]; then privilege=(sudo); fi

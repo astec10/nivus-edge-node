@@ -35,8 +35,7 @@ def update_maintenance_state(
         logger.exception("Não foi possível alterar o modo de manutenção.")
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     logger.info(
-        "Modo de manutenção %s por administrador %s.",
+        "Modo de manutenção %s.",
         "ativado" if state["enabled"] else "desativado",
-        admin,
     )
     return state
