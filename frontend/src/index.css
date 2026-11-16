@@ -56,6 +56,8 @@ body {
 
 .legacy-dashboard-switch {
   display: inline-flex;
+  font: inherit;
+  cursor: pointer;
   align-items: center;
   gap: 0.45rem;
   min-height: 30px;
@@ -93,9 +95,14 @@ body {
 
 .legacy-dashboard-track > span {
   width: 11px;
+  transition: transform 160ms ease;
   height: 11px;
   border-radius: 50%;
   background: #cbd5e1;
+}
+
+.legacy-dashboard-switch[aria-pressed="true"] .legacy-dashboard-track > span {
+  transform: translateX(10px);
 }
 
 @media (max-width: 640px) {
