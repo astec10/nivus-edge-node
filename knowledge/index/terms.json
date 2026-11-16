@@ -3,7 +3,8 @@
     "doc-ai-development-orchestration",
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "04": [
     "doc-ai-development-orchestration",
@@ -26,7 +27,8 @@
     "doc-vision"
   ],
   "100": [
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "11": [
     "doc-ai-development-orchestration",
@@ -63,7 +65,8 @@
     "ref-multipaz-developer-website"
   ],
   "20": [
-    "doc-project-status"
+    "doc-project-status",
+    "nivus-mobile-battery-relay"
   ],
   "200": [
     "doc-project-status"
@@ -216,7 +219,8 @@
     "doc-project-roadmap"
   ],
   "48": [
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "5": [
     "doc-ai-context",
@@ -290,6 +294,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "local-inference-hardware-fit",
     "ref-multipaz-developer-website",
     "multimodal-assistant-demo",
@@ -391,6 +396,9 @@
   "acidentais": [
     "doc-ai-executor-implementation"
   ],
+  "acima": [
+    "nivus-mobile-battery-relay"
+  ],
   "acionamento": [
     "doc-vision"
   ],
@@ -438,6 +446,9 @@
     "doc-ai-module-workplan",
     "doc-project-status",
     "ai-development-persistent-worker"
+  ],
+  "actuator": [
+    "nivus-mobile-battery-relay"
   ],
   "actuators": [
     "multimodal-assistant-demo"
@@ -665,6 +676,9 @@
   "alarme": [
     "doc-vision"
   ],
+  "aleat": [
+    "nivus-mobile-battery-relay"
+  ],
   "alega": [
     "doc-ai-context",
     "doc-ai-workflow",
@@ -697,7 +711,8 @@
   "allowlist": [
     "doc-ai-development-orchestration",
     "doc-module-map",
-    "doc-project-roadmap"
+    "doc-project-roadmap",
+    "nivus-mobile-battery-relay"
   ],
   "altera": [
     "doc-ai-development-orchestration",
@@ -903,6 +918,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "api": [
@@ -941,6 +957,9 @@
   ],
   "aplicou": [
     "doc-project-status"
+  ],
+  "app": [
+    "nivus-mobile-battery-relay"
   ],
   "appliance": [
     "doc-vision"
@@ -1099,6 +1118,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "multimodal-assistant-demo",
     "video-wgqdaqqto90"
   ],
@@ -1118,7 +1138,8 @@
     "doc-project-status"
   ],
   "associado": [
-    "doc-project-status"
+    "doc-project-status",
+    "nivus-mobile-battery-relay"
   ],
   "assumir": [
     "doc-vision"
@@ -1247,7 +1268,8 @@
   ],
   "ausentes": [
     "doc-project-status",
-    "doc-project-roadmap"
+    "doc-project-roadmap",
+    "nivus-mobile-battery-relay"
   ],
   "autentica": [
     "doc-ai-context",
@@ -1259,7 +1281,8 @@
   ],
   "autenticada": [
     "doc-module-map",
-    "doc-project-roadmap"
+    "doc-project-roadmap",
+    "nivus-mobile-battery-relay"
   ],
   "autenticado": [
     "doc-module-map"
@@ -1295,7 +1318,8 @@
     "doc-video-research-index",
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "automatically": [
     "networked-gpu-versus-task-federation"
@@ -1307,6 +1331,7 @@
     "doc-vision"
   ],
   "automation": [
+    "nivus-mobile-battery-relay",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "video-z3wpoywp358",
@@ -1337,7 +1362,8 @@
   "autorizada": [
     "doc-ai-executor-implementation",
     "doc-module-map",
-    "doc-project-roadmap"
+    "doc-project-roadmap",
+    "nivus-mobile-battery-relay"
   ],
   "autorizado": [
     "doc-ai-executor-implementation",
@@ -1402,7 +1428,8 @@
   ],
   "baixo": [
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "balanceador": [
     "doc-vision"
@@ -1412,6 +1439,7 @@
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "bancos": [
@@ -1447,10 +1475,14 @@
     "doc-ai-context",
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "baterias": [
     "doc-vision"
+  ],
+  "battery": [
+    "nivus-mobile-battery-relay"
   ],
   "be": [
     "local-inference-hardware-fit",
@@ -1604,7 +1636,8 @@
   "broker": [
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "browser": [
     "doc-module-map",
@@ -1842,7 +1875,8 @@
     "doc-vision"
   ],
   "celular": [
-    "doc-project-status"
+    "doc-project-status",
+    "nivus-mobile-battery-relay"
   ],
   "cen": [
     "doc-project-status"
@@ -1937,6 +1971,9 @@
   "checksummed": [
     "networked-gpu-versus-task-federation"
   ],
+  "chegar": [
+    "nivus-mobile-battery-relay"
+  ],
   "chipset": [
     "doc-project-roadmap"
   ],
@@ -1959,7 +1996,8 @@
   ],
   "ciclo": [
     "doc-ai-development-orchestration",
-    "doc-video-research-index"
+    "doc-video-research-index",
+    "nivus-mobile-battery-relay"
   ],
   "cinco": [
     "doc-project-roadmap",
@@ -2094,6 +2132,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website",
     "ai-development-persistent-worker",
     "video-q-yobcyc71a",
@@ -2177,6 +2216,9 @@
     "doc-project-roadmap",
     "doc-vision",
     "ref-multipaz-developer-website"
+  ],
+  "companion": [
+    "nivus-mobile-battery-relay"
   ],
   "compara": [
     "doc-video-research-index"
@@ -2427,7 +2469,8 @@
     "doc-ai-module-workplan",
     "doc-module-map",
     "doc-project-status",
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "configurada": [
     "doc-ai-development-orchestration"
@@ -2463,7 +2506,8 @@
     "doc-ai-executor-implementation",
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "confirmado": [
     "doc-ai-development-orchestration",
@@ -2706,7 +2750,8 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
-    "doc-project-status"
+    "doc-project-status",
+    "nivus-mobile-battery-relay"
   ],
   "contratos": [
     "doc-ai-context",
@@ -2858,7 +2903,11 @@
   ],
   "credenciais": [
     "doc-ai-development-orchestration",
-    "doc-project-roadmap"
+    "doc-project-roadmap",
+    "nivus-mobile-battery-relay"
+  ],
+  "credencial": [
+    "nivus-mobile-battery-relay"
   ],
   "cria": [
     "doc-ai-workflow",
@@ -3009,6 +3058,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "debug": [
@@ -3132,6 +3182,7 @@
   "dentro": [
     "doc-project-status",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "depend": [
@@ -3290,7 +3341,8 @@
   "desligar": [
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "desligue": [
     "doc-vision"
@@ -3312,7 +3364,8 @@
     "doc-ai-workflow"
   ],
   "destino": [
-    "doc-project-roadmap"
+    "doc-project-roadmap",
+    "nivus-mobile-battery-relay"
   ],
   "destranque": [
     "doc-vision"
@@ -3344,6 +3397,7 @@
     "doc-ai-module-workplan",
     "doc-video-research-index",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "developer": [
@@ -3390,7 +3444,8 @@
   ],
   "diferentes": [
     "doc-ai-context",
-    "doc-ai-development-orchestration"
+    "doc-ai-development-orchestration",
+    "nivus-mobile-battery-relay"
   ],
   "diff": [
     "doc-ai-workflow",
@@ -3562,6 +3617,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website",
     "ai-development-persistent-worker"
   ],
@@ -3580,6 +3636,7 @@
     "doc-ai-executor-implementation",
     "doc-project-status",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "local-inference-hardware-fit",
     "ref-multipaz-developer-website",
     "multimodal-assistant-demo",
@@ -3723,6 +3780,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website",
     "video-z3wpoywp358",
     "video-gq3bewdjeos"
@@ -3782,6 +3840,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "embarcado": [
@@ -3801,7 +3860,8 @@
     "doc-ai-development-orchestration"
   ],
   "emitir": [
-    "doc-ai-executor-implementation"
+    "doc-ai-executor-implementation",
+    "nivus-mobile-battery-relay"
   ],
   "en": [
     "doc-ai-development-orchestration",
@@ -3860,6 +3920,9 @@
   "ent": [
     "doc-project-status",
     "doc-project-roadmap"
+  ],
+  "entidade": [
+    "nivus-mobile-battery-relay"
   ],
   "entidades": [
     "doc-vision"
@@ -3930,7 +3993,8 @@
   ],
   "enviar": [
     "doc-ai-development-orchestration",
-    "doc-project-roadmap"
+    "doc-project-roadmap",
+    "nivus-mobile-battery-relay"
   ],
   "envio": [
     "doc-project-roadmap"
@@ -4104,7 +4168,8 @@
     "doc-module-map",
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "estados": [
     "doc-ai-module-workplan",
@@ -4341,6 +4406,9 @@
   "expira": [
     "doc-project-status"
   ],
+  "expiradas": [
+    "nivus-mobile-battery-relay"
+  ],
   "expl": [
     "doc-ai-context",
     "doc-ai-development-orchestration",
@@ -4437,7 +4505,8 @@
     "doc-video-research-index",
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "fa": [
     "doc-ai-context",
@@ -4485,7 +4554,8 @@
   ],
   "falhas": [
     "doc-ai-development-orchestration",
-    "doc-project-roadmap"
+    "doc-project-roadmap",
+    "nivus-mobile-battery-relay"
   ],
   "fallback": [
     "doc-project-roadmap",
@@ -4587,6 +4657,7 @@
   "fica": [
     "doc-ai-context",
     "doc-ai-executor-implementation",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "ficam": [
@@ -4658,7 +4729,8 @@
     "doc-ai-development-orchestration"
   ],
   "fixo": [
-    "doc-ai-development-orchestration"
+    "doc-ai-development-orchestration",
+    "nivus-mobile-battery-relay"
   ],
   "fixture": [
     "doc-ai-module-workplan"
@@ -4710,6 +4782,7 @@
     "doc-module-map",
     "doc-project-status",
     "doc-project-roadmap",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "for": [
@@ -4789,6 +4862,9 @@
     "doc-ai-executor-implementation",
     "doc-project-status"
   ],
+  "frescor": [
+    "nivus-mobile-battery-relay"
+  ],
   "frigate": [
     "doc-vision"
   ],
@@ -4853,7 +4929,8 @@
     "doc-module-map"
   ],
   "futuras": [
-    "doc-ai-context"
+    "doc-ai-context",
+    "nivus-mobile-battery-relay"
   ],
   "future": [
     "networked-gpu-versus-task-federation"
@@ -5192,6 +5269,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "multimodal-assistant-demo",
     "video-wgqdaqqto90"
   ],
@@ -5268,6 +5346,7 @@
     "doc-ai-executor-implementation",
     "doc-module-map",
     "doc-project-status",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "https": [
@@ -5369,7 +5448,8 @@
     "doc-project-roadmap"
   ],
   "identificada": [
-    "doc-project-status"
+    "doc-project-status",
+    "nivus-mobile-battery-relay"
   ],
   "identificadores": [
     "doc-ai-workflow",
@@ -5854,7 +5934,8 @@
   "interna": [
     "doc-ai-context",
     "doc-project-status",
-    "doc-project-roadmap"
+    "doc-project-roadmap",
+    "nivus-mobile-battery-relay"
   ],
   "internas": [
     "doc-module-map"
@@ -5911,7 +5992,8 @@
   "inversor": [
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "invoca": [
     "doc-ai-development-orchestration"
@@ -5970,6 +6052,7 @@
     "doc-video-research-index",
     "doc-project-status",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "issue": [
@@ -6159,10 +6242,12 @@
     "doc-video-research-index",
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "leituras": [
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "ler": [
     "doc-project-roadmap"
@@ -6241,7 +6326,8 @@
     "ref-multipaz-developer-website"
   ],
   "limitada": [
-    "doc-ai-executor-implementation"
+    "doc-ai-executor-implementation",
+    "nivus-mobile-battery-relay"
   ],
   "limitado": [
     "doc-ai-executor-implementation",
@@ -6274,6 +6360,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "limitou": [
@@ -6463,7 +6550,8 @@
   "mantenedor": [
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
-    "doc-project-status"
+    "doc-project-status",
+    "nivus-mobile-battery-relay"
   ],
   "mantenha": [
     "doc-ai-context",
@@ -6574,6 +6662,7 @@
     "doc-module-map",
     "doc-project-status",
     "doc-project-roadmap",
+    "nivus-mobile-battery-relay",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation",
@@ -6646,7 +6735,8 @@
     "ref-multipaz-developer-website"
   ],
   "menos": [
-    "doc-project-status"
+    "doc-project-status",
+    "nivus-mobile-battery-relay"
   ],
   "mensagens": [
     "doc-ai-development-orchestration"
@@ -6753,6 +6843,15 @@
   "mistura": [
     "doc-vision"
   ],
+  "mobile": [
+    "nivus-mobile-battery-relay"
+  ],
+  "mobile_battery_automation": [
+    "nivus-mobile-battery-relay"
+  ],
+  "mock": [
+    "nivus-mobile-battery-relay"
+  ],
   "modbus": [
     "doc-vision"
   ],
@@ -6857,7 +6956,8 @@
     "doc-module-map",
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "mqtt_worker": [
     "doc-module-map"
@@ -6915,6 +7015,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "na": [
@@ -7039,6 +7140,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "local-inference-hardware-fit",
     "ref-multipaz-developer-website",
     "multimodal-assistant-demo",
@@ -7069,6 +7171,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "local-inference-hardware-fit",
     "ref-multipaz-developer-website",
     "video-rpgjhrunbxo"
@@ -7208,7 +7311,8 @@
     "doc-vision"
   ],
   "nunca": [
-    "doc-ai-executor-implementation"
+    "doc-ai-executor-implementation",
+    "nivus-mobile-battery-relay"
   ],
   "nuvem": [
     "doc-project-status"
@@ -7228,6 +7332,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website",
     "video-z3wpoywp358"
   ],
@@ -7297,6 +7402,9 @@
   "oferecer": [
     "doc-vision"
   ],
+  "off": [
+    "nivus-mobile-battery-relay"
+  ],
   "offline": [
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
@@ -7335,6 +7443,7 @@
     "video-q-yobcyc71a"
   ],
   "on": [
+    "nivus-mobile-battery-relay",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "ai-development-persistent-worker"
@@ -7515,6 +7624,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "outputs": [
@@ -7736,7 +7846,8 @@
     "doc-ai-executor-implementation",
     "doc-video-research-index",
     "doc-module-map",
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "pelo": [
     "doc-ai-development-orchestration",
@@ -7997,7 +8108,8 @@
     "doc-ai-executor-implementation",
     "doc-video-research-index",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "poder": [
     "ref-multipaz-developer-website"
@@ -8054,6 +8166,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "porque": [
@@ -8122,6 +8235,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "prazo": [
@@ -8245,6 +8359,7 @@
     "doc-ai-executor-implementation",
     "doc-project-status",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "priorit": [
@@ -8392,7 +8507,8 @@
   "proposta": [
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
-    "doc-project-status"
+    "doc-project-status",
+    "nivus-mobile-battery-relay"
   ],
   "propostas": [
     "doc-ai-development-orchestration",
@@ -8486,6 +8602,9 @@
   "publique": [
     "doc-ai-context"
   ],
+  "publisher": [
+    "nivus-mobile-battery-relay"
+  ],
   "puder": [
     "doc-ai-development-orchestration"
   ],
@@ -8562,6 +8681,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "quantiza": [
@@ -8709,6 +8829,9 @@
   "reaplica": [
     "doc-ai-executor-implementation"
   ],
+  "rearma": [
+    "nivus-mobile-battery-relay"
+  ],
   "reboot": [
     "doc-module-map",
     "doc-project-status",
@@ -8722,7 +8845,8 @@
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "recebem": [
     "doc-ai-development-orchestration",
@@ -8738,7 +8862,8 @@
   "recente": [
     "doc-ai-development-orchestration",
     "doc-project-status",
-    "doc-project-roadmap"
+    "doc-project-roadmap",
+    "nivus-mobile-battery-relay"
   ],
   "recolhe": [
     "doc-vision"
@@ -8786,6 +8911,7 @@
     "doc-module-map",
     "doc-project-status",
     "doc-project-roadmap",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "recuperar": [
@@ -8828,6 +8954,7 @@
     "doc-video-research-index",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "reference": [
@@ -8878,7 +9005,8 @@
     "doc-ai-development-orchestration",
     "doc-module-map",
     "doc-project-status",
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "regras": [
     "doc-ai-context",
@@ -8903,7 +9031,8 @@
   "rel": [
     "doc-ai-context",
     "doc-project-status",
-    "doc-project-roadmap"
+    "doc-project-roadmap",
+    "nivus-mobile-battery-relay"
   ],
   "relacionadas": [
     "doc-ai-development-orchestration",
@@ -8977,7 +9106,11 @@
     "doc-project-status"
   ],
   "repetida": [
-    "doc-ai-executor-implementation"
+    "doc-ai-executor-implementation",
+    "nivus-mobile-battery-relay"
+  ],
+  "repetidas": [
+    "nivus-mobile-battery-relay"
   ],
   "repetir": [
     "doc-project-roadmap"
@@ -9305,7 +9438,8 @@
     "doc-vision"
   ],
   "revogadas": [
-    "doc-project-roadmap"
+    "doc-project-roadmap",
+    "nivus-mobile-battery-relay"
   ],
   "risco": [
     "doc-ai-development-orchestration",
@@ -9445,6 +9579,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website",
     "networked-gpu-versus-task-federation",
     "video-cfdoXn6yvE4"
@@ -9468,6 +9603,7 @@
     "video-wgqdaqqto90"
   ],
   "safety": [
+    "nivus-mobile-battery-relay",
     "multimodal-assistant-demo",
     "video-vqxbftjq0m4"
   ],
@@ -9792,6 +9928,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "service": [
@@ -9889,6 +10026,9 @@
   "simulada": [
     "doc-project-roadmap"
   ],
+  "simuladas": [
+    "nivus-mobile-battery-relay"
+  ],
   "simulados": [
     "doc-ai-executor-implementation"
   ],
@@ -9976,6 +10116,9 @@
   "solicite": [
     "doc-ai-context"
   ],
+  "solicitou": [
+    "nivus-mobile-battery-relay"
+  ],
   "solved": [
     "doc-video-research-index",
     "video-cfdoXn6yvE4"
@@ -9993,6 +10136,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "sonoro": [
@@ -10114,7 +10258,8 @@
     "doc-ai-development-orchestration",
     "doc-module-map",
     "doc-project-status",
-    "doc-project-roadmap"
+    "doc-project-roadmap",
+    "nivus-mobile-battery-relay"
   ],
   "substituir": [
     "doc-vision"
@@ -10267,6 +10412,9 @@
   "tela": [
     "doc-project-status",
     "doc-vision"
+  ],
+  "telefone": [
+    "nivus-mobile-battery-relay"
   ],
   "telemetria": [
     "doc-ai-context",
@@ -10717,6 +10865,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "uma": [
@@ -10729,6 +10878,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "unclassified": [
@@ -10793,6 +10943,7 @@
     "doc-ai-executor-implementation",
     "doc-project-status",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "usada": [
@@ -10874,7 +11025,8 @@
     "doc-module-map",
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "v0": [
     "doc-ai-development-orchestration"
@@ -10891,7 +11043,8 @@
     "doc-module-map",
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "validada": [
     "doc-ai-development-orchestration",
@@ -11580,6 +11733,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "ça": [
@@ -11616,6 +11770,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "ços": [
@@ -11636,6 +11791,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website",
     "video-z3wpoywp358",
     "video-vqxbftjq0m4",
@@ -11664,6 +11820,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "écnica": [
@@ -11800,6 +11957,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "ências": [
@@ -11956,7 +12114,8 @@
     "doc-video-research-index",
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "ísicas": [
     "doc-ai-context"
@@ -11964,7 +12123,8 @@
   "ísico": [
     "doc-ai-context",
     "doc-project-status",
-    "doc-project-roadmap"
+    "doc-project-roadmap",
+    "nivus-mobile-battery-relay"
   ],
   "ísicos": [
     "doc-ai-executor-implementation",
@@ -12037,7 +12197,8 @@
     "doc-module-map",
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "nivus-mobile-battery-relay"
   ],
   "ódigo": [
     "doc-ai-context",
@@ -12115,6 +12276,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
   "órico": [
@@ -12171,7 +12333,8 @@
     "doc-project-roadmap"
   ],
   "óximo": [
-    "doc-ai-executor-implementation"
+    "doc-ai-executor-implementation",
+    "nivus-mobile-battery-relay"
   ],
   "ômica": [
     "doc-ai-context"
