@@ -179,6 +179,22 @@ ADMIN_TOKEN=$(docker compose -p "$PROJECT" exec -T api python -c \
 VIEWER_TOKEN=$(docker compose -p "$PROJECT" exec -T api python -c \
   'from database import get_db_connection; from security import create_access_token,hash_password; c=get_db_connection(); c.execute("INSERT OR REPLACE INTO users (username,password,role,must_change_password) VALUES (?,?,?,0)", ("smoke-maint-viewer",hash_password("SmokeOnly-Password-2"),"viewer")); c.commit(); c.close(); print(create_access_token("smoke-maint-viewer","viewer"))')
 [[ -n "$VIEWER_TOKEN" ]]
+NTP_STATUS=$(curl -kfsS --connect-timeout 2 --max-time 5 \
+  -H "Authorization: Bearer $ADMIN_TOKEN" https://127.0.0.1:28443/api/settings/time-sync)
+python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["state"]=="unavailable" and not d["can_configure"], d' <<< "$NTP_STATUS"
+NTP_INVALID_STATUS=$(curl -k -sS --connect-timeout 2 --max-time 5 -o /dev/null -w '%{http_code}' \
+  -X POST -H "Authorization: Bearer $ADMIN_TOKEN" -H 'Content-Type: application/json' \
+  -d '{"servers":["a.ntp.br","a.ntp.br","c.ntp.br"]}' https://127.0.0.1:28443/api/settings/time-sync)
+[[ "$NTP_INVALID_STATUS" == 422 ]]
+NTP_VIEWER_STATUS=$(curl -k -sS --connect-timeout 2 --max-time 5 -o /dev/null -w '%{http_code}' \
+  -X POST -H "Authorization: Bearer $VIEWER_TOKEN" -H 'Content-Type: application/json' \
+  -d '{"servers":["a.ntp.br","b.ntp.br","c.ntp.br"]}' https://127.0.0.1:28443/api/settings/time-sync)
+[[ "$NTP_VIEWER_STATUS" == 403 ]]
+NTP_ADMIN_UNAVAILABLE=$(curl -k -sS --connect-timeout 2 --max-time 5 -o /dev/null -w '%{http_code}' \
+  -X POST -H "Authorization: Bearer $ADMIN_TOKEN" -H 'Content-Type: application/json' \
+  -d '{"servers":["a.ntp.br","b.ntp.br","c.ntp.br"]}' https://127.0.0.1:28443/api/settings/time-sync)
+[[ "$NTP_ADMIN_UNAVAILABLE" == 503 ]]
+echo "host_ntp_status=unavailable; duplicate_validation=$NTP_INVALID_STATUS; viewer_write=$NTP_VIEWER_STATUS; missing_controller=$NTP_ADMIN_UNAVAILABLE"
 VIEWER_MAINT_STATUS=$(curl -k -sS --connect-timeout 2 --max-time 5 -o /dev/null -w '%{http_code}' \
   -X POST -H "Authorization: Bearer $VIEWER_TOKEN" -H 'Content-Type: application/json' \
   -d '{"enabled":true}' https://127.0.0.1:28443/api/maintenance)
