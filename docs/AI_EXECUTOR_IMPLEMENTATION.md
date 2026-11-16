@@ -35,7 +35,7 @@ Este executor é infraestrutura de desenvolvimento do repositório. Não roda no
 
 O marco imediato é confirmar uma proposta end-to-end usando uma Issue pública/sintética, verificar que o relatório mostra uso de tokens e `interaction_deleted=true`, e confirmar que a CI passa antes de criar um PR em rascunho. Depois disso, a próxima entrega documentada é a Fase 1 de portabilidade/recuperação: primeiro concluir a verificação hospedada dos PRs de sensores e dashboard; não usar VMs no computador do operador. CI em runner remoto não certifica hardware Intel/AMD nem sensores físicos.
 
-Issues e GitHub Actions são o estado durável e o executor principal; nenhuma máquina do operador precisa ficar ligada. O notebook CCE é suporte opcional para análise e relatórios, não um runner self-hosted para um repositório público.
+Issues e GitHub Actions hospedados são o estado durável e o executor principal; nenhuma máquina do operador precisa ficar ligada. Esta branch prepara um runner self-hosted auxiliar no notebook CCE, limitado a um workflow manual da branch padrão após merge, sem PRs públicos, segredos, Docker ou dados do Nivus. Ele não gera código nem substitui a CI pré-merge. A instalação e o primeiro uso ainda dependem de integração e registro pelo operador.
 
 ## Referências externas
 

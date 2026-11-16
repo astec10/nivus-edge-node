@@ -61,7 +61,11 @@ A pasta `knowledge/` contém catálogo e notas próprias para contribuição pú
 
 ## Separação do executor e telemetria do Nó Master — 2026-11-15
 
-Telemetria agregada entre nós não é pré-requisito para o executor de desenvolvimento; será mais útil quando o Nó Master estiver operacional. O notebook CCE pode ser avaliado como controlador leve que despacha workflows para runners GitHub-hosted; não será runner self-hosted de código público nem sandbox paralela sem comprovar recursos e isolamento. Issues e Actions são o estado durável quando o notebook fica offline.
+Telemetria agregada entre nós não é pré-requisito para o executor de desenvolvimento; será mais útil quando o Nó Master estiver operacional. A decisão de não usar o CCE como runner self-hosted foi atualizada a pedido do operador em 2026-11-16 pela decisão abaixo.
+
+## Runner auxiliar do notebook — 2026-11-16
+
+O notebook pode hospedar um runner self-hosted opcional para um único workflow de validação manual, na branch padrão e iniciado pelo mantenedor. Ele não participa da geração de propostas de IA nem da CI de PRs; não recebe segredos, permissão de escrita, Docker ou acesso ao banco e aos serviços Nivus. O serviço usa usuário de sistema isolado, restrição de filesystem e limite de memória. Por o repositório ser público, permanece risco residual de executar código/dependências aprovados na branch padrão. Se essa fronteira não puder ser mantida, o runner não deve ser registrado. Issues e Actions hospedados continuam sendo o executor principal.
 
 ## Chamadas Gemini em segundo plano — 2026-11-15
 

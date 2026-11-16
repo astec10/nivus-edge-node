@@ -2,7 +2,7 @@
 
 O Nivus é um projeto aberto para construir uma plataforma de borda local-first, modular e de baixo consumo. Telemetria é um módulo da plataforma; sua agregação entre nós não é pré-requisito para o executor nem para a biblioteca compartilhada e será mais útil quando o Nó Master estiver operacional.
 
-O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não significa compatibilidade comprovada com qualquer computador. Até agora, o stack Compose foi instalado e operado em paralelo num único notebook Ubuntu CCE U25. Uma instalação limpa independente, reboot, restauração e mais modelos de hardware ainda precisam de validação.
+O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não significa compatibilidade comprovada com qualquer computador. O stack Compose foi instalado num notebook Ubuntu CCE U25; a saída mais recente do operador confirma a promoção da nova dashboard para HTTPS padrão e o reboot iniciado. Instalação limpa independente, confirmação após reboot, restauração e validação em mais modelos de hardware ainda precisam de evidência.
 
 ## Estado do projeto
 
@@ -12,8 +12,8 @@ O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não sign
 - Login com senha e JWT, senha armazenada com PBKDF2, papéis de usuário e endpoints protegidos. No momento, o acesso é por senha; chave USB e biometria não estão implementadas.
 - Painel React/Vite dividido em componentes, com login, telemetria, usuários e seções do dashboard.
 - SQLite persistente, ingestão MQTT e agente de telemetria do host na instalação de teste. Telemetria agregada de vários nós é uma fase futura ligada ao Nó Master.
-- Instalação Compose paralela com API, worker, Mosquitto e Nginx; HTTPS, backup e procedimento de rollback.
-- A candidata Compose passou health HTTPS, HTTP 401 sem token e login; o coletor publica telemetria continuamente. A instalação antiga systemd/Nginx continua separada e ativa.
+- Instalação Compose com API, worker, Mosquitto e Nginx; HTTPS, backup e procedimento de rollback.
+- A saída do update confirma health HTTPS, API sem token 401, uma nova amostra de telemetria e a dashboard atual como padrão. A versão leve foi preservada em 8444; a API Compose está no loopback em 8443. O notebook iniciou reboot após a validação; o estado pós-reboot ainda precisa ser confirmado.
 - A interface servida mostra os avisos AGPL e links para o código e a licença.
 
 ### Ainda é plano
@@ -23,7 +23,7 @@ O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não sign
 - Automação residencial real, VPN integrada ao produto e ações remotas em dispositivos.
 - Inferência local, consulta à biblioteca de PDFs, fila de trabalhos entre máquinas, transferência P2P e conectores para provedores comerciais com limites de uso.
 - Instalação limpa validada, reboot, atualização com rollback e matriz de hardware x86_64.
-- O executor externo de desenvolvimento foi integrado no PR #3. A chave do provedor está configurada como Secret segundo confirmação do mantenedor, mas as duas primeiras chamadas falharam (HTTP 503 e timeout síncrono); uma correção com polling em segundo plano e exclusão da interação está em revisão. Até uma chamada end-to-end passar, o executor não deve ser considerado funcional. O notebook é suporte opcional; GitHub Actions é o executor principal.
+- O executor externo foi integrado no PR #3. Uma proposta Gemini gerou o PR #16 em rascunho e passou na CI; o erro de abertura de PR foi corrigido no PR #17, mas ainda falta confirmar nova execução end-to-end após essa correção. GitHub Actions continua sendo o executor principal. Esta branch prepara uma validação manual auxiliar no notebook, somente na branch padrão após merge; ainda não está instalada.
 
 Veja [docs/PROJECT_ROADMAP.md](docs/PROJECT_ROADMAP.md) para fases, entregáveis e critérios de conclusão; [docs/VISION.md](docs/VISION.md) registra a visão doméstica mais ampla. O estado verificado do notebook está em [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
 

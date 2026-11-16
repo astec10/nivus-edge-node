@@ -9,11 +9,13 @@
  const clock = () => { const now = new Date(); const t = now.toLocaleTimeString('pt-BR'); document.querySelectorAll('[data-when="now"]').forEach(x => x.textContent = 'agora · ' + t); };
  clock(); setInterval(clock,1000);
  setInterval(()=>{secondsUntilCheck=Math.max(0,secondsUntilCheck-1);if(label.textContent==='PÁGINA CONECTADA')status.textContent='Página conferida · próxima consulta em '+secondsUntilCheck+' s';},1000);
- document.querySelectorAll('#filters button').forEach(button => button.addEventListener('click', () => {
-   document.querySelectorAll('#filters button').forEach(b => b.classList.remove('active'));
-   button.classList.add('active');
+ const filterButtons=[...document.querySelectorAll('#filters button')];
+ const emptyState=document.getElementById('filter-empty');
+ filterButtons.forEach(button => button.addEventListener('click', () => {
+   filterButtons.forEach(b => { const selected=b===button; b.classList.toggle('active',selected); b.setAttribute('aria-pressed',String(selected)); });
    let shown=0;
    document.querySelectorAll('#milestones .item').forEach(item => { const visible=button.dataset.filter==='all'||item.dataset.status===button.dataset.filter; item.hidden=!visible; if(visible)shown++; });
+   if(emptyState)emptyState.hidden=shown>0;
  }));
  let checking=false;
  let baselineHtml=null;

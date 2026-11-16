@@ -51,16 +51,16 @@ GitHub Issue validada (ai:queued)
   -> proposta aplicada aos caminhos exatos e PR em rascunho
   -> CI e revisão humana
 
-Notebook online: painel/inspeção e agregação opcional dos relatórios de uso.
+Notebook online: validação auxiliar manual somente da branch padrão após merge; se offline, a CI hospedada e a fila continuam.
 ```
 
-O notebook é suporte adicional, não controlador nem ponto único de falha. Ele pode acompanhar a página de progresso, baixar relatórios de uso ou executar análises locais quando disponível. Se ficar offline, a fila e os workflows continuam no GitHub. Telemetria do Nivus não é dependência; agregação entre nós será útil quando o Nó Master estiver operacional.
+O notebook continua sendo suporte adicional, não controlador nem ponto único de falha. A proposta de runner em deploy/notebook-support aceita somente um workflow manual iniciado por astec10 na branch padrão; valida Python, testes unitários e build do frontend depois do merge. Não executa o agente de IA, PRs, forks, comandos da Issue, Compose ou deploy. A conta do serviço não recebe segredos ou acesso a dados do Nivus. O registro do runner ainda depende de integração desta mudança e token de curta duração inserido no terminal. Se o notebook ficar offline, a fila e os workflows hospedados continuam.
 
 O executor inicial foi preparado para uma chamada por tarefa, com um modelo fixo e conteúdo público/sintético. `free-tier` no workflow é uma confirmação do mantenedor, não uma trava contra cobrança: antes de criar o segredo, use um projeto Google sem faturamento vinculado. Não coloque a chave na Issue, no repositório ou neste chat. A chamada real permanece desativada até o PR ser integrado e o mantenedor configurar o segredo e a variável de orçamento.
 
-Com os recursos informados para o CCE U25 (2 núcleos e cerca de 3,2 GiB de RAM), ele não é o local recomendado para manter agentes de código, builds paralelos ou sandboxes. Um runner padrão `ubuntu-24.04` hospedado pelo GitHub oferece 4 vCPU e 16 GB de RAM para repositórios públicos, com uso padrão gratuito segundo a documentação atual. Isso fornece computação, não créditos de modelo. O runner hospedado executa; o notebook pode ajudar a observar e agregar relatórios quando estiver online.
+Com os recursos informados para o CCE U25 (2 núcleos e cerca de 3,2 GiB de RAM), ele não é o local para manter o agente de código, builds paralelos ou sandboxes. Um runner padrão ubuntu-24.04 hospedado pelo GitHub tem mais capacidade e mantém a CI pré-merge. O notebook oferece somente a verificação adicional do Ubuntu físico após merge; não aumenta a capacidade de inferência ou os créditos do modelo. O runner auxiliar usa usuário de sistema sem Docker, home privado, limite de memória e isolamento systemd.
 
-Não configure um runner self-hosted GitHub no CCE para executar código de PRs públicos. O GitHub alerta que workflows com código não confiável podem comprometer o host e acessar credenciais. “Offline” aqui significa que o operador pode estar ausente e os computadores locais desligados; o runner e a API continuam precisando de Internet. A quota gratuita do modelo pode pausar novas propostas, sem perder as Issues da fila.
+Não use o runner do notebook para código de PR ou fork. O repositório é público e o GitHub alerta que workflows não confiáveis podem comprometer um host self-hosted; a configuração limitada reduz, mas não zera, o risco de código incorporado à branch padrão. O runner é opcional e manual; a CI pré-merge continua hospedada. “Offline” significa que o operador pode estar ausente e os computadores locais desligados; os serviços GitHub e a API continuam precisando de Internet. A quota gratuita do modelo pode pausar novas propostas sem perder as Issues da fila.
 
 ## Paralelismo de módulos: construtores e integrador
 

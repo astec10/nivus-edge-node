@@ -56,15 +56,15 @@ flowchart LR
 ## Paralelismo externo de desenvolvimento (fora do runtime)
 
 ```text
-GitHub Issue aprovada (ai:ready)
-  → controlador leve opcional no notebook
-  → runner efêmero GitHub-hosted
-  → agente/modelo em sandbox
-  → PR → CI → homologação → revisão humana/merge
+Issue ai:ready
+  → worker/modelo em GitHub Actions hospedado
+  → branch de proposta → CI hospedada → PR em rascunho → revisão humana
+branch padrão após merge + despacho manual do mantenedor
+  → runner auxiliar opcional no notebook
+  → testes Python, sintaxe e build do frontend no Ubuntu físico
 ```
 
-O intake GitHub existe; o controlador no notebook, worker, provedor de modelo e sandbox ainda não foram implementados. Hermes/OmniRoute/Discord/Jira são opções de ferramentas externas, não serviços do nó Nivus. O executor não depende do agente de telemetria nem do Nó Master. Ver [`AI_DEVELOPMENT_ORCHESTRATION.md`](AI_DEVELOPMENT_ORCHESTRATION.md).
-
+O executor de IA e a CI de PR usam runners hospedados; a fila continua no GitHub se o notebook estiver desligado. O runner auxiliar do notebook é opt-in e só valida a branch padrão após merge. Ele não executa Issues, modelos, PRs/forks, Compose ou deploy e não recebe segredos nem Docker. O fluxo de instalação e remoção fica em deploy/notebook-support/README.md. Hermes/OmniRoute/Discord/Jira são opções de ferramentas externas, não serviços do nó Nivus. O executor não depende do agente de telemetria nem do Nó Master. Ver [AI_DEVELOPMENT_ORCHESTRATION.md](AI_DEVELOPMENT_ORCHESTRATION.md).
 ## Scheduler Nivus entre nós (futuro)
 
 ```text
