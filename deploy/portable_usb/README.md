@@ -1,47 +1,58 @@
-# Preparação do alvo USB portátil
+# Ubuntu + Nivus persistentes no USB
 
-Esta etapa começa a preparar a instalação persistente do Ubuntu Server + Nivus em um pendrive. Os scripts não gravam, particionam, formatam, montam ou alteram dispositivos de bloco.
+Este pacote prepara um Ubuntu Server instalado integralmente no pendrive. A raiz do Ubuntu e os dados Nivus persistem após reinicializações. Não é uma edição Casper Live nem uma ISO Ubuntu personalizada pronta.
 
 ## Etapas disponíveis
 
-### 1. Selecionar o pendrive
+### 1. Selecionar o pendrive de destino
 
-Em uma máquina Ubuntu de preparação, conecte o pendrive de destino e execute:
+Em um Ubuntu de preparação, conecte o pendrive e execute:
 
     sudo python3 deploy/portable_usb/select_target.py
 
-O programa lista discos USB elegíveis mostrando caminho, modelo, número de série e capacidade. Exige serial único, disco gravável e partições desmontadas; também exclui o dispositivo que contém a raiz atual quando consegue mapeá-lo. Não escolhe automaticamente o maior disco.
+O helper lista modelo, caminho, serial e capacidade. Exige serial único, USB gravável e partições desmontadas; também exclui o disco que contém a raiz quando consegue identificá-lo. Não seleciona discos automaticamente.
 
-Registre a escolha digitando o número de série exato:
+Registre o serial exato:
 
     sudo python3 deploy/portable_usb/select_target.py \
       --serial 'SERIAL-EXATO-DO-USB' \
       --output /var/tmp/nivus-usb-selection.json
 
-### 2. Gerar seed revisável do instalador
-
-Com o manifesto ainda na máquina Ubuntu de preparação:
+### 2. Gerar a configuração privada do instalador
 
     sudo python3 deploy/portable_usb/generate_autoinstall.py \
       --selection /var/tmp/nivus-usb-selection.json \
-      --output /var/tmp/nivus-usb-seed
+      --output /var/tmp/nivus-usb-seed \
+      --build-seed-iso
 
-Opcionalmente, instale `cloud-image-utils` e acrescente `--build-seed-iso` ao comando para criar `nivus-autoinstall-seed.iso` e um checksum. Essa ISO é apenas a mídia de configuração NoCloud; não inicia o Ubuntu nem substitui a mídia instaladora. Ela contém configuração privada e o hash da senha, portanto não a publique. Ao iniciar o instalador Ubuntu, não acrescente `autoinstall` à linha de boot: mantenha a confirmação do Subiquity e confira o USB alvo antes de confirmar.
+A geração pede usuário, hostname e senha do Ubuntu, sem exibir a senha; somente o hash entra no seed. A pasta e os arquivos são privados. Não publique nem envie esses arquivos para chats. Para criar a ISO NoCloud, instale \`cloud-image-utils\` (\`sudo apt install cloud-image-utils\`).
 
-A configuração gerada mantém a seleção de armazenamento interativa e verifica novamente a identidade antes de abrir a tela do Subiquity. Consulte [AUTOINSTALL.md](AUTOINSTALL.md) para preparar o seed e revisar a instalação.
+A ISO \`nivus-autoinstall-seed.iso\` é mídia de configuração; não contém o instalador Ubuntu e não inicia o computador. Use três mídias ou dispositivos identificáveis: uma mídia Ubuntu Server inicializável, o USB de destino e a ISO/USB do seed NoCloud. A mídia instaladora e o alvo precisam ser diferentes.
 
-## Layout proposto
+### 3. Instalar Ubuntu no USB
 
-O seed planeja BIOS/GRUB, EFI FAT32, raiz Ubuntu ext4 e uma partição ext4 rotulada NIVUS_DATA montada em /var/lib/nivus. A mídia de instalação e o pendrive de destino precisam ser diferentes.
+Inicie a mídia oficial Ubuntu Server 24.04 LTS ou mais recente sem adicionar o parâmetro de kernel \`autoinstall\`. Disponibilize \`user-data\` e \`meta-data\` ao Subiquity pela ISO seed e mantenha a tela de armazenamento interativa. Confira o caminho, modelo, serial e capacidade do USB comparando com \`TARGET-IDENTITY.txt\`. Cancele se houver qualquer divergência. A instalação formata o USB de destino e apaga o conteúdo existente nele.
 
-O disco precisa ter pelo menos 40 GiB; o plano usa 1 MiB para BIOS/GRUB, 1 GiB para EFI, 24 GiB para Ubuntu e o restante para NIVUS_DATA. O instalador formata o USB escolhido e apaga os dados existentes nele.
+O layout usa BIOS/GRUB, EFI FAT32, uma raiz Ubuntu ext4 e a partição ext4 \`NIVUS_DATA\` no restante do USB, montada em \`/var/lib/nivus\`. O dispositivo precisa ter pelo menos 40 GiB. O instalador revalida a identidade do alvo antes de apresentar a confirmação do armazenamento.
 
-## Limites atuais
+### 4. Instalar Nivus após o primeiro boot
 
-Esta branch cria opcionalmente uma ISO NoCloud de configuração, mas ainda não cria a mídia inicializável do Ubuntu, não instala os serviços Nivus e não prova reinício/persistência em equipamento físico. A CI usa inventários sintéticos e não grava em discos; valida um seed pelo schema oficial Subiquity da linha Ubuntu 24.04 e testa a geração da ISO com uma saída sintética. Ainda faltam executar o instalador Subiquity, integrar ou documentar a mídia inicializável completa, instalar Nivus e testar persistência/boot UEFI/BIOS em hardware físico.
+Após iniciar no Ubuntu instalado no próprio USB, obtenha uma cópia do repositório e execute:
 
-A ISO Ubuntu Server inicia um instalador e a tela de armazenamento pode formatar o disco escolhido. O Subiquity permite identificar o disco pelo serial; a configuração não usa a seleção por maior capacidade:
+    sudo apt update
+    sudo apt install -y git python3
+    git clone https://github.com/astec10/nivus-edge-node.git
+    cd nivus-edge-node
+    sudo bash deploy/portable_usb/install_nivus.sh
 
-- [Ubuntu Server: instalação](https://ubuntu.com/server/docs/installation/)
-- [Subiquity: referência de autoinstall](https://canonical-subiquity.readthedocs-hosted.com/en/latest/reference/autoinstall-reference.html)
-- [Curtin: armazenamento](https://curtin.readthedocs.io/en/latest/topics/storage.html)
+O comando recusa continuar se raiz e dados não forem partições ext4 do mesmo USB, se \`NIVUS_DATA\` não estiver montado com escrita e registrado uma única vez no \`/etc/fstab\`, se o rótulo estiver duplicado, se Docker já estiver ativo ou se houver uma instalação Nivus existente. Ele não formata discos nem move diretórios com dados. Em seguida prepara a persistência e chama o instalador Compose existente, que pede o primeiro administrador no terminal.
+
+A instalação inicial precisa de internet para APT e construção/obtenção das dependências. Depois de concluída, o Nivus pode operar na LAN sem depender de serviços na nuvem; os módulos de IA local, VPN e coordenação de vários nós continuam separados no roadmap.
+
+## Limites de validação
+
+A CI valida os seletores com inventários sintéticos e o seed contra o schema oficial Subiquity fixado no workflow. A integração ext4 é exercitada em loop device no runner hospedado. A CI não formata um pendrive físico nem executa o instalador interativamente.
+
+Ainda não há ISO bootável customizada. O processo usa a mídia oficial do Ubuntu Server e um seed em mídia separada. Boot real UEFI/BIOS, primeiro login, Compose, reboot com verificação do SQLite/segredos/containers, recuperação e a matriz física Intel/AMD ainda precisam de validação.
+
+Veja [AUTOINSTALL.md](AUTOINSTALL.md) para parâmetros do seed e [../live-usb/README.md](../live-usb/README.md) para o guard e detalhes do volume persistente.
