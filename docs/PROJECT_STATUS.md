@@ -1,6 +1,6 @@
 # Estado do projeto Nivus
 
-Atualizado: 2026-11-16 20:30 UTC
+Atualizado: 2026-11-16 21:33 UTC
 Licença: AGPL-3.0-only
 
 ## Resumo verificado
@@ -25,11 +25,13 @@ O fluxo continua usando a mídia oficial inicializável do Ubuntu e um seed NoCl
 
 Ainda faltam executar uma instalação real do Subiquity até o primeiro boot, instalar Nivus, autenticar no painel, reiniciar e verificar SQLite (`quick_check`), configurações, segredos e Docker persistidos, testar recuperação/rollback e fazer a matriz física UEFI/BIOS Intel/AMD. A CI hospedada e o loop ext4 validam software, não boot em USB físico nem compatibilidade universal. Consulte [deploy/portable_usb/README.md](../deploy/portable_usb/README.md) para o procedimento e seus limites.
 
-## Configuração visual e atualização pendente
+## Configuração visual, NTP e atualização
 
 O PR #36 foi integrado à main (`3ac16cf`) com correções nos filtros e na acessibilidade do quadro de marcos. O PR #37 foi integrado em `f18085b`; os quatro checks hospedados passaram: dashboard/sensores, índice de conhecimento, CodeQL e validação Ubuntu. Ele adiciona relógio digital, formatos de hora/data, fuso IANA/GMT e temas, com preferências por conta. O relógio usa a hora do navegador; configurar fontes NTP no Ubuntu ainda está pendente.
 
-O PR #38 foi integrado à `main` no commit `972814d`. Os checks hospedados passaram: Ubuntu 22.04 amd64 Compose smoke, índice de conhecimento, dashboard/sensores e CodeQL. O atualizador manual reversível está disponível em `deploy/update.sh`; ele exige clone limpo e execução com `sudo`, cria backup SQLite consistente e preserva a release/imagens anteriores para rollback. O notebook ainda executa a release anterior; o update precisa ser aplicado nesse host e validado visualmente no navegador. Nenhuma mudança remota foi feita nele.
+O PR #38 foi integrado à `main` no commit `972814d`; o atualizador manual reversível está em `deploy/update.sh`. Ele exige clone Git limpo e `sudo`, cria backup SQLite consistente e preserva a release e imagens anteriores para rollback. Os PRs #40 (`e9aab5f`) e #41 (`2e327ea`) também estão integrados: configuração NTP protegida na aba Configuração, controlador restrito com backup/rollback e correção do link temporário do atualizador. Os checks hospedados passaram nos heads revisados, incluindo smoke Compose Ubuntu 22.04, CodeQL sem novos alertas, dashboard/sensores e índice de conhecimento.
+
+O pacote atualizado está no `main`, mas não foi aplicado ao notebook nesta sessão. O host continua no release confirmado anteriormente pelo PR #20. Depois da atualização, ainda falta verificar a nova interface no navegador; a hora do host só muda por ação explícita de administrador, se `systemd-timesyncd` já estiver ativo. Nenhuma mudança remota de host foi feita.
 
 ## Estado do notebook de teste
 
@@ -60,7 +62,8 @@ A implementação de manutenção reversível e `nivus help` foi integrada à `m
 ## Escopo ainda pendente
 
 - Issue #25: as correções do quadro de marcos estão na main pelo PR #36; a página atualizada e a troca da dashboard sem novo login ainda aguardam atualização do notebook e validação visual.
-- Issues #21 e #23: relógio, formatos de hora/data, fuso/GMT e temas estão na main pelo PR #37. A configuração NTP real do host com fontes redundantes permanece pendente; o navegador não configura o relógio do Ubuntu.
+- Issue #21: relógio, formatos, fuso/GMT e preferências foram integrados pelo PR #37; a configuração NTP do host e o controle administrativo entraram pelo PR #40, com a correção do atualizador no PR #41. Falta aplicar a release e validar o estado/uso no host; o navegador não configura o relógio do Ubuntu.
+- Issue #23: os seis temas (Atual, Bento, Glass, SCADA, Cupertino e E-Ink), seleção imediata e preferências locais por conta estão no PR #37. A confirmação visual comparativa no notebook ainda aguarda a atualização e teste no navegador.
 - Issue #26: implementação integrada no PR #28; resta aplicar a release no notebook e confirmar CLI/dashboard e retorno ao modo normal após reboot. A CI hospedada passou, mas não substitui a validação do host.
 - Issue #22: integrar fonte identificada e recente da bateria do dispositivo móvel e associá-la ao relé; manter comandos manuais até então.
 - Fase 1: instalação limpa, recuperação e medição em mais hardware; a CI hospedada não substitui a matriz física Intel/AMD de três faixas de geração.
