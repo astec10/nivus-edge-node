@@ -48,7 +48,7 @@ export default function SettingsPanel({
           <div className="settings-card-heading">
             <div>
               <h3 id="display-settings-title">Preferências de visualização</h3>
-              <p>As alterações são imediatas e ficam neste navegador, separadas por conta. O token de acesso não é guardado nessas preferências.</p>
+              <p>As alterações são imediatas e ficam neste navegador, separadas por conta, quando o armazenamento local está disponível. O token de acesso nunca é guardado nessas preferências.</p>
             </div>
           </div>
 
@@ -76,14 +76,14 @@ export default function SettingsPanel({
               onChange={dateFormat => onDisplayPreferenceChange({ dateFormat })}
             />
             <PreferenceField
-              label="Tema da dashboard"
+              label="Tema da dashboard completa"
               value={displayPreferences.theme}
               options={DASHBOARD_THEMES}
               onChange={theme => onDisplayPreferenceChange({ theme })}
               describedBy="theme-description"
             />
             <p className="display-preference-hint" id="theme-description">
-              O tema Atual continua como padrão. A escolha não muda o login nem a versão completa/leve.
+              O tema Atual continua como padrão. A escolha não altera o login nem o seletor completa/leve; a versão leve preserva o visual compacto próprio.
             </p>
           </div>
 
@@ -106,7 +106,7 @@ export default function SettingsPanel({
             </label>
           </div>
           <p className="display-preference-save-status" role="status" aria-live="polite">
-            Preferências aplicadas nesta sessão e salvas localmente para a conta atual.
+            Preferências aplicadas nesta sessão e guardadas localmente para a conta atual quando permitido pelo navegador.
           </p>
         </section>
 
