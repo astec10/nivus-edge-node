@@ -316,7 +316,7 @@ def configure_persistent_paths(repository_root: Path, root: Path = Path("/")) ->
     repository_root = repository_root.resolve(strict=True)
     root = root.resolve(strict=True)
     data_root = _rooted(root, DATA_MOUNT)
-    data_root_is_new = _validate_volume_tree(data_root)
+    _validate_volume_tree(data_root)
     files = _source_unit_files(repository_root)
     _validate_unit_destinations(root, files)
     for link_path, target in LINKS.items():
