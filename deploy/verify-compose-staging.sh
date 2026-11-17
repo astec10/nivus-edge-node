@@ -182,10 +182,10 @@ INGRESS_NETWORK=$(docker network ls \
 bash deploy/promote-dashboard-443.sh --render 8443 web 8443 127.0.0.1 /run/secrets/tls.crt /run/secrets/tls.key > "$PORTLESS_CONFIG"
 docker run -d --name "$PORTLESS_PROXY" --network "$INGRESS_NETWORK" \
   -p 127.0.0.1:28444:8443 \
-  --mount "type=bind,source=$PORTLESS_CONFIG,target=/tmp/nivus-portless.conf,readonly" \
+  --mount "type=bind,source=$PORTLESS_CONFIG,target=/etc/nginx/conf.d/default.conf,readonly" \
   --mount "type=bind,source=$SECRETS_DIR/tls.crt,target=/run/secrets/tls.crt,readonly" \
   --mount "type=bind,source=$SECRETS_DIR/tls.key,target=/run/secrets/tls.key,readonly" \
-  --entrypoint nginx nivus-edge-web:local -c /tmp/nivus-portless.conf -g 'daemon off;'
+  --entrypoint nginx nivus-edge-web:local -g 'daemon off;'
 for attempt in $(seq 1 15); do
   if curl -kfsS --connect-timeout 2 --max-time 4 https://127.0.0.1:28444/health >/dev/null; then break; fi
   sleep 1
