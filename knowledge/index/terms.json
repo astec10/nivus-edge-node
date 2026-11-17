@@ -470,8 +470,6 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
-    "doc-node-registry",
-    "doc-project-status",
     "doc-project-roadmap",
     "doc-vision"
   ],
@@ -1286,7 +1284,6 @@
   "aprovada": [
     "doc-module-map",
     "doc-node-registry",
-    "doc-project-status",
     "doc-project-roadmap"
   ],
   "aprovado": [
@@ -6710,6 +6707,7 @@
     "doc-project-roadmap"
   ],
   "implementar": [
+    "doc-project-roadmap",
     "doc-vision"
   ],
   "implementaram": [
@@ -8097,7 +8095,6 @@
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
     "doc-module-map",
-    "doc-node-registry",
     "doc-project-status",
     "ai-development-persistent-worker"
   ],
@@ -9363,6 +9360,7 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-node-registry",
     "doc-project-status"
   ],
   "patches": [

@@ -1,8 +1,8 @@
 # Cadastro seguro de nós
 
-**Estado:** API de registro integrada pelo PR #66 e incluída na release ativa `fff64a68f252f0b1290576e30b39ed78fbc15a7a`. O agente mínimo está implementado no [PR #69](https://github.com/astec10/nivus-edge-node/pull/69), aberto e com CI hospedada aprovada. O smoke com dois dispositivos independentes ainda não foi executado.
+**Estado:** API de registro integrada pelo PR #66 e incluída na release ativa `fff64a68f252f0b1290576e30b39ed78fbc15a7a`. O agente mínimo foi implementado no [PR #69](https://github.com/astec10/nivus-edge-node/pull/69) e passou na CI hospedada. O smoke com dois dispositivos independentes ainda não foi executado.
 **Issue:** [#65 concluída](https://github.com/astec10/nivus-edge-node/issues/65) pelo PR #66.
-**Próxima validação:** revisão/merge do PR #69 e smoke real com dois nós.
+**Próxima validação:** smoke real com dois nós, incluindo TLS, reboot e revogação.
 
 Este módulo estabelece identidade, pareamento, presença e revogação para os próximos passos multi-nó. A entrega inicial não agrega telemetria e não dá aos nós capacidade de executar ações uns nos outros.
 
