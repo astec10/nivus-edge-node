@@ -122,7 +122,7 @@ esac
 TARGET_SHA=$(git -C "$SOURCE_ROOT" rev-parse HEAD)
 [[ "$TARGET_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo "Commit inválido." >&2; exit 2; }
 
-for command in git tar docker systemctl curl python3; do
+for command in git tar docker systemctl curl python3 openssl; do
   command -v "$command" >/dev/null 2>&1 || { echo "Comando necessário ausente: $command" >&2; exit 2; }
 done
 docker compose version >/dev/null
@@ -181,6 +181,51 @@ DATA_DIR=$(sed -n 's/^NIVUS_DATA_DIR=//p' "$CURRENT/.env" | tr -d '\r' | tail -n
   echo "Banco persistente não encontrado no caminho configurado." >&2
   exit 2
 }
+SECRET_DIR=$(sed -n 's/^NIVUS_SECRET_DIR=//p' "$CURRENT/.env" | tr -d '\r' | tail -n1)
+RUNTIME_GID=$(sed -n 's/^NIVUS_RUNTIME_GID=//p' "$CURRENT/.env" | tr -d '\r' | tail -n1)
+[[ "$SECRET_DIR" == "/etc/nivus-compose/secrets" && "$RUNTIME_GID" =~ ^[1-9][0-9]{0,4}$ ]] || {
+  echo "Diretório de segredos ou GID inválido; atualização recusada." >&2
+  exit 2
+}
+[[ -d "$SECRET_DIR" && ! -L "$SECRET_DIR" ]] || {
+  echo "Diretório de segredos não é um diretório protegido; atualização recusada." >&2
+  exit 2
+}
+SECRET_DIR_OWNER=$(stat -c '%u' "$SECRET_DIR")
+SECRET_DIR_MODE=$(stat -c '%a' "$SECRET_DIR")
+[[ "$SECRET_DIR_OWNER" == 0 && "$SECRET_DIR_MODE" == 700 ]] || {
+  echo "Permissões do diretório de segredos inválidas; atualização recusada." >&2
+  exit 2
+}
+PROVIDER_KEY_FILE="$SECRET_DIR/provider_encryption_key"
+if [[ ! -e "$PROVIDER_KEY_FILE" && ! -L "$PROVIDER_KEY_FILE" ]]; then
+  HAS_ENCRYPTED_PROVIDER_CREDENTIALS=$(python3 - "$DATA_DIR/nivus.db" <<'PY'
+import sqlite3, sys
+connection = sqlite3.connect(f"file:{sys.argv[1]}?mode=ro", uri=True)
+try:
+    table = connection.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='ai_provider_connections'"
+    ).fetchone()
+    found = bool(table and connection.execute(
+        "SELECT 1 FROM ai_provider_connections WHERE credential_ciphertext IS NOT NULL LIMIT 1"
+    ).fetchone())
+    print("1" if found else "0")
+finally:
+    connection.close()
+PY
+)
+  [[ "$HAS_ENCRYPTED_PROVIDER_CREDENTIALS" == 0 ]] || {
+    echo "Chave mestra ausente, mas há credenciais cifradas; restaure a chave do backup protegido antes de atualizar." >&2
+    exit 2
+  }
+  (umask 077; openssl rand -out "$PROVIDER_KEY_FILE" 32)
+fi
+[[ -f "$PROVIDER_KEY_FILE" && ! -L "$PROVIDER_KEY_FILE" && $(stat -c '%s' "$PROVIDER_KEY_FILE") == 32 ]] || {
+  echo "Chave mestra de provedores inválida; atualização recusada sem substituí-la." >&2
+  exit 2
+}
+chown root:"$RUNTIME_GID" "$PROVIDER_KEY_FILE"
+chmod 440 "$PROVIDER_KEY_FILE"
 curl -kfsS --connect-timeout 3 --max-time 8 "https://127.0.0.1:$HTTPS_PORT/health" >/dev/null
 PRE_AUTH=$(curl -k -sS --connect-timeout 3 --max-time 8 -o /dev/null -w '%{http_code}' "https://127.0.0.1:$HTTPS_PORT/api/telemetry")
 [[ "$PRE_AUTH" == 401 ]] || { echo "Proteção da API não passou no preflight (HTTP $PRE_AUTH)." >&2; exit 2; }

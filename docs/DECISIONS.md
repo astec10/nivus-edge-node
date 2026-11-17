@@ -107,3 +107,12 @@ O agente obtém uma sessão que rotaciona e invalida a sessão anterior. Heartbe
 Capacidades são declarações informativas numa allowlist, não grants de autorização. A primeira versão não habilita shell remoto, execução de tarefas, comandos MQTT, transferência P2P, upload de telemetria ou atualização de software. Cada função exige contrato, autorização e revisão separados.
 
 O registro seguro da API foi integrado pelo PR #66 e está na release aplicada ao notebook. O agente mínimo de pareamento/heartbeat foi implementado no PR #69; a CI hospedada passou, mas o smoke de dois dispositivos e TLS real ainda está pendente. O agente salva o token local em arquivo `0600` dentro de diretório `0700`, sem criptografia; proteger disco e backups. Ele não envia telemetria, executa comandos ou controla atuadores. A amostragem de telemetria agregada, o painel multi-nó e as atualizações de frota continuam planejados.
+
+
+## Cadastro de provedores de IA do runtime — 2026-11-17
+
+Na issue #68, a interface será uma seção própria em **Configuração → Provedores de IA**: lista de conexões, catálogo predefinido e cadastro manual. O formulário abre sob demanda; edição de metadados não pede a chave de novo, e substituição da credencial tem ação separada. Perfil criado começa desabilitado e só pode ser ativado após teste explícito. Salvar não faz chamada externa.
+
+Chave de API não pode ser guardada apenas como hash, pois o processo precisa recuperá-la para autenticar chamadas. O backend usa AES-GCM com nonce aleatório de 96 bits e identificador do perfil como dado autenticado; chave mestra binária de 32 bytes fica fora do repositório e do SQLite. A resposta da API contém apenas `credential_configured`, nunca cifra ou chave. Backup SQLite sozinho não recupera o segredo; a chave mestra precisa de cópia protegida separada.
+
+Nuvem exige HTTPS público e aceita somente dados públicos/sintéticos. Endpoint local é separado, limitado a endereços privados e portas conhecidas, e não recebe chave em HTTP. O teste é GET da lista de modelos, sem prompt, redirecionamento, com timeout. Orçamento e máximo de pedidos são campos de política e permanecem informativos enquanto não existir executor de inferência; habilitar um perfil não significa que o runtime já faz chamadas. Isso continua separado de `GEMINI_API_KEY` do GitHub Actions.

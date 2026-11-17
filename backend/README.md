@@ -13,8 +13,10 @@ O serviço atual continua iniciando com uvicorn main:app no diretório backend/.
 - api/routers/actuator.py: comando MQTT e auditoria.
 - api/routers/alerts.py: histórico de alertas.
 - api/routers/settings.py: leitura e alteração de limites.
+- api/routers/ai_providers.py: gestão administrativa de conexões de IA, com teste explícito e respostas sem segredos.
 - api/routers/users.py: administração de utilizadores e senhas.
 - services/mqtt.py: publicação MQTT usada pela API.
+- services/ai_providers.py: política de endpoints, cifragem AES-GCM, probes sem prompt e auditoria sanitizada.
 - database.py: conexão, inicialização e migrações compatíveis do SQLite.
 - security.py: hashes de senhas e tokens JWT.
 
@@ -26,4 +28,4 @@ O serviço atual continua iniciando com uvicorn main:app no diretório backend/.
 4. Não use a rede local como autorização administrativa.
 5. Mudanças nesta cópia são candidatas até serem implantadas e verificadas no host; mantenha o serviço atual intacto até backup e rollback preparados.
 
-A implantação systemd existente e a candidata modularizada usam os mesmos paths HTTP e o mesmo arquivo SQLite; o novo código ainda não foi ativado no notebook.
+A gestão de provedores da issue #68 está numa branch de implementação, sem deploy no notebook. A chave mestra de AES-GCM é externa ao SQLite/repositório; o backup normal do banco não a inclui. Consulte [docs/AI_PROVIDER_CONNECTORS.md](../docs/AI_PROVIDER_CONNECTORS.md).

@@ -14,7 +14,7 @@ O alvo de distribuição é Ubuntu Server minimal x86_64/amd64. “Alvo” não 
 
 **Instalação portátil: código integrado, validação física pendente.** Ubuntu Server completo instalado no USB, com raiz e NIVUS_DATA persistentes. O PR #34 foi integrado à `main` (`703efa4128f60460910b05ab344b60b082006a7e`); todos os checks hospedados passaram no head `3a1621dc11d2532853ef83b9ab5ea47f64cfaca5`, incluindo schema Subiquity, bootstrap, ext4 em loop, smoke Compose, índice e CodeQL. Essa evidência não substitui instalação/reinicialização em USB físico nem teste de compatibilidade. O operador não usará VMs no computador pessoal.
 
-**Multi-nó operacional, Home Assistant, Zigbee, sensores domésticos, vídeo, IA local, P2P e provedores comerciais: fases futuras.** A primeira camada de identidade/pareamento/heartbeat está integrada pelo PR #66 e implantada em `fff64a68f252f0b1290576e30b39ed78fbc15a7a`; ela não agrega telemetria, executa comandos nem atualiza frota. O agente mínimo de nó foi implementado no PR #69; falta validar dois dispositivos reais e avançar com a telemetria agregada.
+**Multi-nó operacional, Home Assistant, Zigbee, sensores domésticos, vídeo, IA local, P2P e inferência por provedores comerciais continuam futuros. A gestão administrativa de conexões da issue #68 está em implementação numa branch, ainda sem merge ou deploy.** A primeira camada de identidade/pareamento/heartbeat está integrada pelo PR #66 e implantada em `fff64a68f252f0b1290576e30b39ed78fbc15a7a`; ela não agrega telemetria, executa comandos nem atualiza frota. O agente mínimo de nó foi implementado no PR #69; falta validar dois dispositivos reais e avançar com a telemetria agregada.
 
 ## Fases de software
 
@@ -113,7 +113,7 @@ Compartilhar arquivos por P2P não soma automaticamente a RAM/VRAM de máquinas 
 
 ### Fase 6 — Provedores de IA comerciais
 
-**Estado: planejada; issue #68 registra a tela de provedores do runtime Nivus, sem implementação. Depende da orquestração e dos controles de privacidade.
+**Estado: camada de cadastro em implementação na branch `feat/ai-provider-settings`; integração do executor, enforcement de orçamento/quota e fallback continuam planejados. A CI e revisão ainda estão pendentes. Consulte [AI_PROVIDER_CONNECTORS.md](AI_PROVIDER_CONNECTORS.md).
 
 1. Criar conectores isolados por provedor, com timeout, custo e quota configuráveis; a tela administrativa da issue #68 mantém perfil/modelo/responsável e nunca retorna uma chave já salva.
 2. Registrar limites semanais/mensais sem guardar tokens de acesso em logs; guardar credenciais cifradas com chave mestra fora do SQLite e do repositório.

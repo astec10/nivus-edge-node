@@ -2,7 +2,7 @@ import ipaddress
 import re
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
 
 
 def validate_password_policy(value: str) -> str:
@@ -84,3 +84,88 @@ class PasswordRotation(BaseModel):
     @classmethod
     def password_has_letter_and_number(cls, value: str) -> str:
         return validate_password_policy(value)
+
+
+ProviderDataClass = Literal[
+    "public", "synthetic", "operational", "personal", "home", "camera"
+]
+
+
+class AIProviderCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    provider_type: Literal["openai", "anthropic", "gemini", "ollama", "manual"]
+    name: str = Field(min_length=1, max_length=80)
+    protocol: Literal["openai-compatible", "anthropic", "gemini", "ollama"] = "openai-compatible"
+    endpoint_scope: Literal["cloud", "local"] = "cloud"
+    base_url: str = Field(min_length=1, max_length=512)
+    model_name: str = Field(min_length=1, max_length=128)
+    responsible: str = Field(min_length=1, max_length=80)
+    purpose: str = Field(min_length=1, max_length=500)
+    auth_method: Literal["none", "bearer", "x-api-key", "google-api-key"] = "none"
+    api_key: SecretStr | None = Field(default=None, max_length=4096)
+    monthly_budget_usd: float | None = Field(default=None, ge=0, le=100000)
+    max_requests_per_hour: int = Field(default=30, ge=1, le=10000)
+    timeout_seconds: int = Field(default=10, ge=2, le=60)
+    allowed_data_classes: list[ProviderDataClass] = Field(
+        default_factory=lambda: ["public", "synthetic"], max_length=6
+    )
+
+    @field_validator("name", "model_name", "responsible", "purpose", "base_url")
+    @classmethod
+    def trim_provider_text(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized or any(ord(char) < 32 for char in normalized):
+            raise ValueError("O campo não pode ficar vazio ou conter caracteres de controle.")
+        return normalized
+
+    @field_validator("allowed_data_classes")
+    @classmethod
+    def provider_data_classes_are_unique(cls, value: list[ProviderDataClass]) -> list[ProviderDataClass]:
+        if len(set(value)) != len(value):
+            raise ValueError("A classificação de dados contém valores repetidos.")
+        return value
+
+
+class AIProviderUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str | None = Field(default=None, min_length=1, max_length=80)
+    model_name: str | None = Field(default=None, min_length=1, max_length=128)
+    responsible: str | None = Field(default=None, min_length=1, max_length=80)
+    purpose: str | None = Field(default=None, min_length=1, max_length=500)
+    monthly_budget_usd: float | None = Field(default=None, ge=0, le=100000)
+    max_requests_per_hour: int | None = Field(default=None, ge=1, le=10000)
+    timeout_seconds: int | None = Field(default=None, ge=2, le=60)
+    allowed_data_classes: list[ProviderDataClass] | None = Field(default=None, max_length=6)
+
+    @field_validator("name", "model_name", "responsible", "purpose")
+    @classmethod
+    def trim_optional_provider_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        if not normalized or any(ord(char) < 32 for char in normalized):
+            raise ValueError("O campo não pode ficar vazio ou conter caracteres de controle.")
+        return normalized
+
+    @field_validator("allowed_data_classes")
+    @classmethod
+    def updated_data_classes_are_unique(
+        cls, value: list[ProviderDataClass] | None
+    ) -> list[ProviderDataClass] | None:
+        if value is not None and len(set(value)) != len(value):
+            raise ValueError("A classificação de dados contém valores repetidos.")
+        return value
+
+
+class AIProviderCredentialUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    api_key: SecretStr = Field(min_length=1, max_length=4096)
+
+
+class AIProviderEnabled(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool
