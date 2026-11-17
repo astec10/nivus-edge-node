@@ -25,6 +25,7 @@ DOCS = (
     "docs/AI_MODULE_WORKPLAN.md",
     "docs/VIDEO_RESEARCH_INDEX.md",
     "docs/MODULE_MAP.md",
+    "docs/HARDWARE_TELEMETRY.md",
     "docs/PROJECT_STATUS.md",
     "docs/PROJECT_ROADMAP.md",
     "docs/VISION.md",
