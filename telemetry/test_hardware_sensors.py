@@ -4,13 +4,16 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 try:
-    import psutil  # noqa: F401
+    import psutil
 except ImportError:
-    sys.modules["psutil"] = SimpleNamespace(
-        sensors_temperatures=lambda fahrenheit=False: {}
+    psutil = SimpleNamespace(
+        Error=Exception,
+        sensors_temperatures=lambda fahrenheit=False: {},
+        sensors_battery=lambda: None,
     )
+    sys.modules["psutil"] = psutil
 
-from hardware_sensors import get_thermal_metrics
+from hardware_sensors import get_host_battery_metrics, get_thermal_metrics
 
 
 def sensor(value, label):
@@ -75,6 +78,45 @@ class HardwareSensorTests(unittest.TestCase):
         self.assertEqual(metrics["motherboard_temperature_source"], "nct6775: SYSTIN")
         self.assertIsNone(metrics["temperature"])
         self.assertIsNone(metrics["cpu_hotspot_temperature"])
+
+    @patch("hardware_sensors.psutil.sensors_temperatures")
+    def test_psutil_sensor_error_keeps_thermal_metrics_unavailable(self, read_sensors):
+        read_sensors.side_effect = psutil.Error("sensor access failed")
+
+        metrics = get_thermal_metrics()
+
+        for key in (
+            "temperature",
+            "temperature_source",
+            "cpu_hotspot_temperature",
+            "cpu_hotspot_source",
+            "motherboard_temperature",
+            "motherboard_temperature_source",
+            "gpu_temperature",
+            "gpu_temperature_source",
+            "gpu_hotspot_temperature",
+            "gpu_hotspot_source",
+        ):
+            self.assertIsNone(metrics[key])
+
+    @patch("hardware_sensors.psutil.sensors_temperatures")
+    def test_boolean_temperature_is_not_treated_as_one_degree(self, read_sensors):
+        read_sensors.return_value = {"coretemp": [sensor(True, "Package id 0")]}
+
+        metrics = get_thermal_metrics()
+
+        self.assertIsNone(metrics["temperature"])
+        self.assertIsNone(metrics["temperature_source"])
+
+    @patch("hardware_sensors.psutil.sensors_battery")
+    def test_boolean_battery_percentage_is_not_reported_as_one_percent(self, read_battery):
+        read_battery.return_value = SimpleNamespace(percent=True, power_plugged=True)
+
+        metrics = get_host_battery_metrics()
+
+        self.assertIsNone(metrics["host_battery_percent"])
+        self.assertIs(metrics["host_battery_power_plugged"], True)
+        self.assertIsNone(metrics["host_battery_source"])
 
     @patch("hardware_sensors.psutil.sensors_temperatures")
     def test_missing_or_implausible_sensors_remain_unavailable(self, read_sensors):
