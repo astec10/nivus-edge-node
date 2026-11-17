@@ -265,7 +265,7 @@ export default function TelemetryChart({ rows, mode, setMode, range, setRange })
                 isAnimationActive={false}
                 animationDuration={0}
                 content={<ChartTooltip series={selectedSeries} rows={rows} mode={mode} />}
-/>
+              />
               {selectedSeries.map((series) => renderSeries(chartType, series))}
             </ChartComponent>
           </ResponsiveContainer>
