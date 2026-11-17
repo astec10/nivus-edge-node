@@ -126,5 +126,5 @@ jobs:
           docker run --rm --network none
           --security-opt=no-new-privileges
           --cap-drop=ALL
-          --cap-add=CHOWN --cap-add=DAC_OVERRIDE
+          --cap-add=CHOWN --cap-add=DAC_OVERRIDE --cap-add=FOWNER
           nivus-restore-rollback-ci
