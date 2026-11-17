@@ -5,6 +5,9 @@ from unittest.mock import patch
 
 import database
 import security
+from api.routers import users as user_routes
+from api.schemas import PasswordChange, PasswordRotation
+from starlette.responses import Response
 from services import auth_sessions
 
 
@@ -24,6 +27,14 @@ class RevocableSessionTests(unittest.TestCase):
             conn.execute(
                 "INSERT INTO users (username, password, role, must_change_password) "
                 "VALUES ('admin', 'hash', 'admin', 0)"
+            )
+            conn.execute(
+                "INSERT INTO users (username, password, role, must_change_password) "
+                "VALUES ('viewer', 'hash', 'viewer', 0)"
+            )
+            conn.execute(
+                "INSERT INTO users (username, password, role, must_change_password) "
+                "VALUES ('temporary', 'hash', 'viewer', 1)"
             )
             conn.commit()
         finally:
@@ -65,8 +76,46 @@ class RevocableSessionTests(unittest.TestCase):
         self.assertIn("httponly", cookie)
         self.assertIn("secure", cookie)
         self.assertIn("samesite=strict", cookie)
-        self.assertNotIn("opaque-jwt", cookie.split(";", 1)[0].split("=", 1)[1] if False else "")
+        self.assertIn("path=/", cookie)
 
+    def test_admin_password_change_revokes_target_sessions(self):
+        target = security.decode_access_token(
+            auth_sessions.issue_session("viewer", "viewer")
+        )
+        response = user_routes.change_user_password(
+            PasswordChange(
+                username="viewer",
+                new_password="new-password-123",
+                admin_password="admin-password",
+            ),
+            "admin",
+        )
+        self.assertEqual(response["status"], "success")
+        self.assertFalse(auth_sessions.session_is_active(target["jti"], "viewer"))
+
+    def test_first_login_password_rotation_replaces_temporary_session(self):
+        previous = security.decode_access_token(
+            auth_sessions.issue_session("temporary", "viewer", True)
+        )
+        response = Response()
+        with patch.object(user_routes, "hash_password", return_value="replacement-hash"):
+            result = user_routes.change_temporary_password(
+                PasswordRotation(new_password="final-password-123"),
+                response,
+                "temporary",
+            )
+        self.assertFalse(auth_sessions.session_is_active(previous["jti"], "temporary"))
+        self.assertEqual(result["user"]["username"], "temporary")
+        self.assertIn("httponly", response.headers["set-cookie"].lower())
+        self.assertTrue(
+            auth_sessions.session_is_active(
+                security.decode_access_token(
+                    # The response cookie includes the fresh token.
+                    response.headers["set-cookie"].split(";", 1)[0].split("=", 1)[1]
+                )["jti"],
+                "temporary",
+            )
+        )
 
 if __name__ == "__main__":
     unittest.main()
