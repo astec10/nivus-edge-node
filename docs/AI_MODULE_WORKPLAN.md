@@ -27,7 +27,8 @@ Para reaproveitar contexto entre provedores, a Issue aponta para a playbook corr
 | Router/API de um domínio | Parcialmente | Autorização, schema e persistência acordados antes de workers paralelos | Integrador confere política de acesso, migração e compatibilidade do endpoint. |
 | Cadastro e Nó Master | Não antes de definir identidade e contratos de heartbeat | Depende de identidade/revogação e envelope versionado; telemetria agregada começa quando o Master estiver operacional | Integração sequencial com validação de nó autorizado, duplicatas, atraso e nó offline. |
 | Controlador do executor no notebook | Separado do runtime Nivus | Fila do GitHub durável; autorização explícita; Actions hospedadas para executar código | Primeiro apenas despacha e acompanha workflows; não tem shell remoto no notebook nem acesso ao banco de telemetria. |
-| Worker de código e integração multi-modelo | Após host, modelo e orçamento aprovados | Checkout efêmero, escopos mínimos, caminhos permitidos, limite por tentativa e contrato de artefatos | Abre PR; CI e revisão humana integram o resultado. Não faz merge ou deploy de produção. |
+| API de fila paralela | Contrato já descrito no PR #78; revisão pendente | Webhook HMAC + allowlists; Redis; claim/lease atômico; heartbeat; retry limitado; Skills/caminhos/Risco validados | `tools/parallel_ai_dispatcher/`; recebe resultado como PR aguardando revisão; sem execução de código ou chamada de modelo. |
+| Worker de código e integração multi-modelo | Depois da API de fila e de aprovar host, modelo e orçamento | Checkout efêmero, sandbox, escopos mínimos, caminhos permitidos, dados públicos/sintéticos, limites por tentativa e contratos de artefato | Deve criar PR e devolvê-lo à fila; CI e revisão humana integram o resultado. Não faz merge nem deploy de produção. |
 
 ## Contratos compartilhados: serializar antes de paralelizar
 
@@ -44,7 +45,7 @@ Um integrador deve ser o único responsável por decidir mudanças simultâneas 
 
 ## Estado atual do executor
 
-O executor de desenvolvimento usa GitHub Issues e GitHub Actions, separado do runtime Nivus. O intake valida a tarefa, seus caminhos permitidos e a autorização explícita antes de iniciar o worker. A chamada ao modelo e a execução do worker ocorrem em runners GitHub-hosted; o fluxo não depende da telemetria do CCE nem do Nó Master.
+O executor de desenvolvimento usa GitHub Issues e GitHub Actions, separado do runtime Nivus. O intake valida a tarefa e sua classificação antes de iniciar o fluxo Gemini existente. O PR #78 acrescenta uma API FastAPI/Redis de fila para Issues `parallel-ai:queued`, com HMAC, allowlists e claim/lease. O contrato de fila e a API estão em revisão; ainda não há adaptadores de provedor ou executor multi-modelo. Os dois fluxos são independentes: o Gemini usa `ai:ready`, a fila paralela usa `parallel-ai:queued`.
 
 Uma chamada autorizada para uma issue pública/sintética gerou a proposta do PR #16. A CI passou, mas naquela execução a etapa de abertura automática falhou porque `gh repo view` não tinha checkout; o mantenedor abriu o draft manualmente. O commit `bec9573` corrigiu a leitura da branch padrão pela API. O PR #53 adicionou uma verificação contra propostas duplicadas antes da chamada, remove os rótulos de fila quando cria um draft e comenta o link. Esses checks passaram, mas ainda não houve uma nova chamada autorizada para confirmar o ciclo automático depois da correção. O PR #16 segue aberto como draft e exige revisão humana.
 

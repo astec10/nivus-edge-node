@@ -36,6 +36,7 @@ DOCS = (
     "docs/AI_DEVELOPMENT_ORCHESTRATION.md",
     "docs/AI_EXECUTOR_IMPLEMENTATION.md",
     "docs/AI_MODULE_WORKPLAN.md",
+    "tools/parallel_ai_dispatcher/README.md",
     "docs/VIDEO_RESEARCH_INDEX.md",
     "docs/MODULE_MAP.md",
     "docs/NODE_REGISTRY.md",
@@ -109,7 +110,10 @@ def load_records() -> list[dict]:
         path = ROOT / relative
         content = path.read_text(encoding="utf-8").strip()
         title = next((line[2:].strip() for line in content.splitlines() if line.startswith("# ")), path.stem)
-        document_key = path.parent.name if path.name == "SKILL.md" else path.stem
+        if relative == "tools/parallel_ai_dispatcher/README.md":
+            document_key = "parallel-ai-dispatcher"
+        else:
+            document_key = path.parent.name if path.name == "SKILL.md" else path.stem
         records.append(
             {
                 "id": f"doc-{document_key.casefold().replace('_', '-')}",

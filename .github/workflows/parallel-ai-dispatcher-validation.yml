@@ -1,0 +1,33 @@
+name: Parallel AI dispatcher validation
+
+on:
+  pull_request:
+    paths:
+      - "tools/parallel_ai_dispatcher/**"
+      - "scripts/validate_parallel_ai_task.py"
+      - ".github/workflows/parallel-ai-dispatcher-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tools/parallel_ai_dispatcher/requirements.txt
+
+      - name: Install dispatcher dependencies
+        run: python -m pip install --disable-pip-version-check -r tools/parallel_ai_dispatcher/requirements.txt
+
+      - name: Compile dispatcher and intake validator
+        run: python -m compileall -q tools/parallel_ai_dispatcher scripts/validate_parallel_ai_task.py

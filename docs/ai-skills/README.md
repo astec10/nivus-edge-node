@@ -10,7 +10,7 @@ Este catálogo reúne, em arquivos separados, as orientações de trabalho por d
 4. Trabalhe em branch/worktree isolada. Uma skill descreve limites e processo; não concede credenciais nem acesso a ferramentas.
 5. Entregue diff/PR e evidências reais de validação para o integrador. Revisão humana continua necessária para merge e produção.
 
-O coordenador pode manter o acesso ao GitHub e entregar ao worker apenas o contexto e o patch necessários. Cada provedor ainda precisa de autorização/configuração própria para executar o modelo. A Issue [`Trabalho paralelo de IA`](../../.github/ISSUE_TEMPLATE/parallel-ai-work-item.yml) é manual e não inicia automaticamente o executor existente.
+O coordenador pode manter o acesso ao GitHub e entregar ao worker apenas o contexto e o patch necessários. Cada provedor ainda precisa de autorização/configuração própria para executar o modelo. A Issue [`Trabalho paralelo de IA`](../../.github/ISSUE_TEMPLATE/parallel-ai-work-item.yml) e o workflow manual [`parallel-ai-intake.yml`](../../.github/workflows/parallel-ai-intake.yml) validam a tarefa. O dispatcher em [`tools/parallel_ai_dispatcher/`](../../tools/parallel_ai_dispatcher/README.md) recebe a label por webhook autenticado, mantém a fila Redis, oferece claim/lease e registra o PR para revisão. Ele não chama modelos nem executa código; a implementação está em revisão no PR #78.
 
 ## Skills
 

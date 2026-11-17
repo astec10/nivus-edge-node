@@ -1,0 +1,84 @@
+name: Parallel AI task intake
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Open issue created from the parallel AI work item form
+        required: true
+        type: string
+      confirmed_public_or_synthetic:
+        description: Confirm you reviewed the issue and it contains only public or synthetic data
+        required: true
+        type: boolean
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: parallel-ai-intake-${{ inputs.issue_number }}
+  cancel-in-progress: false
+
+jobs:
+  validate-and-queue:
+    if: >-
+      inputs.confirmed_public_or_synthetic == true &&
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+    steps:
+      - name: Check out trusted validator
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate the public issue contract
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ inputs.issue_number }}
+          REPOSITORY: ${{ github.repository }}
+          CONFIRMED_PUBLIC_OR_SYNTHETIC: ${{ inputs.confirmed_public_or_synthetic }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          [[ "$GITHUB_REF_NAME" == "$DEFAULT_BRANCH" ]]
+          [[ "$ISSUE_NUMBER" =~ ^[1-9][0-9]*$ ]]
+          [[ "$CONFIRMED_PUBLIC_OR_SYNTHETIC" == "true" ]]
+          gh api "repos/$REPOSITORY/issues/$ISSUE_NUMBER" --jq 'if has("pull_request") then error("a pull request cannot be queued") elif .state != "open" then error("task issue must be open") else .body end' > "$RUNNER_TEMP/parallel-ai-issue.md"
+          python scripts/validate_parallel_ai_task.py \
+            --file "$RUNNER_TEMP/parallel-ai-issue.md" \
+            --confirmed-public-or-synthetic
+
+      - name: Ensure queue label exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          if ! gh api --method POST "repos/$REPOSITORY/labels" \
+            -f name='parallel-ai:queued' \
+            -f color='1d76db' \
+            -f description='Validated parallel AI task awaiting manual assignment' >/dev/null 2>&1; then
+            gh api "repos/$REPOSITORY/labels/parallel-ai%3Aqueued" >/dev/null
+          fi
+
+      - name: Add the task to the manual queue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ inputs.issue_number }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          gh api --method POST "repos/$REPOSITORY/issues/$ISSUE_NUMBER/labels" \
+            -f 'labels[]=parallel-ai:queued' >/dev/null
+          echo "Issue queued for manual assignment. No model call or worker dispatch was started."
