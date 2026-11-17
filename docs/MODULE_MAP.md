@@ -89,9 +89,18 @@ O PR #18 propõe um runner opcional no notebook para checks confiáveis da branc
 
 ## Scheduler Nivus entre nós (futuro)
 
-```text
-identidade de nó → inventário de capacidade → fila/lease → worker isolado
-                → artefato com checksum → validação/aceite → auditoria
+```mermaid
+flowchart LR
+  Pairing[Identidade e pareamento] --> Profile[Inventário e capacidade validada]
+  Profile --> Registry[Registro autoritativo no Master]
+  Registry --> Snapshot[Snapshot assinado e somente leitura]
+  Snapshot --> Cache[Cópia versionada em cada nó]
+  Queue[Fila durável] --> Match[Correspondência de capacidades e recursos]
+  Cache --> Match
+  Match --> Lease[Lease com fencing e timeout]
+  Lease --> Worker[Worker isolado]
+  Worker --> Artifact[Artefato com hash e proveniência]
+  Artifact --> Review[Resultado aguardando revisão humana]
 ```
 
-Esse scheduler não está implementado. A Fase 2 fornece cadastro/heartbeat e a Fase 5 define leases, idempotência, quotas, cancelamento e recuperação. Compartilhar um arquivo ou GPU pela LAN não agrega RAM/VRAM por si só.
+O scheduler, perfis validados, snapshots replicados e execução entre nós ainda não estão implementados. O registro atual fornece identidade/pareamento/heartbeat; o agente mínimo ainda envia capacidades vazias. A proposta, o mapa mental, estados, contratos e critérios estão em [NODE_CAPABILITY_SCHEDULER.md](NODE_CAPABILITY_SCHEDULER.md). A Fase 2 precisa validar perfis e a Fase 5 depende de identidade e capacidade confiáveis. Uma cópia local do registro não substitui o Master nem contém credenciais. Compartilhar arquivo ou GPU pela LAN não agrega RAM/VRAM por si só.
