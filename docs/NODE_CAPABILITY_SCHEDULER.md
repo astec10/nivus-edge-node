@@ -15,7 +15,7 @@ O nome do equipamento não habilita uma capacidade automaticamente. Cada classe 
 
 ## Nome, identidade e vínculo com o equipamento
 
-Na primeira inicialização, o instalador pode atribuir um nome amigável aleatório, por exemplo `nivus-cobre-7f2a`. O operador poderá renomeá-lo localmente ou no Master. Esse nome é apenas um rótulo: pode repetir, mudar e nunca será usado como credencial.
+Na primeira inicialização, o instalador pode atribuir um nome amigável aleatório, por exemplo `nivus-cobre-7f2a`. O operador poderá renomeá-lo na tela de nós do Master; o rótulo é replicado no catálogo. Por padrão, isso não altera o hostname do Ubuntu nem exige acesso root remoto. Uma mudança do hostname do sistema seria uma operação local separada, com confirmação e registro. O nome é apenas um rótulo: pode repetir, mudar e nunca será usado como credencial.
 
 A identidade de segurança usa o `node_id` atribuído pelo Master no pareamento e uma chave exclusiva gerada pelo nó. O nó assina os relatórios; o Master verifica a assinatura e associa o conteúdo à identidade registrada. Se houver TPM 2.0, a chave privada poderá ser protegida pelo TPM; o fluxo base precisa funcionar sem TPM. A chave de Endorsement do TPM identifica o próprio TPM, não substitui uma identidade de dispositivo provisionada.
 
