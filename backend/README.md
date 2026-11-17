@@ -28,4 +28,4 @@ O serviço atual continua iniciando com uvicorn main:app no diretório backend/.
 4. Não use a rede local como autorização administrativa.
 5. Mudanças nesta cópia são candidatas até serem implantadas e verificadas no host; mantenha o serviço atual intacto até backup e rollback preparados.
 
-A gestão de provedores da issue #68 está numa branch de implementação, sem deploy no notebook. A chave mestra de AES-GCM é externa ao SQLite/repositório; o backup normal do banco não a inclui. Consulte [docs/AI_PROVIDER_CONNECTORS.md](../docs/AI_PROVIDER_CONNECTORS.md).
+A gestão administrativa de provedores da issue #68 está implementada no PR #72 e passou pela CI hospedada, mas ainda não foi implantada no notebook. A chave mestra de AES-GCM é externa ao SQLite/repositório; o backup normal do banco não a inclui. Consulte [docs/AI_PROVIDER_CONNECTORS.md](../docs/AI_PROVIDER_CONNECTORS.md).

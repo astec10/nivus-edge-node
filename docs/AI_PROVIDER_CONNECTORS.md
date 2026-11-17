@@ -1,6 +1,6 @@
 # Conexões com provedores de IA
 
-Estado: configuração administrativa em implementação na issue #68. O cadastro, por si só, não conecta o executor de tarefas nem envia prompts.
+Estado: a implementação administrativa está documentada no PR #72, com CI hospedada aprovada; ainda não foi implantada no notebook. O cadastro, por si só, não conecta o executor de tarefas nem envia prompts.
 
 ## Onde encontrar e como usar
 
@@ -42,4 +42,4 @@ Esta configuração pertence ao runtime do Nivus. Ela não lê nem altera `GEMIN
 
 As rotas administrativas ficam em `backend/api/routers/ai_providers.py`; a cifra, validação de endpoint, teste explícito e auditoria ficam em `backend/services/ai_providers.py`. A migração é aditiva e cria as tabelas `ai_provider_connections` e `ai_provider_audit`.
 
-A CI descobre `backend/test_ai_providers.py` com unittest. Os casos cobrem cifra e alteração de texto, autorização da política, orçamento obrigatório antes do teste de nuvem, limite de testes por hora, teste sem prompt, bloqueio de endereços privados em nuvem e loopback em endpoint local. A validação hospedada é necessária antes do merge; esta mudança não foi implantada no notebook.
+A CI do PR #72 passou nos workflows de smoke Compose Ubuntu 22.04, painel e sensores, índice de conhecimento e CodeQL. Os testes específicos cobrem cifra e alteração de texto, autorização da política, orçamento obrigatório antes do teste de nuvem, limite de testes por hora, teste sem prompt, bloqueio de endereços privados em nuvem e loopback em endpoint local. A alteração continua sem implantação no notebook.
