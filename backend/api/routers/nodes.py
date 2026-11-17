@@ -1,3 +1,4 @@
+import re
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Header, HTTPException
@@ -31,14 +32,16 @@ NodeCapability = Literal[
 
 class NodeEnrollment(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    name: str = Field(min_length=1, max_length=48, pattern=r"^[A-Za-z0-9][A-Za-z0-9 _.-]{0,47}$")
+    name: str = Field(min_length=1, max_length=64)
 
-    @field_validator("name")
+    @field_validator("name", mode="before")
     @classmethod
     def normalize_name(cls, value: str) -> str:
-        clean = " ".join(value.split())
-        if not clean:
+        if not isinstance(value, str):
             raise ValueError("Informe o nome do nó.")
+        clean = " ".join(value.split())
+        if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9 _.-]{0,47}", clean):
+            raise ValueError("O nome do nó deve ter 1 a 48 caracteres alfanuméricos, espaços, ponto, hífen ou sublinhado.")
         return clean
 
 
