@@ -2,7 +2,7 @@
 
 O Nivus é um projeto aberto para construir uma plataforma de borda local-first, modular e de baixo consumo. Telemetria é um módulo da plataforma; sua agregação entre nós não é pré-requisito para o executor nem para a biblioteca compartilhada e será mais útil quando o Nó Master estiver operacional.
 
-O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não significa compatibilidade comprovada com qualquer computador. O stack Compose e o registro inicial de nós estão instalados em paralelo num único notebook Ubuntu CCE U25; instalação limpa, reboot, restauração e outros modelos de hardware ainda precisam de validação.
+O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não significa compatibilidade comprovada com qualquer computador. O stack Compose está instalado em paralelo num único notebook Ubuntu CCE U25; a release `fff64a68f252f0b1290576e30b39ed78fbc15a7a` foi aplicada em 17/11/2026. A API inclui o primeiro registro seguro de nós (PR #66), mas ainda não há agente conectado nem operação multi-nó. Instalação limpa, reboot, restauração e outros modelos de hardware ainda precisam de validação.
 
 ## Estado do projeto
 
@@ -13,7 +13,7 @@ O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não sign
 - Painel React/Vite dividido em componentes, com login, telemetria, usuários e seções do dashboard.
 - SQLite persistente, ingestão MQTT e agente de telemetria do host na instalação de teste. Telemetria agregada de vários nós é uma fase futura ligada ao Nó Master.
 - Instalação Compose paralela com API, worker, Mosquitto e Nginx; HTTPS, backup e procedimento de rollback.
-- A candidata Compose passou health HTTPS, HTTP 401 sem token e login; o coletor publica telemetria continuamente. A instalação antiga systemd/Nginx continua separada e ativa.
+- A instalação Compose paralela passou health HTTPS, HTTP 401 sem token e login; a última atualização reconstruiu e reiniciou os containers, criou backup SQLite consistente e confirmou health 200/401. A instalação antiga systemd/Nginx continua separada e ativa. Na release atual, a nova dashboard atende HTTPS 8443; a promoção da nova interface para a porta 443 ainda está pendente (issue #70).
 - A interface servida mostra os avisos AGPL e links para o código e a licença.
 
 ### Planejado ou aguardando validação
@@ -68,7 +68,7 @@ A semântica, origem e limites das leituras térmicas estão em [docs/HARDWARE_T
 
 ## Instalação e execução
 
-O desenvolvimento local está descrito em [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md). A instalação Compose para teste está em [deploy/README.md](deploy/README.md); ela requer Ubuntu, Docker/Compose, privilégios administrativos e credenciais iniciais criadas no terminal. A API e o broker ficam em redes privadas do Compose; MQTT não é publicado no host. Em instalação limpa, o painel usa HTTPS na porta padrão 443 (`https://IP/`) quando disponível; se outro serviço já ocupa essa porta, o instalador preserva o serviço e escolhe uma alternativa. O certificado autoassinado gera aviso no navegador.
+O desenvolvimento local está descrito em [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md). A instalação Compose para teste está em [deploy/README.md](deploy/README.md); ela requer Ubuntu, Docker/Compose, privilégios administrativos e credenciais iniciais criadas no terminal. A API e o broker ficam em redes privadas do Compose; MQTT não é publicado no host. O instalador publica a dashboard em HTTPS na porta 8443 por padrão e tenta a próxima porta livre se ela estiver ocupada; ele não altera o Nginx do host nem promove o Compose para 443. Acessar sem sufixo de porta em instalação existente é acompanhado pela issue #70. O certificado autoassinado gera aviso no navegador.
 
 Não há promessa de suporte a toda máquina x86_64 até validar Ubuntu minimal em instalações limpas e medir CPU, memória, armazenamento e periféricos. Veja os marcos pendentes antes de instalar fora do notebook de teste.
 
