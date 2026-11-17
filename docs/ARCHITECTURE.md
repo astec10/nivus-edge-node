@@ -1,6 +1,6 @@
 # Arquitetura da candidata
 
-Esta árvore descreve a implementação versionada do Nivus. O primeiro cadastro de nós está em uma branch de desenvolvimento e ainda não pertence à release ativa do notebook.
+Esta árvore descreve a implementação versionada do Nivus. O registro inicial seguro de nós foi integrado ao `main` pelo PR #66 e está incluído na release ativa do notebook `fff64a68f252f0b1290576e30b39ed78fbc15a7a`; isso não significa que telemetria multi-nó ou coordenação remota estejam operacionais.
 
 ## Backend
 
@@ -10,7 +10,7 @@ Esta árvore descreve a implementação versionada do Nivus. O primeiro cadastro
 - backend/api/dependencies.py valida JWT e papel do usuário.
 - backend/database.py mantém SQLite e inicialização/migração aditiva.
 - backend/services/maintenance.py compartilha o estado volátil do modo de manutenção, registra transições no SQLite e volta ao modo normal após reboot.
-- `backend/services/nodes.py` implementa o primeiro contrato de identidade multi-nó em branch: código de pareamento de uso único, token armazenado como hash, sessão rotativa, sequência contra replay e presença derivada de heartbeat do servidor. Essa proposta não inclui coleta/agregação, execução remota ou atualizações de frota.
+- `backend/services/nodes.py` implementa o primeiro contrato de identidade multi-nó integrado no PR #66: código de pareamento de uso único, token armazenado como hash, sessão rotativa, sequência contra replay e presença derivada do heartbeat do servidor. Essa camada não inclui agente autônomo, agregação, execução remota ou atualização de frota.
 - backend/security.py contém hashing PBKDF2 e helpers JWT.
 - `backend/services/mobile_battery.py` aplica frescor, limiar de 20%, latch por ciclo e publica somente `OFF` no tópico fixo permitido; o broker não confirma o estado físico.
 - backend/services/mqtt.py publica comandos; backend/mqtt_worker.py persiste eventos.

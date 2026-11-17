@@ -1,6 +1,6 @@
 # Instalação Docker paralela para Ubuntu
 
-Este stack é uma instalação candidata separada da execução systemd/Nginx já existente. O instalador não para nem substitui serviços anteriores. Ele usa HTTPS na porta 8443, broker MQTT sem porta publicada no host, outro diretório de dados, segredos próprios e um serviço de telemetria com nome próprio.
+Este stack Compose está instalado em paralelo à execução systemd/Nginx preexistente no notebook de teste. A atualização de 17/11/2026 aplicou a release `fff64a68f252f0b1290576e30b39ed78fbc15a7a`; ela confirmou backup SQLite, restart dos containers, health HTTPS 200 e API sem token 401. O instalador e o atualizador não substituem serviços anteriores. O Compose usa HTTPS na porta 8443 por padrão, broker MQTT sem porta publicada no host, diretório de dados persistentes, segredos próprios e serviço de telemetria separado.
 
 ## Pré-requisitos e alvo
 
@@ -34,7 +34,7 @@ O atualizador aceita somente uma instalação Compose ativa no caminho esperado.
 
 O atualizador não altera o Nginx do host, os segredos externos ou o dashboard legado em 8444. Não use `deploy/install.sh` para atualizar uma instalação existente: esse script é somente para a instalação inicial. Este mecanismo é manual, não atualiza outros nós e precisa de Internet e espaço/memória para construir imagens.
 
-A execução no CCE U25 ainda precisa ser feita e conferida no navegador; CI hospedada não substitui essa validação.
+A execução do atualizador no CCE U25 foi confirmada em 17/11/2026 na release `fff64a68f252f0b1290576e30b39ed78fbc15a7a`; a saída não comprova reboot completo do Ubuntu nem inspeção visual no navegador. A nova dashboard Compose continua em 8443 e a promoção reversível para a porta 443 está especificada na issue #70. CI hospedada e health checks não substituem a validação visual nem testes em hardware.
 
 O broker e os serviços que o usam ficam numa rede Docker interna. O coletor do host resolve o IP atual do broker por um `ExecStartPre` privilegiado e grava somente esse endereço em `/run`; a senha continua sendo entregue como credencial systemd ao processo sem privilégios. Não altere o agente para conectar a um `localhost`/porta publicada: redes `internal` não publicam a porta MQTT no host. O helper é executado a cada início do coletor para acompanhar a recriação do container.
 

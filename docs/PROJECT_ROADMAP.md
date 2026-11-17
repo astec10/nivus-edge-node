@@ -10,11 +10,11 @@ O alvo de distribuição é Ubuntu Server minimal x86_64/amd64. “Alvo” não 
 
 ## Onde estamos
 
-**Fundação do nó de borda: funcionando numa instalação Ubuntu de teste.** A API modular, o painel, o broker, o worker e o coletor Compose foram instalados em paralelo no notebook CCE U25. Em 16/11/2026, o operador atualizou a release para `136830786cc44b17d456fea779dbfc596115046e`; build, backup SQLite, restart, HTTPS 200 e API sem token 401 foram confirmados. A instalação systemd/Nginx anterior permanece. Veja [`PROJECT_STATUS.md`](PROJECT_STATUS.md) para evidência e limites.
+**Fundação do nó de borda: funcionando numa instalação Ubuntu de teste.** A API modular, painel, broker, worker, coletor Compose e registro inicial de nós foram instalados em paralelo no notebook CCE U25. Em 17/11/2026, a release `fff64a68f252f0b1290576e30b39ed78fbc15a7a` foi aplicada; build, backup SQLite, restart dos serviços, HTTPS 200 e telemetria sem token 401 foram confirmados. Isso não comprova reboot completo ou compatibilidade universal. Veja [`PROJECT_STATUS.md`](PROJECT_STATUS.md) para evidências e limites.
 
 **Instalação portátil: código integrado, validação física pendente.** Ubuntu Server completo instalado no USB, com raiz e NIVUS_DATA persistentes. O PR #34 foi integrado à `main` (`703efa4128f60460910b05ab344b60b082006a7e`); todos os checks hospedados passaram no head `3a1621dc11d2532853ef83b9ab5ea47f64cfaca5`, incluindo schema Subiquity, bootstrap, ext4 em loop, smoke Compose, índice e CodeQL. Essa evidência não substitui instalação/reinicialização em USB físico nem teste de compatibilidade. O operador não usará VMs no computador pessoal.
 
-**Multi-nó, Home Assistant, Zigbee, sensores domésticos, vídeo, IA local, P2P e provedores comerciais: em fases futuras.** A primeira camada de cadastro/heartbeat está em desenvolvimento na branch `feat/node-registry-bootstrap-20261117`; ela não é um coordenador, não agrega telemetria e ainda não está implantada.
+**Multi-nó operacional, Home Assistant, Zigbee, sensores domésticos, vídeo, IA local, P2P e provedores comerciais: fases futuras.** A primeira camada de identidade/pareamento/heartbeat está integrada pelo PR #66 e implantada em `fff64a68f252f0b1290576e30b39ed78fbc15a7a`; ela não agrega telemetria, executa comandos nem atualiza frota. O agente de nó está na issue #69.
 
 ## Fases de software
 
@@ -26,9 +26,9 @@ Entregas existentes: API modular, autenticação por senha/JWT, telemetria de ho
 
 Critérios já observados: login funcional; API exige token; health HTTPS responde; o SQLite candidato passa `quick_check` e recebe novas amostras; o coletor não reinicia; os serviços antigos continuam ativos.
 
-**Operação de manutenção (issue #26):** implementação merged no PR #28 e incluída na release ativa do notebook `869f4e6`; CI hospedada aprovada. A pausa interrompe amostragem/publicação de telemetria do host e gravação de novas amostras MQTT, sem desligar API, painel, health ou broker. Ainda falta executar `nivus help`, exercitar pausa/retomada e reinício normal no notebook.
+**Operação de manutenção (issue #26):** implementação merged no PR #28 e incluída na release ativa do notebook `fff64a68`; CI hospedada aprovada. A pausa interrompe amostragem/publicação de telemetria do host e gravação de novas amostras MQTT, sem desligar API, painel, health ou broker. Ainda falta executar `nivus help`, exercitar pausa/retomada e reinício normal no notebook.
 
-**Relógio, interface e sensores (issues #21/#23):** PRs #37–#50 implementaram preferências de relógio, controle NTP restrito, temas, gráficos, bateria interna e regra de bateria móvel. Em 16/11/2026, a release `136830786cc44b17d456fea779dbfc596115046e` foi aplicada no notebook; a saída confirmou build, backup, restart, HTTPS 200 e 401 sem token. Ainda falta confirmar visualmente a mudança no navegador. PR #61 remove a espera do tooltip e PR #63 endurece leituras do psutil. O operador não usará VMs locais; validações de software ficam no CI hospedado.
+**Relógio, interface e sensores (issues #21/#23):** PRs #37–#50 implementaram preferências, controle NTP, temas, gráficos, bateria interna e regra móvel. Em 17/11/2026, a release `fff64a68f252f0b1290576e30b39ed78fbc15a7a` foi aplicada no notebook; build, backup, restart, HTTPS 200 e 401 sem token passaram. PR #67 compactou medidores Glass e moveu as dicas dos cartões para os detalhes após 3 segundos. Ainda falta conferência visual no navegador. O operador não usará VMs locais; CI hospedada valida software, não hardware físico.
 
 **Perfil de desempenho condicionado à alimentação (issue #62):** sinal confirmado de alimentação AC do nó/UPS permite somente mudar para um governor de desempenho disponível, dentro dos limites térmicos. Sem sinal válido, perfil conservador; atuadores continuam em suas regras determinísticas e overclock é manual. Escopo decidido, implementação pendente.
 
@@ -54,10 +54,10 @@ CI aprovado comprova o fluxo no runner virtual Ubuntu, não em cada chipset ou p
 
 ### Fase 2 — Identidade e telemetria de vários nós
 
-**Estado: fase multi-nó ainda não operacional; uma primeira camada de identidade está em desenvolvimento.** A telemetria local existe no nó de teste, mas agregá-la entre nós não é requisito para avançar o executor de desenvolvimento ou a biblioteca versionada. A issue #65 implementa cadastro, sessão e heartbeat na branch `feat/node-registry-bootstrap-20261117`; a proposta ainda aguarda CI e revisão. A atualização coordenada será uma entrega distinta. O operador deseja iniciar correções, atualizações ou funções para máquinas Nivus em rede; envio automático ainda não existe.
+**Estado: registro inicial integrado e implantado; operação multi-nó ainda não completa.** A telemetria local existe no nó de teste, mas sua agregação não é requisito para o executor de desenvolvimento. A issue #65 foi concluída pelo PR #66; API de pareamento, sessão, heartbeat e revogação está na `main` e na release `fff64a68f252f0b1290576e30b39ed78fbc15a7a`. Falta cliente/agente e teste com dois dispositivos conectados; a issue #69 acompanha esse próximo incremento. Não há comandos remotos nem atualização coordenada.
 
-1. **Em desenvolvimento na issue #65:** identidade estável criada pelo servidor e cadastro explícito com código de uso único; não confiar apenas em nome ou IP.
-2. **Em desenvolvimento na issue #65:** heartbeat ordenado, versão do agente, capacidade declarada e estado online/offline derivado do relógio do servidor.
+1. [x] Identidade criada pelo servidor e cadastro administrativo por código de uso único — PR #66, issue #65 concluída.
+2. [x] Heartbeat autenticado, ordenado, com presença baseada no relógio do servidor; CI cobre duas identidades simuladas — PR #66. O smoke com agentes independentes continua pendente.
 3. Versionar o envelope de telemetria: nó, timestamp, unidade, origem, qualidade e versão do esquema.
 4. Exibir lista de nós, último contato e séries por nó no painel.
 5. Tratar duplicatas, atraso, relógios incorretos, perda de rede, revogação e nós desconhecidos.
@@ -111,10 +111,10 @@ Compartilhar arquivos por P2P não soma automaticamente a RAM/VRAM de máquinas 
 
 ### Fase 6 — Provedores de IA comerciais
 
-**Estado: planejada; depende da orquestração e de controles de privacidade.**
+**Estado: planejada; issue #68 registra a tela de provedores do runtime Nivus, sem implementação. Depende da orquestração e dos controles de privacidade.
 
-1. Criar conectores isolados por provedor, com timeout, custo e quota configuráveis.
-2. Registrar limites semanais/mensais sem guardar tokens de acesso em logs.
+1. Criar conectores isolados por provedor, com timeout, custo e quota configuráveis; a tela administrativa da issue #68 mantém perfil/modelo/responsável e nunca retorna uma chave já salva.
+2. Registrar limites semanais/mensais sem guardar tokens de acesso em logs; guardar credenciais cifradas com chave mestra fora do SQLite e do repositório.
 3. Classificar dados e exigir decisão do operador antes de enviar conteúdo da casa para fora.
 4. Respeitar quotas e falhas; usar modelo local ou fila pendente como fallback.
 5. Comparar respostas, citar fontes e exigir revisão antes de entregar automação ou código crítico.
@@ -123,6 +123,6 @@ Critério de saída: limite financeiro não é ultrapassado silenciosamente; dad
 
 ## Sequência recomendada
 
-**Em paralelo agora:** concluir a Fase 1 por CI hospedada, manter a biblioteca pública versionada e avançar o executor externo de desenvolvimento. A primeira camada de identidade multi-nó (issue #65) está em branch independente; enquanto isso não for integrada e implantada, o sistema segue operando como nó único.
+**Próximos trabalhos:** concluir a Fase 1 por CI hospedada; avançar o agente mínimo e smoke com dois nós pela issue #69; manter a issue #68 de configuração de provedores como trabalho paralelo, separado do segredo do executor GitHub Actions; e promover a dashboard Compose à porta 443 com rollback pela issue #70. Registro multi-nó inicial está integrado, mas agregação de dados e atualização de frota não existem.
 
 Para decidir a próxima entrega física da casa, veja “Decisões em aberto” em [`VISION.md`](VISION.md). Modelos exatos de roteador, switch PoE, câmeras, inversor, medidores e proteção elétrica ainda precisam ser escolhidos e conferidos com documentação de fabricante e profissionais habilitados.

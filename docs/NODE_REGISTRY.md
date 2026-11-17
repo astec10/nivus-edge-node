@@ -1,14 +1,14 @@
 # Cadastro seguro de nós
 
-**Estado:** primeira implementação em branch, ainda não integrada nem instalada.  
-**Issue:** [#65](https://github.com/astec10/nivus-edge-node/issues/65)  
-**Branch:** `feat/node-registry-bootstrap-20261117`
+**Estado:** primeira implementação integrada pelo PR #66 e incluída na release ativa do notebook `fff64a68f252f0b1290576e30b39ed78fbc15a7a`. CI hospedada cobre duas identidades simuladas; onboarding de dispositivos independentes ainda não foi validado no host.
+**Issue:** [#65 concluída](https://github.com/astec10/nivus-edge-node/issues/65) pelo PR #66.
+**Próxima entrega:** [issue #69](https://github.com/astec10/nivus-edge-node/issues/69) — agente mínimo de pareamento e heartbeat.
 
 Este módulo estabelece identidade, pareamento, presença e revogação para os próximos passos multi-nó. A entrega inicial não agrega telemetria e não dá aos nós capacidade de executar ações uns nos outros.
 
 ## Limites da primeira entrega
 
-Incluído na candidata:
+Implementado e integrado no PR #66:
 
 - Cadastro administrativo de um nó por código aleatório de uso único, expirado após 10 minutos.
 - ID estável criado pelo servidor.
@@ -109,21 +109,21 @@ A listagem nunca retorna token, hashes, sessão ou códigos de pareamento. A rot
 
 A sequência crescente evita reuso e ordena requests dentro de uma sessão. Um reinício do agente pede nova sessão, que reinicia a sequência; não se deve executar dois agentes simultaneamente com o mesmo token.
 
-## Validação prevista
+## Validação e limites observados
 
-Antes de tratar o módulo como pronto:
+Validado no PR #66 e ainda pendente no runtime:
 
-1. CI executa testes isolados SQLite para pareamento único, expiração, hashes, duas identidades, heartbeat e presença, replay, renovação e revogação.
-2. Smoke HTTP confirma autorização administrativa e códigos 401/403/409/422 para os casos relevantes.
-3. Dois agentes simulados aparecem separadamente; parar um os torna offline sem afetar o outro.
-4. Revogar um impede a sessão e os heartbeats seguintes.
-5. Backup/restore preserva o schema e o estado do registro.
+1. [x] CI hospedada cobre SQLite isolado, pareamento único/expiração, hash-only, duas identidades, heartbeat/presença, replay, renovação de sessão e revogação.
+2. [x] Contratos e regras de acesso foram integrados na API; os checks do PR #66 passaram, incluindo Compose smoke, rollback, frontend/sensores, análise e índice.
+3. [ ] Dois agentes independentes contra a API em execução; a CI atual testa duas identidades no nível de serviço/API, não substitui esse smoke end-to-end.
+4. [x] Testes automatizados confirmam que revogação impede novos heartbeats.
+5. [ ] Backup/restore com nós pareados precisa ser demonstrado como cenário operacional específico.
 
-A CI é validação de software. A proposta não está na release do notebook e ainda não há agente Nivus de pareamento nem painel multi-nó.
+A release `fff64a68f252f0b1290576e30b39ed78fbc15a7a` foi aplicada no notebook; a saída confirmou build, backup consistente, restart, health HTTPS 200 e telemetria sem token 401. Não comprova reboot nem pareamento de dois hosts reais. Ainda não há agente Nivus autônomo nem painel multi-nó.
 
 ## Próximas entregas separadas
 
-1. Integrar/validar o contrato do registro e adicionar cliente/agente mínimo de pareamento.
+1. [Issue #69] Criar cliente/agente mínimo de pareamento e heartbeat, armazenando credencial com permissões restritas.
 2. Definir envelope de telemetria com timestamp de origem, unidade, qualidade, versão de esquema e timestamp de recepção.
 3. Guardar dados por `node_id` sem quebrar consumidores do schema legado.
 4. Criar visualização de nós com presença antiga claramente sinalizada e revogação administrativa.
