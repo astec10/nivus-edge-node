@@ -5739,7 +5739,6 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
-    "doc-node-capability-scheduler",
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-vision"
@@ -10350,6 +10349,7 @@
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-module-map",
+    "doc-node-capability-scheduler",
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision"
@@ -12577,6 +12577,7 @@
   "remoto": [
     "doc-ai-module-workplan",
     "doc-video-research-index",
+    "doc-node-capability-scheduler",
     "doc-project-status",
     "doc-vision",
     "ref-multipaz-developer-website"
@@ -14416,6 +14417,7 @@
   "tela": [
     "doc-ai-provider-connectors",
     "doc-node-registry",
+    "doc-node-capability-scheduler",
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision"
@@ -14987,6 +14989,7 @@
     "doc-ai-development-orchestration",
     "doc-module-map",
     "doc-node-registry",
+    "doc-node-capability-scheduler",
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-project-roadmap",
