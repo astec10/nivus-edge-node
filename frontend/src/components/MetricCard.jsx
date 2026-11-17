@@ -103,6 +103,7 @@ function MetricCard({ label, value, hint, details, detailsLabel, metricId, prima
       >
         <strong style={{ display: 'block', marginBottom: '0.55rem' }}>{detailsLabel || (label + ' · detalhes')}</strong>
         {details}
+        {hint && <small className="metric-card-detail-hint">{hint}</small>}
         <small style={{ display: 'block', color: '#94a3b8', marginTop: '0.6rem' }}>Detalhe calculado pelas amostras exibidas no período selecionado.</small>
       </div>,
       document.body,
@@ -140,7 +141,6 @@ function MetricCard({ label, value, hint, details, detailsLabel, metricId, prima
             <span className="metric-card-gauge-value">{value}</span>
           </div>
         </div>
-        {hint && <small className="metric-card-hint">{hint}</small>}
       </div>
       {tooltip}
     </>
