@@ -1,5 +1,3 @@
-from datetime import datetime, timedelta, timezone
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -8,6 +6,10 @@ from security import create_access_token, hash_password, is_password_hash, verif
 
 
 router = APIRouter()
+
+# A valid PBKDF2 hash makes unknown usernames take comparable password-check work.
+# The value is generated with a random salt and is never associated with an account.
+_DUMMY_PASSWORD_HASH = hash_password("nivus-login-timing-placeholder")
 
 
 @router.post("/token")
@@ -21,61 +23,26 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
-        now = datetime.now(timezone.utc)
         cursor.execute(
-            "SELECT failures, locked_until FROM login_attempts WHERE username = ?",
-            (username,),
-        )
-        attempt = cursor.fetchone()
-
-        if attempt and attempt["locked_until"]:
-            locked_until = datetime.fromisoformat(attempt["locked_until"])
-            if locked_until.tzinfo is None:
-                locked_until = locked_until.replace(tzinfo=timezone.utc)
-            if now < locked_until:
-                remaining_mins = int((locked_until - now).total_seconds() / 60) + 1
-                raise HTTPException(
-                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    detail=(
-                        "Conta temporariamente bloqueada por segurança "
-                        f"(Brute Force). Tente novamente em {remaining_mins} minutos."
-                    ),
-                )
-            cursor.execute(
-                "UPDATE login_attempts SET failures = 0, locked_until = NULL "
-                "WHERE username = ?",
-                (username,),
-            )
-            conn.commit()
-            attempt = {"failures": 0, "locked_until": None}
-
-        cursor.execute(
-            "SELECT username, password, role, must_change_password FROM users WHERE username = ?",
+            "SELECT username, password, role, must_change_password "
+            "FROM users WHERE username = ?",
             (username,),
         )
         user = cursor.fetchone()
-        valid_password = user is not None and verify_password(
-            form_data.password, user["password"]
-        )
+
+        if user is None:
+            verify_password(form_data.password, _DUMMY_PASSWORD_HASH)
+            valid_password = False
+        else:
+            stored_password = user["password"]
+            if not is_password_hash(stored_password):
+                # Legacy plaintext or malformed records still perform PBKDF2 work.
+                verify_password(form_data.password, _DUMMY_PASSWORD_HASH)
+            valid_password = verify_password(form_data.password, stored_password)
 
         if not valid_password:
-            # Use one SQLite UPSERT so concurrent failures cannot race between
-            # reading and inserting the unique username counter.
-            lock_time = now + timedelta(minutes=15)
-            cursor.execute(
-                """
-                INSERT INTO login_attempts (username, failures, locked_until)
-                VALUES (?, 1, NULL)
-                ON CONFLICT(username) DO UPDATE SET
-                    failures = login_attempts.failures + 1,
-                    locked_until = CASE
-                        WHEN login_attempts.failures + 1 >= 5 THEN ?
-                        ELSE login_attempts.locked_until
-                    END
-                """,
-                (username, lock_time.isoformat()),
-            )
-            conn.commit()
+            # Do not lock the account globally: that lets anyone on the LAN deny
+            # service to a known username. The reverse proxy applies per-IP limits.
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Credenciais inválidas.",
@@ -86,6 +53,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
                 "UPDATE users SET password = ? WHERE username = ?",
                 (hash_password(form_data.password), username),
             )
+        # Clears counters left by older releases; they no longer gate login.
         cursor.execute("DELETE FROM login_attempts WHERE username = ?", (username,))
         conn.commit()
         password_change_required = bool(user["must_change_password"])
