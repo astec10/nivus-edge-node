@@ -161,7 +161,6 @@ export default function DashboardPanel({
               gaugeValue={latest?.temperature_source ? latest.temperature : null}
               gaugeMax={120}
               value={formatMetric(latest?.temperature_source ? latest.temperature : null, '°C')}
-              hint={latest?.temperature_source || 'Sensor térmico não exposto'}
               details={<MetricDetails samples={temperatureSamples} metrics={[
                 { label: 'CPU (pacote)', key: 'temperature', source: 'temperature_source' },
                 { label: 'CPU hotspot', key: 'cpu_hotspot_temperature', source: 'cpu_hotspot_source' },
@@ -174,7 +173,6 @@ export default function DashboardPanel({
               gaugeValue={latest?.gpu_temperature}
               gaugeMax={120}
               value={formatMetric(latest?.gpu_temperature, '°C')}
-              hint={latest?.gpu_temperature_source || 'Sensor gráfico não exposto'}
               details={<MetricDetails samples={temperatureSamples} metrics={[
                 { label: 'Gráficos (APU/GPU)', key: 'gpu_temperature', source: 'gpu_temperature_source' },
                 { label: 'GPU hotspot', key: 'gpu_hotspot_temperature', source: 'gpu_hotspot_source' },
@@ -187,7 +185,6 @@ export default function DashboardPanel({
               gaugeValue={latest?.motherboard_temperature}
               gaugeMax={120}
               value={formatMetric(latest?.motherboard_temperature, '°C')}
-              hint={latest?.motherboard_temperature_source || 'Sensor não exposto pelo SO/driver'}
               details={<MetricDetails samples={temperatureSamples} metrics={[{ label: 'Placa-mãe', key: 'motherboard_temperature', source: 'motherboard_temperature_source' }]} />}
               detailsLabel="Temperatura da placa-mãe"
             />
