@@ -26,5 +26,5 @@ Não exponha painel, SSH ou broker diretamente à Internet. O certificado local 
 - [Estado e roadmap](docs/PROJECT_STATUS.md) · [docs/PROJECT_ROADMAP.md](docs/PROJECT_ROADMAP.md)
 - [Mapa de módulos](docs/MODULE_MAP.md) · [decisões](docs/DECISIONS.md)
 - [Contexto e fluxo de IA](docs/AI_CONTEXT.md) · [skills](docs/SKILL_MAP.md)
-- [Estratégia de validação](docs/TEST_STRATEGY.md)
+- [Estratégia de validação](docs/TEST_STRATEGY.md) · [validação física de hardware](docs/HARDWARE_VALIDATION.md)
 
