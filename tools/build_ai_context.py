@@ -160,6 +160,46 @@ def build_indexes(records: list[dict], check: bool = False) -> bool:
         stale = [path.relative_to(ROOT).as_posix() for path, content in expected.items() if not path.exists() or path.read_text(encoding="utf-8") != content]
         if stale:
             print("Índice desatualizado ou ausente: " + ", ".join(stale))
+            if INDEX in expected and INDEX.exists():
+                actual_lines = INDEX.read_text(encoding="utf-8").splitlines()
+                expected_lines = expected[INDEX].splitlines()
+                if len(actual_lines) != len(expected_lines):
+                    print(f"Registros: atual={len(actual_lines)}, esperado={len(expected_lines)}")
+                for line_number in range(max(len(actual_lines), len(expected_lines))):
+                    actual_line = actual_lines[line_number] if line_number < len(actual_lines) else None
+                    expected_line = expected_lines[line_number] if line_number < len(expected_lines) else None
+                    if actual_line == expected_line:
+                        continue
+                    try:
+                        actual_record = json.loads(actual_line) if actual_line else {}
+                        expected_record = json.loads(expected_line) if expected_line else {}
+                    except json.JSONDecodeError:
+                        print(f"Primeira divergência em knowledge/index/records.jsonl, linha {line_number + 1}: linha JSON inválida.")
+                        break
+                    fields = sorted(
+                        key for key in set(actual_record) | set(expected_record)
+                        if actual_record.get(key) != expected_record.get(key)
+                    )
+                    print(
+                        f"Primeira divergência em knowledge/index/records.jsonl, linha {line_number + 1}: "
+                        f"atual={actual_record.get('id', '<ausente>')}, "
+                        f"esperado={expected_record.get('id', '<ausente>')}, campos={', '.join(fields) or 'ordem/serialização'}."
+                    )
+                    if "tokens" in fields:
+                        actual_tokens = set(actual_record.get("tokens", []))
+                        expected_tokens = set(expected_record.get("tokens", []))
+                        print(
+                            "Tokens divergentes: "
+                            f"somente atuais={len(actual_tokens - expected_tokens)}, "
+                            f"somente esperados={len(expected_tokens - actual_tokens)}."
+                        )
+                    if "content" in fields:
+                        print(
+                            "Tamanhos do conteúdo: "
+                            f"atual={len(actual_record.get('content', ''))}, "
+                            f"esperado={len(expected_record.get('content', ''))}."
+                        )
+                    break
             print("Execute python3 tools/build_ai_context.py e versione o resultado.")
             return False
         return True
