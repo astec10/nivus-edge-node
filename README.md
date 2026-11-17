@@ -2,7 +2,7 @@
 
 O Nivus é um projeto aberto para construir uma plataforma de borda local-first, modular e de baixo consumo. Telemetria é um módulo da plataforma; sua agregação entre nós não é pré-requisito para o executor nem para a biblioteca compartilhada e será mais útil quando o Nó Master estiver operacional.
 
-O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não significa compatibilidade comprovada com qualquer computador. Até agora, o stack Compose foi instalado e operado em paralelo num único notebook Ubuntu CCE U25. Uma instalação limpa independente, reboot, restauração e mais modelos de hardware ainda precisam de validação.
+O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não significa compatibilidade comprovada com qualquer computador. O stack Compose e o registro inicial de nós estão instalados em paralelo num único notebook Ubuntu CCE U25; instalação limpa, reboot, restauração e outros modelos de hardware ainda precisam de validação.
 
 ## Estado do projeto
 
@@ -18,12 +18,12 @@ O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não sign
 
 ### Planejado ou aguardando validação
 
-- Descoberta, cadastro e telemetria de vários nós numa única tela.
+- Registro inicial de nós com cadastro seguro e heartbeat integrado no PR #66; ainda faltam agente, teste de dois dispositivos, agregação de telemetria e painel multi-nó.
 - Home Assistant, Zigbee, sensores residenciais, medidores, câmeras, interfone e integração com inversor/baterias.
 - Automação residencial real, VPN integrada ao produto e ações remotas em dispositivos.
-- Inferência local, consulta à biblioteca de PDFs, fila de trabalhos entre máquinas, transferência P2P e conectores para provedores comerciais com limites de uso.
-- Modo de manutenção reversível na aba Configuração e CLI (`nivus maintenance enable|disable|status`), com `nivus help`, integrado no PR #28 e aprovado na CI. A release ainda aguarda aplicação e validação no notebook.
-- Configuração de sincronização NTP do Ubuntu, controle administrativo e rollback integrados nos PRs #40 e #41, com CI aprovada. O pacote está no `main`, mas ainda aguarda atualização e validação no notebook; alterar o NTP do host continua sendo uma ação explícita de administrador.
+- Inferência local, consulta à biblioteca de PDFs, fila de trabalhos entre máquinas, transferência P2P e conectores para provedores comerciais com limites de uso. A gestão de perfis de API para o runtime está especificada na issue #68; não é a mesma credencial do executor GitHub Actions.
+- Modo de manutenção reversível na aba Configuração e CLI (`nivus maintenance enable|disable|status`), com `nivus help`, integrado no PR #28 e incluído na release atual. A CI passou; execução operacional dos comandos no notebook ainda pendente.
+- Configuração de sincronização NTP do Ubuntu, controle administrativo e rollback integrados nos PRs #40/#41 e incluídos na release atual; ainda falta validar visualmente os campos e o cadeado no notebook. Alterar NTP do host continua sendo ação explícita de administrador.
 - Instalação limpa validada, reboot, atualização com rollback e matriz de hardware x86_64.
 - O executor externo de desenvolvimento foi integrado no PR #3. Uma chamada autorizada para uma tarefa pública/sintética gerou o PR rascunho #16 e a CI passou. A abertura automática falhou naquela execução; a correção da leitura do branch padrão e a proteção contra propostas duplicadas foram integradas (PR #53). O fluxo completo ainda aguarda validação com uma nova chamada explicitamente autorizada; o PR #16 continua à espera de revisão humana. O notebook é suporte opcional; GitHub Actions é o executor principal.
 
