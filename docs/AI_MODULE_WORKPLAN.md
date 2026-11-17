@@ -15,6 +15,8 @@ Pessoa responsável descreve objetivo e aceite
 
 Cada agente recebe uma tarefa pequena com objetivo, caminhos próprios, dependências, contrato de entrada/saída, critérios de aceite, risco, dados permitidos e limite de recursos. Conversas e arquivos de um agente não são memória compartilhada: a Issue, a documentação versionada e o PR são o handoff comum.
 
+Para reaproveitar contexto entre provedores, a Issue aponta para a playbook correspondente no [catálogo de skills Nivus](ai-skills/README.md). O agente lê o contexto-base do repositório e apenas as skills escolhidas; a ferramenta/plataforma não precisa receber uma instalação de skill. Um coordenador pode intermediar acesso ao GitHub e distribuir patches para agentes sem credencial de escrita.
+
 ## Pacotes de trabalho e dependências
 
 | Peça | Pode trabalhar em paralelo? | Contrato/dependência | Integração e aceite |

@@ -68,6 +68,14 @@ Várias IAs podem construir peças ao mesmo tempo quando cada tarefa tiver camin
 
 O mapa de pacotes, dependências e critérios do modelo “cada agente constrói uma peça; o integrador monta” está em [`AI_MODULE_WORKPLAN.md`](AI_MODULE_WORKPLAN.md).
 
+## Contexto portátil e seleção de skills
+
+O catálogo versionado em [`ai-skills/README.md`](ai-skills/README.md) contém uma playbook separada por domínio, derivada das skills Nivus usadas no ambiente de desenvolvimento. A Issue deve selecionar a skill do módulo e, quando houver coordenação entre módulos, incluir também `nivus-project-guide` e `nivus-ai-dev-workflow`. O agente recebe `AGENTS.md`, `docs/AI_CONTEXT.md`, o estado atual relevante e somente as playbooks necessárias; não é preciso instalar todas as skills em cada ferramenta de IA.
+
+Plugins são conectores de ferramentas, não conhecimento do projeto. O modelo de distribuição preferido é um coordenador com acesso autorizado ao GitHub que lê a Issue, prepara um checkout isolado e fornece ao worker o contexto e os arquivos permitidos. O worker pode devolver um patch ou trabalhar numa branch efêmera conforme as ferramentas disponíveis; não precisa de credencial GitHub ampla nem de plugin próprio quando o coordenador faz o handoff. Cada provedor ainda exige a configuração/autorização própria para executar chamadas de modelo.
+
+O formulário [`parallel-ai-work-item.yml`](../.github/ISSUE_TEMPLATE/parallel-ai-work-item.yml) padroniza objetivo, skills, dependências, caminhos, aceite e revisão. Ele é uma entrada manual e **não inicia um agente** nem aciona o executor Gemini existente. A distribuição automática para vários provedores requer um dispatcher futuro com leases, limites de paralelismo/custo, isolamento por tarefa e histórico de tentativas; até existir, o integrador atribui as Issues manualmente e evita tarefas que escrevam nos mesmos contratos/arquivos.
+
 ## Limites e segurança
 
 - Não use várias contas para contornar limites, políticas ou termos do provedor; cada conta mantém suas próprias quotas e condições.

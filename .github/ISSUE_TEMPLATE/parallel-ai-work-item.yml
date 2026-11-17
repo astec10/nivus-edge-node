@@ -1,0 +1,111 @@
+name: Trabalho paralelo de IA
+description: Defina uma peça delimitada para atribuição manual a uma IA ou agente de código.
+title: "[IA paralela] "
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Esta Issue documenta uma tarefa para distribuição manual. Criá-la não inicia um agente nem autoriza chamada a modelo.
+        Não inclua segredos, telemetria residencial, dados privados ou material de câmera. Veja docs/AI_DEVELOPMENT_ORCHESTRATION.md.
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objetivo
+      description: Um resultado concreto e o problema que resolve.
+    validations:
+      required: true
+  - type: checkboxes
+    id: skills
+    attributes:
+      label: Skills/documentação de domínio
+      description: Selecione o contexto relevante em docs/ai-skills/README.md.
+      options:
+        - label: nivus-project-guide — contexto e limites do projeto
+        - label: nivus-backend-api — FastAPI, SQLite e MQTT
+        - label: nivus-node-registry — identidade e heartbeat
+        - label: nivus-hardware-telemetry — sensores e térmicas
+        - label: nivus-task-orchestration — fila e workers Nivus
+        - label: nivus-dashboard-ui — React/Vite e acessibilidade
+        - label: nivus-edge-operations — Ubuntu, Compose e systemd
+        - label: nivus-local-ai-knowledge — IA local e biblioteca
+        - label: nivus-home-automation — integrações e atuadores
+        - label: nivus-ai-provider-connectors — provedores externos
+        - label: nivus-ai-dev-workflow — coordenação de agentes de desenvolvimento
+    validations:
+      required: true
+  - type: textarea
+    id: module
+    attributes:
+      label: Módulo responsável e arquivos permitidos
+      description: Use caminhos exatos relativos à raiz. Indique quem integra mudanças em contratos compartilhados.
+      placeholder: |-
+        Módulo:
+        Arquivos permitidos:
+        Dono do contrato/integração:
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto e contratos
+      description: Links para código/docs relacionados, entradas/saídas e dependências desta tarefa.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de aceite
+      description: Resultados observáveis, incluindo compatibilidade e falha segura.
+      placeholder: |-
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validação esperada
+      description: Checks aplicáveis e hardware/ambiente que ainda exigem validação separada.
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependências, conflitos e ordem
+      description: Issues bloqueadoras, arquivos compartilhados e tarefas que não podem rodar simultaneamente.
+    validations:
+      required: true
+  - type: dropdown
+    id: data
+    attributes:
+      label: Classificação de dados
+      options:
+        - Código/documentação pública
+        - Dados sintéticos
+        - Contém dados privados — não distribuir a agentes externos
+    validations:
+      required: true
+  - type: dropdown
+    id: risk
+    attributes:
+      label: Risco
+      options:
+        - Baixo
+        - Médio — integração/revisão humana antes de merge
+        - Alto — não elegível para execução autônoma
+    validations:
+      required: true
+  - type: input
+    id: assignee
+    attributes:
+      label: Agente/provedor atribuído e limite
+      description: Nome do agente ou provedor, prazo e limite de tentativas/custo, se aplicável. Nunca coloque chave ou token.
+    validations:
+      required: false
+  - type: input
+    id: human_owner
+    attributes:
+      label: Responsável humano pela revisão
+      placeholder: "@usuário"
+    validations:
+      required: true
