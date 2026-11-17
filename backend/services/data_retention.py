@@ -49,6 +49,14 @@ def _delete_expired(
             return total
 
 
+def validate_retention_configuration() -> None:
+    _configured_days("NIVUS_TELEMETRY_RETENTION_DAYS", DEFAULT_TELEMETRY_RETENTION_DAYS)
+    _configured_days(
+        "NIVUS_ACTUATOR_AUDIT_RETENTION_DAYS",
+        DEFAULT_ACTUATOR_AUDIT_RETENTION_DAYS,
+    )
+
+
 def cleanup_expired_records(
     *,
     now: datetime | None = None,
