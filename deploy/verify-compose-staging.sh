@@ -58,11 +58,12 @@ install -d -m 755 "$APP_DIR/runtime-state"
 install -d -m 755 "$MAINTENANCE_DIR" "$TIME_SYNC_DIR"
 rm -f -- "$SECRETS_DIR/jwt_secret" "$SECRETS_DIR"/mqtt_*_password \
   "$SECRETS_DIR/mosquitto_passwords" "$SECRETS_DIR/mosquitto_acl" \
-  "$SECRETS_DIR/tls.key" "$SECRETS_DIR/tls.crt"
+  "$SECRETS_DIR/tls.key" "$SECRETS_DIR/tls.crt" "$SECRETS_DIR/provider_encryption_key"
 cp -- deploy/mosquitto.acl "$SECRETS_DIR/mosquitto_acl"
 openssl rand -hex 48 > "$SECRETS_DIR/jwt_secret"
 for role in api worker agent health; do openssl rand -hex 32 > "$SECRETS_DIR/mqtt_${role}_password"; done
-chmod 444 "$SECRETS_DIR/jwt_secret" "$SECRETS_DIR"/mqtt_*_password
+(umask 077; openssl rand -out "$SECRETS_DIR/provider_encryption_key" 32)
+chmod 444 "$SECRETS_DIR/jwt_secret" "$SECRETS_DIR"/mqtt_*_password "$SECRETS_DIR/provider_encryption_key"
 docker run --rm --user 0 --network none \
   --mount "type=bind,source=$SECRETS_DIR,target=/run/secrets" \
   --entrypoint /bin/sh "$MOSQUITTO_IMAGE" -ec \

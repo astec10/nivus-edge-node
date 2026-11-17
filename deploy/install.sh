@@ -187,6 +187,17 @@ fi
 if ! getent group "$RUNTIME_GID" >/dev/null 2>&1; then
   groupadd --system --gid "$RUNTIME_GID" "nivus-runtime-$RUNTIME_GID"
 fi
+PROVIDER_KEY_FILE="$SECRET_DIR/provider_encryption_key"
+if [[ -e "$PROVIDER_KEY_FILE" || -L "$PROVIDER_KEY_FILE" ]]; then
+  [[ -f "$PROVIDER_KEY_FILE" && ! -L "$PROVIDER_KEY_FILE" && $(stat -c '%s' "$PROVIDER_KEY_FILE") == 32 ]] || {
+    echo "Chave mestra de provedores existente é inválida; instalação interrompida sem substituí-la." >&2
+    exit 2
+  }
+else
+  (umask 077; openssl rand -out "$PROVIDER_KEY_FILE" 32)
+fi
+chown root:"$RUNTIME_GID" "$PROVIDER_KEY_FILE"
+chmod 440 "$PROVIDER_KEY_FILE"
 usermod --append --groups "$RUNTIME_GID" nivus-telemetry
 if [[ -e "$TIME_SYNC_DROPIN_DIR" || -L "$TIME_SYNC_DROPIN_DIR" ]]; then
   [[ -d "$TIME_SYNC_DROPIN_DIR" && ! -L "$TIME_SYNC_DROPIN_DIR" ]] || { echo "Diretório timesyncd inválido; instalação interrompida." >&2; exit 2; }

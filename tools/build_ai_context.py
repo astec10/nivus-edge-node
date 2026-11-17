@@ -19,6 +19,7 @@ INDEX = KNOWLEDGE / "index" / "records.jsonl"
 TERMS = KNOWLEDGE / "index" / "terms.json"
 DOCS = (
     "docs/AI_CONTEXT.md",
+    "docs/AI_PROVIDER_CONNECTORS.md",
     "docs/AI_WORKFLOW.md",
     "docs/AI_DEVELOPMENT_ORCHESTRATION.md",
     "docs/AI_EXECUTOR_IMPLEMENTATION.md",

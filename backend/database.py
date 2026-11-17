@@ -106,6 +106,39 @@ def init_db():
                 boot_id TEXT NOT NULL,
                 reason TEXT NOT NULL DEFAULT 'user'
             );
+            CREATE TABLE IF NOT EXISTS ai_provider_connections (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                provider_type TEXT NOT NULL,
+                protocol TEXT NOT NULL,
+                endpoint_scope TEXT NOT NULL CHECK (endpoint_scope IN ('cloud', 'local')),
+                base_url TEXT NOT NULL,
+                model_name TEXT NOT NULL,
+                responsible TEXT NOT NULL,
+                purpose TEXT NOT NULL,
+                auth_method TEXT NOT NULL,
+                credential_ciphertext TEXT,
+                enabled INTEGER NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
+                monthly_budget_usd REAL,
+                max_requests_per_hour INTEGER NOT NULL DEFAULT 30,
+                timeout_seconds INTEGER NOT NULL DEFAULT 10,
+                allowed_data_classes_json TEXT NOT NULL DEFAULT '["public","synthetic"]',
+                last_test_status TEXT NOT NULL DEFAULT 'not_tested',
+                last_test_at REAL,
+                created_by TEXT NOT NULL,
+                created_at REAL NOT NULL,
+                updated_at REAL NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS ai_provider_audit (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                provider_id TEXT,
+                actor TEXT NOT NULL,
+                action TEXT NOT NULL,
+                outcome TEXT NOT NULL DEFAULT 'ok',
+                created_at REAL NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_ai_provider_audit_created
+                ON ai_provider_audit(created_at DESC);
             CREATE TABLE IF NOT EXISTS system_settings (
                 key TEXT PRIMARY KEY,
                 value TEXT

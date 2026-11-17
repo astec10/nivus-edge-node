@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.routers import (
     actuator,
+    ai_providers,
     alerts,
     auth,
     maintenance,
@@ -36,12 +37,12 @@ CORS_ORIGINS = [
     if item.strip()
 ]
 
-app = FastAPI(title="Nivus Edge API", version="2.8.0")
+app = FastAPI(title="Nivus Edge API", version="2.9.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
     allow_credentials=False,
-    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
 )
 
@@ -56,6 +57,7 @@ app.include_router(telemetry.router)
 app.include_router(actuator.router)
 app.include_router(alerts.router)
 app.include_router(settings.router)
+app.include_router(ai_providers.router)
 app.include_router(maintenance.router)
 app.include_router(users.router)
 app.include_router(mobile_battery.router)

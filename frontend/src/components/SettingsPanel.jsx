@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Lock, PauseCircle, PlayCircle, RotateCcw, Save, Unlock, Wrench } from 'lucide-react';
 import MobileBatteryAutomationPanel from './MobileBatteryAutomationPanel';
+import ProviderSettingsPanel from './ProviderSettingsPanel';
 import {
   DASHBOARD_THEMES,
   DATE_FORMATS,
@@ -72,6 +73,7 @@ export default function SettingsPanel({
   onApplyTimeSync = async () => ({ ok: false, message: 'Controlador indisponível.' }),
   onRollbackTimeSync = async () => ({ ok: false, message: 'Controlador indisponível.' }),
 }) {
+  const [settingsSection, setSettingsSection] = useState('general');
   const enabled = maintenanceState?.enabled === true;
   const offset = formatUtcOffset(displayPreferences.timeZone);
   const [preferenceSaveStatus, setPreferenceSaveStatus] = useState('As preferências são aplicadas imediatamente.');
@@ -183,6 +185,31 @@ export default function SettingsPanel({
       <section className="dashboard-section" aria-labelledby="settings-title">
         <h2 id="settings-title"><Wrench size={18} aria-hidden="true" /> Configuração</h2>
 
+        <nav className="settings-subtabs" role="tablist" aria-label="Seções de configuração">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={settingsSection === 'general'}
+            className={settingsSection === 'general' ? 'is-selected' : ''}
+            onClick={() => setSettingsSection('general')}
+          >
+            Geral
+          </button>
+          {isAdmin && (
+            <button
+              type="button"
+              role="tab"
+              aria-selected={settingsSection === 'providers'}
+              className={settingsSection === 'providers' ? 'is-selected' : ''}
+              onClick={() => setSettingsSection('providers')}
+            >
+              Provedores de IA
+            </button>
+          )}
+        </nav>
+
+        {settingsSection === 'general' && (
+        <div className="settings-panel-stack">
         <section className="settings-card" aria-labelledby="display-settings-title">
           <div className="settings-card-heading">
             <div>
@@ -383,6 +410,9 @@ export default function SettingsPanel({
             </p>
           </section>
         )}
+        </div>
+        )}
+        {isAdmin && settingsSection === 'providers' && <ProviderSettingsPanel token={token} />}
       </section>
     </main>
   );

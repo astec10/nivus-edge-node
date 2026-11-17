@@ -28,6 +28,7 @@ services:
       NIVUS_MQTT_ALLOWED_TOPICS: nivus/edge/relay1
     secrets:
       - jwt_secret
+      - provider_encryption_key
       - source: mqtt_api_password
         target: mqtt_password
     volumes:
@@ -39,6 +40,8 @@ services:
         source: ${NIVUS_TIME_SYNC_DIR:-/run/nivus-time-sync}
         target: /run/nivus-time-sync
         read_only: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - web_private
       - mqtt_private
@@ -171,6 +174,8 @@ networks:
 secrets:
   jwt_secret:
     file: ${NIVUS_SECRET_DIR:-./secrets}/jwt_secret
+  provider_encryption_key:
+    file: ${NIVUS_SECRET_DIR:-./secrets}/provider_encryption_key
   mqtt_api_password:
     file: ${NIVUS_SECRET_DIR:-./secrets}/mqtt_api_password
   mqtt_worker_password:

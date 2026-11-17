@@ -23,6 +23,8 @@ O instalador cria segredos em /etc/nivus-compose/secrets, um certificado TLS aut
 
 O navegador avisará que o certificado é autoassinado. Não exponha a instalação diretamente à Internet.
 
+O instalador também cria a chave mestra de provedores em `/etc/nivus-compose/secrets/provider_encryption_key` com 32 bytes, proprietário root, grupo de runtime e modo 0440. O atualizador a mantém e falha fechado se encontrar credenciais cifradas sem a chave. O backup SQLite padrão não inclui esse arquivo: faça uma cópia de recuperação protegida e separada, fora do repositório, e restaure a mesma chave antes da API ao migrar o banco. Consulte [docs/AI_PROVIDER_CONNECTORS.md](../docs/AI_PROVIDER_CONNECTORS.md).
+
 ## Atualizar uma instalação Compose existente
 
 Use um clone limpo da origem oficial e execute o atualizador como administrador:
