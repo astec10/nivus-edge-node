@@ -108,3 +108,23 @@ jobs:
           NIVUS_STAGING_REQUIRE_LEGACY_HOST: "0"
         run: bash deploy/verify-compose-staging.sh
 
+  restore-rollback-sandbox:
+    name: Ubuntu 22.04 isolated restore rollback
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref || github.ref }}
+
+      - name: Build disposable recovery sandbox
+        run: docker build --pull --file deploy/ci/restore-rollback.Dockerfile --tag nivus-restore-rollback-ci .
+
+      - name: Exercise failed restore and automatic rollback in an isolated container
+        run: >-
+          docker run --rm --network none
+          --security-opt=no-new-privileges
+          --cap-drop=ALL
+          --cap-add=CHOWN --cap-add=DAC_OVERRIDE --cap-add=FOWNER
+          nivus-restore-rollback-ci
