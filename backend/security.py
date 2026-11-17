@@ -50,12 +50,28 @@ def hash_password(password: str) -> str:
 
 
 def is_password_hash(encoded: str) -> bool:
-    return encoded.startswith(f"{PASSWORD_SCHEME}$")
+    if not encoded.startswith(f"{PASSWORD_SCHEME}$"):
+        return False
+    try:
+        scheme, iteration_text, salt_text, digest_text = encoded.split("$", 3)
+        iterations = int(iteration_text)
+        salt = _b64decode(salt_text)
+        digest = _b64decode(digest_text)
+    except (ValueError, TypeError):
+        return False
+    return (
+        scheme == PASSWORD_SCHEME
+        and 100_000 <= iterations <= 2_000_000
+        and len(salt) == 16
+        and len(digest) == 32
+    )
 
 
 def verify_password(password: str, stored: str) -> bool:
-    if not is_password_hash(stored):
+    if not stored.startswith(f"{PASSWORD_SCHEME}$"):
         return hmac.compare_digest(password.encode("utf-8"), stored.encode("utf-8"))
+    if not is_password_hash(stored):
+        return False
     try:
         scheme, iteration_text, salt_text, digest_text = stored.split("$", 3)
         iterations = int(iteration_text)
