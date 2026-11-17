@@ -2,6 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from starlette.responses import Response
 from unittest.mock import patch
 
 import database
@@ -26,7 +27,7 @@ class LoginSecurityTests(unittest.TestCase):
     def test_unknown_username_runs_dummy_password_hash_and_returns_generic_error(self):
         with patch.object(auth, "verify_password", return_value=False) as verify:
             with self.assertRaises(auth.HTTPException) as raised:
-                auth.login_for_access_token(self.form("missing-user", "guess"))
+                auth.login_for_access_token(Response(), self.form("missing-user", "guess"))
 
         self.assertEqual(raised.exception.status_code, 401)
         self.assertEqual(raised.exception.detail, "Credenciais inválidas.")
@@ -60,11 +61,15 @@ class LoginSecurityTests(unittest.TestCase):
         with (
             patch.object(auth, "is_password_hash", return_value=True),
             patch.object(auth, "verify_password", return_value=True),
-            patch.object(auth, "create_access_token", return_value="issued-token"),
+            patch.object(auth, "issue_session", return_value="issued-token"),
         ):
-            response = auth.login_for_access_token(self.form("admin", "correct"))
+            patch.object(auth, "set_session_cookie") as set_cookie,
+        ):
+            response = auth.login_for_access_token(Response(), self.form("admin", "correct"))
 
-        self.assertEqual(response["access_token"], "issued-token")
+        self.assertEqual(response["user"]["username"], "admin")
+        self.assertEqual(response["password_change_required"], False)
+        set_cookie.assert_called_once()
         conn = database.get_db_connection()
         try:
             self.assertEqual(
@@ -87,7 +92,7 @@ class LoginSecurityTests(unittest.TestCase):
 
         with patch.object(auth, "verify_password", return_value=False) as verify:
             with self.assertRaises(auth.HTTPException):
-                auth.login_for_access_token(self.form("legacy", "wrong"))
+                auth.login_for_access_token(Response(), self.form("legacy", "wrong"))
 
         self.assertEqual(verify.call_count, 2)
         self.assertEqual(verify.call_args_list[0].args[1], auth._DUMMY_PASSWORD_HASH)
