@@ -94,7 +94,7 @@ jobs:
           chmod 600 .env
           touch secrets/jwt_secret secrets/mqtt_api_password secrets/mqtt_worker_password \
             secrets/mqtt_agent_password secrets/mqtt_health_password secrets/mosquitto_passwords \
-            secrets/mosquitto_acl secrets/tls.crt secrets/tls.key
+            secrets/mosquitto_acl secrets/tls.crt secrets/tls.key secrets/provider_encryption_key
           docker info >/dev/null
           docker compose config --quiet
 
