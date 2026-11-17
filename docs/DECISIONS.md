@@ -41,6 +41,10 @@ Consequência: a porta HTTPS publicada pode ser acessada no endereço configurad
 Decisão do operador: licenciar o Nivus Edge Node sob AGPL-3.0-only para que pessoas possam usar, estudar, modificar e distribuir versões derivadas conforme os termos da AGPL. Interfaces acessíveis pela rede devem oferecer o código-fonte correspondente sem custo e exibir aviso legal apropriado. A licença completa está em LICENSE; dependências e assets de terceiros mantêm as respectivas licenças e avisos.
 
 
+## Perfil de desempenho com alimentação AC/UPS — 2026-11-16
+
+Decisão do operador: usar presença confirmada de alimentação AC no nó ou no UPS como sinal para selecionar automaticamente o governor de desempenho, limitado aos modos suportados pelo hardware e pelo sistema. A ausência, falha ou ambiguidade desse sinal mantém o governor conservador. O perfil não habilita overclock: overclock permanece manual. O sinal de alimentação não altera nem libera atuadores; eles continuam sujeitos às suas regras determinísticas e intertravamentos. Dados de bateria do UPS/nobreak pertencem ao futuro Nó Master e à automação, não ao sensor de bateria interna do nó. Esta é uma decisão de escopo; implementação, privilégios necessários e validação em hardware ainda estão pendentes.
+
 ## Semântica da telemetria térmica — 2026-11-14
 
 A temperatura principal representa CPU/APU identificada por driver e label, e a origem é armazenada junto da amostra. Temperaturas de placa-mãe e GPU são campos opcionais separados. Sensores indisponíveis ou ambíguos permanecem nulos; zonas ACPI genéricas não substituem a leitura da CPU. Usar a interface Linux hwmon/psutil no runtime Ubuntu. lm-sensors é ferramenta opcional de diagnóstico. Open Hardware Monitor original é referência Windows legada; não é dependência do Nivus. Validar cada driver e família de hardware antes de declarar suporte.
