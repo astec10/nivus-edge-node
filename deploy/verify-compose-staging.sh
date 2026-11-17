@@ -26,12 +26,19 @@ require_env NIVUS_SECRET_DIR "$APP_DIR/secrets"
 for command in docker openssl curl ss python3; do
   command -v "$command" >/dev/null 2>&1 || { echo "Comando ausente: $command" >&2; exit 2; }
 done
+bash -n deploy/promote-dashboard-443.sh
+if ss -H -ltn 'sport = :28444' | grep -q .; then
+  echo "Porta de proxy de staging 28444 ocupada." >&2
+  exit 2
+fi
 if ss -H -ltn 'sport = :28443' | grep -q .; then
   echo "Porta de staging ocupada." >&2
   exit 2
 fi
 
-PROJECT="nivus-smoke-$(date -u +%Y%m%d-%H%M%S)-$$"
+PROJECT="nivus-smoke-$(date -u +%Y%m%d-%H%M%S)-$"
+PORTLESS_PROXY="${PROJECT}-portless-proxy"
+PORTLESS_CONFIG="/tmp/${PROJECT}-portless-nginx.conf"
 DATA_DIR="/tmp/$PROJECT-data"
 MOSQ_DATA_DIR="$APP_DIR/mosquitto"
 SECRETS_DIR="$APP_DIR/secrets"
@@ -86,6 +93,8 @@ docker run --rm --user 0 --network none \
 cleanup() {
   local rc=$?
   trap - EXIT
+  docker rm -f "$PORTLESS_PROXY" >/dev/null 2>&1 || true
+  rm -f -- "$PORTLESS_CONFIG"
   if (( rc != 0 )); then docker compose -p "$PROJECT" logs --no-color --tail=30 api worker mqtt web 2>&1 || true; fi
   docker compose -p "$PROJECT" down --remove-orphans >/dev/null 2>&1 || true
   docker run --rm --user 0 --network none \
@@ -165,6 +174,29 @@ echo "frontend_index_asset_and_progress=ok ($JS_ASSET)"
 AUTH_STATUS=$(curl -k -sS --connect-timeout 2 --max-time 5 -o /dev/null -w '%{http_code}' https://127.0.0.1:28443/api/telemetry)
 [[ "$AUTH_STATUS" == 401 ]]
 echo "unauthenticated_telemetry_http=$AUTH_STATUS"
+echo '===PORTLESS_NGINX_PROXY==='
+INGRESS_NETWORK=$(docker network ls \
+  --filter "label=com.docker.compose.project=$PROJECT" \
+  --filter 'label=com.docker.compose.network=edge_ingress' -q)
+[[ -n "$INGRESS_NETWORK" ]]
+bash deploy/promote-dashboard-443.sh --render 8443 28443 127.0.0.1 /run/secrets/tls.crt /run/secrets/tls.key > "$PORTLESS_CONFIG"
+docker run -d --name "$PORTLESS_PROXY" --network "$INGRESS_NETWORK" \
+  -p 127.0.0.1:28444:8443 \
+  --mount "type=bind,source=$PORTLESS_CONFIG,target=/tmp/nivus-portless.conf,readonly" \
+  --mount "type=bind,source=$SECRETS_DIR/tls.crt,target=/run/secrets/tls.crt,readonly" \
+  --mount "type=bind,source=$SECRETS_DIR/tls.key,target=/run/secrets/tls.key,readonly" \
+  --entrypoint nginx nivus-edge-web:local -c /tmp/nivus-portless.conf -g 'daemon off;'
+for attempt in $(seq 1 15); do
+  if curl -kfsS --connect-timeout 2 --max-time 4 https://127.0.0.1:28444/health >/dev/null; then break; fi
+  sleep 1
+done
+curl -kfsS --connect-timeout 2 --max-time 5 https://127.0.0.1:28444/health | grep -q '"status":"ok"'
+PROXY_AUTH_STATUS=$(curl -k -sS --connect-timeout 2 --max-time 5 -o /dev/null -w '%{http_code}' \
+  https://127.0.0.1:28444/api/telemetry)
+[[ "$PROXY_AUTH_STATUS" == 401 ]]
+echo "portless_proxy_health=200; unauthenticated_telemetry_http=$PROXY_AUTH_STATUS"
+docker rm -f "$PORTLESS_PROXY" >/dev/null
+rm -f -- "$PORTLESS_CONFIG"
 python3 deploy/nivusctl help | grep -q 'sudo nivus maintenance disable'
 MAINT_UNAUTH_STATUS=$(curl -k -sS --connect-timeout 2 --max-time 5 -o /dev/null -w '%{http_code}' https://127.0.0.1:28443/api/maintenance)
 [[ "$MAINT_UNAUTH_STATUS" == 401 ]]

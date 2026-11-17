@@ -2,6 +2,26 @@
 
 Este stack Compose está instalado em paralelo à execução systemd/Nginx preexistente no notebook de teste. A atualização de 17/11/2026 aplicou a release `fff64a68f252f0b1290576e30b39ed78fbc15a7a`; ela confirmou backup SQLite, restart dos containers, health HTTPS 200 e API sem token 401. O instalador e o atualizador não substituem serviços anteriores. O Compose usa HTTPS na porta 8443 por padrão, broker MQTT sem porta publicada no host, diretório de dados persistentes, segredos próprios e serviço de telemetria separado.
 
+## Acesso HTTPS sem sufixo de porta
+
+Em instalação limpa, o instalador usa HTTPS 443 quando a porta está livre. Se algum serviço já escuta nessa porta, identifica o processo e escolhe uma porta livre começando por 8443, sem interromper nem substituir o ocupante. A URL aparece na saída do instalador.
+
+Em um host que já tem Nivus Compose numa porta alternativa e Nginx ativo em 443, publique o painel sem alterar os sites existentes:
+
+```bash
+sudo bash /opt/nivus-compose/current/deploy/promote-dashboard-443.sh 192.168.15.110
+```
+
+A promoção aceita apenas IPv4 local presente no certificado TLS do Nivus. Confirma que Nginx é o único ocupante de 443 e inclui `/etc/nginx/conf.d/*.conf`, faz cópia da configuração efetiva, cria um arquivo aditivo, valida `nginx -t` e exige HTTPS health 200 e API sem token 401. Em falha, remove somente o arquivo criado e recarrega a configuração anterior. A porta atual do Compose, como 8443, continua disponível como retorno.
+
+Para voltar:
+
+```bash
+sudo bash /opt/nivus-compose/current/deploy/promote-dashboard-443.sh --rollback
+```
+
+O certificado local é autoassinado; o script confirma que seu SAN contém o IP, mas isso não o transforma numa CA pública. Para evitar avisos no navegador, distribua e confie numa CA local por um canal administrado. API, MQTT e SSH não ganham novas portas. Na migração de `https://IP:8443/` para `https://IP/`, o navegador vê outra origem e pode pedir login uma vez; após isso, o seletor de dashboard atual/legada permanece na mesma sessão.
+
 ## Pré-requisitos e alvo
 
 - Ubuntu Server 22.04 ou posterior, systemd 247+ e arquitetura x86_64/amd64.
