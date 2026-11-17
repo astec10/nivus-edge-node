@@ -1,6 +1,7 @@
 import React, { lazy, Suspense, useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import './utils/sessionTransport';
+import { meetsPasswordPolicy } from './utils/passwordPolicy.js';
 import PasswordChangeModal from './components/PasswordChangeModal';
 import DashboardHeader from './components/DashboardHeader';
 import DashboardNavigation from './components/DashboardNavigation';
@@ -343,9 +344,7 @@ function App() {
       alert('As senhas não coincidem!');
       return;
     }
-    const hasLetter = Array.from(targetNewPassword).some(character => character.toLowerCase() !== character.toUpperCase());
-    const hasNumber = /[0-9]/.test(targetNewPassword);
-    if (targetNewPassword.length < 8 || targetNewPassword.length > 256 || !hasLetter || !hasNumber) {
+    if (!meetsPasswordPolicy(targetNewPassword)) {
       alert('Use uma senha de 8 a 256 caracteres, com pelo menos uma letra e um número.');
       return;
     }
