@@ -63,11 +63,18 @@ CI aprovado comprova o fluxo no runner virtual Ubuntu, não em cada chipset ou p
 5. [ ] Versionar o envelope de telemetria: nó, timestamp, unidade, origem, qualidade e versão do esquema.
 6. [ ] Exibir lista de nós, último contato e séries por nó no painel.
 7. [ ] Tratar duplicatas, atraso, relógios incorretos, perda de rede, revogação e nós desconhecidos.
-8. [ ] Definir distribuição de releases assinadas: inventário de versão/capacidades, seleção dos nós elegíveis, canário seguido de ondas, health check, manutenção de dados e rollback independente por nó. Offline, baixa bateria ou recursos insuficientes devem adiar a atualização sem bloquear a frota.
+8. [ ] Definir perfil versionado de capacidade, separado de disponibilidade dinâmica, com validação por capacidade; não inferir suporte pelo modelo do computador.
+9. [ ] Replicar do Master snapshots assinados, versionados, expirados e somente leitura, sem credenciais de outros nós; o registro do Master permanece autoritativo.
+10. [ ] Validar onboarding, atualização e revogação de perfil no Raspberry Pi 3 e Dell Vostro 3268 físicos; registrar tarefas realmente suportadas.
+11. [ ] Integrar o perfil aprovado e a cópia do catálogo ao agente e à API, preservando o contrato atual de identidade/heartbeat.
+12. [ ] Definir distribuição de releases assinadas: inventário de versão/capacidades, seleção dos nós elegíveis, canário seguido de ondas, health check, manutenção de dados e rollback independente por nó. Offline, baixa bateria ou recursos insuficientes devem adiar a atualização sem bloquear a frota.
 
 Critério de saída: dois dispositivos podem enviar telemetria autenticada; um nó desconectado não derruba os outros; credenciais podem ser revogadas; o painel identifica claramente dados ausentes ou antigos.
 
 Para atualizações de frota, o critério adicional é demonstrar uma correção simulada em um nó canário, ampliar a implantação aos nós elegíveis depois do health check, e reverter somente o nó que falhar. Cada nó valida assinatura e compatibilidade antes de aplicar o artefato.
+
+
+Detalhes e mapas mentais da proposta de capacidade e sincronização: [NODE_CAPABILITY_SCHEDULER.md](NODE_CAPABILITY_SCHEDULER.md). Perfil validado, inventário detalhado e cópias assinadas ainda não estão implementados.
 
 ### Fase 3 — Integrações domésticas e energia
 
@@ -99,13 +106,15 @@ Critério de saída: benchmark reproduzível por hardware; consultas reproduzív
 
 ### Fase 5 — Orquestração de tarefas entre nós
 
-**Estado: planejada; depende da Fase 2 e da Fase 4.**
+**Estado: planejada; depende da Fase 2 e da Fase 4.** A proposta de workers heterogêneos, perfil validado, cópia do registro e revisão humana está em [NODE_CAPABILITY_SCHEDULER.md](NODE_CAPABILITY_SCHEDULER.md); nada disso está implementado.
 
 1. Começar com tarefas de lote naturalmente independentes: OCR, indexação, embeddings e classificação de clipes.
-2. Cada nó anuncia recursos e tipos de tarefa aceitos; o coordenador reserva CPU/RAM/disco e define prazo/lease.
-3. Usar IDs idempotentes, checksum, versão de modelo/dados, retries limitados, cancelamento e limites de tamanho.
-4. Restringir entradas/saídas e executar workers com identidade, permissões mínimas e sem acesso geral ao host.
-5. Adicionar cache e distribuição de artefatos por HTTPS com hashes; estudar P2P só se medições demonstrarem necessidade.
+2. Cada nó anuncia capacidades validadas e recursos dinâmicos separados; o coordenador só atribui tarefa a worker elegível e reserva CPU/RAM/disco.
+3. O Master é autoridade do registro; cada nó mantém snapshot assinado, versionado, somente leitura e sem credenciais. Um cache expirado não permite nova atribuição.
+4. O resultado passa a `result_pending_review` após validação de lease, hash, formato e proveniência; a aceitação continua humana.
+5. Usar IDs idempotentes, checksum, versão de modelo/dados, retries limitados, cancelamento e limites de tamanho.
+6. Restringir entradas/saídas e executar workers com identidade, permissões mínimas e sem acesso geral ao host.
+7. Adicionar cache e distribuição de artefatos por HTTPS com hashes; estudar P2P só se medições demonstrarem necessidade.
 
 Critério de saída: desligar ou comprometer um nó não causa perda silenciosa de tarefas, alteração de resultados aceitos ou execução fora da permissão declarada.
 

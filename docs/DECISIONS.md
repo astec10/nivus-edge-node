@@ -116,3 +116,13 @@ Na issue #68, a interface será uma seção própria em **Configuração → Pro
 Chave de API não pode ser guardada apenas como hash, pois o processo precisa recuperá-la para autenticar chamadas. O backend usa AES-GCM com nonce aleatório de 96 bits e identificador do perfil como dado autenticado; chave mestra binária de 32 bytes fica fora do repositório e do SQLite. A resposta da API contém apenas `credential_configured`, nunca cifra ou chave. Backup SQLite sozinho não recupera o segredo; a chave mestra precisa de cópia protegida separada.
 
 Nuvem exige HTTPS público e aceita somente dados públicos/sintéticos. Endpoint local é separado, limitado a endereços privados e portas conhecidas, e não recebe chave em HTTP. O teste é GET da lista de modelos, sem prompt, redirecionamento, com timeout. Orçamento e máximo de pedidos são campos de política e permanecem informativos enquanto não existir executor de inferência; habilitar um perfil não significa que o runtime já faz chamadas. Isso continua separado de `GEMINI_API_KEY` do GitHub Actions.
+
+## Nós heterogêneos e scheduler distribuído — 2026-11-17
+
+Requisito do operador: cada worker aceita apenas tarefas compatíveis com capacidades validadas; o ingresso de um novo equipamento inclui análise de capacidade; o Nó Master mantém o registro de frota e cada novo nó recebe uma cópia.
+
+Direção arquitetural registrada para a proposta: o Master permanece autoridade do registro; a cópia dos demais nós é somente leitura, versionada e assinada, sem credenciais de outros nós. O perfil separa capacidades validadas de disponibilidade dinâmica. O scheduler usa compatibilidade obrigatória, lease recuperável e artefatos verificáveis. Resultados ficam aguardando revisão humana antes de serem aceitos.
+
+Os exemplos iniciais são Raspberry Pi 3 (texto) e Dell Vostro 3268 (texto, cálculo e programação simples), sujeitos à validação física dos equipamentos, modelos, runtimes e limites. O modelo comercial do equipamento, sozinho, não comprova capacidade.
+
+Escopo e mapas mentais estão em [NODE_CAPABILITY_SCHEDULER.md](NODE_CAPABILITY_SCHEDULER.md). O registro inicial existe; perfis validados, sincronização do catálogo, scheduler e execução distribuída continuam planejados.

@@ -52,3 +52,7 @@ Criar uma plataforma local-first, modular e econômica para monitorar nós x86_6
 ## Regra para mudanças
 
 Leia `AGENTS.md`, este contexto, `PROJECT_STATUS.md` e o documento da área antes de editar. Faça uma mudança pequena, preserve contratos, atualize documentação e execute somente validações aplicáveis. Use branch/PR e mantenha aprovação humana antes de produção.
+
+## Scheduler distribuído entre nós
+
+A proposta para perfil de capacidades heterogêneas, inventário validado, cópia assinada do registro, leases e resultados aguardando revisão está em [NODE_CAPABILITY_SCHEDULER.md](NODE_CAPABILITY_SCHEDULER.md). O registro inicial de identidade/heartbeat existe; o scheduler e a validação real de capacidades ainda não estão implementados. Não confundir esta fila de workloads Nivus com Issues/GitHub Actions para PRs de desenvolvimento.
