@@ -5,6 +5,7 @@ import json
 import re
 import secrets
 import time
+import unicodedata
 import uuid
 from datetime import datetime, timezone
 
@@ -22,7 +23,7 @@ ALLOWED_CAPABILITIES = frozenset({
     "telemetry.temperature",
     "telemetry.power_estimate",
 })
-_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 _.-]{0,47}$")
+_NAME_PATTERN = re.compile(r"^[^\W_][\w .-]{0,47}$", re.UNICODE)
 _VERSION_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]{0,63}$")
 
 
@@ -60,10 +61,10 @@ def _digest(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
-def _validate_name(name: str) -> str:
+def normalize_node_name(name: str) -> str:
     if not isinstance(name, str):
         raise ValueError("Informe o nome do nó.")
-    clean_name = " ".join(name.split())
+    clean_name = unicodedata.normalize("NFC", " ".join(name.split()))
     if not _NAME_PATTERN.fullmatch(clean_name):
         raise ValueError("O nome do nó deve ter 1 a 48 caracteres alfanuméricos, espaços, ponto, hífen ou sublinhado.")
     return clean_name
@@ -120,7 +121,7 @@ def create_node_enrollment(now=None) -> dict:
 
 def enroll_node(code: str, name: str, now=None) -> dict:
     current = _epoch(now)
-    clean_name = _validate_name(name)
+    clean_name = normalize_node_name(name)
     if not isinstance(code, str) or not 40 <= len(code) <= 128:
         raise EnrollmentAuthenticationError()
 
