@@ -1,4 +1,3 @@
-import re
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Header, HTTPException
@@ -15,6 +14,7 @@ from services.nodes import (
     list_nodes,
     process_node_heartbeat,
     revoke_node,
+    normalize_node_name,
 )
 
 
@@ -37,12 +37,10 @@ class NodeEnrollment(BaseModel):
     @field_validator("name", mode="before")
     @classmethod
     def normalize_name(cls, value: str) -> str:
-        if not isinstance(value, str):
-            raise ValueError("Informe o nome do nó.")
-        clean = " ".join(value.split())
-        if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9 _.-]{0,47}", clean):
-            raise ValueError("O nome do nó deve ter 1 a 48 caracteres alfanuméricos, espaços, ponto, hífen ou sublinhado.")
-        return clean
+        try:
+            return normalize_node_name(value)
+        except ValueError as error:
+            raise ValueError(str(error)) from error
 
 
 class NodeHeartbeat(BaseModel):
