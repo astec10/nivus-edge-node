@@ -62,7 +62,7 @@ Content-Type: application/json
 {"name":"Edge Sala"}
 ```
 
-Resposta única: `node_id`, `name`, `token`, `session_id`, intervalo sugerido e timeout. O cliente não fornece ID, endereço, timestamp ou capacidade.
+Resposta única: `node_id`, `name`, `token`, `session_id`, intervalo sugerido e timeout. O nome aceita até 48 letras/dígitos Unicode (normalizados em NFC), espaços, ponto, hífen e sublinhado. O cliente não fornece ID, endereço, timestamp ou capacidade.
 
 ### 3. Nó renova a sessão
 
