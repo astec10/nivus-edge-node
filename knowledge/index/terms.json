@@ -13409,6 +13409,9 @@
     "doc-project-roadmap",
     "doc-vision"
   ],
+  "requeridas": [
+    "doc-node-capability-scheduler"
+  ],
   "request": [
     "doc-ai-development-orchestration",
     "doc-node-capability-scheduler",
