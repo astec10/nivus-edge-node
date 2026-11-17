@@ -2,8 +2,13 @@ import asyncio
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from urllib.parse import urlsplit
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+
+from services.auth_sessions import COOKIE_NAME
 
 from api.routers import (
     actuator,
@@ -72,10 +77,28 @@ app = FastAPI(title="Nivus Edge API", version="2.9.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
-    allow_credentials=False,
+    allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
 )
+
+class SessionCsrfMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        if (
+            request.method not in {"GET", "HEAD", "OPTIONS"}
+            and COOKIE_NAME in request.cookies
+        ):
+            origin = request.headers.get("origin")
+            parsed = urlsplit(origin or "")
+            request_host = request.headers.get("host", "")
+            if not origin or parsed.netloc.lower() != request_host.lower():
+                return JSONResponse(
+                    {"detail": "Origem inválida para esta sessão."}, status_code=403
+                )
+        return await call_next(request)
+
+
+app.add_middleware(SessionCsrfMiddleware)
 
 
 @app.get("/health", tags=["health"])
