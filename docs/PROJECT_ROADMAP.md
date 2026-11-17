@@ -26,7 +26,7 @@ Entregas existentes: API modular, autenticação por senha/JWT, telemetria de ho
 
 Critérios já observados: login funcional; API exige token; health HTTPS responde; o SQLite candidato passa `quick_check` e recebe novas amostras; o coletor não reinicia; os serviços antigos continuam ativos.
 
-**Operação de manutenção (issue #26):** implementação merged no PR #28 e incluída na release ativa do notebook `869f4e6`; CI hospedada aprovada. A pausa interrompe amostragem/publicação de telemetria do host e gravação de novas amostras MQTT, sem desligar API, painel, health ou broker. Ainda falta executar `nivus help`, exercitar pausa/retomada e reinício normal no notebook.
+**Operação de manutenção (issue #26):** implementação merged no PR #28 e incluída na release ativa do notebook `fff64a68`; CI hospedada aprovada. A pausa interrompe amostragem/publicação de telemetria do host e gravação de novas amostras MQTT, sem desligar API, painel, health ou broker. Ainda falta executar `nivus help`, exercitar pausa/retomada e reinício normal no notebook.
 
 **Relógio, interface e sensores (issues #21/#23):** PRs #37–#50 implementaram preferências, controle NTP, temas, gráficos, bateria interna e regra móvel. Em 17/11/2026, a release `fff64a68f252f0b1290576e30b39ed78fbc15a7a` foi aplicada no notebook; build, backup, restart, HTTPS 200 e 401 sem token passaram. PR #67 compactou medidores Glass e moveu as dicas dos cartões para os detalhes após 3 segundos. Ainda falta conferência visual no navegador. O operador não usará VMs locais; CI hospedada valida software, não hardware físico.
 
@@ -123,6 +123,6 @@ Critério de saída: limite financeiro não é ultrapassado silenciosamente; dad
 
 ## Sequência recomendada
 
-**Próximos trabalhos:** concluir a Fase 1 por CI hospedada; avançar o agente mínimo e smoke com dois nós pela issue #69; manter a issue #68 de configuração de provedores como trabalho paralelo, separado do segredo do executor GitHub Actions. Registro multi-nó inicial está integrado, mas agregação de dados e atualização de frota não existem.
+**Próximos trabalhos:** concluir a Fase 1 por CI hospedada; avançar o agente mínimo e smoke com dois nós pela issue #69; manter a issue #68 de configuração de provedores como trabalho paralelo, separado do segredo do executor GitHub Actions; e promover a dashboard Compose à porta 443 com rollback pela issue #70. Registro multi-nó inicial está integrado, mas agregação de dados e atualização de frota não existem.
 
 Para decidir a próxima entrega física da casa, veja “Decisões em aberto” em [`VISION.md`](VISION.md). Modelos exatos de roteador, switch PoE, câmeras, inversor, medidores e proteção elétrica ainda precisam ser escolhidos e conferidos com documentação de fabricante e profissionais habilitados.
