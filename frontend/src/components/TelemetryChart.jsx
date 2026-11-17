@@ -236,7 +236,7 @@ export default function TelemetryChart({ rows, mode, setMode, range, setRange })
       <div className="telemetry-chart-caption">
         <small>{rows.length} amostras no período · até 1000 amostras armazenadas</small>
         {mode === 'all' && <small>°C, %, e W usam escalas próprias; a potência é estimada por software.</small>}
-        <small>Tooltip do gráfico imediato; os detalhes ampliados dos cartões aparecem após 3 segundos.</small>
+        <small>Passe o ponteiro sobre o gráfico para ver imediatamente os dados do ponto.</small>
       </div>
 
       <div className="telemetry-chart-canvas">
@@ -259,7 +259,13 @@ export default function TelemetryChart({ rows, mode, setMode, range, setRange })
                   {...(index > 1 ? { orientation: 'right', width: 42, offset: 38, tick: { fontSize: 10 } } : {})}
                 />
               ))}
-              <Tooltip content={<ChartTooltip series={selectedSeries} rows={rows} mode={mode} />} />
+              <Tooltip
+                trigger="hover"
+                shared
+                isAnimationActive={false}
+                animationDuration={0}
+                content={<ChartTooltip series={selectedSeries} rows={rows} mode={mode} />}
+              />
               {selectedSeries.map((series) => renderSeries(chartType, series))}
             </ChartComponent>
           </ResponsiveContainer>
