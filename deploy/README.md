@@ -22,6 +22,12 @@ sudo bash /opt/nivus-compose/current/deploy/promote-dashboard-443.sh --rollback
 
 O certificado local é autoassinado; o script confirma que seu SAN contém o IP, mas isso não o transforma numa CA pública. Para evitar avisos no navegador, distribua e confie numa CA local por um canal administrado. API, MQTT e SSH não ganham novas portas. Na migração de `https://IP:8443/` para `https://IP/`, o navegador vê outra origem e pode pedir login uma vez; após isso, o seletor de dashboard atual/legada permanece na mesma sessão.
 
+## Proteção de login e retenção de dados
+
+O Nginx limita `/token` a 10 requisições por minuto por endereço de origem, com rajada limitada. A configuração usa o endereço do peer TCP, não um `X-Forwarded-For` fornecido pelo cliente. Se outro proxy ficar à frente, configure explicitamente a confiança do endereço real antes de publicar o serviço. O backend não bloqueia uma conta globalmente após falhas, evitando que uma pessoa na LAN trave um usuário conhecido.
+
+A API remove telemetria com mais de 30 dias e auditoria de atuadores com mais de 365 dias, em lotes, no início e a cada 24 horas. Ajuste `NIVUS_TELEMETRY_RETENTION_DAYS` e `NIVUS_ACTUATOR_AUDIT_RETENTION_DAYS` no arquivo local de ambiente; ambos precisam ser inteiros entre 1 e 3650. Os prazos são padrões do produto e podem ser ajustados à necessidade de histórico e ao espaço disponível. A limpeza não altera backups já feitos.
+
 ## Pré-requisitos e alvo
 
 - Ubuntu Server 22.04 ou posterior, systemd 247+ e arquitetura x86_64/amd64.
