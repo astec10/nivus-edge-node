@@ -13,6 +13,41 @@ Os exemplos iniciais do operador são hipóteses de perfil, não compatibilidade
 
 O nome do equipamento não habilita uma capacidade automaticamente. Cada classe precisa de evidência no equipamento e na configuração reais, incluindo runtime/modelo, memória disponível e desempenho sustentado.
 
+## Nome, identidade e vínculo com o equipamento
+
+Na primeira inicialização, o instalador pode atribuir um nome amigável aleatório, por exemplo `nivus-cobre-7f2a`. O operador poderá renomeá-lo localmente ou no Master. Esse nome é apenas um rótulo: pode repetir, mudar e nunca será usado como credencial.
+
+A identidade de segurança usa o `node_id` atribuído pelo Master no pareamento e uma chave exclusiva gerada pelo nó. O nó assina os relatórios; o Master verifica a assinatura e associa o conteúdo à identidade registrada. Se houver TPM 2.0, a chave privada poderá ser protegida pelo TPM; o fluxo base precisa funcionar sem TPM. A chave de Endorsement do TPM identifica o próprio TPM, não substitui uma identidade de dispositivo provisionada.
+
+**O MAC é viável como dado auxiliar de inventário e reconciliação, mas não como identidade única nem prova de autorização.** Um nó pode ter vários MACs, trocar interface ou apresentar endereço clonado/aleatório. NetworkManager documenta modos `permanent`, `random` e `stable`; por isso, mudança de MAC não deve criar um nó novo nem revogar uma credencial. O agente pode enviar endereços por interface como observação opcional, marcando se o endereço permanente foi exposto pela interface. O Master usa esses valores apenas como indício e não os envia a modelos externos.
+
+Alternativas de vínculo, em ordem recomendada:
+
+1. **ID e chave por nó (padrão):** chave Ed25519 gerada no primeiro boot, credencial autorizada no pareamento e `node_id` do servidor. Reinstalação ou perda de chave exige novo pareamento ou recuperação administrativa.
+2. **Chave protegida por TPM (opcional):** reduz exposição da chave em disco quando o TPM existe; não é requisito para Pi 3 ou máquinas sem TPM. Não usar o EK bruto como identidade do Nivus.
+3. **MAC e dados SMBIOS (corroboração):** ajudam um administrador a reconhecer a máquina, mas são substituíveis, clonáveis ou ausentes. Serial e UUID de firmware ficam privados por padrão.
+4. **Machine ID do systemd (não é autenticação):** nunca transmitir o valor bruto. Se uma futura função precisar correlacioná-lo, usar derivação específica para a aplicação, manter o resultado como dado privado e continuar exigindo a chave do nó. Imagens genéricas devem gerar ID distinto no primeiro boot.
+
+O systemd trata `/etc/machine-id` como confidencial e recomenda derivação específica para aplicação; o Nivus não deve depender dele como segredo ou identidade remota. Referências: [systemd machine-id](https://www.freedesktop.org/software/systemd/man/latest/machine-id.html), [NetworkManager MAC address](https://www.networkmanager.dev/docs/api/latest/nm-settings-nmcli.html) e [TCG device identity](https://trustedcomputinggroup.org/resource/tpm-2-0-keys-for-device-identity-and-attestation/).
+
+## Relatório de hardware e avaliação
+
+O agente mantém duas saídas com versões de esquema:
+
+- `hardware-report.json`: relatório estruturado com `node_id`, revisão, horário, agente, arquitetura, CPU, RAM, armazenamento, aceleradores, runtimes/modelos, interfaces e sensores disponíveis. Cada campo inclui fonte, unidade quando aplicável, método e confiança. Endereços MAC podem ser omitidos ou mascarados conforme política local.
+- `hardware-report.md`: resumo legível para operador e IA, gerado a partir do JSON. Não contém credenciais, machine-id, seriais, chave privada nem telemetria da casa.
+
+A coleta ocorre no primeiro boot, após mudança detectada de hardware/software e em verificação periódica de baixa frequência. No boot normal, telemetria dinâmica (carga, RAM livre, disco, temperatura e energia) segue separada do inventário estático. A coleta usa fontes Linux de leitura, sem varredura invasiva de barramento, módulos de kernel ou shell privilegiado; sensores sem fonte identificável ficam como ausentes/N/D.
+
+O relatório enviado é **declaração assinada pelo nó, ainda não capacidade aprovada**. O Master guarda o original com hash e executa uma avaliação determinística contra manifestos versionados de runtime/modelo. A avaliação compara arquitetura/instruções, RAM realmente disponível após reserva do sistema, acelerador/VRAM, espaço, runtime/modelo e limites sustentados de temperatura/carga. Para cada capacidade, registra `reported`, `observed`, `tested`, `validated`, `restricted` ou `rejected`, a evidência e validade.
+
+Os testes de capacidade são curtos, limitados por CPU/RAM/tempo e específicos por modelo. Uma compatibilidade de manifesto é só elegibilidade; não comprova que o desempenho é aceitável. O administrador edita/aprova o perfil canônico no Master, com auditoria e revisão. O Master publica de volta um snapshot assinado; a cópia local é cache verificável e não permite ao worker conceder capacidade a si mesmo. A IA recebe somente campos aprovados e sanitizados, e qualquer inferência continua subordinada à revisão humana.
+
+### Exemplo de separação de perfis
+
+- **Raspberry Pi 3:** não presumir que “texto” cabe. Avaliar um runtime e modelo concretos, arquitetura ARM e memória livre; medir latência e estabilidade. Se nenhum modelo passar, o nó pode continuar elegível para tarefas de telemetria ou processamento determinístico leve.
+- **Dell Vostro 3268:** “cálculo” determinístico é diferente de inferência. “Geração de código” exige runtime/modelo compatível; “executar código” é uma permissão distinta, desabilitada até existir sandbox isolada e revisada.
+
 ## Mapa mental
 
 ```mermaid
@@ -21,13 +56,15 @@ mindmap
     Nó Master
       Autoridade do registro
       Pareamento e revogação
-      Valida perfis
+      Avalia relatórios
+      Aprova perfil canônico
       Fila e despacho
       Leases e auditoria
       Resultado aguardando revisão
     Nó Worker
-      Identidade própria
-      Inventário local
+      Nome amigável alterável
+      Identidade chave node_id
+      Inventário local assinado
       Capacidades validadas
       Recursos dinâmicos
       Sandbox por tarefa
@@ -45,6 +82,10 @@ mindmap
       Lease e retry limitados
       Revisão humana
     Validação
+      MAC apenas auxiliar
+      ID e chave por nó
+      Relatório JSON + resumo
+      Manifestos de runtime/modelo
       Inventário de hardware
       Runtimes e modelos
       Teste curto e limitado
@@ -115,6 +156,13 @@ A cópia permite descoberta e consistência do catálogo, mas não cria vários 
 Uma tarefa declara ID idempotente, tipos/capacidades exigidos, modalidade de entrada, recursos e prazo, classificação de dados, limites de tamanho, referências de artefatos com hash, política de retry e critérios de aceitação.
 
 O Master seleciona apenas nós que estejam registrados e não revogados, com heartbeat dentro do limite, perfil validado compatível e recursos dinâmicos suficientes. Entre candidatos elegíveis, pode priorizar menor carga, menor custo de energia ou fairness; essas preferências nunca relaxam requisitos obrigatórios.
+
+A fila pode suportar dois modos sob o mesmo controle de leases:
+
+- **Ativo (Master → nó):** o Master escolhe um worker elegível e envia uma oferta curta. O worker confirma aceite; se recusar ou não responder, a oferta expira e volta à fila. O payload privado só segue depois do aceite/lease.
+- **Passivo (nó → Master):** o worker pede trabalho. O Master filtra pela capacidade já validada no cadastro, disponibilidade atual e política da fila, e concede atomicamente uma lease a um único nó. O worker não consulta nem varre a fila inteira.
+
+O Master continua autoridade nos dois modos. Uma lista de capacidades alegada pelo worker só pode estreitar a seleção, nunca ampliá-la. Um toggle por fila/projeto pode escolher push ou pull; ambos usam as mesmas validações, lease, fencing, auditoria e retry. O primeiro release pode implementar pull autenticado, que é mais simples para redes com workers atrás de NAT/firewall; push pode ser adicionado quando houver caso operacional concreto.
 
 A concessão usa uma lease com nó responsável, prazo e token/versão de fencing. Workers renovam a lease durante execução; expiração libera a tarefa para retry limitado. O ID idempotente, a versão da lease e a validação de hash impedem aceitar resultados tardios ou duplicados. Cancelamento, partição, reinício do Master ou worker indisponível deixam estado auditável e recuperável.
 
