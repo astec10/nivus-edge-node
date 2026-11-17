@@ -19,6 +19,10 @@ flowchart TD
   BatteryRouter --> BatteryService[backend/services/mobile_battery.py]
   BatteryService --> DB
   BatteryService --> MQTT
+  Admin[Administrador] -->|JWT admin| NodesRouter[backend/api/routers/nodes.py]
+  NodeAgent[Agente de outro nó] -->|TLS + token do nó| NodesRouter
+  NodesRouter --> NodesService[backend/services/nodes.py]
+  NodesService --> DB
   Routers --> Schemas[backend/api/schemas.py]
   Routers --> Auth[backend/api/dependencies.py + security.py]
   Routers --> DB
@@ -41,6 +45,8 @@ flowchart TD
 | `telemetry/` | métricas do host → MQTT | Coleta CPU, memória, disco, energia estimada e sensores disponíveis; não implementa a política da API. |
 | `backend/api/routers/` | HTTP autenticado ↔ schemas | Endpoints por domínio; exige autorização nas rotas sensíveis. |
 | `backend/api/routers/mobile_battery.py` | Admin JWT + relatório tokenizado | Admin cadastra/revoga; celular envia somente percentual e horário. O cliente não escolhe tópico nem comando. |
+| `backend/api/routers/nodes.py` | Admin JWT ou credencial própria do nó | Pareamento one-use, sessão, heartbeat ordenado, listagem e revogação; a candidata atual não executa operações remotas. |
+| `backend/services/nodes.py` | Contratos validados ↔ SQLite | Cria IDs no servidor, persiste somente hashes de códigos/tokens, deriva estado pelo heartbeat e restringe capacidades a uma allowlist; em branch, ainda sem telemetria agregada. |
 | `backend/services/mobile_battery.py` | Leitura móvel validada → regra + auditoria MQTT | Rejeita leituras antigas/repetidas; publica somente `OFF` em `nivus/edge/relay1` a ≤20%; recuperação acima de 20% rearma sem enviar `ON`. |
 | `backend/services/` | chamadas internas ↔ serviços | MQTT, logs e operações de domínio; não expõe portas diretamente. |
 | `backend/database.py` | conexões ↔ SQLite | Persistência, migrações aditivas e consultas. |
