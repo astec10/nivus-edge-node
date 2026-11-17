@@ -185,7 +185,7 @@ def finite_nonnegative(value):
 
 
 def evaluate_node(report, manifest, expected_node_id):
-    # Pré-condição: assinatura, autenticação e schema já foram verificados.
+    # Pré-condição: assinatura, autenticação, schema e manifesto já foram verificados.
     if not isinstance(report, dict) or report.get("node_id") != expected_node_id:
         return {"status": "invalid_report", "reasons": ["Identidade inválida."]}
 
@@ -227,6 +227,10 @@ def evaluate_node(report, manifest, expected_node_id):
     ):
         reasons.append("Faltam instruções de CPU exigidas pelo runtime.")
 
+    # Este recorte não avalia GPU, runtime nem digest de modelo.
+    if any(key in manifest for key in ("min_gpu_free_gib", "runtime_id", "model_digest")):
+        unknown.append("Requisitos de GPU/runtime/modelo precisam de avaliador específico.")
+
     if reasons:
         status = "ineligible"
     elif unknown:
@@ -237,7 +241,7 @@ def evaluate_node(report, manifest, expected_node_id):
     return {"status": status, "reasons": reasons + unknown}
 ```
 
-A função acima só faz filtros ilustrativos. A implementação precisa validar o manifesto, checar runtime/modelo e acelerador estruturado, considerar reservas concorrentes e produzir score separado entre candidatos elegíveis. O worker ainda precisa aceitar a lease e executar benchmark limitado; só o Master promove a capacidade para `validated`.
+A função acima é um recorte didático de arquitetura/CPU/RAM, não módulo de produção. Ela devolve `needs_data` se o manifesto pedir GPU/runtime/modelo, em vez de aprovar algo que não avaliou. A implementação precisa validar o manifesto, checar runtime/modelo e acelerador estruturado, considerar reservas concorrentes e produzir score separado entre candidatos elegíveis. O worker ainda precisa aceitar a lease e executar benchmark limitado; só o Master promove a capacidade para `validated`.
 
 ## Cópia do registro nos nós
 
