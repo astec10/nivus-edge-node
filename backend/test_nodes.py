@@ -82,7 +82,10 @@ class NodeRegistryTests(unittest.TestCase):
         _, second = self.create_and_enroll("Edge B")
         self.assertNotEqual(first["node_id"], second["node_id"])
         self.assertNotEqual(first["token"], second["token"])
-        self.assertEqual(len(nodes.list_nodes(now=self.now)), 2)
+        listed = nodes.list_nodes(now=self.now)
+        self.assertEqual(len(listed), 2)
+        self.assertTrue(all(node["status"] == "offline" for node in listed))
+        self.assertTrue(all(node["last_seen"] is None for node in listed))
 
     def test_heartbeat_uses_server_time_and_derives_online_state(self):
         _, node = self.create_and_enroll("Edge A")
