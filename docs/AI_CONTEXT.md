@@ -11,13 +11,14 @@ Criar uma plataforma local-first, modular e econômica para monitorar nós x86_6
 - Para o estado observado no notebook, evidências de CI e pendências, leia [`PROJECT_STATUS.md`](PROJECT_STATUS.md).
 - Para fases, critérios e dependências, leia [`PROJECT_ROADMAP.md`](PROJECT_ROADMAP.md).
 - A implementação de manutenção e `nivus help` foi integrada no PR #28 e está incluída na release ativa do notebook (`869f4e6`). O update confirmou rebuild, backup, reinício dos serviços, HTTPS 200 e API sem token 401; ainda falta exercitar os comandos de manutenção no host. Consulte `deploy/README.md` e `PROJECT_STATUS.md` antes de afirmar validação funcional completa.
-- Preferências visuais, relógio, NTP e temas estão na release ativa comunicada (`869f4e6`), que inclui as mudanças até o PR #50. A `main` contém commits posteriores à release ativa. PR #61 muda a legenda do gráfico para esclarecer que o tooltip é imediato; PR #63 trata erros do psutil e rejeita leituras booleanas. Ambos aguardam update e verificação visual/funcional no notebook. O PR #50 implementa apenas OFF quando relatório móvel válido e recente indica bateria ≤20%; não envia ON. Falta validar a integração com Home Assistant e relé físico.
+- Em 16/11/2026, o operador atualizou o notebook para `136830786cc44b17d456fea779dbfc596115046e`; build, backup consistente, restart, HTTPS 200 e API sem token 401 passaram. A release inclui os PRs #61/#63. A conferência visual no navegador após Ctrl+F5 ainda não foi relatada. O PR #50 só envia OFF quando relatório móvel válido e recente indica bateria ≤20%; não envia ON. Falta validar Home Assistant e relé físico.
 - PR #53 integrou proteção contra chamadas de modelo duplicadas quando já existe um draft aberto, remove rótulos obsoletos e comenta o link. A release ativa `869f4e6` é descendente do merge #53; portanto essa correção está na release do notebook. O PR #16 continua draft para revisão humana e nenhuma nova chamada de modelo foi feita.
 - Telemetria local está presente no nó de teste, mas telemetria agregada entre nós não é pré-requisito para o executor de desenvolvimento; será útil quando o Nó Master estiver operacional.
 - Issue #21: esta proposta adiciona um cadeado para desbloquear a edição local de rascunhos NTP; aplicar continua indisponível enquanto outro cliente gerencia a hora do host.
 - Issue #22: a proposta é descobrir sensores de bateria via integração de leitura do Home Assistant e permitir escolha explícita pelo administrador. Não usar User-Agent ou Battery Status API do navegador como autorização.
 - Issue #62: o operador escolheu alimentação AC confirmada no nó/UPS para selecionar automaticamente apenas o governor de desempenho suportado, mantendo limites térmicos; atuadores seguem suas regras e overclock permanece manual. A implementação ainda não existe.
-- Multi-nó, biblioteca compartilhada em runtime, Home Assistant, Zigbee, IA local, P2P e scheduler distribuído continuam planejados até evidência de implementação.
+- Issue #65: primeira camada de cadastro seguro e heartbeat de nós está em desenvolvimento na branch `feat/node-registry-bootstrap-20261117`. Ela não agrega telemetria, não executa comandos e não está na release ativa. Consulte [`NODE_REGISTRY.md`](NODE_REGISTRY.md) para contrato e limites.
+- Multi-nó operacional, biblioteca compartilhada em runtime, Home Assistant, Zigbee, IA local, P2P e scheduler distribuído continuam planejados até evidência de implementação.
 - O operador não usará VMs no computador pessoal. Use CI hospedada ou simulações; não solicite instalação local de VM.
 - Issue #29: Ubuntu Server completo instalado no USB, com raiz e `NIVUS_DATA` persistentes. O PR #34 foi integrado à `main` no commit `703efa4128f60460910b05ab344b60b082006a7e`; os checks hospedados passaram no head `3a1621dc11d2532853ef83b9ab5ea47f64cfaca5`. A seleção do alvo, seed Subiquity e bootstrap pós-boot estão no código, mas ainda faltam instalar e reiniciar por um USB físico, verificar dados e serviços e testar recuperação. Não há ISO Ubuntu customizada nem qualificação física.
 - Acesso atual usa senha/JWT. USB e biometria são opcionais e não estão implementadas.
@@ -37,7 +38,8 @@ Criar uma plataforma local-first, modular e econômica para monitorar nós x86_6
 | Pergunta | Fonte |
 | --- | --- |
 | O que o projeto faz e como contribuir? | [`../README.md`](../README.md), [`../CONTRIBUTING.md`](../CONTRIBUTING.md) |
-| Quais módulos dependem de quais? | [`ARCHITECTURE.md`](ARCHITECTURE.md), [`MODULE_MAP.md`](MODULE_MAP.md) quando disponível |
+| Quais módulos dependem de quais? | [`ARCHITECTURE.md`](ARCHITECTURE.md), [`MODULE_MAP.md`](MODULE_MAP.md) |
+| Como funciona identidade e heartbeat multi-nó? | [`NODE_REGISTRY.md`](NODE_REGISTRY.md) |
 | Qual é a visão e o roadmap? | [`VISION.md`](VISION.md), [`PROJECT_ROADMAP.md`](PROJECT_ROADMAP.md) |
 | Como recuperar ou instalar? | [`../deploy/README.md`](../deploy/README.md), [`VM_VALIDATION.md`](VM_VALIDATION.md) |
 | Como a biblioteca e os dados de vídeo são curados? | [`AI_WORKFLOW.md`](AI_WORKFLOW.md), [`VIDEO_RESEARCH_INDEX.md`](VIDEO_RESEARCH_INDEX.md), [`../knowledge/README.md`](../knowledge/README.md) |
