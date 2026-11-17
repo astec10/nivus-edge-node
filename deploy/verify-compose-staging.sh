@@ -207,10 +207,10 @@ ln -s "$APP_DIR/deploy/nivusctl" "$NIVUS_HELP_BIN/nivus"
 
 echo '===MQTT_TO_SQLITE==='
 ADMIN_TOKEN=$(docker compose -p "$PROJECT" exec -T api python -c \
-  'from database import get_db_connection; from security import create_access_token,hash_password; c=get_db_connection(); c.execute("INSERT OR REPLACE INTO users (username,password,role,must_change_password) VALUES (?,?,?,0)", ("smoke-maint-admin",hash_password("SmokeOnly-Password-1"),"admin")); c.commit(); c.close(); print(create_access_token("smoke-maint-admin","admin"))')
+  'from database import get_db_connection; from services.auth_sessions import issue_session; from security import hash_password; c=get_db_connection(); c.execute("INSERT OR REPLACE INTO users (username,password,role,must_change_password) VALUES (?,?,?,0)", ("smoke-maint-admin",hash_password("SmokeOnly-Password-1"),"admin")); c.commit(); c.close(); print(issue_session("smoke-maint-admin","admin"))')
 [[ -n "$ADMIN_TOKEN" ]]
 VIEWER_TOKEN=$(docker compose -p "$PROJECT" exec -T api python -c \
-  'from database import get_db_connection; from security import create_access_token,hash_password; c=get_db_connection(); c.execute("INSERT OR REPLACE INTO users (username,password,role,must_change_password) VALUES (?,?,?,0)", ("smoke-maint-viewer",hash_password("SmokeOnly-Password-2"),"viewer")); c.commit(); c.close(); print(create_access_token("smoke-maint-viewer","viewer"))')
+  'from database import get_db_connection; from services.auth_sessions import issue_session; from security import hash_password; c=get_db_connection(); c.execute("INSERT OR REPLACE INTO users (username,password,role,must_change_password) VALUES (?,?,?,0)", ("smoke-maint-viewer",hash_password("SmokeOnly-Password-2"),"viewer")); c.commit(); c.close(); print(issue_session("smoke-maint-viewer","viewer"))')
 [[ -n "$VIEWER_TOKEN" ]]
 NTP_STATUS=$(curl -kfsS --connect-timeout 2 --max-time 5 \
   -H "Authorization: Bearer $ADMIN_TOKEN" https://127.0.0.1:28443/api/settings/time-sync)
