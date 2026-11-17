@@ -494,6 +494,7 @@ function App() {
   };
 
   useEffect(() => {
+    localStorage.removeItem('nivus_token');
     let cancelled = false;
     axios.get(`${API_BASE}/api/auth/session`).then(response => {
       if (cancelled) return;
