@@ -73,6 +73,31 @@ def init_db():
             );
             CREATE INDEX IF NOT EXISTS idx_mobile_battery_events_device_id
                 ON mobile_battery_events(device_id, id DESC);
+            CREATE TABLE IF NOT EXISTS node_enrollments (
+                enrollment_id TEXT PRIMARY KEY,
+                token_sha256 TEXT NOT NULL UNIQUE,
+                created_at REAL NOT NULL,
+                expires_at REAL NOT NULL,
+                consumed_at REAL
+            );
+            CREATE INDEX IF NOT EXISTS idx_node_enrollments_expiry
+                ON node_enrollments(expires_at);
+            CREATE TABLE IF NOT EXISTS nodes (
+                node_id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                token_sha256 TEXT NOT NULL UNIQUE,
+                active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1)),
+                created_at REAL NOT NULL,
+                last_seen REAL,
+                revoked_at REAL,
+                session_sha256 TEXT,
+                last_sequence INTEGER NOT NULL DEFAULT -1 CHECK (last_sequence >= -1),
+                agent_version TEXT,
+                schema_version INTEGER,
+                capabilities_json TEXT NOT NULL DEFAULT '[]'
+            );
+            CREATE INDEX IF NOT EXISTS idx_nodes_last_seen
+                ON nodes(last_seen);
             CREATE TABLE IF NOT EXISTS maintenance_audit (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
