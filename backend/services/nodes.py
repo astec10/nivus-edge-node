@@ -143,8 +143,8 @@ def enroll_node(code: str, name: str, now=None) -> dict:
             "INSERT INTO nodes "
             "(node_id, name, token_sha256, active, created_at, last_seen, "
             "session_sha256, last_sequence, capabilities_json) "
-            "VALUES (?, ?, ?, 1, ?, ?, ?, -1, '[]')",
-            (node_id, clean_name, _digest(token), current, current, _digest(session_id)),
+            "VALUES (?, ?, ?, 1, ?, NULL, ?, -1, '[]')",
+            (node_id, clean_name, _digest(token), current, _digest(session_id)),
         )
         cursor = conn.execute(
             "UPDATE node_enrollments SET consumed_at = ? "
