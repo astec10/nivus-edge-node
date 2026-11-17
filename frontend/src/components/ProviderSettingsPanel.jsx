@@ -32,6 +32,7 @@ const TEST_STATUS = {
   not_tested: 'Ainda não testado',
   credentials_rejected: 'Autenticação recusada',
   rate_limited: 'Limite do provedor',
+  budget_required: 'Defina um orçamento mensal antes do teste',
   timeout: 'Tempo esgotado',
   tls_error: 'Falha de certificado TLS',
   redirect_blocked: 'Redirecionamento bloqueado',

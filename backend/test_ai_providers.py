@@ -94,6 +94,33 @@ class ProviderSecretTests(unittest.TestCase):
         self.assertTrue(enabled["enabled"])
         self.assertNotIn("credential_ciphertext", enabled)
 
+    def test_cloud_probe_requires_configured_positive_budget(self):
+        provider = ai_providers.create_connection(
+            self.create_payload(monthly_budget_usd=None), "admin"
+        )
+        with patch.object(ai_providers, "probe_connection") as probe:
+            result = ai_providers.test_connection(provider["id"], "admin")
+        probe.assert_not_called()
+        self.assertEqual(result["status"], "budget_required")
+
+    def test_explicit_probe_consumes_hourly_request_limit(self):
+        provider = ai_providers.create_connection(
+            self.create_payload(max_requests_per_hour=1), "admin"
+        )
+        outcome = {
+            "success": True,
+            "status": "success",
+            "http_status": 200,
+            "model_count": 1,
+            "message": "Conexão confirmada. Nenhum prompt foi enviado.",
+        }
+        with patch.object(ai_providers, "probe_connection", return_value=outcome) as probe:
+            first = ai_providers.test_connection(provider["id"], "admin")
+            second = ai_providers.test_connection(provider["id"], "admin")
+        self.assertEqual(first["status"], "success")
+        self.assertEqual(second["status"], "rate_limited")
+        probe.assert_called_once()
+
     def test_cloud_endpoint_rejects_private_or_metadata_addresses(self):
         private_answer = [(2, 1, 6, "", ("169.254.169.254", 443))]
         with patch.object(ai_providers.socket, "getaddrinfo", return_value=private_answer):

@@ -585,6 +585,55 @@ def _load_connection(provider_id: str):
     return dict(row)
 
 
+def _reserve_probe_slot(connection: dict, actor: str) -> dict | None:
+    provider_id = connection["id"]
+    now = time.time()
+    conn = get_db_connection()
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        policy = conn.execute(
+            """SELECT endpoint_scope, monthly_budget_usd, max_requests_per_hour
+               FROM ai_provider_connections WHERE id=?""",
+            (provider_id,),
+        ).fetchone()
+        if policy is None:
+            raise KeyError(provider_id)
+        if policy["endpoint_scope"] == "cloud" and (
+            policy["monthly_budget_usd"] is None or policy["monthly_budget_usd"] <= 0
+        ):
+            _audit(conn, provider_id, actor, "connection_test_blocked", "budget_required")
+            conn.commit()
+            return {
+                "success": False,
+                "status": "budget_required",
+                "http_status": None,
+                "model_count": None,
+                "message": "Defina um orçamento mensal maior que zero antes do teste de nuvem.",
+            }
+
+        attempts = conn.execute(
+            """SELECT COUNT(*) FROM ai_provider_audit
+               WHERE provider_id=? AND action='connection_test_started' AND created_at>=?""",
+            (provider_id, now - 3600),
+        ).fetchone()[0]
+        if attempts >= int(policy["max_requests_per_hour"]):
+            _audit(conn, provider_id, actor, "connection_test_blocked", "rate_limited")
+            conn.commit()
+            return {
+                "success": False,
+                "status": "rate_limited",
+                "http_status": None,
+                "model_count": None,
+                "message": "O limite de testes por hora deste provedor foi atingido.",
+            }
+
+        _audit(conn, provider_id, actor, "connection_test_started")
+        conn.commit()
+        return None
+    finally:
+        conn.close()
+
+
 def test_connection(provider_id: str, actor: str) -> dict:
     connection = _load_connection(provider_id)
     secret = (
@@ -592,6 +641,23 @@ def test_connection(provider_id: str, actor: str) -> dict:
         if connection["credential_ciphertext"]
         else None
     )
+    blocked = _reserve_probe_slot(connection, actor)
+    if blocked:
+        now = time.time()
+        conn = get_db_connection()
+        try:
+            conn.execute(
+                """UPDATE ai_provider_connections
+                   SET last_test_status=?, last_test_at=?,
+                       enabled=CASE WHEN ?='budget_required' THEN 0 ELSE enabled END,
+                       updated_at=? WHERE id=?""",
+                (blocked["status"], now, blocked["status"], now, provider_id),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+        return blocked
+
     result = probe_connection(connection, secret)
     now = time.time()
     conn = get_db_connection()

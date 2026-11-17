@@ -15,7 +15,7 @@ O formulário registra:
 
 O catálogo inicial inclui OpenAI, Anthropic, Google Gemini e Ollama local. O cadastro manual aceita os protocolos suportados pela API. Edite nome, modelo, responsável, finalidade, política e limites diretamente na lista. Para trocar endpoint/protocolo, remova este perfil e cadastre-o de novo. A chave tem ação separada de substituição. O painel mostra somente se há uma credencial configurada, nunca o valor salvo.
 
-Salvar não faz conexão. A ação **Testar conexão** é explícita e exige confirmação para nuvem. Ela faz uma requisição GET à lista de modelos do endpoint (Ollama usa `/api/tags`), com timeout; não envia prompt nem dados do Nivus. Uma consulta pode consumir cota do provedor. Um perfil só pode ser habilitado depois de um teste bem-sucedido e, para nuvem, de um orçamento mensal maior que zero. Nenhum perfil é habilitado automaticamente.
+Salvar não faz conexão. A ação **Testar conexão** é explícita e exige confirmação para nuvem. Ela faz uma requisição GET à lista de modelos do endpoint (Ollama usa `/api/tags`), com timeout; não envia prompt nem dados do Nivus. Uma consulta pode consumir cota do provedor. Antes do teste de nuvem, é obrigatório configurar um orçamento mensal maior que zero; cada tentativa externa consome uma solicitação do limite por hora. O valor mensal é uma política registrada, não uma medição ou bloqueio de gasto. Um perfil só pode ser habilitado depois de um teste bem-sucedido e, para nuvem, de um orçamento mensal maior que zero. Nenhum perfil é habilitado automaticamente.
 
 ## Proteção da chave
 
@@ -42,4 +42,4 @@ Esta configuração pertence ao runtime do Nivus. Ela não lê nem altera `GEMIN
 
 As rotas administrativas ficam em `backend/api/routers/ai_providers.py`; a cifra, validação de endpoint, teste explícito e auditoria ficam em `backend/services/ai_providers.py`. A migração é aditiva e cria as tabelas `ai_provider_connections` e `ai_provider_audit`.
 
-A CI descobre `backend/test_ai_providers.py` com unittest. Os casos cobrem cifra e alteração de texto, autorização da política, teste sem prompt, bloqueio de endereços privados em nuvem e loopback em endpoint local. A validação hospedada é necessária antes do merge; esta mudança não foi implantada no notebook.
+A CI descobre `backend/test_ai_providers.py` com unittest. Os casos cobrem cifra e alteração de texto, autorização da política, orçamento obrigatório antes do teste de nuvem, limite de testes por hora, teste sem prompt, bloqueio de endereços privados em nuvem e loopback em endpoint local. A validação hospedada é necessária antes do merge; esta mudança não foi implantada no notebook.
