@@ -1,12 +1,5 @@
 import axios from 'axios';
+import { prepareSessionRequest } from './sessionTransportCore.js';
 
-// Browser credentials travel only in the HttpOnly session cookie. Components may
-// still pass legacy Bearer headers during the transition; never send them.
-axios.interceptors.request.use(config => {
-  config.withCredentials = true;
-  if (config.headers) {
-    delete config.headers.Authorization;
-    delete config.headers.authorization;
-  }
-  return config;
-});
+// Browser credentials travel only in the HttpOnly session cookie.
+axios.interceptors.request.use(prepareSessionRequest);
