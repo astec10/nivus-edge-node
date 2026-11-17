@@ -82,14 +82,18 @@ class RevocableSessionTests(unittest.TestCase):
         target = security.decode_access_token(
             auth_sessions.issue_session("viewer", "viewer")
         )
-        response = user_routes.change_user_password(
-            PasswordChange(
-                username="viewer",
-                new_password="new-password-123",
-                admin_password="admin-password",
-            ),
-            "admin",
-        )
+        with (
+            patch.object(user_routes, "verify_password", return_value=True),
+            patch.object(user_routes, "hash_password", return_value="replacement-hash"),
+        ):
+            response = user_routes.change_user_password(
+                PasswordChange(
+                    username="viewer",
+                    new_password="new-password-123",
+                    admin_password="admin-password",
+                ),
+                "admin",
+            )
         self.assertEqual(response["status"], "success")
         self.assertFalse(auth_sessions.session_is_active(target["jti"], "viewer"))
 
