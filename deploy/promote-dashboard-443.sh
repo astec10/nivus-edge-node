@@ -11,7 +11,7 @@ usage() {
 Uso:
   sudo bash promote-dashboard-443.sh ENDERECO_IPV4
   sudo bash promote-dashboard-443.sh --rollback
-  bash promote-dashboard-443.sh --render PORTA_HTTPS PORTA_UPSTREAM ENDERECO_IPV4 CERT KEY
+  bash promote-dashboard-443.sh --render PORTA_HTTPS HOST_UPSTREAM PORTA_UPSTREAM ENDERECO_IPV4 CERT KEY
 
 A promoção Nginx adiciona um arquivo próprio e mantém o Compose em sua porta atual.
 USAGE
@@ -31,8 +31,9 @@ valid_ipv4() {
 }
 
 render_config() {
-  local listen_port="$1" upstream_port="$2" target="$3" cert="$4" key="$5"
+  local listen_port="$1" upstream_host="$2" upstream_port="$3" target="$4" cert="$5" key="$6"
   valid_port "$listen_port" || { echo "Porta HTTPS inválida." >&2; return 2; }
+  [[ "$upstream_host" =~ ^[a-z0-9.-]+$ ]] || { echo "Host de upstream inválido." >&2; return 2; }
   valid_port "$upstream_port" || { echo "Porta de upstream inválida." >&2; return 2; }
   valid_ipv4 "$target" || { echo "Informe um endereço IPv4 válido." >&2; return 2; }
   [[ "$cert" =~ ^/[A-Za-z0-9_./-]+$ && "$key" =~ ^/[A-Za-z0-9_./-]+$ ]] || {
@@ -47,7 +48,7 @@ server {
     ssl_certificate_key $key;
     ssl_protocols TLSv1.2 TLSv1.3;
     location / {
-        proxy_pass https://127.0.0.1:$upstream_port;
+        proxy_pass https://$upstream_host:$upstream_port;
         proxy_http_version 1.1;
         proxy_ssl_server_name on;
         proxy_ssl_name $target;
@@ -63,8 +64,8 @@ NGINX
 }
 
 if [[ "${1:-}" == "--render" ]]; then
-  [[ $# -eq 6 ]] || { usage >&2; exit 2; }
-  render_config "$2" "$3" "$4" "$5" "$6"
+  [[ $# -eq 7 ]] || { usage >&2; exit 2; }
+  render_config "$2" "$3" "$4" "$5" "$6" "$7"
   exit
 fi
 if [[ "${1:-}" == "--rollback" ]]; then
@@ -184,7 +185,7 @@ cleanup_failed_promotion() {
 }
 trap cleanup_failed_promotion ERR INT TERM
 
-render_config 443 "$HTTPS_PORT" "$TARGET_IP" "$CERT" "$KEY" > "$TMP_CONFIG"
+render_config 443 127.0.0.1 "$HTTPS_PORT" "$TARGET_IP" "$CERT" "$KEY" > "$TMP_CONFIG"
 install -o root -g root -m 644 "$TMP_CONFIG" "$CONF_PATH"
 CHANGED=1
 nginx -t

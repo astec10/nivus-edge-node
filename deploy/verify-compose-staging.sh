@@ -93,9 +93,9 @@ docker run --rm --user 0 --network none \
 cleanup() {
   local rc=$?
   trap - EXIT
+  if (( rc != 0 )); then docker logs "$PORTLESS_PROXY" 2>&1 || true; docker compose -p "$PROJECT" logs --no-color --tail=30 api worker mqtt web 2>&1 || true; fi
   docker rm -f "$PORTLESS_PROXY" >/dev/null 2>&1 || true
   rm -f -- "$PORTLESS_CONFIG"
-  if (( rc != 0 )); then docker compose -p "$PROJECT" logs --no-color --tail=30 api worker mqtt web 2>&1 || true; fi
   docker compose -p "$PROJECT" down --remove-orphans >/dev/null 2>&1 || true
   docker run --rm --user 0 --network none \
     --mount "type=bind,source=$DATA_DIR,target=/data" \
@@ -179,7 +179,7 @@ INGRESS_NETWORK=$(docker network ls \
   --filter "label=com.docker.compose.project=$PROJECT" \
   --filter 'label=com.docker.compose.network=edge_ingress' -q)
 [[ -n "$INGRESS_NETWORK" ]]
-bash deploy/promote-dashboard-443.sh --render 8443 28443 127.0.0.1 /run/secrets/tls.crt /run/secrets/tls.key > "$PORTLESS_CONFIG"
+bash deploy/promote-dashboard-443.sh --render 8443 web 8443 127.0.0.1 /run/secrets/tls.crt /run/secrets/tls.key > "$PORTLESS_CONFIG"
 docker run -d --name "$PORTLESS_PROXY" --network "$INGRESS_NETWORK" \
   -p 127.0.0.1:28444:8443 \
   --mount "type=bind,source=$PORTLESS_CONFIG,target=/tmp/nivus-portless.conf,readonly" \
