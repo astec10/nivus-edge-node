@@ -42,6 +42,10 @@ Um integrador deve ser o único responsável por decidir mudanças simultâneas 
 
 ## Estado atual do executor
 
-O repositório tem intake por GitHub Issue, validação de escopo e workflow manual que marca `ai:queued`. **Não** há ainda um dispatcher instalado no notebook, chamada a modelo, worker de código, criação automática de PR ou integração com Discord/Jira/Hermes/OmniRoute. A telemetria local do CCE e o futuro Nó Master são independentes desse fluxo.
+O executor de desenvolvimento usa GitHub Issues e GitHub Actions, separado do runtime Nivus. O intake valida a tarefa, seus caminhos permitidos e a autorização explícita antes de iniciar o worker. A chamada ao modelo e a execução do worker ocorrem em runners GitHub-hosted; o fluxo não depende da telemetria do CCE nem do Nó Master.
 
-O notebook pode hospedar um controlador leve por systemd; o processamento e sandbox de código ficam em runners GitHub-hosted descartáveis. Tarefas e resultados no GitHub sobrevivem a uma interrupção do notebook. Ver [`AI_EXECUTOR_IMPLEMENTATION.md`](AI_EXECUTOR_IMPLEMENTATION.md) e [`AI_DEVELOPMENT_ORCHESTRATION.md`](AI_DEVELOPMENT_ORCHESTRATION.md).
+Uma chamada autorizada para uma issue pública/sintética gerou a proposta do PR #16. A CI passou, mas naquela execução a etapa de abertura automática falhou porque `gh repo view` não tinha checkout; o mantenedor abriu o draft manualmente. O commit `bec9573` corrigiu a leitura da branch padrão pela API. O PR #53 adicionou uma verificação contra propostas duplicadas antes da chamada, remove os rótulos de fila quando cria um draft e comenta o link. Esses checks passaram, mas ainda não houve uma nova chamada autorizada para confirmar o ciclo automático depois da correção. O PR #16 segue aberto como draft e exige revisão humana.
+
+O worker limita os caminhos permitidos e não faz merge nem deploy. Não há dispatcher persistente instalado no notebook nem integração ativa com Discord, Jira, Hermes ou OmniRoute. O PR #18 é apenas um draft de runner opcional para validar código confiável já integrado à branch principal; não está integrado nem instalado e não substitui a CI hospedada.
+
+Para retomar o fluxo, primeiro revise o PR #16. Uma nova chamada só deve ocorrer depois de autorização explícita numa tarefa pública/sintética diferente enquanto esse draft estiver aberto. Ver [`AI_EXECUTOR_IMPLEMENTATION.md`](AI_EXECUTOR_IMPLEMENTATION.md) e [`AI_DEVELOPMENT_ORCHESTRATION.md`](AI_DEVELOPMENT_ORCHESTRATION.md).
