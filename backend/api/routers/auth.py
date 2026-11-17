@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+import jwt
 from fastapi.security import OAuth2PasswordRequestForm
 
 from database import get_db_connection
@@ -88,8 +89,8 @@ def current_session(request: Request):
     if not token:
         raise HTTPException(status_code=401, detail="Sessão não autenticada.")
     try:
-        payload = decode_access_token(token)
-    except Exception:
+        decode_access_token(token)
+    except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Sessão inválida.")
     from api.dependencies import _load_authenticated_user
 
