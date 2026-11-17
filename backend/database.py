@@ -50,6 +50,8 @@ def init_db():
                 command TEXT,
                 source TEXT NOT NULL DEFAULT 'manual'
             );
+            CREATE INDEX IF NOT EXISTS idx_actuator_audit_timestamp
+                ON actuator_audit(timestamp);
             CREATE TABLE IF NOT EXISTS mobile_battery_devices (
                 device_id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
