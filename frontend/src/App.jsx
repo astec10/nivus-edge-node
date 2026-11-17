@@ -27,7 +27,8 @@ function App() {
   const [isOnline, setIsOnline] = useState(false);
   const [error, setError] = useState(null);
   
-  const [token, setToken] = useState(localStorage.getItem('nivus_token') || '');
+  const [token, setToken] = useState('');
+  const [sessionUser, setSessionUser] = useState(null);
   const [displayPreferenceState, setDisplayPreferenceState] = useState(() => ({ owner: 'guest', value: { ...DEFAULT_DISPLAY_PREFERENCES } }));
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -51,12 +52,8 @@ function App() {
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [soundStatus, setSoundStatus] = useState('Aviso sonoro do navegador desativado.');
 
-  const parseJwt = (t) => {
-    try { return JSON.parse(atob(t.split('.')[1])); } catch { return null; }
-  };
-
-  const userPayload = token ? parseJwt(token) : null;
-  const displayPreferenceOwner = userPayload?.sub || 'guest';
+  const userPayload = sessionUser;
+  const displayPreferenceOwner = userPayload?.username || 'guest';
   const displayPreferences = displayPreferenceState.owner === displayPreferenceOwner
     ? displayPreferenceState.value
     : DEFAULT_DISPLAY_PREFERENCES;
@@ -195,10 +192,9 @@ function App() {
       const res = await axios.post(`${API_BASE}/token`, params, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
       });
-      const newToken = res.data.access_token;
-      setToken(newToken);
+      setToken('session');
+      setSessionUser(res.data.user);
       setLoginExpanded(false);
-      localStorage.setItem('nivus_token', newToken);
       setUsername('');
       setPassword('');
       setAdminAuthPassword('');
@@ -207,7 +203,7 @@ function App() {
         return;
       }
       alert('Autenticado com sucesso!');
-      fetchData(newToken);
+      fetchData('session', res.data.user);
     } catch (err) {
       const statusCode = err.response?.status;
       if (statusCode === 429) {
@@ -221,9 +217,10 @@ function App() {
   };
 
   const handleLogout = () => {
+    void axios.post(`${API_BASE}/logout`).catch(() => {});
     setToken('');
+    setSessionUser(null);
     setLoginExpanded(false);
-    localStorage.removeItem('nivus_token');
     setAdminAuthPassword('');
     setTargetNewPassword('');
     setTargetConfirmPassword('');
@@ -235,7 +232,7 @@ function App() {
     closeAlertAudioContext();
   };
 
-  const fetchData = async (currentToken = token) => {
+  const fetchData = async (currentToken = token, currentUser = userPayload) => {
     try {
       await axios.get(`${API_BASE}/health`);
       setIsOnline(true);
@@ -251,7 +248,7 @@ function App() {
         return;
       }
 
-      if (parseJwt(currentToken)?.password_change_required) {
+      if (currentUser?.password_change_required) {
         setTelemetry([]);
         setSystemLogs([]);
         setAuditLogs([]);
@@ -261,8 +258,8 @@ function App() {
         return;
       }
 
-      const headers = currentToken ? { Authorization: `Bearer ${currentToken}` } : {};
-      const payload = parseJwt(currentToken);
+      const headers = {};
+      const payload = currentUser;
       const [telRes, logRes, audRes, altRes, setRes, maintenanceRes] = await Promise.all([
         axios.get(`${API_BASE}/api/telemetry?limit=1000`, { headers }),
         axios.get(`${API_BASE}/api/logs?lines=15`, { headers }).catch(() => ({ data: { logs: [] } })),
@@ -296,7 +293,7 @@ function App() {
     } catch (err) {
       if (err.response?.status === 401 && currentToken) {
         setToken('');
-        localStorage.removeItem('nivus_token');
+        setSessionUser(null);
       }
       setIsOnline(false);
       setError('Erro ao comunicar com o backend do Nivus.');
@@ -358,15 +355,14 @@ function App() {
         }, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        const replacementToken = response.data.access_token;
-        setToken(replacementToken);
-        localStorage.setItem('nivus_token', replacementToken);
+        setToken('session');
+        setSessionUser(response.data.user);
         setEditingUser(null);
         setAdminAuthPassword('');
         setTargetNewPassword('');
         setTargetConfirmPassword('');
         alert('Senha atualizada. Acesso liberado.');
-        fetchData(replacementToken);
+        fetchData('session', response.data.user);
         return;
       }
 
@@ -378,6 +374,10 @@ function App() {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('Senha alterada com sucesso!');
+      if (editingUser === userPayload?.username) {
+        handleLogout();
+        return;
+      }
       setEditingUser(null);
       setAdminAuthPassword('');
       setTargetNewPassword('');
@@ -493,6 +493,20 @@ function App() {
   };
 
   useEffect(() => {
+    let cancelled = false;
+    axios.get(`${API_BASE}/api/auth/session`).then(response => {
+      if (cancelled) return;
+      setSessionUser(response.data);
+      setToken('session');
+    }).catch(() => {
+      if (cancelled) return;
+      setSessionUser(null);
+      setToken('');
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
     fetchData();
     const interval = setInterval(() => fetchData(), 5000);
     return () => clearInterval(interval);
@@ -510,7 +524,7 @@ function App() {
 
   return (
     <div className="dashboard-root" data-theme={displayPreferences.theme} data-high-contrast={String(displayPreferences.highContrast)} data-reduced-motion={String(displayPreferences.reducedMotion)} style={{ minHeight: '100vh', minWidth: 0, backgroundColor: '#0f172a', color: '#f8fafc', padding: 'clamp(0.75rem, 2vw, 1.75rem)', fontFamily: 'system-ui, sans-serif', position: 'relative' }}>
-      <PasswordChangeModal editingUser={editingUser} setEditingUser={setEditingUser} handlePasswordChangeSubmit={handlePasswordChangeSubmit} targetNewPassword={targetNewPassword} setTargetNewPassword={setTargetNewPassword} targetConfirmPassword={targetConfirmPassword} setTargetConfirmPassword={setTargetConfirmPassword} passwordsDoNotMatch={passwordsDoNotMatch} adminAuthPassword={adminAuthPassword} setAdminAuthPassword={setAdminAuthPassword} passwordChangeRequired={passwordChangeRequired} currentUsername={userPayload?.sub || ''} handleLogout={handleLogout} />
+      <PasswordChangeModal editingUser={editingUser} setEditingUser={setEditingUser} handlePasswordChangeSubmit={handlePasswordChangeSubmit} targetNewPassword={targetNewPassword} setTargetNewPassword={setTargetNewPassword} targetConfirmPassword={targetConfirmPassword} setTargetConfirmPassword={setTargetConfirmPassword} passwordsDoNotMatch={passwordsDoNotMatch} adminAuthPassword={adminAuthPassword} setAdminAuthPassword={setAdminAuthPassword} passwordChangeRequired={passwordChangeRequired} currentUsername={userPayload?.username || ''} handleLogout={handleLogout} />
       {!passwordChangeRequired && (
         <>
           <DashboardHeader token={token} userPayload={userPayload} fetchData={fetchData} isOnline={isOnline} dashboardVersion={dashboardVersion} onToggleDashboardVersion={handleToggleDashboardVersion} isTempCritical={isTempCritical} loginExpanded={loginExpanded} onToggleLogin={() => setLoginExpanded(value => !value)} />
