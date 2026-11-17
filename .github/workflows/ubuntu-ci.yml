@@ -57,7 +57,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           while IFS= read -r -d '' script; do bash -n "$script"; done < <(find deploy -type f -name '*.sh' -print0)
-          python3 -m compileall -q backend telemetry scripts tools
+          python3 -m compileall -q backend telemetry scripts tools\n          python3 scripts/validate_codex_skills.py
           python3 -m py_compile deploy/nivusctl
           python3 -m py_compile deploy/nivus-timesyncd.py
           python3 deploy/nivusctl help | grep -q 'sudo nivus maintenance disable'
