@@ -71,13 +71,14 @@ flowchart LR
 
 ```text
 GitHub Issue aprovada (ai:ready)
-  → controlador leve opcional no notebook
-  → runner efêmero GitHub-hosted
-  → agente/modelo em sandbox
-  → PR → CI → homologação → revisão humana/merge
+  → intake GitHub Actions valida escopo e autorização
+  → runner efêmero GitHub-hosted executa modelo e worker limitado
+  → draft PR → CI → revisão humana → merge/deploy
 ```
 
-O intake GitHub existe; o controlador no notebook, worker, provedor de modelo e sandbox ainda não foram implementados. Hermes/OmniRoute/Discord/Jira são opções de ferramentas externas, não serviços do nó Nivus. O executor não depende do agente de telemetria nem do Nó Master. Ver [`AI_DEVELOPMENT_ORCHESTRATION.md`](AI_DEVELOPMENT_ORCHESTRATION.md).
+O intake GitHub Issues/Actions, a chamada de modelo autorizada e o worker limitado executado em runner GitHub-hosted existem. Uma chamada para a issue pública/sintética #6 criou o draft #16; a abertura automática falhou naquela execução por ausência de checkout. O commit `bec9573` corrigiu a leitura da branch padrão pela API, e o PR #53 adicionou proteção contra propostas duplicadas, limpeza dos rótulos da fila e comentário com o link do draft. Ainda não houve nova chamada autorizada para confirmar o ciclo automático após essas correções; o PR #16 continua draft e exige revisão humana. O worker não faz merge nem deploy.
+
+O PR #18 propõe um runner opcional no notebook para checks confiáveis da branch principal, mas continua draft, não está integrado nem instalado e não substitui os runners hospedados. Não há controlador persistente no notebook nem integração ativa com Discord, Jira, Hermes ou OmniRoute. Este executor de desenvolvimento não depende da telemetria local ou do Nó Master. Ver [`AI_MODULE_WORKPLAN.md`](AI_MODULE_WORKPLAN.md), [`AI_EXECUTOR_IMPLEMENTATION.md`](AI_EXECUTOR_IMPLEMENTATION.md) e [`AI_DEVELOPMENT_ORCHESTRATION.md`](AI_DEVELOPMENT_ORCHESTRATION.md).
 
 ## Scheduler Nivus entre nós (futuro)
 
