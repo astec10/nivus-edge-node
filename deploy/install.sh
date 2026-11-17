@@ -151,8 +151,14 @@ if [[ ! -s "$SECRET_DIR/tls.crt" || ! -s "$SECRET_DIR/tls.key" ]]; then
   chmod 444 "$SECRET_DIR/tls.crt" "$SECRET_DIR/tls.key"
 fi
 if [[ ! -e "$CURRENT/.env" ]]; then
-  HTTPS_PORT=8443
-  while ss -H -ltn "sport = :$HTTPS_PORT" | grep -q .; do HTTPS_PORT=$((HTTPS_PORT + 1)); done
+  if ss -H -ltn 'sport = :443' | grep -q .; then
+    HTTPS_OWNER=$(ss -H -ltnp 'sport = :443' | sed -n 's/.*users:(("\([^"]*\)".*/\1/p' | sort -u | paste -sd, -)
+    printf 'A porta 443 já está ocupada (%s); preservando o serviço e procurando uma porta HTTPS alternativa.\n' "${HTTPS_OWNER:-processo não identificado}"
+    HTTPS_PORT=8443
+    while ss -H -ltn "sport = :$HTTPS_PORT" | grep -q .; do HTTPS_PORT=$((HTTPS_PORT + 1)); done
+  else
+    HTTPS_PORT=443
+  fi
   printf '%s\n' \
     'NIVUS_BIND_ADDRESS=0.0.0.0' \
     "NIVUS_HTTPS_PORT=$HTTPS_PORT" \
@@ -268,7 +274,11 @@ systemctl enable --now nivus-compose-telemetry.service
 READY=1
 trap - ERR INT TERM
 printf '\nInstalação paralela concluída. O stack systemd/Nginx preexistente não foi alterado.\n'
-printf 'Painel HTTPS: https://<IP-do-host>:%s/\n' "$HTTPS_PORT"
+if [[ "$HTTPS_PORT" == 443 ]]; then
+  printf 'Painel HTTPS: https://<IP-do-host>/\n'
+else
+  printf 'Painel HTTPS: https://<IP-do-host>:%s/\n' "$HTTPS_PORT"
+fi
 printf 'Broker MQTT: rede Docker privada, sem porta publicada no host.\n'
 printf 'Dados persistentes: %s\n' "$DATA_ROOT"
 printf 'Para parar apenas a candidata: sudo bash %s/deploy/stop-compose.sh\n' "$CURRENT"

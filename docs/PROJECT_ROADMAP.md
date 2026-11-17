@@ -125,6 +125,6 @@ Critério de saída: limite financeiro não é ultrapassado silenciosamente; dad
 
 ## Sequência recomendada
 
-**Próximos trabalhos:** concluir validações físicas da Fase 1; executar o smoke de agente com dois nós independentes; implantar e validar a issue #68 no notebook sem misturar suas chaves com o executor GitHub Actions; e promover a dashboard Compose à porta 443 com rollback pela issue #70. Registro multi-nó inicial está integrado, mas agregação de dados e atualização de frota não existem.
+**Próximos trabalhos:** concluir validações físicas da Fase 1; executar o smoke de agente com dois nós independentes; implantar e validar a issue #68 no notebook sem misturar suas chaves com o executor GitHub Actions; e executar no host o procedimento reversível da issue #70 para promover a dashboard a HTTPS 443. O PR da issue #70 implementa seleção de porta em instalação limpa e proxy Nginx aditivo, preservando a porta Compose de retorno; a promoção real continua pendente. Registro multi-nó inicial está integrado, mas agregação de dados e atualização de frota não existem.
 
 Para decidir a próxima entrega física da casa, veja “Decisões em aberto” em [`VISION.md`](VISION.md). Modelos exatos de roteador, switch PoE, câmeras, inversor, medidores e proteção elétrica ainda precisam ser escolhidos e conferidos com documentação de fabricante e profissionais habilitados.
