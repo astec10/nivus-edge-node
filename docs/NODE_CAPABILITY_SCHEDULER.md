@@ -151,6 +151,94 @@ Uma futura representação de perfil deve ter versão de esquema e revisão, por
 
 Capacidades devem ser granulares. “Texto” pode incluir inferência, classificação ou sumarização; cálculo determinístico e geração de código são capacidades distintas. Geração de código e execução de código também são permissões separadas. Cada worker recusa localmente uma tarefa que exceda seu perfil, mesmo que o Master a tenha enviado por engano.
 
+## Inventário atual, histórico e avaliação no Master
+
+SQLite é apropriado para a primeira instalação Master, pois mantém o estado durável local e já faz parte da stack. A fonte de verdade deve ser o banco do Master, não um dicionário em memória do scheduler. Uma extensão futura pode separar:
+
+- `nodes`: estado atual por `node_id` servidor, nome amigável, revisão do perfil e último heartbeat recebido no servidor;
+- `hardware_reports`: histórico append-only no nível da aplicação, com `report_id`, schema, revisão, hash, assinatura verificada, horário declarado e horário de recebimento;
+- `capability_profiles`: perfil avaliado/aprovado, revisão, autor, evidências e validade;
+- `tasks` e `task_attempts`: fila persistente, modo, estado, tentativas, lease, fencing token e resultado.
+
+O estado atual só é atualizado depois de conferir identidade, assinatura e schema. Guardar nova versão de hardware no histórico somente quando o hash do inventário muda; não gravar o relatório completo a cada heartbeat. O Master define `received_at` e deriva online/offline pela idade do heartbeat. LWT é um sinal rápido, não a autoridade de presença. MAC bruto, serial e UUID de firmware devem ser omitidos ou protegidos por política de privacidade.
+
+O exemplo de SQLite recebido é um bom ponto de partida conceitual, mas precisa de ajustes antes de uso: usar `node_id` em vez de `machine_id`; ligar `PRAGMA foreign_keys=ON` em toda conexão; fechar explicitamente conexões (o context manager de `sqlite3.Connection` não as fecha); armazenar tempos UTC do servidor; validar campos antes do upsert; e não assumir que um histórico é imutável só por estar em uma tabela separada. Usar migrações versionadas, índices por nó/revisão/tempo, transações atômicas e limites de retenção. SQLite é uma escolha inicial, não garantia para concorrência ilimitada; medir locks, taxa de claims e tamanho antes de avaliar outro banco.
+
+### Contrato do avaliador
+
+O avaliador roda no Master sobre um objeto JSON cuja assinatura, schema e correspondência com o `node_id` autenticado já foram verificados. Não deve abrir um caminho de arquivo fornecido pelo nó, nem marcar compatibilidade apenas por RAM total, contagem de cores ou um texto como `"4096 MiB"`.
+
+O catálogo de modelos é versionado e registra arquitetura/ABI, runtime e digest do modelo, modalidades, CPU flags necessárias, memória allocatable reservável, memória livre de acelerador quando aplicável, contexto/concurrency e benchmark esperado. Números de exemplos de LLM/YOLO não devem ir para produção até serem medidos com modelo, quantização, runtime e contexto exatos. `AVX2` aplica-se a alguns runtimes x86; ARM pode exigir flags diferentes. GPU integrada/unified-memory e memória livre em execução não equivalem automaticamente a VRAM dedicada.
+
+O avaliador retorna `ineligible`, `needs_data` ou `eligible_for_benchmark`, com todos os motivos. **Não retorna “totalmente compatível” antes do benchmark e aprovação.** Esboço reduzido:
+
+```python
+from math import isfinite
+
+
+def finite_nonnegative(value):
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    if not isfinite(value) or value < 0:
+        return None
+    return float(value)
+
+
+def evaluate_node(report, manifest, expected_node_id):
+    # Pré-condição: assinatura, autenticação e schema já foram verificados.
+    if not isinstance(report, dict) or report.get("node_id") != expected_node_id:
+        return {"status": "invalid_report", "reasons": ["Identidade inválida."]}
+
+    hw = report.get("hardware")
+    if not isinstance(hw, dict):
+        return {"status": "needs_data", "reasons": ["Campo hardware ausente."]}
+
+    cpu = hw.get("cpu") if isinstance(hw.get("cpu"), dict) else {}
+    memory = hw.get("memory") if isinstance(hw.get("memory"), dict) else {}
+    reasons, unknown = [], []
+
+    cores = cpu.get("allocatable_logical_cores")
+    minimum_cores = manifest["min_allocatable_logical_cores"]
+    if isinstance(cores, bool) or not isinstance(cores, int):
+        unknown.append("Núcleos allocatable não informados.")
+    elif cores < minimum_cores:
+        reasons.append(f"CPU disponível abaixo de {minimum_cores} threads.")
+
+    available_ram = finite_nonnegative(memory.get("allocatable_gib"))
+    required_ram = finite_nonnegative(manifest.get("min_ram_allocatable_gib"))
+    if available_ram is None or required_ram is None:
+        unknown.append("RAM allocatable ausente ou inválida.")
+    elif available_ram < required_ram:
+        reasons.append(f"RAM allocatable abaixo de {required_ram} GiB.")
+
+    arch = cpu.get("architecture")
+    allowed_arches = manifest.get("architectures", [])
+    if not isinstance(arch, str) or not isinstance(allowed_arches, list):
+        unknown.append("Arquitetura não informada no relatório ou manifesto.")
+    elif arch not in allowed_arches:
+        reasons.append(f"Arquitetura {arch} não suportada pelo manifesto.")
+
+    flags = cpu.get("flags")
+    required_flags = manifest.get("required_cpu_flags", [])
+    if not isinstance(flags, list) or not all(isinstance(x, str) for x in flags):
+        unknown.append("CPU flags ausentes ou inválidas.")
+    elif not set(x.casefold() for x in required_flags).issubset(
+        {x.casefold() for x in flags}
+    ):
+        reasons.append("Faltam instruções de CPU exigidas pelo runtime.")
+
+    if reasons:
+        status = "ineligible"
+    elif unknown:
+        status = "needs_data"
+    else:
+        status = "eligible_for_benchmark"
+
+    return {"status": status, "reasons": reasons + unknown}
+```
+
+A função acima só faz filtros ilustrativos. A implementação precisa validar o manifesto, checar runtime/modelo e acelerador estruturado, considerar reservas concorrentes e produzir score separado entre candidatos elegíveis. O worker ainda precisa aceitar a lease e executar benchmark limitado; só o Master promove a capacidade para `validated`.
+
 ## Cópia do registro nos nós
 
 O Master é a fonte autoritativa. Após o pareamento, ele envia ao nó um snapshot versionado e assinado com os campos necessários para identificar workers, capacidades validadas, estado e frescor do heartbeat.
@@ -182,9 +270,17 @@ O Master continua autoridade nos dois modos. Uma lista de capacidades alegada pe
 
 Para a primeira versão, prefira o worker fazer `pull` autenticado por HTTPS: o Master filtra e concede atomicamente uma lease na base durável. Isso funciona com workers atrás de NAT e evita expor cada tarefa para todos os nós.
 
+O exemplo recebido usa uma lista Python em memória e envia a tarefa direto por MQTT. Ele demonstra o fluxo, mas perde a fila no reinício, não faz claim atômico, entrega no modo passivo sem verificar a compatibilidade, e no modo ativo pode deixar a tarefa na lista para envio duplicado. O Master deve persistir a tarefa e criar uma lease transacional antes de notificar/entregar; aceite, timeout, retry e resultado mudam estados duráveis. Pedidos pull repetidos precisam de request ID e resposta idempotente. Um nó ocupado não deve receber outra lease acima de seu limite.
+
+O esboço de worker recebido também executa `sleep` e inferência dentro do callback MQTT, bloqueando o loop de rede; repete requisições a cada poucos segundos, não limita tarefas em paralelo com sincronização, nem espera o PUBACK antes de parar o loop e desconectar. O callback deve validar e enfileirar rapidamente; um executor limitado processa a tarefa fora do loop. O worker confirma aceite/resultado por ID idempotente e lease; não considera uma publicação local como entrega confirmada.
+
 Como abordagem híbrida posterior, o Master pode publicar no MQTT uma **notificação mínima** (ID da tarefa, classe, expiração e hash do manifesto). Workers interessados recebem o aviso e tentam `claim` pela API; só o Master escolhe um vencedor, verifica o perfil e entrega a lease/payload. MQTT 5 shared subscriptions podem distribuir mensagens entre consumidores de um grupo, mas são transporte de mensagens, não substituto do estado de lease, da autorização por nó nem da idempotência. QoS 1 pode resultar em reentrega; cada claim e resultado precisa suportar duplicidade.
 
-Publicar a tarefa completa em tópicos por capacidade só é aceitável com ACLs revisadas, grupos de capacidade administrados pelo Master e proteção contra workers que se inscrevam no tópico errado. Evite isso inicialmente, especialmente para dados pessoais ou domésticos. RabbitMQ/AMQP oferece filas, entrega por consumidor e ACKs, mas adiciona outro serviço e ainda exige que o Master mantenha identidade/perfis e estado de negócio. O Nivus já tem MQTT no Compose, mas o uso para tarefas entre nós não está implementado. Referências: [MQTT 5 shared subscriptions](https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html) e [RabbitMQ acknowledgements](https://www.rabbitmq.com/docs/confirms).
+Publicar a tarefa completa em tópicos por capacidade só é aceitável com ACLs revisadas, grupos de capacidade administrados pelo Master e proteção contra workers que se inscrevam no tópico errado. Evite isso inicialmente, especialmente para dados pessoais ou domésticos. O tópico global retido `nivus/tasks/pool` não é uma fila durável: retain guarda o último valor daquele tópico, não uma coleção de tarefas com claims independentes e ACK de negócio.
+
+Use `node_id` do Master nos tópicos e ACLs, nunca `machine-id` ou MAC. O fluxo inicial recomendado é inventário por HTTPS autenticado, heartbeat pelo contrato existente e persistência no banco Master. Se MQTT passar a carregar relatórios, use TLS, credencial por nó, ACL que limita publicação ao próprio `node_id`, validação de assinatura/schema e retenção curta ou nenhuma para o relatório completo. A cópia canônica do Master continua no banco; mensagem retida pode estar velha e conter metadados sensíveis.
+
+Para disponibilidade MQTT, LWT retido pode anunciar queda abrupta. Desconexão normal remove o Will; nesse caminho o agente precisa publicar estado offline antes do disconnect. Master continua derivando estado real do heartbeat e do timeout para cobrir mensagens perdidas, LWT atrasado ou retained antigo. Em Paho, aguarde `MQTTMessageInfo.wait_for_publish()` (com timeout) antes de encerrar o loop; `publish()` retornar sucesso não significa que QoS 1 completou o handshake. Referências: [Paho wait_for_publish](https://eclipse.dev/paho/files/paho.mqtt.python/html/client.html), [MQTT 5 Will](https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html) e [RabbitMQ acknowledgements](https://www.rabbitmq.com/docs/confirms).
 
 ### Pontuação entre candidatos
 
