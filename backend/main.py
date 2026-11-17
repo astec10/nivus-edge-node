@@ -9,6 +9,7 @@ from api.routers import (
     auth,
     maintenance,
     mobile_battery,
+    nodes,
     settings,
     telemetry,
     users,
