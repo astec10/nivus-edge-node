@@ -218,14 +218,19 @@ def evaluate_node(report, manifest, expected_node_id):
     elif arch not in allowed_arches:
         reasons.append(f"Arquitetura {arch} não suportada pelo manifesto.")
 
-    flags = cpu.get("flags")
     required_flags = manifest.get("required_cpu_flags", [])
-    if not isinstance(flags, list) or not all(isinstance(x, str) for x in flags):
-        unknown.append("CPU flags ausentes ou inválidas.")
-    elif not set(x.casefold() for x in required_flags).issubset(
-        {x.casefold() for x in flags}
+    flags = cpu.get("flags")
+    if not isinstance(required_flags, list) or not all(
+        isinstance(x, str) for x in required_flags
     ):
-        reasons.append("Faltam instruções de CPU exigidas pelo runtime.")
+        unknown.append("CPU flags requeridas inválidas no manifesto.")
+    elif required_flags:
+        if not isinstance(flags, list) or not all(isinstance(x, str) for x in flags):
+            unknown.append("CPU flags ausentes ou inválidas.")
+        elif not set(x.casefold() for x in required_flags).issubset(
+            {x.casefold() for x in flags}
+        ):
+            reasons.append("Faltam instruções de CPU exigidas pelo runtime.")
 
     # Este recorte não avalia GPU, runtime nem digest de modelo.
     if any(key in manifest for key in ("min_gpu_free_gib", "runtime_id", "model_digest")):
