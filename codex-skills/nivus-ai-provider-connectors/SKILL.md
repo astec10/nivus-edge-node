@@ -1,18 +1,20 @@
 ---
 name: nivus-ai-provider-connectors
-description: "Add optional Nivus connectors to commercial AI providers with explicit data controls, secret handling, quotas, costs, timeouts, and local fallback."
+description: "Review Nivus AI provider profiles and optional inference connectors with data controls, secret handling, quotas, costs, and local fallback."
 ---
 
 # Nivus AI Provider Connectors
 
-Use only for the planned external-provider phase or an explicitly scoped connector. Provider APIs, prices, and quotas change; consult current official provider documentation during implementation.
+The administrative profile-management surface is implemented in PR #72 and passed hosted CI; it was not yet deployed on the test notebook in the latest recorded status. Saving or testing a profile does not connect the inference task executor. Provider execution, quota enforcement and fallback remain separate work. Verify the current status and code before changing these claims.
 
-## Privacy and credential boundary
-Read docs/PROJECT_ROADMAP.md Phase 6, docs/VISION.md, docs/DECISIONS.md, and the provider's current official API docs. Make the connector an optional adapter; core local monitoring must keep working if it is disabled or offline.
-
-Classify what data may leave the house. Require an explicit operator policy before transmitting user documents, camera-derived content, telemetry, or credentials. Store keys in the configured secret mechanism and never print them, include them in exceptions, or commit them.
+## Privacy and credentials
+- Read `docs/AI_CONTEXT.md`, `docs/AI_PROVIDER_CONNECTORS.md`, the relevant provider adapter, and current official provider documentation.
+- Treat profile CRUD, endpoint validation, connectivity test and actual prompt execution as separate capabilities.
+- Classify data that may leave the house. Require explicit operator policy before sending user documents, camera content, telemetry or personal data to a provider.
+- Keep keys in the configured secret mechanism; never print, log, return or commit them. Preserve encryption-key recovery and rotation boundaries.
 
 ## Quotas and reliability
-Track configurable per-day/week/month request and cost budgets. Enforce limits before network calls, define timeout/retry/backoff behavior, and avoid duplicate billable requests after uncertain failures. Redact provider request/response logs and retain only what is needed for auditing.
-
-Expose provider name, model/version, cost estimate, and source provenance to the operator. Provide a local model or queued result as an explicit fallback; do not claim equivalence. Keep the connector behind a stable internal interface and document opt-in, disable, revoke, and data-retention behavior.
+- Enforce per-period request/cost budgets before network calls; distinguish a configured budget from metered or provider-enforced spend.
+- Define timeout, retry/backoff and idempotency behavior; avoid duplicate billable requests after uncertain failures.
+- Redact provider logs and retain only audit metadata needed for support.
+- Keep cloud connectors optional and isolated from core local monitoring. A local fallback must be explicit and must not be described as equivalent.
