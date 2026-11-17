@@ -20,9 +20,12 @@ from api.routers import (
 from database import init_db
 from services.app_logging import configure_service_logger
 from services.maintenance import record_boot_reset
-from services.data_retention import cleanup_expired_records
+from services.data_retention import cleanup_expired_records, validate_retention_configuration
 from security import load_jwt_secret
 
+
+# Validate external policy values before the API starts accepting requests.
+validate_retention_configuration()
 
 # Fail fast when the JWT secret is missing, before the API starts accepting requests.
 load_jwt_secret()
