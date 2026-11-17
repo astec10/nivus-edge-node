@@ -62,10 +62,11 @@ class LoginSecurityTests(unittest.TestCase):
             patch.object(auth, "is_password_hash", return_value=True),
             patch.object(auth, "verify_password", return_value=True),
             patch.object(auth, "issue_session", return_value="issued-token"),
-        ):
             patch.object(auth, "set_session_cookie") as set_cookie,
         ):
-            response = auth.login_for_access_token(Response(), self.form("admin", "correct"))
+            response = auth.login_for_access_token(
+                Response(), self.form("admin", "correct")
+            )
 
         self.assertEqual(response["user"]["username"], "admin")
         self.assertEqual(response["password_change_required"], False)
