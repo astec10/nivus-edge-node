@@ -1,8 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from database import get_db_connection
-from security import create_access_token, hash_password, is_password_hash, verify_password
+from security import decode_access_token, hash_password, is_password_hash, verify_password
+from services.auth_sessions import (
+    COOKIE_NAME,
+    clear_session_cookie,
+    issue_session,
+    revoke_session,
+    set_session_cookie,
+)
 
 
 router = APIRouter()
@@ -13,7 +20,9 @@ _DUMMY_PASSWORD_HASH = hash_password("nivus-login-timing-placeholder")
 
 
 @router.post("/token")
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+def login_for_access_token(
+    response: Response, form_data: OAuth2PasswordRequestForm = Depends()
+):
     username = form_data.username
     if len(username) > 32:
         raise HTTPException(
@@ -57,12 +66,51 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
         cursor.execute("DELETE FROM login_attempts WHERE username = ?", (username,))
         conn.commit()
         password_change_required = bool(user["must_change_password"])
+        token = issue_session(
+            user["username"], user["role"], password_change_required
+        )
+        set_session_cookie(response, token, password_change_required)
         return {
-            "access_token": create_access_token(
-                user["username"], user["role"], password_change_required
-            ),
-            "token_type": "bearer",
             "password_change_required": password_change_required,
+            "user": {
+                "username": user["username"],
+                "role": user["role"],
+                "password_change_required": password_change_required,
+            },
         }
     finally:
         conn.close()
+
+
+@router.get("/api/auth/session")
+def current_session(request: Request):
+    token = request.cookies.get(COOKIE_NAME)
+    if not token:
+        raise HTTPException(status_code=401, detail="Sessão não autenticada.")
+    try:
+        payload = decode_access_token(token)
+    except Exception:
+        raise HTTPException(status_code=401, detail="Sessão inválida.")
+    from api.dependencies import _load_authenticated_user
+
+    user = _load_authenticated_user(token)
+    return {
+        "username": user["sub"],
+        "role": user["role"],
+        "password_change_required": user["password_change_required"],
+    }
+
+
+@router.post("/logout")
+def logout(request: Request, response: Response):
+    token = request.cookies.get(COOKIE_NAME)
+    if token:
+        try:
+            payload = decode_access_token(token)
+            session_id = payload.get("jti")
+            if session_id:
+                revoke_session(session_id)
+        except Exception:
+            pass
+    clear_session_cookie(response)
+    return {"status": "success"}
