@@ -1,15 +1,16 @@
 # Arquitetura da candidata
 
-Esta árvore descreve somente a candidata local em staging.
+Esta árvore descreve a implementação versionada do Nivus. O primeiro cadastro de nós está em uma branch de desenvolvimento e ainda não pertence à release ativa do notebook.
 
 ## Backend
 
 - backend/main.py compõe a aplicação FastAPI e inclui routers.
-- backend/api/routers/ contém autenticação, telemetria, atuadores, bateria móvel, alertas, configurações e usuários. `mobile_battery.py` separa cadastro administrativo de relatórios autenticados por token do celular.
+- backend/api/routers/ contém autenticação, telemetria, atuadores, bateria móvel, alertas, configurações, usuários e a proposta `nodes.py`. `mobile_battery.py` separa cadastro administrativo de relatórios autenticados por token do celular. `nodes.py` contém rotas administrativas de pareamento/listagem/revogação e endpoints de agente para cadastro, sessão e heartbeat.
 - backend/api/schemas.py define os payloads de entrada.
 - backend/api/dependencies.py valida JWT e papel do usuário.
 - backend/database.py mantém SQLite e inicialização/migração aditiva.
 - backend/services/maintenance.py compartilha o estado volátil do modo de manutenção, registra transições no SQLite e volta ao modo normal após reboot.
+- `backend/services/nodes.py` implementa o primeiro contrato de identidade multi-nó em branch: código de pareamento de uso único, token armazenado como hash, sessão rotativa, sequência contra replay e presença derivada de heartbeat do servidor. Essa proposta não inclui coleta/agregação, execução remota ou atualizações de frota.
 - backend/security.py contém hashing PBKDF2 e helpers JWT.
 - `backend/services/mobile_battery.py` aplica frescor, limiar de 20%, latch por ciclo e publica somente `OFF` no tópico fixo permitido; o broker não confirma o estado físico.
 - backend/services/mqtt.py publica comandos; backend/mqtt_worker.py persiste eventos.
