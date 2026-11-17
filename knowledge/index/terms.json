@@ -823,7 +823,8 @@
   ],
   "agregada": [
     "doc-ai-context",
-    "doc-ai-module-workplan"
+    "doc-ai-module-workplan",
+    "doc-project-roadmap"
   ],
   "agregar": [
     "doc-ai-development-orchestration",
@@ -3040,7 +3041,6 @@
     "doc-ai-module-workplan",
     "doc-module-map",
     "doc-project-status",
-    "doc-project-roadmap",
     "doc-vision",
     "nivus-mobile-battery-relay"
   ],
@@ -3103,6 +3103,7 @@
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
     "doc-module-map",
+    "doc-node-registry",
     "doc-project-status",
     "doc-vision"
   ],
@@ -4051,6 +4052,9 @@
     "doc-project-status",
     "doc-project-roadmap"
   ],
+  "desenvolver": [
+    "doc-project-roadmap"
+  ],
   "desenvolvimento": [
     "doc-ai-context",
     "doc-ai-workflow",
@@ -4811,7 +4815,6 @@
   ],
   "entregas": [
     "doc-node-registry",
-    "doc-project-status",
     "doc-project-roadmap"
   ],
   "entropia": [
@@ -4820,6 +4823,7 @@
   "envelope": [
     "doc-ai-module-workplan",
     "doc-node-registry",
+    "doc-project-status",
     "doc-project-roadmap"
   ],
   "envelopes": [
@@ -7056,7 +7060,6 @@
   "integrar": [
     "doc-ai-context",
     "doc-video-research-index",
-    "doc-node-registry",
     "doc-project-roadmap"
   ],
   "integration": [
@@ -9868,9 +9871,6 @@
     "doc-hardware-telemetry",
     "doc-vision"
   ],
-  "posteriores": [
-    "doc-project-status"
-  ],
   "pot": [
     "doc-hardware-telemetry"
   ],
@@ -11315,8 +11315,7 @@
   ],
   "revisar": [
     "doc-ai-workflow",
-    "doc-ai-executor-implementation",
-    "doc-node-registry"
+    "doc-ai-executor-implementation"
   ],
   "revise": [
     "doc-ai-executor-implementation",
@@ -11842,7 +11841,6 @@
     "doc-ai-module-workplan",
     "doc-hardware-telemetry",
     "doc-project-status",
-    "doc-project-roadmap",
     "ref-multipaz-developer-website"
   ],
   "separados": [
@@ -12880,7 +12878,6 @@
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
     "doc-module-map",
-    "doc-project-roadmap",
     "doc-vision"
   ],
   "trabalhos": [
@@ -13271,6 +13268,7 @@
     "doc-node-registry",
     "doc-hardware-telemetry",
     "doc-project-status",
+    "doc-project-roadmap",
     "doc-vision"
   ],
   "validate": [
@@ -14447,7 +14445,8 @@
     "nivus-mobile-battery-relay"
   ],
   "ísicas": [
-    "doc-ai-context"
+    "doc-ai-context",
+    "doc-project-roadmap"
   ],
   "ísico": [
     "doc-ai-context",

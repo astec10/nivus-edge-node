@@ -134,7 +134,7 @@ A release `fff64a68f252f0b1290576e30b39ed78fbc15a7a` foi aplicada no notebook; s
 
 ## Próximas entregas separadas
 
-1. Revisar e integrar o cliente/agente implementado no PR #69; executar smoke de dois dispositivos reais.
+1. Executar smoke do agente em dois dispositivos reais; confirmar TLS, reboot e revogação.
 2. Definir envelope de telemetria com timestamp de origem, unidade, qualidade, versão de esquema e timestamp de recepção.
 3. Guardar dados por `node_id` sem quebrar consumidores do schema legado.
 4. Criar visualização de nós com presença antiga claramente sinalizada e revogação administrativa.

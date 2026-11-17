@@ -106,4 +106,4 @@ O agente obtém uma sessão que rotaciona e invalida a sessão anterior. Heartbe
 
 Capacidades são declarações informativas numa allowlist, não grants de autorização. A primeira versão não habilita shell remoto, execução de tarefas, comandos MQTT, transferência P2P, upload de telemetria ou atualização de software. Cada função exige contrato, autorização e revisão separados.
 
-Implementação inicial está na issue #65 e na branch `feat/node-registry-bootstrap-20261117`; ainda depende de CI/revisão/merge e implantação. O nó Master e agregação multi-nó permanecem planejados.
+O registro seguro da API foi integrado pelo PR #66 e está na release aplicada ao notebook. O agente mínimo de pareamento/heartbeat foi implementado no PR #69; a CI hospedada passou, mas o smoke de dois dispositivos e TLS real ainda está pendente. O agente salva o token local em arquivo `0600` dentro de diretório `0700`, sem criptografia; proteger disco e backups. Ele não envia telemetria, executa comandos ou controla atuadores. A amostragem de telemetria agregada, o painel multi-nó e as atualizações de frota continuam planejados.
