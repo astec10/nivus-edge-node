@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { PauseCircle, PlayCircle, RotateCcw, Save, Wrench } from 'lucide-react';
+import { Lock, PauseCircle, PlayCircle, RotateCcw, Save, Unlock, Wrench } from 'lucide-react';
 import MobileBatteryAutomationPanel from './MobileBatteryAutomationPanel';
 import {
   DASHBOARD_THEMES,
@@ -8,6 +8,37 @@ import {
   TIME_ZONES,
   formatUtcOffset,
 } from '../utils/displayPreferences';
+
+const TIME_SYNC_DRAFT_KEY = 'nivus.timeSync.serversDraft.v1';
+
+function readTimeSyncDraft() {
+  try {
+    const value = JSON.parse(window.sessionStorage.getItem(TIME_SYNC_DRAFT_KEY) || 'null');
+    return Array.isArray(value) && value.length === 3
+      && value.every(server => typeof server === 'string' && server.length <= 253 && !/[\r\n]/.test(server))
+      ? value
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveTimeSyncDraft(servers) {
+  try {
+    window.sessionStorage.setItem(TIME_SYNC_DRAFT_KEY, JSON.stringify(servers));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function clearTimeSyncDraft() {
+  try {
+    window.sessionStorage.removeItem(TIME_SYNC_DRAFT_KEY);
+  } catch {
+    // The successful host configuration remains authoritative if browser storage is unavailable.
+  }
+}
 
 function formatStartedAt(value) {
   if (!value) return null;
@@ -63,11 +94,15 @@ export default function SettingsPanel({
             ? 'O Ubuntu informa que o relógio está sincronizado.'
             : 'Aguardando o estado do relógio do host.';
   const serverSignature = JSON.stringify(configuredServers);
-  const [timeSyncServers, setTimeSyncServers] = useState(suggestedServers);
+  const [timeSyncServers, setTimeSyncServers] = useState(() => readTimeSyncDraft() || configuredServers);
+  const [timeSyncDraftSaved, setTimeSyncDraftSaved] = useState(() => Boolean(readTimeSyncDraft()));
+  const [timeSyncEditorUnlocked, setTimeSyncEditorUnlocked] = useState(false);
   const [timeSyncBusy, setTimeSyncBusy] = useState(false);
   const [timeSyncActionMessage, setTimeSyncActionMessage] = useState('');
   useEffect(() => {
-    setTimeSyncServers(JSON.parse(serverSignature));
+    const draft = readTimeSyncDraft();
+    setTimeSyncServers(draft || JSON.parse(serverSignature));
+    setTimeSyncDraftSaved(Boolean(draft));
   }, [serverSignature]);
   const timeSyncStatusLabels = {
     synchronized: 'Relógio sincronizado',
@@ -78,8 +113,32 @@ export default function SettingsPanel({
   };
   const timeSyncStatusLabel = timeSyncStatusLabels[timeSyncState?.state] || 'Consultando o host…';
   const canConfigureTimeSync = isAdmin && timeSyncState?.can_configure === true;
+  const updateTimeSyncServer = (index, value) => {
+    const next = timeSyncServers.map((server, position) => (position === index ? value : server));
+    setTimeSyncServers(next);
+    const saved = saveTimeSyncDraft(next);
+    setTimeSyncDraftSaved(saved);
+    setTimeSyncActionMessage(saved
+      ? 'Rascunho salvo nesta aba; ainda não foi aplicado ao Ubuntu.'
+      : 'Rascunho mantido apenas até esta página ser fechada; armazenamento da aba indisponível.');
+  };
+  const toggleTimeSyncEditor = () => {
+    const nextUnlocked = !timeSyncEditorUnlocked;
+    setTimeSyncEditorUnlocked(nextUnlocked);
+    setTimeSyncActionMessage(nextUnlocked
+      ? 'Edição desbloqueada. As alterações ficam como rascunho nesta aba até aplicar.'
+      : 'Edição bloqueada. O rascunho foi mantido nesta aba.');
+  };
   const applyTimeSync = async event => {
     event.preventDefault();
+    if (!timeSyncEditorUnlocked) {
+      setTimeSyncActionMessage('Desbloqueie a edição antes de aplicar as fontes.');
+      return;
+    }
+    if (!canConfigureTimeSync) {
+      setTimeSyncActionMessage(timeSyncStatusMessage);
+      return;
+    }
     setTimeSyncBusy(true);
     setTimeSyncActionMessage('Aplicando fontes no host…');
     try {
@@ -87,6 +146,14 @@ export default function SettingsPanel({
       setTimeSyncActionMessage(result?.ok
         ? (result.data?.message || 'Configuração NTP aplicada.')
         : (result?.message || 'Não foi possível configurar o NTP do host.'));
+      if (result?.ok) {
+        clearTimeSyncDraft();
+        setTimeSyncDraftSaved(false);
+        setTimeSyncEditorUnlocked(false);
+        if (Array.isArray(result.data?.configured_servers) && result.data.configured_servers.length === 3) {
+          setTimeSyncServers(result.data.configured_servers);
+        }
+      }
     } finally {
       setTimeSyncBusy(false);
     }
@@ -194,7 +261,7 @@ export default function SettingsPanel({
           </div>
 
           <p className="settings-explanation">
-            A integração usa <strong>a.ntp.br</strong>, <strong>time.google.com</strong> e <strong>time.cloudflare.com</strong>, de provedores distintos. Informe nomes DNS, sem prefixo HTTPS ou porta. Se <code>systemd-timesyncd</code> estiver instalado, mas parado, aplicar as fontes iniciará o serviço; outro cliente ativo (como chrony) continua protegido e não será substituído. O systemd tenta as fontes em sequência, como failover, não votação.
+            A integração usa <strong>a.ntp.br</strong>, <strong>time.google.com</strong> e <strong>time.cloudflare.com</strong>, de provedores distintos. Informe nomes DNS, sem prefixo HTTPS ou porta. O cadeado libera a edição de um rascunho salvo apenas nesta aba. Se <code>systemd-timesyncd</code> estiver instalado, mas parado, aplicar as fontes iniciará o serviço; outro cliente ativo (como chrony) continua protegido: o rascunho pode ser editado, mas não aplicado ao host nem usado para substituir esse cliente. O systemd tenta as fontes em sequência, como failover, não votação.
             {' '}<a href="https://www.ntp.br/" target="_blank" rel="noreferrer">NTP.br</a>{' · '}
             <a href="https://developers.google.com/time" target="_blank" rel="noreferrer">Google Public NTP</a>{' · '}
             <a href="https://developers.cloudflare.com/time-services/ntp/usage/" target="_blank" rel="noreferrer">Cloudflare NTP</a>
@@ -202,7 +269,7 @@ export default function SettingsPanel({
 
           {isAdmin ? (
             <form className="time-sync-form" onSubmit={applyTimeSync}>
-              <div className="time-sync-server-grid">
+              <div className="time-sync-server-grid" id="time-sync-servers">
                 {timeSyncServers.map((server, index) => (
                   <label className="display-preference-field" key={index}>
                     <span>Servidor NTP {index + 1}</span>
@@ -214,19 +281,30 @@ export default function SettingsPanel({
                       autoCorrect="off"
                       spellCheck="false"
                       placeholder={suggestedServers[index]}
-                      onChange={event => setTimeSyncServers(previous => previous.map((value, position) => (
-                        position === index ? event.target.value : value
-                      )))}
-                      disabled={timeSyncBusy || !canConfigureTimeSync}
+                      onChange={event => updateTimeSyncServer(index, event.target.value)}
+                      disabled={timeSyncBusy || !timeSyncEditorUnlocked}
                     />
                   </label>
                 ))}
               </div>
               <div className="time-sync-actions">
                 <button
+                  className="time-sync-editor-toggle"
+                  type="button"
+                  aria-pressed={timeSyncEditorUnlocked}
+                  aria-controls="time-sync-servers"
+                  disabled={timeSyncBusy}
+                  onClick={toggleTimeSyncEditor}
+                >
+                  {timeSyncEditorUnlocked
+                    ? <Unlock size={15} aria-hidden="true" />
+                    : <Lock size={15} aria-hidden="true" />}
+                  {timeSyncEditorUnlocked ? 'Bloquear edição' : 'Desbloquear edição'}
+                </button>
+                <button
                   className="maintenance-toggle"
                   type="submit"
-                  disabled={timeSyncBusy || !canConfigureTimeSync}
+                  disabled={timeSyncBusy || !timeSyncEditorUnlocked || !canConfigureTimeSync}
                 >
                   <Save size={16} aria-hidden="true" />
                   {timeSyncBusy ? 'Aguarde…' : 'Aplicar fontes'}
@@ -243,6 +321,16 @@ export default function SettingsPanel({
                   </button>
                 )}
               </div>
+              <p className="time-sync-draft-note" role="status">
+                {timeSyncEditorUnlocked
+                  ? (timeSyncDraftSaved
+                    ? 'Edição desbloqueada. Rascunho salvo nesta aba; o Ubuntu ainda não foi alterado.'
+                    : 'Edição desbloqueada. As mudanças ainda estão somente nesta aba.')
+                  : (timeSyncDraftSaved
+                    ? 'Campos bloqueados. Há um rascunho desta aba; desbloqueie para continuar.'
+                    : 'Campos bloqueados. Use o cadeado para editar os servidores.')}
+                {!canConfigureTimeSync && ' Aplicar fontes permanece desativado enquanto o controlador do host não autorizar.'}
+              </p>
             </form>
           ) : (
             <p className="time-sync-readonly">
