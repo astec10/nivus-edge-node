@@ -150,6 +150,7 @@ class NodeRegistryTests(unittest.TestCase):
                 "schema_version": 1,
             })
         self.assertEqual(NodeEnrollment.model_validate({"name": "  Edge   A "}).name, "Edge A")
+        self.assertEqual(NodeEnrollment.model_validate({"name": "  Nó   da sala "}).name, "Nó da sala")
 
 
 if __name__ == "__main__":
