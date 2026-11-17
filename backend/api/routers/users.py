@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 
 from api.dependencies import get_current_admin, get_password_change_user
 from api.schemas import PasswordChange, PasswordRotation, UserCreate
 from database import get_db_connection
-from security import create_access_token, hash_password, verify_password
+from security import hash_password, verify_password
+from services.auth_sessions import issue_session, revoke_user_sessions, set_session_cookie
 
 
 router = APIRouter(prefix="/api/users", tags=["users"])
@@ -69,6 +70,7 @@ def change_user_password(
         if cursor.rowcount == 0:
             raise HTTPException(status_code=404, detail="Utilizador não encontrado.")
         conn.commit()
+        revoke_user_sessions(payload.username)
     finally:
         conn.close()
     return {"status": "success", "message": "Senha alterada com sucesso."}
@@ -77,6 +79,7 @@ def change_user_password(
 @router.post("/first-login-password")
 def change_temporary_password(
     payload: PasswordRotation,
+    response: Response,
     username: str = Depends(get_password_change_user),
 ):
     conn = get_db_connection()
@@ -92,13 +95,18 @@ def change_temporary_password(
             (hash_password(payload.new_password), username),
         )
         conn.commit()
-        access_token = create_access_token(username, user["role"])
+        revoke_user_sessions(username)
+        access_token = issue_session(username, user["role"])
+        set_session_cookie(response, access_token)
     finally:
         conn.close()
     return {
-        "access_token": access_token,
-        "token_type": "bearer",
         "password_change_required": False,
+        "user": {
+            "username": username,
+            "role": user["role"],
+            "password_change_required": False,
+        },
     }
 
 

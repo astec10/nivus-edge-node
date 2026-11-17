@@ -4,7 +4,7 @@ import { Activity, CircleCheck, CircleX, Lock, Unlock } from 'lucide-react';
 export default function DashboardHeader({ token, userPayload, fetchData, isOnline, dashboardVersion, onToggleDashboardVersion, isTempCritical = false, loginExpanded = false, onToggleLogin = () => {} }) {
   const legacyActive = dashboardVersion === 'legacy';
   const authenticated = Boolean(token);
-  const sessionLabel = authenticated ? ('Sessão: ' + userPayload?.sub + ' (' + userPayload?.role + ')') : 'Não Autenticado';
+  const sessionLabel = authenticated ? ('Sessão: ' + userPayload?.username + ' (' + userPayload?.role + ')') : 'Não Autenticado';
 
   return (
     <header className="dashboard-header">

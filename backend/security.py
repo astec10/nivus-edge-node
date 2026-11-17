@@ -50,12 +50,28 @@ def hash_password(password: str) -> str:
 
 
 def is_password_hash(encoded: str) -> bool:
-    return encoded.startswith(f"{PASSWORD_SCHEME}$")
+    if not encoded.startswith(f"{PASSWORD_SCHEME}$"):
+        return False
+    try:
+        scheme, iteration_text, salt_text, digest_text = encoded.split("$", 3)
+        iterations = int(iteration_text)
+        salt = _b64decode(salt_text)
+        digest = _b64decode(digest_text)
+    except (ValueError, TypeError):
+        return False
+    return (
+        scheme == PASSWORD_SCHEME
+        and 100_000 <= iterations <= 2_000_000
+        and len(salt) == 16
+        and len(digest) == 32
+    )
 
 
 def verify_password(password: str, stored: str) -> bool:
-    if not is_password_hash(stored):
+    if not stored.startswith(f"{PASSWORD_SCHEME}$"):
         return hmac.compare_digest(password.encode("utf-8"), stored.encode("utf-8"))
+    if not is_password_hash(stored):
+        return False
     try:
         scheme, iteration_text, salt_text, digest_text = stored.split("$", 3)
         iterations = int(iteration_text)
@@ -72,16 +88,21 @@ def verify_password(password: str, stored: str) -> bool:
 
 
 def create_access_token(
-    username: str, role: str, password_change_required: bool = False
+    username: str,
+    role: str,
+    password_change_required: bool = False,
+    *,
+    session_id: str,
+    issued_at: datetime,
+    expires_at: datetime,
 ) -> str:
-    now = datetime.now(timezone.utc)
-    token_minutes = 10 if password_change_required else ACCESS_TOKEN_EXPIRE_MINUTES
     payload = {
         "sub": username,
         "role": role,
         "password_change_required": password_change_required,
-        "iat": now,
-        "exp": now + timedelta(minutes=token_minutes),
+        "jti": session_id,
+        "iat": issued_at,
+        "exp": expires_at,
     }
     return jwt.encode(payload, load_jwt_secret(), algorithm=ALGORITHM)
 

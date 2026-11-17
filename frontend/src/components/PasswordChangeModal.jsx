@@ -1,10 +1,6 @@
 import React from 'react';
 import { AlertTriangle, X } from 'lucide-react';
-
-const meetsPasswordPolicy = value =>
-  value.length >= 8 &&
-  Array.from(value).some(character => character.toLowerCase() !== character.toUpperCase()) &&
-  /[0-9]/.test(value);
+import { meetsPasswordPolicy } from '../utils/passwordPolicy.js';
 
 export default function PasswordChangeModal({
   editingUser,
