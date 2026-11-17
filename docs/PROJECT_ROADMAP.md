@@ -76,8 +76,6 @@ Para atualizações de frota, o critério adicional é demonstrar uma correção
 
 Detalhes e mapas mentais da proposta de capacidade e sincronização: [NODE_CAPABILITY_SCHEDULER.md](NODE_CAPABILITY_SCHEDULER.md). Perfil validado, inventário detalhado e cópias assinadas ainda não estão implementados.
 
-Detalhes e mapas mentais da proposta de capacidade e sincronização: [NODE_CAPABILITY_SCHEDULER.md](NODE_CAPABILITY_SCHEDULER.md). Perfil validado, inventário detalhado e cópias assinadas ainda não estão implementados.
-
 ### Fase 3 — Integrações domésticas e energia
 
 **Estado: parcialmente em andamento.** A primeira regra limitada de atuador (issue #22: bateria móvel → somente OFF no relé) foi integrada pelo PR #50 no commit `ba6e0c824fe1b62dd44c7d924a6a2d1074f26e23`; os quatro workflows hospedados passaram. A regra só opera após cadastro do dispositivo e envio de relatórios válidos pela integração Home Assistant, ainda não configurada ou validada em hardware. As demais integrações começam em leitura somente; nenhuma ação física foi testada.
