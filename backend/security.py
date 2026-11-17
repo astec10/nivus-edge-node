@@ -88,16 +88,21 @@ def verify_password(password: str, stored: str) -> bool:
 
 
 def create_access_token(
-    username: str, role: str, password_change_required: bool = False
+    username: str,
+    role: str,
+    password_change_required: bool = False,
+    *,
+    session_id: str,
+    issued_at: datetime,
+    expires_at: datetime,
 ) -> str:
-    now = datetime.now(timezone.utc)
-    token_minutes = 10 if password_change_required else ACCESS_TOKEN_EXPIRE_MINUTES
     payload = {
         "sub": username,
         "role": role,
         "password_change_required": password_change_required,
-        "iat": now,
-        "exp": now + timedelta(minutes=token_minutes),
+        "jti": session_id,
+        "iat": issued_at,
+        "exp": expires_at,
     }
     return jwt.encode(payload, load_jwt_secret(), algorithm=ALGORITHM)
 
