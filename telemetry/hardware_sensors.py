@@ -12,7 +12,8 @@ BOARD_SOURCES = {"nct6775", "nct6798", "nct6683", "it87", "w83627ehf"}
 
 def _valid_temperature(value):
     return (
-        isinstance(value, (int, float))
+        not isinstance(value, bool)
+        and isinstance(value, (int, float))
         and math.isfinite(value)
         and -40 <= value <= 150
     )
@@ -88,7 +89,7 @@ def get_thermal_metrics():
     readings = []
     try:
         sensors = psutil.sensors_temperatures(fahrenheit=False)
-    except (AttributeError, OSError, NotImplementedError):
+    except (psutil.Error, AttributeError, OSError, NotImplementedError):
         sensors = {}
 
     for source, entries in sensors.items():
@@ -179,4 +180,4 @@ def get_host_battery_metrics():
 
 
 def _valid_battery_percent(value):
-    return isinstance(value, (int, float)) and math.isfinite(value) and 0 <= value <= 100
+    return not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(value) and 0 <= value <= 100
