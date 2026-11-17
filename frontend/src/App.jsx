@@ -211,7 +211,7 @@ function App() {
     } catch (err) {
       const statusCode = err.response?.status;
       if (statusCode === 429) {
-        alert(err.response?.data?.detail || 'Conta bloqueada temporariamente.');
+        alert(err.response?.data?.detail || 'Muitas tentativas deste endereço. Aguarde um pouco e tente novamente.');
       } else if (statusCode === 401) {
         alert('Utilizador ou palavra-passe inválidos.');
       } else {
