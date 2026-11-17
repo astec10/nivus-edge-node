@@ -62,8 +62,10 @@ mindmap
       Pareamento e revogação
       Avalia relatórios
       Aprova perfil canônico
-      Fila e despacho
-      Leases e auditoria
+      Fila HTTP pull ou oferta push
+      MQTT como aviso opcional
+      Filtro e score
+      Lease e auditoria
       Resultado aguardando revisão
     Nó Worker
       Nome amigável alterável
@@ -71,6 +73,7 @@ mindmap
       Inventário local assinado
       Capacidades validadas
       Recursos dinâmicos
+      Aceite local obrigatório
       Sandbox por tarefa
       Resultado com hash e proveniência
     Registro replicado
@@ -79,8 +82,13 @@ mindmap
       Cópia somente leitura
       Sem credenciais de outros nós
       Atualização e expiração
-    Tarefa
+    Tarefa pontual
       Tipos e modalidades exigidos
+      Score após elegibilidade
+      Resultado para revisão
+    Serviço contínuo
+      Estado desejado separado
+      Reconciliação
       CPU RAM disco e prazo
       Dados e artefatos referenciados
       Lease e retry limitados
@@ -159,7 +167,9 @@ A cópia permite descoberta e consistência do catálogo, mas não cria vários 
 
 Uma tarefa declara ID idempotente, tipos/capacidades exigidos, modalidade de entrada, recursos e prazo, classificação de dados, limites de tamanho, referências de artefatos com hash, política de retry e critérios de aceitação.
 
-O Master seleciona apenas nós que estejam registrados e não revogados, com heartbeat dentro do limite, perfil validado compatível e recursos dinâmicos suficientes. Entre candidatos elegíveis, pode priorizar menor carga, menor custo de energia ou fairness; essas preferências nunca relaxam requisitos obrigatórios.
+O Master primeiro aplica filtros obrigatórios: nó pareado e ativo, heartbeat fresco, capacidades/modelo validados, arquitetura compatível, recursos `allocatable` suficientes, temperatura abaixo do limite e política de dados atendida. O relatório deve separar capacidade física total da parcela que pode ser alocada depois de reservar recursos ao Ubuntu e aos serviços Nivus. Essa separação segue a ideia de capacity/allocatable usada por Kubernetes.
+
+Só depois do filtro pode calcular um score de 0–100 para ordenar os candidatos: carga, memória/VRAM livre, margem térmica, espaço, latência de rede quando relevante e histórico de desempenho para aquele modelo. Pesos e janela de medição precisam ser explícitos e versionados. O score desempata workers aptos; nunca transforma capacidade não validada ou limite térmico violado em elegibilidade.
 
 A fila pode suportar dois modos sob o mesmo controle de leases:
 
@@ -167,6 +177,22 @@ A fila pode suportar dois modos sob o mesmo controle de leases:
 - **Passivo (nó → Master):** o worker pede trabalho. O Master filtra pela capacidade já validada no cadastro, disponibilidade atual e política da fila, e concede atomicamente uma lease a um único nó. O worker não consulta nem varre a fila inteira.
 
 O Master continua autoridade nos dois modos. Uma lista de capacidades alegada pelo worker só pode estreitar a seleção, nunca ampliá-la. Um toggle por fila/projeto pode escolher push ou pull; ambos usam as mesmas validações, lease, fencing, auditoria e retry. O primeiro release pode implementar pull autenticado, que é mais simples para redes com workers atrás de NAT/firewall; push pode ser adicionado quando houver caso operacional concreto.
+
+### Transporte: fila, pull e pub/sub
+
+Para a primeira versão, prefira o worker fazer `pull` autenticado por HTTPS: o Master filtra e concede atomicamente uma lease na base durável. Isso funciona com workers atrás de NAT e evita expor cada tarefa para todos os nós.
+
+Como abordagem híbrida posterior, o Master pode publicar no MQTT uma **notificação mínima** (ID da tarefa, classe, expiração e hash do manifesto). Workers interessados recebem o aviso e tentam `claim` pela API; só o Master escolhe um vencedor, verifica o perfil e entrega a lease/payload. MQTT 5 shared subscriptions podem distribuir mensagens entre consumidores de um grupo, mas são transporte de mensagens, não substituto do estado de lease, da autorização por nó nem da idempotência. QoS 1 pode resultar em reentrega; cada claim e resultado precisa suportar duplicidade.
+
+Publicar a tarefa completa em tópicos por capacidade só é aceitável com ACLs revisadas, grupos de capacidade administrados pelo Master e proteção contra workers que se inscrevam no tópico errado. Evite isso inicialmente, especialmente para dados pessoais ou domésticos. RabbitMQ/AMQP oferece filas, entrega por consumidor e ACKs, mas adiciona outro serviço e ainda exige que o Master mantenha identidade/perfis e estado de negócio. O Nivus já tem MQTT no Compose, mas o uso para tarefas entre nós não está implementado. Referências: [MQTT 5 shared subscriptions](https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html) e [RabbitMQ acknowledgements](https://www.rabbitmq.com/docs/confirms).
+
+### Pontuação entre candidatos
+
+O padrão recomendado é **filtrar primeiro, pontuar depois**, semelhante à separação de filtros e score do scheduler Kubernetes. Inicialmente use pesos simples e auditáveis. Registre score, valores usados, janela temporal e versão da política em cada lease para explicar por que um nó foi escolhido. Heartbeat atrasado, reserva insuficiente e temperatura de throttling devem tirar o worker da lista ou bloquear o tipo de tarefa, em vez de apenas reduzir a pontuação. Referência: [Kubernetes Scheduler](https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/).
+
+### Tarefa pontual versus serviço contínuo
+
+A fila acima é para jobs finitos, como OCR, indexação, resumo ou geração de um artefato que depois aguarda revisão. A regra “manter três instâncias de um modelo disponíveis” é outra abstração: um recurso de **serviço desejado** com número de réplicas, versão de modelo, limites, health check e política de rollout. Um reconciliador compara estado desejado com estado observado, coloca réplicas em nós elegíveis e corrige divergências. Isso é uma fase posterior; não deve ser simulado criando indefinidamente tarefas na fila. Réplicas ficam limitadas pela capacidade allocatable e não implicam dividir um único modelo entre máquinas.
 
 A concessão usa uma lease com nó responsável, prazo e token/versão de fencing. Workers renovam a lease durante execução; expiração libera a tarefa para retry limitado. O ID idempotente, a versão da lease e a validação de hash impedem aceitar resultados tardios ou duplicados. Cancelamento, partição, reinício do Master ou worker indisponível deixam estado auditável e recuperável.
 
@@ -205,12 +231,20 @@ A revisão mostra diff/artefatos, worker, perfil usado, versões de runtime/mode
 - Implementar contratos de tarefa, seleção por capacidades obrigatórias, reserva dinâmica e leases com fencing.
 - Testar duplicidade, worker desconectado, lease expirada, cancelamento, retry, relógio incorreto, reinício do Master e recurso insuficiente.
 - Confirmar que worker incompatível ou revogado não recebe tarefa nova.
+- Comparar filtragem/score com casos fixos e conferir que nenhum score faz um nó inelegível receber trabalho.
+- Considerar MQTT apenas como aviso/claim depois de validar leases e ACLs via HTTPS.
 
 ### Etapa C — Resultado e revisão
 
 - Transferir artefatos por HTTPS com hash e proveniência.
 - Criar estado de resultado aguardando revisão e uma superfície para inspecionar, aceitar ou rejeitar.
 - Testar rejeição, nova tentativa e preservação do resultado anterior; nenhuma aceitação ou implantação automática.
+
+### Etapa D — Serviços contínuos
+
+- Especificar recurso de estado desejado para serviços persistentes de inferência, separado de jobs pontuais.
+- Definir réplicas, placement, health check, rollout gradual, drenagem e rollback, com limites de capacidade por nó.
+- Só implementar após o scheduler de tarefas e o perfil validado estarem operacionais; não criar obrigação de disponibilidade sem hardware suficiente.
 
 A primeira entrega é uma proposta de arquitetura e não declara essas capacidades implementadas. Fase 2 precisa concluir validação física e perfil/registro; a Fase 5 depende da identidade confiável, inventário e regras de recursos definidos aqui.
 
