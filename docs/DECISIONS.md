@@ -96,3 +96,14 @@ Padrão: \`a.ntp.br\`, \`b.ntp.br\`, \`c.ntp.br\`. São três servidores do proj
 - Relatório ausente, expirado, repetido, fora de ordem, token revogado ou broker indisponível não autoriza ON. Falha do broker limita novas tentativas de OFF a uma por cinco minutos.
 - Se houver mais de um celular ativo, qualquer leitura recente em 20% ou menos pode acionar OFF; a interface deve deixar essa regra explícita.
 - Registrar auditoria e distinguir aceitação MQTT de confirmação do relé físico. Manter comando manual de administrador. Validar primeiro com SQLite temporário e publisher MQTT simulado; não enviar comando a relé físico sem etapa de validação autorizada.
+
+
+## Registro de identidade de nós — 2026-11-16
+
+A primeira entrega multi-nó começa por cadastro autenticado e heartbeat somente de metadados. O administrador cria um código aleatório de uso único, válido por 10 minutos; o nó não escolhe sua própria identidade. O servidor gera o ID estável e um token aleatório; banco guarda somente SHA-256 do código e do token. A credencial do nó é mostrada uma vez. Perda do token requer revogação e novo pareamento.
+
+O agente obtém uma sessão que rotaciona e invalida a sessão anterior. Heartbeats usam sequência crescente; o servidor registra o horário recebido, sem aceitar ID, IP, horário ou capacidade como permissão escolhidos pelo cliente. Estado online é derivado de heartbeat recebido nos últimos 90 segundos; agentes devem enviar a cada 30 segundos. No cadastro, o nó permanece offline até o primeiro heartbeat.
+
+Capacidades são declarações informativas numa allowlist, não grants de autorização. A primeira versão não habilita shell remoto, execução de tarefas, comandos MQTT, transferência P2P, upload de telemetria ou atualização de software. Cada função exige contrato, autorização e revisão separados.
+
+Implementação inicial está na issue #65 e na branch `feat/node-registry-bootstrap-20261117`; ainda depende de CI/revisão/merge e implantação. O nó Master e agregação multi-nó permanecem planejados.

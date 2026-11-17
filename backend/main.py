@@ -9,6 +9,7 @@ from api.routers import (
     auth,
     maintenance,
     mobile_battery,
+    nodes,
     settings,
     telemetry,
     users,
@@ -58,3 +59,4 @@ app.include_router(settings.router)
 app.include_router(maintenance.router)
 app.include_router(users.router)
 app.include_router(mobile_battery.router)
+app.include_router(nodes.router)
