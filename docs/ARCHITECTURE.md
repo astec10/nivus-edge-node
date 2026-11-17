@@ -10,7 +10,8 @@ Esta árvore descreve a implementação versionada do Nivus. O registro inicial 
 - backend/api/dependencies.py valida JWT e papel do usuário.
 - backend/database.py mantém SQLite e inicialização/migração aditiva.
 - backend/services/maintenance.py compartilha o estado volátil do modo de manutenção, registra transições no SQLite e volta ao modo normal após reboot.
-- `backend/services/nodes.py` implementa o primeiro contrato de identidade multi-nó integrado no PR #66: código de pareamento de uso único, token armazenado como hash, sessão rotativa, sequência contra replay e presença derivada do heartbeat do servidor. Essa camada não inclui agente autônomo, agregação, execução remota ou atualização de frota.
+- `backend/services/nodes.py` implementa o contrato de identidade multi-nó integrado no PR #66: código de pareamento de uso único, token armazenado como hash, sessão rotativa, sequência contra replay e presença derivada do heartbeat do servidor.
+- `node_agent/agent.py` (PR #69) é um cliente stdlib para pareamento HTTPS e heartbeat. Mantém uma credencial local com permissões POSIX restritas e envia apenas metadados/capacidades vazias. Não coleta telemetria nem executa comandos; a validação atual é simulada na CI e ainda falta smoke real entre dispositivos.
 - backend/security.py contém hashing PBKDF2 e helpers JWT.
 - `backend/services/mobile_battery.py` aplica frescor, limiar de 20%, latch por ciclo e publica somente `OFF` no tópico fixo permitido; o broker não confirma o estado físico.
 - backend/services/mqtt.py publica comandos; backend/mqtt_worker.py persiste eventos.

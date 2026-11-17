@@ -20,7 +20,7 @@ flowchart TD
   BatteryService --> DB
   BatteryService --> MQTT
   Admin[Administrador] -->|JWT admin| NodesRouter[backend/api/routers/nodes.py]
-  NodeAgent[Agente de outro nó] -->|TLS + token do nó| NodesRouter
+  NodeAgent[node_agent/agent.py] -->|HTTPS + token do nó| NodesRouter
   NodesRouter --> NodesService[backend/services/nodes.py]
   NodesService --> DB
   Routers --> Schemas[backend/api/schemas.py]
@@ -46,7 +46,8 @@ flowchart TD
 | `backend/api/routers/` | HTTP autenticado ↔ schemas | Endpoints por domínio; exige autorização nas rotas sensíveis. |
 | `backend/api/routers/mobile_battery.py` | Admin JWT + relatório tokenizado | Admin cadastra/revoga; celular envia somente percentual e horário. O cliente não escolhe tópico nem comando. |
 | `backend/api/routers/nodes.py` | Admin JWT ou credencial própria do nó | Pareamento one-use, sessão, heartbeat ordenado, listagem e revogação; a candidata atual não executa operações remotas. |
-| `backend/services/nodes.py` | Contratos validados ↔ SQLite | Cria IDs no servidor, persiste somente hashes de códigos/tokens, deriva estado pelo heartbeat e restringe capacidades a uma allowlist; integrado pelo PR #66, ainda sem agente autônomo nem telemetria agregada. |
+| `backend/services/nodes.py` | Contratos validados ↔ SQLite | Cria IDs no servidor, persiste somente hashes de códigos/tokens, deriva estado pelo heartbeat e restringe capacidades a uma allowlist; integrado pelo PR #66. |
+| `node_agent/agent.py` | CLI pareamento/run ↔ API de nós | Cliente stdlib candidato no PR #69: código oculto de uso único, TLS obrigatório, token local `0600`/diretório `0700`, sessão renovável e heartbeat apenas com metadados. Sem telemetria, comandos ou ações remotas; smoke físico pendente. |
 | `backend/services/mobile_battery.py` | Leitura móvel validada → regra + auditoria MQTT | Rejeita leituras antigas/repetidas; publica somente `OFF` em `nivus/edge/relay1` a ≤20%; recuperação acima de 20% rearma sem enviar `ON`. |
 | `backend/services/` | chamadas internas ↔ serviços | MQTT, logs e operações de domínio; não expõe portas diretamente. |
 | `backend/database.py` | conexões ↔ SQLite | Persistência, migrações aditivas e consultas. |

@@ -1,0 +1,30 @@
+[Unit]
+Description=Nivus node identity and heartbeat agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=nivus-node-agent
+Group=nivus-node-agent
+WorkingDirectory=/opt/nivus/node-agent
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 -m node_agent.agent run --credentials /var/lib/nivus-node-agent/credentials.json
+Restart=on-failure
+RestartSec=15
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+LockPersonality=true
+MemoryDenyWriteExecute=true
+ReadWritePaths=/var/lib/nivus-node-agent
+
+[Install]
+WantedBy=multi-user.target
