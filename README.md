@@ -2,7 +2,7 @@
 
 O Nivus é um projeto aberto para construir uma plataforma de borda local-first, modular e de baixo consumo. Telemetria é um módulo da plataforma; sua agregação entre nós não é pré-requisito para o executor nem para a biblioteca compartilhada e será mais útil quando o Nó Master estiver operacional.
 
-O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não significa compatibilidade comprovada com qualquer computador. O stack Compose está instalado em paralelo num único notebook Ubuntu CCE U25; a release `fff64a68f252f0b1290576e30b39ed78fbc15a7a` foi aplicada em 17/11/2026. A API inclui o primeiro registro seguro de nós (PR #66), mas ainda não há agente conectado nem operação multi-nó. Instalação limpa, reboot, restauração e outros modelos de hardware ainda precisam de validação.
+O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não significa compatibilidade comprovada com qualquer computador. O stack Compose está instalado em paralelo num único notebook Ubuntu CCE U25; a release `fff64a68f252f0b1290576e30b39ed78fbc15a7a` foi aplicada em 17/11/2026. O registro seguro de nós está na release (PR #66); o agente mínimo de pareamento e heartbeat está implementado no PR #69, com CI hospedada aprovada, aguardando integração. Ainda faltam smoke real entre dois dispositivos, instalação limpa, reboot, restauração e validação de outros hardwares.
 
 ## Estado do projeto
 
@@ -18,7 +18,7 @@ O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não sign
 
 ### Planejado ou aguardando validação
 
-- Registro inicial de nós com cadastro seguro e heartbeat integrado no PR #66; ainda faltam agente, teste de dois dispositivos, agregação de telemetria e painel multi-nó.
+- Registro seguro de nós integrado no PR #66. O agente mínimo está no PR #69 e passou CI hospedada (Ubuntu 22.04 amd64, testes isolados, Compose smoke e CodeQL); falta integrar o PR e validar dois dispositivos reais. Agregação de telemetria e painel multi-nó seguem pendentes.
 - Home Assistant, Zigbee, sensores residenciais, medidores, câmeras, interfone e integração com inversor/baterias.
 - Automação residencial real, VPN integrada ao produto e ações remotas em dispositivos.
 - Inferência local, consulta à biblioteca de PDFs, fila de trabalhos entre máquinas, transferência P2P e conectores para provedores comerciais com limites de uso. A gestão de perfis de API para o runtime está especificada na issue #68; não é a mesma credencial do executor GitHub Actions.

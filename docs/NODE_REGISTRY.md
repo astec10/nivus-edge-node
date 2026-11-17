@@ -1,8 +1,8 @@
 # Cadastro seguro de nós
 
-**Estado:** primeira implementação integrada pelo PR #66 e incluída na release ativa do notebook `fff64a68f252f0b1290576e30b39ed78fbc15a7a`. CI hospedada cobre duas identidades simuladas; onboarding de dispositivos independentes ainda não foi validado no host.
+**Estado:** API de registro integrada pelo PR #66 e incluída na release ativa `fff64a68f252f0b1290576e30b39ed78fbc15a7a`. O agente mínimo está implementado no [PR #69](https://github.com/astec10/nivus-edge-node/pull/69), aberto e com CI hospedada aprovada. O smoke com dois dispositivos independentes ainda não foi executado.
 **Issue:** [#65 concluída](https://github.com/astec10/nivus-edge-node/issues/65) pelo PR #66.
-**Próxima entrega:** [issue #69](https://github.com/astec10/nivus-edge-node/issues/69) — agente mínimo de pareamento e heartbeat.
+**Próxima validação:** revisão/merge do PR #69 e smoke real com dois nós.
 
 Este módulo estabelece identidade, pareamento, presença e revogação para os próximos passos multi-nó. A entrega inicial não agrega telemetria e não dá aos nós capacidade de executar ações uns nos outros.
 
@@ -26,6 +26,16 @@ Fora do escopo:
 - Shell, execução remota de tarefas, cópia P2P ou atualização em massa.
 - Descoberta por IP, hostname, número de série, User-Agent ou fingerprint de hardware.
 - Autorização baseada nas capacidades declaradas.
+
+## Agente mínimo de identidade e heartbeat (PR #69)
+
+O candidato `node_agent/agent.py` contém um cliente de linha de comando sem dependências externas:
+
+- `pair` recebe o código de uso único por prompt oculto e envia por HTTPS com validação de certificado ativa.
+- O agente grava a credencial bearer em `~/.config/nivus-node-agent/credentials.json` (diretório `0700`, arquivo `0600`). O arquivo não é criptografado; proteja o disco e seus backups. O servidor continua guardando apenas o hash do token.
+- `run` renova a sessão a cada inicialização e envia heartbeat a cada 30 segundos; falhas temporárias usam backoff limitado. Resposta perdida/replay provoca renovação da sessão; `401` encerra o agente.
+- O payload inicial informa versão do agente/esquema e capacidades vazias. Não envia amostras, comandos, endereço IP ou hostname para autenticação.
+- `deploy/nivus-node-agent.service.example` ilustra uma execução systemd com usuário dedicado sem root.
 
 ## Modelo de confiança
 
@@ -111,19 +121,20 @@ A sequência crescente evita reuso e ordena requests dentro de uma sessão. Um r
 
 ## Validação e limites observados
 
-Validado no PR #66 e ainda pendente no runtime:
+Validação atual por PR #66, PR #69 e release do notebook:
 
-1. [x] CI hospedada cobre SQLite isolado, pareamento único/expiração, hash-only, duas identidades, heartbeat/presença, replay, renovação de sessão e revogação.
-2. [x] Contratos e regras de acesso foram integrados na API; os checks do PR #66 passaram, incluindo Compose smoke, rollback, frontend/sensores, análise e índice.
-3. [ ] Dois agentes independentes contra a API em execução; a CI atual testa duas identidades no nível de serviço/API, não substitui esse smoke end-to-end.
-4. [x] Testes automatizados confirmam que revogação impede novos heartbeats.
-5. [ ] Backup/restore com nós pareados precisa ser demonstrado como cenário operacional específico.
+1. [x] API: pareamento único/expiração, persistência hash-only, duas identidades, heartbeat/presença, replay, renovação e revogação.
+2. [x] CI do PR #69: dois clientes, sessão por processo, recuperação de rede/resposta perdida, replay, permissões do arquivo de credenciais, HTTP recusado e revogação.
+3. [x] CI hospedada aprovada para Ubuntu 22.04 amd64 Compose smoke, backend, frontend, CodeQL e índice de conhecimento.
+4. [ ] Transporte simulado da CI não comprova uma conexão TLS de ponta a ponta; validar certificado e endpoints em execução.
+5. [ ] Parear e executar dois agentes em dispositivos independentes, incluindo reboot e revogação.
+6. [ ] Backup/restore com nós pareados precisa ser demonstrado operacionalmente.
 
-A release `fff64a68f252f0b1290576e30b39ed78fbc15a7a` foi aplicada no notebook; a saída confirmou build, backup consistente, restart, health HTTPS 200 e telemetria sem token 401. Não comprova reboot nem pareamento de dois hosts reais. Ainda não há agente Nivus autônomo nem painel multi-nó.
+A release `fff64a68f252f0b1290576e30b39ed78fbc15a7a` foi aplicada no notebook; sua saída confirmou build, backup consistente, restart, health HTTPS 200 e telemetria sem token 401. Isso não comprova reboot, smoke do agente ou painel multi-nó.
 
 ## Próximas entregas separadas
 
-1. [Issue #69] Criar cliente/agente mínimo de pareamento e heartbeat, armazenando credencial com permissões restritas.
+1. Revisar e integrar o cliente/agente implementado no PR #69; executar smoke de dois dispositivos reais.
 2. Definir envelope de telemetria com timestamp de origem, unidade, qualidade, versão de esquema e timestamp de recepção.
 3. Guardar dados por `node_id` sem quebrar consumidores do schema legado.
 4. Criar visualização de nós com presença antiga claramente sinalizada e revogação administrativa.

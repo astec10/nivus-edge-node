@@ -54,14 +54,15 @@ CI aprovado comprova o fluxo no runner virtual Ubuntu, não em cada chipset ou p
 
 ### Fase 2 — Identidade e telemetria de vários nós
 
-**Estado: registro inicial integrado e implantado; operação multi-nó ainda não completa.** A telemetria local existe no nó de teste, mas sua agregação não é requisito para o executor de desenvolvimento. A issue #65 foi concluída pelo PR #66; API de pareamento, sessão, heartbeat e revogação está na `main` e na release `fff64a68f252f0b1290576e30b39ed78fbc15a7a`. Falta cliente/agente e teste com dois dispositivos conectados; a issue #69 acompanha esse próximo incremento. Não há comandos remotos nem atualização coordenada.
+**Estado: registro inicial implantado; agente mínimo implementado em PR aberto; multi-nó operacional ainda incompleto.** A release `fff64a68f252f0b1290576e30b39ed78fbc15a7a` contém o cadastro seguro da issue #65 / PR #66. O PR #69 acrescenta um cliente mínimo de pareamento e heartbeat, com CI hospedada aprovada. Os testes usam dois nós simulados, handlers FastAPI e SQLite temporário; não substituem HTTPS end-to-end ou smoke com dispositivos reais. Não há comandos remotos, agregação de telemetria ou atualização coordenada.
 
-1. [x] Identidade criada pelo servidor e cadastro administrativo por código de uso único — PR #66, issue #65 concluída.
-2. [x] Heartbeat autenticado, ordenado, com presença baseada no relógio do servidor; CI cobre duas identidades simuladas — PR #66. O smoke com agentes independentes continua pendente.
-3. Versionar o envelope de telemetria: nó, timestamp, unidade, origem, qualidade e versão do esquema.
-4. Exibir lista de nós, último contato e séries por nó no painel.
-5. Tratar duplicatas, atraso, relógios incorretos, perda de rede, revogação e nós desconhecidos.
-6. Definir distribuição de releases assinadas: inventário de versão/capacidades, seleção dos nós elegíveis, canário seguido de ondas, health check, manutenção de dados e rollback independente por nó. Offline, baixa bateria ou recursos insuficientes devem adiar a atualização sem bloquear a frota.
+1. [x] Identidade criada pelo servidor e cadastro administrativo por código de uso único — PR #66.
+2. [x] Heartbeat autenticado, sequência contra replay e presença baseada no relógio do servidor — PR #66.
+3. [ ] Integrar o agente mínimo do PR #69 após revisão; testar pareamento e heartbeat em dois dispositivos reais, incluindo TLS confiável, reinício e revogação.
+4. [ ] Versionar o envelope de telemetria: nó, timestamp, unidade, origem, qualidade e versão do esquema.
+5. [ ] Exibir lista de nós, último contato e séries por nó no painel.
+6. [ ] Tratar duplicatas, atraso, relógios incorretos, perda de rede, revogação e nós desconhecidos.
+7. [ ] Definir distribuição de releases assinadas: inventário de versão/capacidades, seleção dos nós elegíveis, canário seguido de ondas, health check, manutenção de dados e rollback independente por nó. Offline, baixa bateria ou recursos insuficientes devem adiar a atualização sem bloquear a frota.
 
 Critério de saída: dois dispositivos podem enviar telemetria autenticada; um nó desconectado não derruba os outros; credenciais podem ser revogadas; o painel identifica claramente dados ausentes ou antigos.
 
