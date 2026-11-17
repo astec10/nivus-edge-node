@@ -268,6 +268,43 @@ O Master primeiro aplica filtros obrigatórios: nó pareado e ativo, heartbeat f
 
 Só depois do filtro pode calcular um score de 0–100 para ordenar os candidatos: carga, memória/VRAM livre, margem térmica, espaço, latência de rede quando relevante e histórico de desempenho para aquele modelo. Pesos e janela de medição precisam ser explícitos e versionados. O score desempata workers aptos; nunca transforma capacidade não validada ou limite térmico violado em elegibilidade.
 
+### Telemetria térmica e admissão de tarefas
+
+O agente atual já publica telemetria dinâmica em cadência aproximada de cinco segundos: `telemetry/agent.py` inclui `get_thermal_metrics()` no payload MQTT. `telemetry/hardware_sensors.py` identifica fonte e rótulo e expõe `temperature` (CPU/APU) e `temperature_source`; leituras ausentes permanecem `null`. Leituras de GPU, hotspot e placa-mãe têm campos próprios. O sensor escolhido precisa identificar CPU/APU; não usar uma zona ACPI genérica como substituto. Essa implementação coleta a métrica, mas **ainda não bloqueia tarefas pelo calor**.
+
+O Master deve guardar para cada amostra o horário de recebimento UTC do servidor, `node_id`, valor, fonte e rótulo. O timestamp declarado pelo worker é útil para diagnóstico, mas não é a autoridade de frescor. O scheduler aplica uma política versionada antes da lease:
+
+1. **Frescor:** rejeitar amostra futura ou mais velha que o TTL configurado (derivado da cadência e tolerância de rede). Sem amostra fresca, não conceder tarefa intensiva em CPU/IA até receber nova telemetria; tarefas leves podem seguir somente se a política daquela classe permitir.
+2. **Validade e origem:** aceitar apenas número finito, faixa plausível e fonte CPU/APU reconhecida. `null`, fonte desconhecida, falha de sensor ou temperatura de GPU/placa-mãe não contam como temperatura da CPU. Em política térmica estrita, dado ausente significa não elegível para carga intensiva; nunca converter para `0 °C` nem reutilizar valor antigo.
+3. **Limite por perfil:** comparar com limite configurado e versionado para o nó/classe de tarefa. Um valor como 80 °C pode ser ponto inicial de configuração, não limite universal; considerar especificação do processador, sensor, ambiente, modelo e duração sustentada. Se o driver expuser limites `high/critical`, eles são evidência adicional, não um valor intercambiável entre fabricantes.
+4. **Histerese:** ao exceder o limite de admissão, marcar o nó temporariamente `thermally_saturated` e não apenas reduzir seu score. Só readmitir após leituras válidas abaixo de um limite de recuperação mais baixo durante uma janela configurada. Exigir mais de uma amostra consecutiva reduz oscilações por ruído; os parâmetros precisam ser ajustáveis e auditados.
+5. **Reavaliação e execução:** verificar novamente no momento do claim/lease, renovar telemetria durante tarefas longas e permitir pausar, cancelar ou limitar concorrência conforme a política da tarefa. A fila registra amostra, fonte, idade, limite, política e motivo da decisão. Temperatura é um sinal de admissão, não prova por si só de thermal throttling; frequência, flags de throttling e benchmark sustentado são sinais complementares quando o sistema os expõe.
+
+Esboço de decisão no Master, usando `received_at` atribuído pelo servidor:
+
+```python
+def thermal_admission(sample, policy, now_utc):
+    if sample is None or sample.age_seconds(now_utc) > policy.max_age_seconds:
+        return policy.on_missing_or_stale
+
+    temperature = sample.cpu_temperature_c
+    if temperature is None or not sample.is_recognized_cpu_source:
+        return policy.on_missing_or_stale
+
+    if temperature >= policy.stop_celsius:
+        return "temporarily_ineligible"
+    if sample.node_thermal_state == "thermally_saturated":
+        return (
+            "eligible"
+            if sample.cool_samples >= policy.cool_samples_required
+            and temperature <= policy.resume_celsius
+            else "temporarily_ineligible"
+        )
+    return "eligible"
+```
+
+O exemplo é um contrato ilustrativo: a persistência da janela de histerese, o TTL, os limites por hardware e a política para sensor indisponível ainda precisam ser implementados e calibrados em máquinas reais. A temperatura deve filtrar elegibilidade antes do score; um score alto nunca sobrepõe o bloqueio térmico.
+
 A fila pode suportar dois modos sob o mesmo controle de leases:
 
 - **Ativo (Master → nó):** o Master escolhe um worker elegível e envia uma oferta curta. O worker confirma aceite; se recusar ou não responder, a oferta expira e volta à fila. O payload privado só segue depois do aceite/lease.
