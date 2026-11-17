@@ -36,7 +36,7 @@ if ss -H -ltn 'sport = :28443' | grep -q .; then
   exit 2
 fi
 
-PROJECT="nivus-smoke-$(date -u +%Y%m%d-%H%M%S)-$"
+PROJECT="nivus-smoke-$(date -u +%Y%m%d-%H%M%S)-$$"
 PORTLESS_PROXY="${PROJECT}-portless-proxy"
 PORTLESS_CONFIG="/tmp/${PROJECT}-portless-nginx.conf"
 DATA_DIR="/tmp/$PROJECT-data"
