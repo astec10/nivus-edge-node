@@ -69,11 +69,19 @@ def cleanup_expired_records(
     now = now or datetime.now(timezone.utc)
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
-    telemetry_days = telemetry_retention_days or _configured_days(
-        "NIVUS_TELEMETRY_RETENTION_DAYS", DEFAULT_TELEMETRY_RETENTION_DAYS
+    telemetry_days = (
+        telemetry_retention_days
+        if telemetry_retention_days is not None
+        else _configured_days(
+            "NIVUS_TELEMETRY_RETENTION_DAYS", DEFAULT_TELEMETRY_RETENTION_DAYS
+        )
     )
-    audit_days = actuator_audit_retention_days or _configured_days(
-        "NIVUS_ACTUATOR_AUDIT_RETENTION_DAYS", DEFAULT_ACTUATOR_AUDIT_RETENTION_DAYS
+    audit_days = (
+        actuator_audit_retention_days
+        if actuator_audit_retention_days is not None
+        else _configured_days(
+            "NIVUS_ACTUATOR_AUDIT_RETENTION_DAYS", DEFAULT_ACTUATOR_AUDIT_RETENTION_DAYS
+        )
     )
     for name, days in (
         ("telemetry_retention_days", telemetry_days),
