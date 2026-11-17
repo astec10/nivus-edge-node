@@ -1,5 +1,6 @@
 import React, { lazy, Suspense, useEffect, useState, useRef } from 'react';
 import axios from 'axios';
+import './utils/sessionTransport';
 import PasswordChangeModal from './components/PasswordChangeModal';
 import DashboardHeader from './components/DashboardHeader';
 import DashboardNavigation from './components/DashboardNavigation';
