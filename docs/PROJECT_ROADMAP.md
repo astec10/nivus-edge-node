@@ -63,19 +63,22 @@ CI aprovado comprova o fluxo no runner virtual Ubuntu, não em cada chipset ou p
 5. [ ] Versionar o envelope de telemetria: nó, timestamp, unidade, origem, qualidade e versão do esquema.
 6. [ ] Exibir lista de nós, último contato e séries por nó no painel.
 7. [ ] Tratar duplicatas, atraso, relógios incorretos, perda de rede, revogação e nós desconhecidos.
-9. [ ] Definir perfil versionado de capacidade, separado de disponibilidade dinâmica, com estado de validação por capacidade; não inferir suporte pelo modelo do computador.
-10. [ ] Replicar do Master snapshots assinados, versionados, expirados e somente leitura, sem credenciais de outros nós. Tratar registro/capacidades do Master como autoridade.
-11. [ ] Validar onboarding, atualização e revogação do perfil com Raspberry Pi 3 e Dell Vostro 3268 físicos; registrar quais tarefas cada configuração realmente suporta.
-12. [ ] Integrar o perfil aprovado e a cópia do catálogo ao agente e à API, preservando o contrato atual de identidade/heartbeat.
-
-8. [ ] Definir distribuição de releases assinadas: inventário de versão/capacidades, seleção dos nós elegíveis, canário seguido de ondas, health check, manutenção de dados e rollback independente por nó. Offline, baixa bateria ou recursos insuficientes devem adiar a atualização sem bloquear a frota.
+8. [ ] Definir perfil versionado de capacidade, separado de disponibilidade dinâmica, com validação por capacidade; não inferir suporte pelo modelo do computador.
+9. [ ] Replicar do Master snapshots assinados, versionados, expirados e somente leitura, sem credenciais de outros nós; o registro do Master permanece autoritativo.
+10. [ ] Validar onboarding, atualização e revogação de perfil no Raspberry Pi 3 e Dell Vostro 3268 físicos; registrar tarefas realmente suportadas.
+11. [ ] Integrar o perfil aprovado e a cópia do catálogo ao agente e à API, preservando o contrato atual de identidade/heartbeat.
+12. [ ] Definir distribuição de releases assinadas: inventário de versão/capacidades, seleção dos nós elegíveis, canário seguido de ondas, health check, manutenção de dados e rollback independente por nó. Offline, baixa bateria ou recursos insuficientes devem adiar a atualização sem bloquear a frota.
 
 Critério de saída: dois dispositivos podem enviar telemetria autenticada; um nó desconectado não derruba os outros; credenciais podem ser revogadas; o painel identifica claramente dados ausentes ou antigos.
 
 Para atualizações de frota, o critério adicional é demonstrar uma correção simulada em um nó canário, ampliar a implantação aos nós elegíveis depois do health check, e reverter somente o nó que falhar. Cada nó valida assinatura e compatibilidade antes de aplicar o artefato.
 
 
-Detalhes e mapas mentais da proposta de capacidade e sincronização: [NODE_CAPABILITY_SCHEDULER.md](NODE_CAPABILITY_SCHEDULER.md). Perfil validado, inventário detalhado e cópias assinadas ainda não estão implementados.### Fase 3 — Integrações domésticas e energia
+Detalhes e mapas mentais da proposta de capacidade e sincronização: [NODE_CAPABILITY_SCHEDULER.md](NODE_CAPABILITY_SCHEDULER.md). Perfil validado, inventário detalhado e cópias assinadas ainda não estão implementados.
+
+Detalhes e mapas mentais da proposta de capacidade e sincronização: [NODE_CAPABILITY_SCHEDULER.md](NODE_CAPABILITY_SCHEDULER.md). Perfil validado, inventário detalhado e cópias assinadas ainda não estão implementados.
+
+### Fase 3 — Integrações domésticas e energia
 
 **Estado: parcialmente em andamento.** A primeira regra limitada de atuador (issue #22: bateria móvel → somente OFF no relé) foi integrada pelo PR #50 no commit `ba6e0c824fe1b62dd44c7d924a6a2d1074f26e23`; os quatro workflows hospedados passaram. A regra só opera após cadastro do dispositivo e envio de relatórios válidos pela integração Home Assistant, ainda não configurada ou validada em hardware. As demais integrações começam em leitura somente; nenhuma ação física foi testada.
 
