@@ -23,6 +23,9 @@ const EMPTY_FORM = {
   auth_method: 'bearer',
   api_key: '',
   monthly_budget_usd: '',
+  input_cost_per_million_usd: '',
+  output_cost_per_million_usd: '',
+  pricing_verified_on: '',
   max_requests_per_hour: '30',
   timeout_seconds: '10',
   allowed_data_classes: ['public', 'synthetic'],
@@ -149,6 +152,9 @@ export default function ProviderSettingsPanel({ token }) {
     const payload = {
       ...form,
       monthly_budget_usd: form.monthly_budget_usd === '' ? null : Number(form.monthly_budget_usd),
+      input_cost_per_million_usd: form.input_cost_per_million_usd === '' ? null : Number(form.input_cost_per_million_usd),
+      output_cost_per_million_usd: form.output_cost_per_million_usd === '' ? null : Number(form.output_cost_per_million_usd),
+      pricing_verified_on: form.pricing_verified_on || null,
       max_requests_per_hour: Number(form.max_requests_per_hour),
       timeout_seconds: Number(form.timeout_seconds),
       ...(form.api_key.trim() ? { api_key: form.api_key } : {}),
@@ -189,7 +195,7 @@ export default function ProviderSettingsPanel({ token }) {
       await axios.post(API + '/' + provider.id + '/enabled', { enabled: !provider.enabled }, { headers });
       setMessage(provider.enabled
         ? 'Provedor desabilitado.'
-        : 'Provedor habilitado para uso futuro pelo executor Nivus.');
+        : 'Provedor habilitado; cada execução ainda precisa respeitar os limites e a classe de dados permitida.');
       await refresh();
     } catch (error) {
       setMessage(error.response?.data?.detail || 'Não foi possível alterar o estado.');
@@ -240,6 +246,9 @@ export default function ProviderSettingsPanel({ token }) {
       responsible: provider.responsible,
       purpose: provider.purpose,
       monthly_budget_usd: provider.monthly_budget_usd == null ? '' : String(provider.monthly_budget_usd),
+      input_cost_per_million_usd: provider.input_cost_per_million_usd == null ? '' : String(provider.input_cost_per_million_usd),
+      output_cost_per_million_usd: provider.output_cost_per_million_usd == null ? '' : String(provider.output_cost_per_million_usd),
+      pricing_verified_on: provider.pricing_verified_on || '',
       max_requests_per_hour: String(provider.max_requests_per_hour),
       timeout_seconds: String(provider.timeout_seconds),
       allowed_data_classes: provider.allowed_data_classes || [],
@@ -268,6 +277,9 @@ export default function ProviderSettingsPanel({ token }) {
         responsible: editForm.responsible,
         purpose: editForm.purpose,
         monthly_budget_usd: editForm.monthly_budget_usd === '' ? null : Number(editForm.monthly_budget_usd),
+        input_cost_per_million_usd: editForm.input_cost_per_million_usd === '' ? null : Number(editForm.input_cost_per_million_usd),
+        output_cost_per_million_usd: editForm.output_cost_per_million_usd === '' ? null : Number(editForm.output_cost_per_million_usd),
+        pricing_verified_on: editForm.pricing_verified_on || null,
         max_requests_per_hour: Number(editForm.max_requests_per_hour),
         timeout_seconds: Number(editForm.timeout_seconds),
         allowed_data_classes: editForm.allowed_data_classes,
@@ -311,7 +323,8 @@ export default function ProviderSettingsPanel({ token }) {
       <p className="settings-explanation">
         Salvar não faz uma chamada externa. O teste é manual, consulta apenas a lista de modelos e não envia prompts.
         Nuvem aceita somente dados públicos ou sintéticos; endpoints locais ficam limitados a portas de modelos conhecidas.
-        Os limites são registrados para a integração futura e ainda não são aplicados pelo executor.
+        Antes da inferência, o executor verifica classe de dados, preços conferidos nos últimos 90 dias, orçamento mensal,
+        orçamento da tarefa, limite por hora e timeout. Sem preço atual ou orçamento, a chamada é bloqueada.
       </p>
 
       <div className="provider-toolbar">
@@ -406,6 +419,25 @@ export default function ProviderSettingsPanel({ token }) {
                 <input type="number" min="0.01" step="0.01" required value={form.monthly_budget_usd} onChange={event => setForm({ ...form, monthly_budget_usd: event.target.value })} />
               </label>
             )}
+            {form.endpoint_scope === 'cloud' && (
+              <>
+                <label className="display-preference-field">
+                  <span>Entrada por 1 milhão de tokens (USD)</span>
+                  <input type="number" min="0" step="any" value={form.input_cost_per_million_usd} onChange={event => setForm({ ...form, input_cost_per_million_usd: event.target.value })} />
+                </label>
+                <label className="display-preference-field">
+                  <span>Saída por 1 milhão de tokens (USD)</span>
+                  <input type="number" min="0" step="any" value={form.output_cost_per_million_usd} onChange={event => setForm({ ...form, output_cost_per_million_usd: event.target.value })} />
+                </label>
+                <label className="display-preference-field">
+                  <span>Data da conferência de preços</span>
+                  <input type="date" value={form.pricing_verified_on} onChange={event => setForm({ ...form, pricing_verified_on: event.target.value })} />
+                </label>
+                <p className="provider-inline-note provider-wide-field">
+                  Informe os preços oficiais do modelo. A inferência em nuvem fica bloqueada sem os dois valores e uma data de conferência com até 90 dias.
+                </p>
+              </>
+            )}
             <label className="display-preference-field">
               <span>Limite de solicitações por hora</span>
               <input type="number" min="1" max="10000" value={form.max_requests_per_hour} onChange={event => setForm({ ...form, max_requests_per_hour: event.target.value })} />
@@ -463,6 +495,13 @@ export default function ProviderSettingsPanel({ token }) {
               <div><dt>Teste</dt><dd>{TEST_STATUS[provider.last_test_status] || provider.last_test_status}</dd></div>
               <div><dt>Dados permitidos</dt><dd>{provider.allowed_data_classes.join(', ')}</dd></div>
               {provider.endpoint_scope === 'cloud' && <div><dt>Limite mensal</dt><dd>{provider.monthly_budget_usd == null ? 'Não definido' : 'US$ ' + Number(provider.monthly_budget_usd).toFixed(2)}</dd></div>}
+              {provider.endpoint_scope === 'cloud' && (
+                <div><dt>Preços confirmados</dt><dd>
+                  {provider.input_cost_per_million_usd == null || provider.output_cost_per_million_usd == null || !provider.pricing_verified_on
+                    ? 'Não configurados'
+                    : `Entrada US$ ${provider.input_cost_per_million_usd}/M · saída US$ ${provider.output_cost_per_million_usd}/M · conferidos em ${provider.pricing_verified_on}`}
+                </dd></div>
+              )}
               <div><dt>Máx./hora</dt><dd>{provider.max_requests_per_hour}</dd></div>
             </dl>
             <div className="provider-actions">
@@ -508,6 +547,22 @@ export default function ProviderSettingsPanel({ token }) {
                       <span>Limite mensal (USD)</span>
                       <input type="number" min="0.01" step="0.01" required value={editForm.monthly_budget_usd} onChange={event => setEditForm({ ...editForm, monthly_budget_usd: event.target.value })} />
                     </label>
+                  )}
+                  {provider.endpoint_scope === 'cloud' && (
+                    <>
+                      <label className="display-preference-field">
+                        <span>Entrada por 1 milhão de tokens (USD)</span>
+                        <input type="number" min="0" step="any" value={editForm.input_cost_per_million_usd} onChange={event => setEditForm({ ...editForm, input_cost_per_million_usd: event.target.value })} />
+                      </label>
+                      <label className="display-preference-field">
+                        <span>Saída por 1 milhão de tokens (USD)</span>
+                        <input type="number" min="0" step="any" value={editForm.output_cost_per_million_usd} onChange={event => setEditForm({ ...editForm, output_cost_per_million_usd: event.target.value })} />
+                      </label>
+                      <label className="display-preference-field">
+                        <span>Data da conferência de preços</span>
+                        <input type="date" value={editForm.pricing_verified_on} onChange={event => setEditForm({ ...editForm, pricing_verified_on: event.target.value })} />
+                      </label>
+                    </>
                   )}
                   <label className="display-preference-field">
                     <span>Limite de solicitações por hora</span>
