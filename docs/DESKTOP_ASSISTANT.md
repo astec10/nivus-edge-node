@@ -23,6 +23,25 @@ Detalhes apresentados no vídeo e na transcrição automática:
 - O áudio usa alto-falante e controle físico de volume. Um interruptor físico corta a alimentação da câmera e do microfone.
 - O criador informa que os personagens 3D foram desenhados pela equipe. Esses modelos são conteúdo próprio do vídeo e não fazem parte dos arquivos de referência do Nivus.
 
+### Referências de peças e conjuntos mostrados
+
+O vídeo ajuda a identificar categorias e alguns parâmetros, mas não fornece uma BOM completa, códigos de fabricante, links de compra, esquemas elétricos nem especificações suficientes para copiar a montagem sem validação.
+
+| Peça/conjunto | Referência citada ou mostrada | O que ainda não foi identificado |
+| --- | --- | --- |
+| Display | OLED de 5,5 polegadas; protótipo inicial ligado a um laptop por HDMI | Fabricante, modelo, resolução, brilho e interface da unidade final |
+| Computador embarcado | Orange Pi | Modelo exato, RAM, armazenamento e acelerador; o nome ouvido na transcrição automática não é confiável o bastante para fixar uma versão |
+| Conjunto óptico | Película/espelho semitransparente, cilindro/cobertura transparente, fundo preto e difusor em meia-lua | Material, espessura, dimensões, geometria e tratamento óptico |
+| Iluminação | Faixa ARGB endereçável | Tipo/quantidade de LEDs, tensão, corrente, controlador e difusão final |
+| Câmera | Câmera USB para acompanhar a pessoa | Fabricante, sensor, lente, resolução e campo de visão |
+| Base motorizada | Motorredutor, base giratória e rolamentos; a transcrição menciona cinco rolamentos, contagem a confirmar | Modelo e relação do motor, quantidade/tipo de rolamentos, torque, velocidade e limites mecânicos |
+| Feedback de posição | Potenciômetro ligado por engrenagem ao mecanismo | Modelo, curso, resolução, montagem e calibração |
+| Eletrônica de controle | Três PCBs relatadas: duas para LEDs e uma para controle/comunicação de LEDs, alto-falante e motor | Esquemas, componentes, microcontrolador, drivers, conectores e arquivos das placas |
+| Áudio | Alto-falante e controle físico de volume | Modelos, potência, amplificador e microfone usado na versão final |
+| Protótipos ópticos | Pirâmide de quatro peças transparentes sobre um celular e peça refletiva impressa em 3D | Material e medidas exatos; foram experiências iniciais, não a solução final |
+
+O vídeo descreve um motorredutor com realimentação por potenciômetro; isso não confirma o uso de motor de passo na proposta Nivus. Esses dados servem para orientar pesquisa e prototipagem, não para emitir uma lista de compras.
+
 ## Adaptação proposta pelo operador
 
 O operador descreveu uma assistente de mesa com tela, efeitos de iluminação, motor de passo, ESP32-CAM, microfone e um computador para processar imagem e áudio, acompanhar a pessoa, reconhecer rostos e atender comandos. Essa é a lista da proposta do Nivus; o vídeo, por sua vez, descreve câmera USB, motorredutor com feedback de posição e Orange Pi. Os componentes não devem ser tratados como equivalentes até que a seleção seja feita.

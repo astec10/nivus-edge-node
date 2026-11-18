@@ -611,6 +611,7 @@
   ],
   "acelerador": [
     "doc-video-research-index",
+    "doc-desktop-assistant",
     "doc-project-roadmap",
     "doc-vision"
   ],
@@ -1013,6 +1014,7 @@
     "doc-vision"
   ],
   "ajuda": [
+    "doc-desktop-assistant",
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-vision"
@@ -1070,6 +1072,7 @@
     "doc-vision"
   ],
   "alguns": [
+    "doc-desktop-assistant",
     "doc-vision"
   ],
   "alimenta": [
@@ -1201,6 +1204,9 @@
   "ampliar": [
     "doc-hardware-telemetry",
     "doc-project-roadmap"
+  ],
+  "amplificador": [
+    "doc-desktop-assistant"
   ],
   "an": [
     "doc-ai-development-orchestration",
@@ -2136,6 +2142,9 @@
   "bash": [
     "doc-ai-workflow"
   ],
+  "bastante": [
+    "doc-desktop-assistant"
+  ],
   "bateria": [
     "doc-ai-context",
     "doc-hardware-telemetry",
@@ -2294,7 +2303,8 @@
     "doc-ai-development-orchestration"
   ],
   "bom": [
-    "doc-video-research-index"
+    "doc-video-research-index",
+    "doc-desktop-assistant"
   ],
   "boot": [
     "doc-ai-context",
@@ -2353,6 +2363,9 @@
     "doc-vision"
   ],
   "brief": [
+    "doc-desktop-assistant"
+  ],
+  "brilho": [
     "doc-desktop-assistant"
   ],
   "broker": [
@@ -2544,7 +2557,8 @@
   ],
   "campo": [
     "doc-ai-context",
-    "doc-node-registry"
+    "doc-node-registry",
+    "doc-desktop-assistant"
   ],
   "campos": [
     "doc-ai-provider-connectors",
@@ -2680,6 +2694,7 @@
     "doc-video-research-index"
   ],
   "categorias": [
+    "doc-desktop-assistant",
     "doc-vision"
   ],
   "causa": [
@@ -2891,6 +2906,9 @@
     "doc-project-roadmap",
     "doc-vision",
     "ref-multipaz-developer-website"
+  ],
+  "citada": [
+    "doc-desktop-assistant"
   ],
   "citar": [
     "doc-project-roadmap"
@@ -3225,7 +3243,8 @@
   "completa": [
     "doc-ai-context",
     "doc-ai-module-workplan",
-    "doc-video-research-index"
+    "doc-video-research-index",
+    "doc-desktop-assistant"
   ],
   "completas": [
     "doc-project-roadmap"
@@ -3283,6 +3302,9 @@
   ],
   "comprar": [
     "doc-vision"
+  ],
+  "compras": [
+    "doc-desktop-assistant"
   ],
   "comprometer": [
     "doc-ai-development-orchestration",
@@ -3406,6 +3428,7 @@
     "doc-vision"
   ],
   "conectores": [
+    "doc-desktop-assistant",
     "doc-project-roadmap",
     "doc-vision"
   ],
@@ -3448,6 +3471,7 @@
     "doc-ai-module-workplan",
     "doc-module-map",
     "doc-node-registry",
+    "doc-desktop-assistant",
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-project-roadmap",
@@ -3548,6 +3572,7 @@
     "doc-ai-module-workplan",
     "doc-module-map",
     "doc-node-registry",
+    "doc-desktop-assistant",
     "doc-project-status",
     "doc-vision"
   ],
@@ -3603,7 +3628,11 @@
     "doc-hardware-telemetry"
   ],
   "conjunto": [
-    "doc-ai-module-workplan"
+    "doc-ai-module-workplan",
+    "doc-desktop-assistant"
+  ],
+  "conjuntos": [
+    "doc-desktop-assistant"
   ],
   "consegue": [
     "doc-project-roadmap",
@@ -3930,6 +3959,7 @@
   ],
   "copiar": [
     "doc-ai-provider-connectors",
+    "doc-desktop-assistant",
     "ref-multipaz-developer-website"
   ],
   "copie": [
@@ -4872,6 +4902,9 @@
   "diffs": [
     "doc-ai-development-orchestration"
   ],
+  "difus": [
+    "doc-desktop-assistant"
+  ],
   "difusor": [
     "doc-desktop-assistant"
   ],
@@ -5201,6 +5234,7 @@
     "doc-project-status"
   ],
   "drivers": [
+    "doc-desktop-assistant",
     "doc-hardware-telemetry"
   ],
   "duas": [
@@ -5313,6 +5347,7 @@
     "doc-desktop-assistant"
   ],
   "el": [
+    "doc-desktop-assistant",
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision"
@@ -5381,6 +5416,7 @@
   ],
   "emitir": [
     "doc-ai-executor-implementation",
+    "doc-desktop-assistant",
     "nivus-mobile-battery-relay"
   ],
   "empacotadas": [
@@ -5750,6 +5786,9 @@
     "doc-ai-workflow",
     "doc-project-status"
   ],
+  "espessura": [
+    "doc-desktop-assistant"
+  ],
   "esquema": [
     "doc-ai-workflow",
     "doc-node-registry",
@@ -5757,7 +5796,8 @@
     "doc-vision"
   ],
   "esquemas": [
-    "doc-video-research-index"
+    "doc-video-research-index",
+    "doc-desktop-assistant"
   ],
   "essa": [
     "doc-ai-context",
@@ -5993,6 +6033,7 @@
   "exatos": [
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
+    "doc-desktop-assistant",
     "doc-project-roadmap",
     "doc-vision"
   ],
@@ -6317,6 +6358,7 @@
     "doc-vision"
   ],
   "fabricante": [
+    "doc-desktop-assistant",
     "doc-project-roadmap",
     "doc-vision"
   ],
@@ -6616,6 +6658,9 @@
   "fixadas": [
     "ref-multipaz-developer-website"
   ],
+  "fixar": [
+    "doc-desktop-assistant"
+  ],
   "fixe": [
     "doc-ai-development-orchestration"
   ],
@@ -6748,7 +6793,8 @@
   "fornece": [
     "doc-ai-development-orchestration",
     "doc-module-map",
-    "doc-node-registry"
+    "doc-node-registry",
+    "doc-desktop-assistant"
   ],
   "fornecedor": [
     "doc-ai-workflow"
@@ -6949,6 +6995,9 @@
   ],
   "genericamente": [
     "doc-hardware-telemetry"
+  ],
+  "geometria": [
+    "doc-desktop-assistant"
   ],
   "gera": [
     "doc-project-status",
@@ -7609,6 +7658,9 @@
   "identificada": [
     "nivus-mobile-battery-relay"
   ],
+  "identificado": [
+    "doc-desktop-assistant"
+  ],
   "identificador": [
     "doc-ai-provider-connectors"
   ],
@@ -7620,6 +7672,7 @@
     "doc-hardware-telemetry"
   ],
   "identificar": [
+    "doc-desktop-assistant",
     "doc-hardware-telemetry"
   ],
   "identification": [
@@ -8643,6 +8696,9 @@
     "doc-vision",
     "nivus-mobile-battery-relay"
   ],
+  "lente": [
+    "doc-desktop-assistant"
+  ],
   "ler": [
     "doc-ai-executor-implementation",
     "doc-hardware-telemetry",
@@ -8719,6 +8775,9 @@
   ],
   "ligada": [
     "doc-ai-executor-implementation"
+  ],
+  "ligado": [
+    "doc-desktop-assistant"
   ],
   "ligados": [
     "doc-ai-context"
@@ -8851,6 +8910,7 @@
   ],
   "links": [
     "doc-ai-context",
+    "doc-desktop-assistant",
     "doc-vision",
     "ref-multipaz-developer-website"
   ],
@@ -9230,6 +9290,7 @@
   ],
   "mecanismo": [
     "doc-ai-workflow",
+    "doc-desktop-assistant",
     "doc-vision"
   ],
   "medi": [
@@ -9241,6 +9302,9 @@
   ],
   "medida": [
     "doc-project-roadmap"
+  ],
+  "medidas": [
+    "doc-desktop-assistant"
   ],
   "medido": [
     "doc-desktop-assistant",
@@ -9567,9 +9631,15 @@
     "doc-hardware-telemetry",
     "doc-vision"
   ],
+  "mostrada": [
+    "doc-desktop-assistant"
+  ],
   "mostrado": [
     "doc-node-registry",
     "doc-project-status"
+  ],
+  "mostrados": [
+    "doc-desktop-assistant"
   ],
   "mostram": [
     "doc-project-status"
@@ -9603,6 +9673,9 @@
   ],
   "motores": [
     "doc-project-roadmap"
+  ],
+  "motorizada": [
+    "doc-desktop-assistant"
   ],
   "motorizado": [
     "doc-video-research-index"
@@ -9962,6 +10035,7 @@
   "nome": [
     "doc-ai-provider-connectors",
     "doc-node-registry",
+    "doc-desktop-assistant",
     "doc-project-status"
   ],
   "nomes": [
@@ -10476,6 +10550,9 @@
   "organize": [
     "doc-ai-workflow"
   ],
+  "orientar": [
+    "doc-desktop-assistant"
+  ],
   "origem": [
     "doc-ai-workflow",
     "doc-ai-module-workplan",
@@ -10559,6 +10636,9 @@
   "outros": [
     "doc-node-registry",
     "doc-project-roadmap"
+  ],
+  "ouvido": [
+    "doc-desktop-assistant"
   ],
   "over": [
     "networked-gpu-versus-task-federation"
@@ -10647,6 +10727,9 @@
   ],
   "papel": [
     "doc-node-registry"
+  ],
+  "par": [
+    "doc-desktop-assistant"
   ],
   "para": [
     "doc-ai-context",
@@ -11129,6 +11212,7 @@
   ],
   "pesquisa": [
     "doc-video-research-index",
+    "doc-desktop-assistant",
     "doc-vision"
   ],
   "pesquisas": [
@@ -11412,6 +11496,7 @@
     "doc-desktop-assistant"
   ],
   "pot": [
+    "doc-desktop-assistant",
     "doc-hardware-telemetry"
   ],
   "potenci": [
@@ -11852,6 +11937,9 @@
   "protocolos": [
     "doc-ai-provider-connectors"
   ],
+  "prototipagem": [
+    "doc-desktop-assistant"
+  ],
   "prova": [
     "doc-ai-provider-connectors",
     "doc-video-research-index",
@@ -12048,6 +12136,9 @@
     "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
+  "quantidade": [
+    "doc-desktop-assistant"
+  ],
   "quantiza": [
     "doc-video-research-index"
   ],
@@ -12147,6 +12238,7 @@
     "doc-ai-development-orchestration",
     "doc-video-research-index",
     "doc-module-map",
+    "doc-desktop-assistant",
     "doc-project-roadmap",
     "doc-vision",
     "local-inference-hardware-fit",
@@ -12230,6 +12322,9 @@
     "doc-project-roadmap",
     "doc-vision",
     "video-wgqdaqqto90"
+  ],
+  "realimenta": [
+    "doc-desktop-assistant"
   ],
   "realmente": [
     "doc-hardware-telemetry"
@@ -12564,7 +12659,8 @@
     "nivus-mobile-battery-relay"
   ],
   "rela": [
-    "doc-ai-provider-connectors"
+    "doc-ai-provider-connectors",
+    "doc-desktop-assistant"
   ],
   "relacionadas": [
     "doc-ai-development-orchestration",
@@ -12579,6 +12675,9 @@
     "doc-project-roadmap"
   ],
   "relata": [
+    "doc-desktop-assistant"
+  ],
+  "relatadas": [
     "doc-desktop-assistant"
   ],
   "relatado": [
@@ -13615,6 +13714,7 @@
   ],
   "sensor": [
     "doc-ai-module-workplan",
+    "doc-desktop-assistant",
     "doc-hardware-telemetry"
   ],
   "sensores": [
@@ -13731,6 +13831,7 @@
     "doc-ai-module-workplan"
   ],
   "servem": [
+    "doc-desktop-assistant",
     "doc-hardware-telemetry"
   ],
   "server": [
@@ -14003,6 +14104,9 @@
   "solicitou": [
     "nivus-mobile-battery-relay"
   ],
+  "solu": [
+    "doc-desktop-assistant"
+  ],
   "solved": [
     "doc-video-research-index",
     "video-cfdoXn6yvE4"
@@ -14196,6 +14300,9 @@
   ],
   "suficiente": [
     "doc-project-status"
+  ],
+  "suficientes": [
+    "doc-desktop-assistant"
   ],
   "sufixo": [
     "doc-project-status"
@@ -14459,6 +14566,9 @@
   ],
   "temporais": [
     "doc-vision"
+  ],
+  "tens": [
+    "doc-desktop-assistant"
   ],
   "tenta": [
     "doc-ai-executor-implementation"
@@ -14758,6 +14868,9 @@
   "tornar": [
     "doc-video-research-index"
   ],
+  "torque": [
+    "doc-desktop-assistant"
+  ],
   "tos": [
     "doc-ai-development-orchestration",
     "ai-development-persistent-worker"
@@ -14871,6 +14984,9 @@
     "doc-vision"
   ],
   "tratados": [
+    "doc-desktop-assistant"
+  ],
+  "tratamento": [
     "doc-desktop-assistant"
   ],
   "tratar": [
@@ -14999,6 +15115,7 @@
   "unidade": [
     "doc-ai-module-workplan",
     "doc-node-registry",
+    "doc-desktop-assistant",
     "doc-project-roadmap",
     "doc-vision"
   ],
@@ -15078,7 +15195,8 @@
     "doc-ai-development-orchestration"
   ],
   "usado": [
-    "doc-ai-executor-implementation"
+    "doc-ai-executor-implementation",
+    "doc-desktop-assistant"
   ],
   "usados": [
     "doc-vision"
@@ -15204,6 +15322,7 @@
     "doc-ai-module-workplan",
     "doc-module-map",
     "doc-node-registry",
+    "doc-desktop-assistant",
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-project-roadmap",
@@ -15993,6 +16112,7 @@
     "doc-ai-module-workplan",
     "doc-module-map",
     "doc-node-registry",
+    "doc-desktop-assistant",
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-project-roadmap",
@@ -16020,6 +16140,9 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision"
+  ],
+  "âmetros": [
+    "doc-desktop-assistant"
   ],
   "âmico": [
     "doc-vision"
@@ -16337,6 +16460,9 @@
   ],
   "étrico": [
     "doc-vision"
+  ],
+  "étricos": [
+    "doc-desktop-assistant"
   ],
   "ê": [
     "doc-ai-provider-connectors",
@@ -16697,6 +16823,7 @@
   "ódigos": [
     "doc-module-map",
     "doc-node-registry",
+    "doc-desktop-assistant",
     "doc-project-status"
   ],
   "ódulo": [
@@ -16770,6 +16897,12 @@
   "óptica": [
     "doc-desktop-assistant"
   ],
+  "óptico": [
+    "doc-desktop-assistant"
+  ],
+  "ópticos": [
+    "doc-desktop-assistant"
+  ],
   "ória": [
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
@@ -16840,6 +16973,9 @@
     "doc-desktop-assistant",
     "doc-project-roadmap",
     "doc-vision"
+  ],
+  "ótipos": [
+    "doc-desktop-assistant"
   ],
   "ótulo": [
     "doc-video-research-index",
