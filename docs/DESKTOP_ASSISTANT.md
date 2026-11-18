@@ -27,6 +27,8 @@ Detalhes apresentados no vídeo e na transcrição automática:
 
 O operador descreveu uma assistente de mesa com tela, efeitos de iluminação, motor de passo, ESP32-CAM, microfone e um computador para processar imagem e áudio, acompanhar a pessoa, reconhecer rostos e atender comandos. Essa é a lista da proposta do Nivus; o vídeo, por sua vez, descreve câmera USB, motorredutor com feedback de posição e Orange Pi. Os componentes não devem ser tratados como equivalentes até que a seleção seja feita.
 
+Preferências já definidas pelo operador: usar uma exibição refletiva inspirada no Project NOVA; combinar o traje azul-marinho/dourado com elementos steampunk; permitir identificação facial somente após ativação explícita. A ativação deve começar desligada. O tamanho da tela, o método dessa ativação e a política de processamento/armazenamento ainda não foram definidos.
+
 O computador principal poderá ser o host Nivus disponível, mas o desempenho ainda precisa ser medido. O microcontrolador deve cuidar de periféricos e movimento; visão computacional, áudio e agente conversacional ficam em um processo substituível. A primeira integração com Home Assistant/Nivus deve ser somente de leitura e usar uma allowlist estreita para comandos posteriores.
 
 ```mermaid
@@ -47,7 +49,7 @@ flowchart LR
 
 ## Base visual para o modelo 3D
 
-As imagens fornecidas pelo operador serão referências visuais para o avatar 3D, não para a eletrônica. Elas mostram vistas de frente, lado e costas e variações de estilo. Elementos visuais recorrentes: cabelo curto escuro/azul, traje azul-marinho com linhas douradas, calça escura e botas altas; uma variante adiciona peças de couro, fivelas, braceletes e detalhes metálicos em estilo steampunk.
+As imagens fornecidas pelo operador serão referências visuais para o avatar 3D, não para a eletrônica. A direção principal escolhida combina o traje azul-marinho com linhas douradas, cabelo curto escuro/azul, calça escura e botas altas com elementos steampunk das outras referências: gola/ombros estruturados, couro, fivelas, braceletes e ferragens metálicas. O objetivo é um único traje coeso, com desenho original, e não alternar entre dois personagens separados.
 
 Para a criação do personagem, o pacote de arte deverá definir uma malha original ou licenciada, vistas ortográficas consistentes, escala, rig de cabeça/olhos/corpo, expressões, poses, gestos e sincronização labial. A resolução, o formato de exportação e o pipeline 3D ainda estão em aberto. As imagens não foram copiadas para este repositório; a origem e os direitos de uso precisam ser confirmados antes de publicar arte derivada ou distribuir o modelo.
 
@@ -64,7 +66,8 @@ mindmap
       Rig e expressões
       Voz e sincronização labial
     Exibição
-      OLED ou display escolhido por medição
+      Ilusão refletiva escolhida como direção
+      Tamanho do display ainda pendente
       Fundo preto
       Espelho semitransparente
       Invólucro e difusor
@@ -72,7 +75,8 @@ mindmap
     Percepção local
       Câmera
       Rastreamento sem identidade por padrão
-      Reconhecimento de identidade opcional
+      Identificação facial somente após ativação explícita
+      Ativação começa desligada
       Microfone e áudio
       Sem retenção bruta por padrão
     Movimento seguro
@@ -89,9 +93,9 @@ mindmap
 
 ## Privacidade, segurança e falhas
 
-- Rastreamento de pessoa/localização no quadro é o padrão inicial. Identificar quem é a pessoa por reconhecimento facial é uma capacidade diferente, opcional e ainda não aprovada; começa desligada.
-- Processar vídeo e áudio localmente quando possível. Não guardar quadros, gravações nem transcrições por padrão; métricas e eventos devem omitir conteúdo identificável e ter retenção definida antes da coleta.
-- O interruptor deve cortar fisicamente a alimentação da câmera e do microfone e mostrar claramente quando os sensores estão ativos. Um botão de software sozinho não substitui o corte físico.
+- Rastreamento de posição no quadro é o padrão inicial. O operador escolheu permitir reconhecimento facial de identidade somente quando explicitamente ativado; ele começa desligado. Ainda falta decidir como ativar, como registrar consentimento, quais identidades podem ser cadastradas e como revogar/excluir esses dados.
+- Processamento local e ausência de gravação bruta por padrão são propostas de privacidade, ainda sem confirmação final. A política de quadros, áudio, embeddings faciais, transcrições, métricas, acesso e retenção precisa ser definida antes de implementar a identificação.
+- Requisito físico proposto: um interruptor deve cortar a alimentação da câmera e do microfone e indicar claramente quando estão ativos. A necessidade e o desenho desse corte ainda aguardam confirmação do operador; botão de software sozinho não oferece isolamento físico.
 - A perda do host, da rede, do heartbeat ou da posição deve interromper o movimento sem uma rotação corretiva inesperada. O controlador local aplica velocidade, curso e corrente máximos; incluir parada manual, watchdog e proteção contra aprisionamento.
 - Reconhecimento facial, inferência ou voz não podem, isoladamente, destrancar portas, abrir portões, desligar alarmes ou controlar cargas críticas. Comandos comuns passam por allowlist determinística, confirmação adequada e registro sem conteúdo de voz.
 - Começar com display/avatar e leitura somente. Câmera, movimento e controle doméstico entram em etapas separadas, primeiro simuladas e depois em dispositivos não críticos.
@@ -100,8 +104,8 @@ mindmap
 
 1. Transformar as referências visuais em um brief e modelo 3D original/licenciado, sem sensores nem movimento.
 2. Testar display, reflexo, iluminação e difusor em uma estrutura estática; registrar o ângulo de visão útil e a legibilidade em ambiente iluminado.
-3. Selecionar câmera e processamento local; medir detecção/rastreamento sem identificação e sem gravação.
+3. Selecionar câmera e plataforma de processamento; medir detecção/rastreamento sem identificação. Especificar ativação explícita, consentimento, processamento local/remoto e retenção antes de habilitar reconhecimento facial.
 4. Selecionar motor, driver, feedback de posição e estrutura; validar deadband, curso limitado, ruído, temperatura e parada manual.
 5. Adicionar microfone/alto-falante com corte físico e interação local; só depois integrar comandos de baixo risco ao Home Assistant/Nivus.
 
-Ainda precisam de decisão: tamanho/modelo do display; câmera USB ou ESP32-CAM; placa/controlador de motor; tipo de motor e feedback; microfone/alto-falante; computador e modelos locais; tecnologia de reconhecimento de fala/visão; dimensão e material do invólucro; formatos do modelo 3D; política de armazenamento e acesso; entidades domésticas permitidas.
+Ainda precisam de decisão: tamanho/modelo do display; câmera USB ou ESP32-CAM; placa/controlador de motor; tipo de motor e feedback; microfone/alto-falante; computador e modelos locais; tecnologia de reconhecimento de fala/visão; ativação e gestão de consentimento para identidade facial; processamento local/remoto e retenção; corte físico dos sensores; dimensão e material do invólucro; formatos do modelo 3D; entidades domésticas permitidas.
