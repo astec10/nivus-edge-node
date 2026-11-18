@@ -42,6 +42,25 @@ O vídeo ajuda a identificar categorias e alguns parâmetros, mas não fornece u
 
 O vídeo descreve um motorredutor com realimentação por potenciômetro; isso não confirma o uso de motor de passo na proposta Nivus. Esses dados servem para orientar pesquisa e prototipagem, não para emitir uma lista de compras.
 
+### Próximo protótipo: ensaio óptico de bancada
+
+Antes de selecionar peças finais, montar uma unidade estática para avaliar a ilusão refletiva com um painel, superfície semitransparente, fundo escuro e iluminação ajustável. A referência de 5,5 polegadas vem do vídeo e da página da Razer; ela ainda não é uma dimensão aprovada para o Nivus.
+
+Registrar cada configuração para comparar resultados:
+
+| Variável | O que registrar |
+| --- | --- |
+| Painel | Modelo, dimensões, resolução, brilho configurado, interface e temperatura após o período de ensaio |
+| Superfície refletiva | Material, espessura, transparência/refletividade declarada pelo fabricante, inclinação e distância do painel |
+| Invólucro e fundo | Dimensões, acabamento preto, entradas de luz ambiente e posição do difusor |
+| Iluminação | Tipo de LED, cor, brilho, distância do difusor e reflexos parasitas no painel |
+| Observação | Distância, altura, ângulo horizontal/vertical e iluminação do ambiente; fotografar a partir dos pontos de observação previstos |
+| Conteúdo de teste | Cruz de alinhamento, silhueta clara sobre preto e depois uma animação 3D com detalhes do rosto e do traje |
+
+Avaliar legibilidade do rosto e do traje, brilho percebido, imagem dupla/fantasmas, vazamento de luz, reflexos indesejados e área angular em que o avatar permanece visível. Definir os limites aceitáveis a partir do local de uso e do tamanho desejado do aparelho, registrando fotos e medidas junto com cada configuração. O resultado desta etapa é uma geometria e um conjunto óptico candidatos, com modelos de peças identificados e limitações anotadas.
+
+Nesta bancada entram somente painel, refletor, suporte/invólucro temporário, fundo e iluminação ajustável. O ensaio não precisa de motor, câmera, microfone ou reconhecimento facial. Depois de escolher a geometria óptica, especificar o movimento e o acompanhamento como um subsistema separado; o vídeo usa motorredutor com realimentação, enquanto a proposta Nivus ainda considera motor de passo.
+
 ## Adaptação proposta pelo operador
 
 O operador descreveu uma assistente de mesa com tela, efeitos de iluminação, motor de passo, ESP32-CAM, microfone e um computador para processar imagem e áudio, acompanhar a pessoa, reconhecer rostos e atender comandos. Essa é a lista da proposta do Nivus; o vídeo, por sua vez, descreve câmera USB, motorredutor com feedback de posição e Orange Pi. Os componentes não devem ser tratados como equivalentes até que a seleção seja feita.
