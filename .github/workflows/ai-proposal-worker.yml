@@ -82,12 +82,12 @@ jobs:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
     steps:
       - name: Check out trusted default branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.repository.default_branch }}
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -125,7 +125,7 @@ jobs:
 
       - name: Save sanitized model usage report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nivus-ai-usage-${{ github.run_id }}
           path: ${{ runner.temp }}/nivus-ai-usage.json
