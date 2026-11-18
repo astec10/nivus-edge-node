@@ -1,6 +1,6 @@
 # Conexões com provedores de IA
 
-Estado: a implementação administrativa está documentada no PR #72, com CI hospedada aprovada; ainda não foi implantada no notebook. O cadastro, por si só, não conecta o executor de tarefas nem envia prompts.
+Estado: o cadastro administrativo foi integrado no PR #72 e está incluído na release `f896de8` aplicada no notebook. A inferência conectada da issue #74 está sendo proposta nesta branch; ainda não passou pela CI nem foi implantada. Nenhuma chamada real a modelo foi feita durante esta implementação.
 
 ## Onde encontrar e como usar
 
@@ -10,8 +10,10 @@ O formulário registra:
 
 - provedor ou nome manual, protocolo, tipo de endpoint e URL-base;
 - modelo escolhido, responsável pelo serviço ou cobrança e finalidade;
-- autenticação, chave, orçamento mensal, limite de solicitações por hora e timeout;
+- autenticação, chave, orçamento mensal, preços de entrada/saída por milhão de tokens e data de conferência, limite de solicitações por hora e timeout;
 - classes de dados permitidas.
+
+Para provedores em nuvem, o administrador informa manualmente o custo de entrada e saída por milhão de tokens e a data em que conferiu a tabela oficial. O executor bloqueia a nuvem se esses valores estiverem ausentes ou tiverem mais de 90 dias. Os preços não são buscados automaticamente e devem ser atualizados pelo responsável.
 
 O catálogo inicial inclui OpenAI, Anthropic, Google Gemini e Ollama local. O cadastro manual aceita os protocolos suportados pela API. Edite nome, modelo, responsável, finalidade, política e limites diretamente na lista. Para trocar endpoint/protocolo, remova este perfil e cadastre-o de novo. A chave tem ação separada de substituição. O painel mostra somente se há uma credencial configurada, nunca o valor salvo.
 
@@ -32,7 +34,19 @@ O backup normal do SQLite não contém a chave mestra. Para recuperar perfis em 
 - Nuvem aceita apenas as classes `public` e `synthetic`. Dados pessoais, de operação do nó, da casa e de câmeras são recusados pela API para provedores de nuvem.
 - A auditoria registra ator, ação, estado e horário sem chave, prompt ou resposta.
 
-Os campos de orçamento e solicitações por hora são **política armazenada**, não um medidor ou bloqueador de chamadas: o executor de inferência ainda não está integrado a esses perfis. Não use o estado “habilitado” como prova de que há executor, contabilização de custo ou controle de cota operando. Essa integração deve aplicar limites antes de cada chamada, registrar consumo sem guardar conteúdo e falhar fechado quando não houver orçamento.
+O executor de inferência da issue #74 aplica o limite por hora em conjunto com os testes de conexão. Antes de cada chamada, reserva o custo estimado no orçamento mensal e no orçamento acumulado da tarefa. Provedores de nuvem exigem preços de entrada/saída por milhão de tokens configurados pelo administrador e conferidos nos últimos 90 dias; sem preços, orçamento ou classe de dados permitida, a chamada é bloqueada. O cálculo usa o tamanho UTF-8 da entrada com margem conservadora, a saída máxima permitida e, após a resposta, o uso de tokens informado pelo provedor.
+
+Esse bloqueio é um limite local estimado, não uma fatura do provedor: tarifação por cache, ajustes da conta, mudanças de preço ou metadados internos do serviço podem diferir. Configure também um limite de gastos na conta do provedor. Em timeout ou cancelamento depois do envio, a reserva é mantida porque a cobrança pode ser incerta.
+
+## Execução explícita de uma tarefa
+
+A rota administrativa `POST /api/ai/executor/complete` executa uma solicitação para um único perfil selecionado pelo chamador. O payload leva UUID de solicitação (idempotência), ID de tarefa, provedor, instrução, classe de dados, orçamento acumulado da tarefa e limite de tokens de saída. Não há roteamento implícito, fallback para outra nuvem nem repetição automática. Uma nova tentativa requer UUID novo.
+
+A inferência usa os protocolos OpenAI-compatible, Anthropic Messages, Gemini Interactions REST (com `store=false`) e Ollama Chat. O Gemini envia uma interação stateless, sem ferramentas; Generate Content permanece legado para novos projetos. Consulte [a referência oficial de Interactions](https://ai.google.dev/api/interactions-api) e [o guia oficial de migração](https://ai.google.dev/gemini-api/docs/interactions-breaking-changes-may-2026). Ferramentas/chamadas de função e execução do conteúdo gerado não estão habilitadas. A resposta é retornada ao chamador, mas prompt e saída não são gravados no SQLite, na auditoria ou nos logs. A auditoria registra somente IDs, ator, provedor/modelo, classe, estado, duração, tokens reportados, estimativa de custo e motivo de bloqueio.
+
+A rota `POST /api/ai/executor/requests/{request_id}/cancel` fecha a conexão acompanhada e cancela o trabalho pendente local. Se a requisição já saiu do Nivus, o serviço externo ainda pode concluir e cobrar. Solicitações concluídas, desconhecidas ou de outro administrador não podem ser canceladas.
+
+A implementação está em proposta e não deve ser tratada como implantada até CI aprovada, revisão e atualização reversível do notebook. Os testes usam mocks e conteúdo sintético; não fazem chamadas reais de provedor.
 
 ## Relação com o executor GitHub Actions
 
@@ -42,4 +56,4 @@ Esta configuração pertence ao runtime do Nivus. Ela não lê nem altera `GEMIN
 
 As rotas administrativas ficam em `backend/api/routers/ai_providers.py`; a cifra, validação de endpoint, teste explícito e auditoria ficam em `backend/services/ai_providers.py`. A migração é aditiva e cria as tabelas `ai_provider_connections` e `ai_provider_audit`.
 
-A CI do PR #72 passou nos workflows de smoke Compose Ubuntu 22.04, painel e sensores, índice de conhecimento e CodeQL. Os testes específicos cobrem cifra e alteração de texto, autorização da política, orçamento obrigatório antes do teste de nuvem, limite de testes por hora, teste sem prompt, bloqueio de endereços privados em nuvem e loopback em endpoint local. A alteração continua sem implantação no notebook.
+A CI do PR #72 passou nos workflows de smoke Compose Ubuntu 22.04, painel e sensores, índice de conhecimento e CodeQL. Os testes específicos cobrem cifra e alteração de texto, autorização da política, orçamento obrigatório antes do teste de nuvem, limite de testes por hora, teste sem prompt, bloqueio de endereços privados em nuvem e loopback em endpoint local. O código do PR #72 está na release aplicada `f896de8`. A inferência da issue #74 ainda aguarda CI, revisão e implantação; não foi feita chamada real a provedor.
