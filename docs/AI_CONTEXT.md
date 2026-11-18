@@ -13,6 +13,7 @@ Criar uma plataforma local-first, modular e econômica para monitorar nós x86_6
 - A implementação de manutenção e `nivus help` foi integrada no PR #28 e está incluída na release ativa do notebook (`fff64a68`). O update confirmou rebuild, backup, reinício dos serviços, HTTPS 200 e API sem token 401; ainda falta exercitar os comandos de manutenção no host. Consulte `deploy/README.md` e `PROJECT_STATUS.md` antes de afirmar validação funcional completa.
 - Em 17/11/2026, o operador atualizou o notebook para `fff64a68f252f0b1290576e30b39ed78fbc15a7a`; build, backup consistente, restart dos serviços, HTTPS 200 e telemetria sem token 401 passaram. A release inclui PRs #66 e #67. O log comprova restart dos containers, não reboot completo; ainda falta revisão visual após Ctrl+F5. A regra móvel do PR #50 só envia OFF com relatório válido e recente em bateria ≤20%; não envia ON. Home Assistant e relé físico seguem pendentes.
 - PR #53 integrou proteção contra chamadas de modelo duplicadas quando já existe um draft aberto, remove rótulos obsoletos e comenta o link. A release ativa `fff64a68` é descendente do merge #53; portanto essa correção está na release do notebook. O PR #16 continua draft para revisão humana e nenhuma nova chamada de modelo foi feita.
+- O PR #78 publica playbooks portáteis e, em revisão, uma fila externa de desenvolvimento com FastAPI/Redis: webhook GitHub HMAC, allowlists, heartbeat, claim/lease atômico, retries limitados e resultado em `result_pending_review`. O dispatcher não é runtime Nivus e não possui adaptador de modelo nem executor isolado; consulte `AI_DEVELOPMENT_ORCHESTRATION.md` e `tools/parallel_ai_dispatcher/README.md`.
 - Telemetria local está presente no nó de teste, mas telemetria agregada entre nós não é pré-requisito para o executor de desenvolvimento; será útil quando o Nó Master estiver operacional.
 - Issue #21: esta proposta adiciona um cadeado para desbloquear a edição local de rascunhos NTP; aplicar continua indisponível enquanto outro cliente gerencia a hora do host.
 - Issue #22: a proposta é descobrir sensores de bateria via integração de leitura do Home Assistant e permitir escolha explícita pelo administrador. Não usar User-Agent ou Battery Status API do navegador como autorização.
@@ -47,6 +48,7 @@ Criar uma plataforma local-first, modular e econômica para monitorar nós x86_6
 | Como a biblioteca e os dados de vídeo são curados? | [`AI_WORKFLOW.md`](AI_WORKFLOW.md), [`VIDEO_RESEARCH_INDEX.md`](VIDEO_RESEARCH_INDEX.md), [`../knowledge/README.md`](../knowledge/README.md) |
 | Como coordenar agentes externos, dividir módulos e usar o notebook? | [`AI_DEVELOPMENT_ORCHESTRATION.md`](AI_DEVELOPMENT_ORCHESTRATION.md) |
 | Como decompor peças paralelas e integrá-las? | [`AI_MODULE_WORKPLAN.md`](AI_MODULE_WORKPLAN.md) |
+| Quais playbooks portáteis de domínio cada agente deve receber? | [`ai-skills/README.md`](ai-skills/README.md) |
 | Qual executor está disponível e o que ainda requer configuração? | [`AI_EXECUTOR_IMPLEMENTATION.md`](AI_EXECUTOR_IMPLEMENTATION.md) |
 
 ## Regra para mudanças

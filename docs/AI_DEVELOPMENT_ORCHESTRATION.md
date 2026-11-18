@@ -68,6 +68,20 @@ Várias IAs podem construir peças ao mesmo tempo quando cada tarefa tiver camin
 
 O mapa de pacotes, dependências e critérios do modelo “cada agente constrói uma peça; o integrador monta” está em [`AI_MODULE_WORKPLAN.md`](AI_MODULE_WORKPLAN.md).
 
+## Contexto portátil e seleção de skills
+
+O catálogo versionado em [`ai-skills/README.md`](ai-skills/README.md) contém uma playbook separada por domínio, derivada das skills Nivus usadas no ambiente de desenvolvimento. A Issue deve selecionar a skill do módulo e, quando houver coordenação entre módulos, incluir também `nivus-project-guide` e `nivus-ai-dev-workflow`. O agente recebe `AGENTS.md`, `docs/AI_CONTEXT.md`, o estado atual relevante e somente as playbooks necessárias; não é preciso instalar todas as skills em cada ferramenta de IA.
+
+Plugins são conectores de ferramentas, não conhecimento do projeto. O modelo de distribuição preferido é um coordenador com acesso autorizado ao GitHub que lê a Issue, prepara um checkout isolado e fornece ao worker o contexto e os arquivos permitidos. O worker pode devolver um patch ou trabalhar numa branch efêmera conforme as ferramentas disponíveis; não precisa de credencial GitHub ampla nem de plugin próprio quando o coordenador faz o handoff. Cada provedor ainda exige a configuração/autorização própria para executar chamadas de modelo.
+
+O formulário [`parallel-ai-work-item.yml`](../.github/ISSUE_TEMPLATE/parallel-ai-work-item.yml) padroniza objetivo, skills, dependências, caminhos, aceite e revisão. O workflow manual [`parallel-ai-intake.yml`](../.github/workflows/parallel-ai-intake.yml) valida Issue aberta, seleção de skills, caminhos e confirmação humana de dados públicos/sintéticos; então adiciona `parallel-ai:queued`. Criar a Issue ou enfileirá-la não chama um modelo.
+
+O PR #78 acrescenta a primeira API de dispatcher em `tools/parallel_ai_dispatcher/`: valida HMAC-SHA256 sobre os bytes originais do webhook, exige repositório e emissor em allowlist, revalida o formulário e admite somente `issues.labeled` para `parallel-ai:queued`. Redis guarda estado e deduplica por delivery ID e por Issue. Scripts Lua reservam a tarefa, contabilizam slots e criam leases atomicamente; heartbeat tem TTL, lease expirado é retomado com tentativas limitadas e o resultado fica em `result_pending_review`. Credenciais administrativas e de agentes são separadas; tokens de agente são mostrados uma vez e guardados no Redis somente como hash.
+
+Este marco fornece fila e contrato HTTP para workers, mas não possui adaptadores para provedores de modelo, execução em worktree/container efêmero, criação automática de branches ou PRs, nem painel de revisão. Um worker precisa enviar heartbeat, fazer claim compatível e submeter o link de um PR já criado. Revisão e merge continuam humanos. Redis precisa de volume persistente, AOF/RDB, ACL e backup configurados pelo operador; o código não habilita durabilidade no servidor. Isso é infraestrutura externa de desenvolvimento, nunca runtime de nó Nivus. O executor Gemini existente usa seu fluxo independente de `ai:ready`.
+
+Diagrama de contexto e estado: [`tools/parallel_ai_dispatcher/README.md`](../tools/parallel_ai_dispatcher/README.md). Até o workflow de execução isolada e adaptadores serem implementados e revisados, o dispatcher não inicia chamadas de modelo nem executa código de Issue.
+
 ## Limites e segurança
 
 - Não use várias contas para contornar limites, políticas ou termos do provedor; cada conta mantém suas próprias quotas e condições.

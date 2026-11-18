@@ -19,11 +19,24 @@ INDEX = KNOWLEDGE / "index" / "records.jsonl"
 TERMS = KNOWLEDGE / "index" / "terms.json"
 DOCS = (
     "docs/AI_CONTEXT.md",
+    "docs/ai-skills/README.md",
+    "docs/ai-skills/nivus-ai-dev-workflow/SKILL.md",
+    "docs/ai-skills/nivus-ai-provider-connectors/SKILL.md",
+    "docs/ai-skills/nivus-backend-api/SKILL.md",
+    "docs/ai-skills/nivus-dashboard-ui/SKILL.md",
+    "docs/ai-skills/nivus-edge-operations/SKILL.md",
+    "docs/ai-skills/nivus-hardware-telemetry/SKILL.md",
+    "docs/ai-skills/nivus-home-automation/SKILL.md",
+    "docs/ai-skills/nivus-local-ai-knowledge/SKILL.md",
+    "docs/ai-skills/nivus-node-registry/SKILL.md",
+    "docs/ai-skills/nivus-project-guide/SKILL.md",
+    "docs/ai-skills/nivus-task-orchestration/SKILL.md",
     "docs/AI_PROVIDER_CONNECTORS.md",
     "docs/AI_WORKFLOW.md",
     "docs/AI_DEVELOPMENT_ORCHESTRATION.md",
     "docs/AI_EXECUTOR_IMPLEMENTATION.md",
     "docs/AI_MODULE_WORKPLAN.md",
+    "tools/parallel_ai_dispatcher/README.md",
     "docs/VIDEO_RESEARCH_INDEX.md",
     "docs/MODULE_MAP.md",
     "docs/NODE_REGISTRY.md",
@@ -97,11 +110,15 @@ def load_records() -> list[dict]:
         path = ROOT / relative
         content = path.read_text(encoding="utf-8").strip()
         title = next((line[2:].strip() for line in content.splitlines() if line.startswith("# ")), path.stem)
+        if relative == "tools/parallel_ai_dispatcher/README.md":
+            document_key = "parallel-ai-dispatcher"
+        else:
+            document_key = path.parent.name if path.name == "SKILL.md" else path.stem
         records.append(
             {
-                "id": f"doc-{path.stem.casefold().replace('_', '-')}",
+                "id": f"doc-{document_key.casefold().replace('_', '-')}",
                 "title": title,
-                "topic": path.stem.casefold().replace("_", "-"),
+                "topic": document_key.casefold().replace("_", "-"),
                 "source": relative,
                 "source_file": relative,
                 "content": content,
