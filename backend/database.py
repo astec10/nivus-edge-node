@@ -120,6 +120,9 @@ def init_db():
                 credential_ciphertext TEXT,
                 enabled INTEGER NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
                 monthly_budget_usd REAL,
+                input_cost_per_million_usd REAL,
+                output_cost_per_million_usd REAL,
+                pricing_verified_on TEXT,
                 max_requests_per_hour INTEGER NOT NULL DEFAULT 30,
                 timeout_seconds INTEGER NOT NULL DEFAULT 10,
                 allowed_data_classes_json TEXT NOT NULL DEFAULT '["public","synthetic"]',
@@ -139,6 +142,36 @@ def init_db():
             );
             CREATE INDEX IF NOT EXISTS idx_ai_provider_audit_created
                 ON ai_provider_audit(created_at DESC);
+            CREATE TABLE IF NOT EXISTS ai_execution_tasks (
+                task_id TEXT PRIMARY KEY,
+                actor TEXT NOT NULL,
+                budget_micro_usd INTEGER NOT NULL DEFAULT 0 CHECK (budget_micro_usd >= 0),
+                created_at REAL NOT NULL,
+                updated_at REAL NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS ai_execution_requests (
+                request_id TEXT PRIMARY KEY,
+                task_id TEXT NOT NULL,
+                provider_id TEXT NOT NULL,
+                actor TEXT NOT NULL,
+                model_name TEXT NOT NULL,
+                data_class TEXT NOT NULL,
+                status TEXT NOT NULL,
+                reserved_cost_micro_usd INTEGER NOT NULL DEFAULT 0 CHECK (reserved_cost_micro_usd >= 0),
+                settled_cost_micro_usd INTEGER CHECK (settled_cost_micro_usd >= 0),
+                input_tokens INTEGER,
+                output_tokens INTEGER,
+                duration_ms INTEGER,
+                failure_code TEXT,
+                request_sent INTEGER NOT NULL DEFAULT 0 CHECK (request_sent IN (0, 1)),
+                cancel_requested_at REAL,
+                created_at REAL NOT NULL,
+                completed_at REAL
+            );
+            CREATE INDEX IF NOT EXISTS idx_ai_execution_provider_created
+                ON ai_execution_requests(provider_id, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_ai_execution_task_created
+                ON ai_execution_requests(task_id, created_at DESC);
             CREATE TABLE IF NOT EXISTS system_settings (
                 key TEXT PRIMARY KEY,
                 value TEXT
@@ -164,6 +197,19 @@ def init_db():
             );
             """
         )
+
+        provider_columns = {
+            row["name"] for row in conn.execute("PRAGMA table_info(ai_provider_connections)")
+        }
+        for column, definition in (
+            ("input_cost_per_million_usd", "REAL"),
+            ("output_cost_per_million_usd", "REAL"),
+            ("pricing_verified_on", "TEXT"),
+        ):
+            if column not in provider_columns:
+                conn.execute(
+                    f"ALTER TABLE ai_provider_connections ADD COLUMN {column} {definition}"
+                )
 
         actuator_columns = {
             row["name"] for row in conn.execute("PRAGMA table_info(actuator_audit)")
