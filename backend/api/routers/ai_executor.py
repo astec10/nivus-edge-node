@@ -21,16 +21,12 @@ def complete(payload: AIExecutorRequest, admin: str = Depends(get_current_admin)
     try:
         result = ai_executor.execute(payload, admin)
     except ai_executor.InferenceRequestError as error:
-        logger.info(
-            "Solicitação do executor finalizada por administrador %s: %s.",
-            admin,
-            error.code,
-        )
+        logger.info("Executor rejected a request: %s.", error.code)
         raise HTTPException(
             status_code=error.http_status,
             detail={"code": error.code, "message": error.public_message},
         ) from error
-    logger.info("Solicitação do executor concluída por administrador %s.", admin)
+    logger.info("Executor request completed.")
     return result
 
 
