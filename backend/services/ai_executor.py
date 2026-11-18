@@ -900,7 +900,13 @@ def cancel_request(request_id: str, actor: str) -> bool:
             return False
         if row["status"] not in {"reserved", "cancel_requested"}:
             conn.commit()
-            return False
+            # The worker can observe cancellation and finalize before this
+            # endpoint reads the row. Make that concurrent cancellation idempotent.
+            return (
+                context is not None
+                and context.cancelled.is_set()
+                and row["status"] == "cancelled"
+            )
         if row["status"] == "reserved":
             conn.execute(
                 """UPDATE ai_execution_requests
