@@ -46,3 +46,10 @@ Issues e GitHub Actions são o estado durável e o executor principal; nenhuma m
 ## Permissão para criar PR
 
 A etapa final usa `gh pr create --draft` com o `GITHUB_TOKEN`. Confira **Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests**. Sem essa permissão, a branch e a CI podem concluir, mas um mantenedor precisará criar o PR manualmente. O workflow solicita permissão de escrita para PR somente no job de abertura; não contém etapas de aprovação, merge ou deploy.
+
+
+## Executor de inferência no runtime do Nivus (separado)
+
+O cadastro de perfis de IA e o endpoint de inferência do runtime são distintos do worker GitHub Actions documentado acima. O endpoint runtime exige administrador e usa um perfil explicitamente selecionado; não executa o código/texto gerado, não faz fallback e não compartilha GEMINI_API_KEY.
+
+A integração da issue #74 está em proposta nesta branch: a chave de provedor é descriptografada em memória; budgets/quota são reservados antes da chamada; prompt e resposta não são persistidos; e a auditoria registra apenas metadados sanitizados. Nenhum provedor real é chamado pela CI. A estimativa de custo local depende das tarifas manuais verificadas pelo administrador e deve ser acompanhada por teto de gasto configurado no próprio serviço.
