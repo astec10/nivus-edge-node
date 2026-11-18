@@ -48,6 +48,7 @@ Criar uma plataforma local-first, modular e econômica para monitorar nós x86_6
 | Como coordenar agentes externos, dividir módulos e usar o notebook? | [`AI_DEVELOPMENT_ORCHESTRATION.md`](AI_DEVELOPMENT_ORCHESTRATION.md) |
 | Como decompor peças paralelas e integrá-las? | [`AI_MODULE_WORKPLAN.md`](AI_MODULE_WORKPLAN.md) |
 | Qual executor está disponível e o que ainda requer configuração? | [`AI_EXECUTOR_IMPLEMENTATION.md`](AI_EXECUTOR_IMPLEMENTATION.md) |
+| Qual é a proposta do avatar/assistente virtual de mesa? | [`DESKTOP_ASSISTANT.md`](DESKTOP_ASSISTANT.md) |
 
 ## Regra para mudanças
 

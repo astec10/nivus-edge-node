@@ -25,6 +25,8 @@ Administrar remotamente por VPN privada (por exemplo, Tailscale/WireGuard) com r
 
 Para o Nivus, runtime/modelo deve ser substituível por adaptador e medido no hardware disponível. A IA permanece uma camada de recomendação/consulta; ações da casa continuam submetidas a regras determinísticas e controles físicos.
 
+O operador propôs um assistente de mesa com display, iluminação, motor de passo, ESP32-CAM, microfone e computador para processar imagem/áudio. O vídeo descreve uma implementação diferente em alguns componentes; a separação entre detalhes observados, adaptação Nivus, avatar 3D e questões pendentes está em [DESKTOP_ASSISTANT.md](DESKTOP_ASSISTANT.md). A proposta ainda não está implementada.
+
 ## Camadas propostas
 
 1. **Rede e segurança:** ONU da operadora → WAN de roteador/firewall → LAN do roteador → switch PoE gerenciável. O switch alimenta os APs Wi-Fi, hub/bridge e dispositivos compatíveis; o switch de cinco portas conecta-se como extensão da LAN. Câmeras/IoT ficam em segmentos separados dos computadores pessoais. Acesso remoto ocorre por VPN, não por portas administrativas expostas.

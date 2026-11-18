@@ -95,6 +95,8 @@ Critério de saída: falha de Internet não impede automações locais; sensores
 8. Limitar tamanho de contexto, armazenamento, tempo de inferência e concorrência para não prejudicar monitoramento/automação.
 9. Mostrar origem e nível de confiança; permitir revisão humana.
 
+**Caso de uso planejado — assistente de mesa:** exibir um avatar 3D e combinar visão, voz e movimento local, com sensores opcionais e integração de automação restrita. O protótipo começa estático e em leitura; reconhecimento de identidade, motores e comandos domésticos exigem decisões e validação separadas. O conceito do vídeo e a adaptação proposta estão em [DESKTOP_ASSISTANT.md](DESKTOP_ASSISTANT.md); isso não é capacidade já entregue.
+
 Critério de saída: benchmark reproduzível por hardware; consultas reproduzíveis em catálogo versionado com fontes/timestamps/citações visíveis; sincronização autorizada entre nós; e degradação controlada quando memória, índice ou modelo não estiver disponível.
 
 ### Fase 5 — Orquestração de tarefas entre nós
