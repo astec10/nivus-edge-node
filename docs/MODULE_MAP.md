@@ -95,3 +95,20 @@ identidade de nó → inventário de capacidade → fila/lease → worker isolad
 ```
 
 Esse scheduler não está implementado. A Fase 2 fornece cadastro/heartbeat e a Fase 5 define leases, idempotência, quotas, cancelamento e recuperação. Compartilhar um arquivo ou GPU pela LAN não agrega RAM/VRAM por si só.
+
+## Assistente virtual de mesa (proposta futura)
+
+```mermaid
+flowchart LR
+  Avatar[Avatar 3D e display] <-->|estado| Host[Host Nivus: voz e visão locais]
+  Camera[Câmera] --> Host
+  Microphone[Microfone] --> Host
+  Host -->|comandos allowlisted| MCU[Controlador local]
+  MCU --> Motor[Base giratória com limites]
+  MCU --> Lighting[LEDs]
+  Host <-->|escopo mínimo| HA[Home Assistant]
+  PhysicalSwitch[Chave física de privacidade] -->|corte de câmera/mic e inibição| Camera
+  PhysicalSwitch --> Microphone
+```
+
+É uma proposta em descoberta, sem hardware selecionado ou implementação. O host processa voz/visão; o controlador local limita movimento e iluminação. O avatar usa as referências visuais fornecidas pelo operador, pendentes de definição de autoria/licença para distribuição. Começar em leitura somente e sem identificação facial; veja [DESKTOP_ASSISTANT.md](DESKTOP_ASSISTANT.md) para os detalhes do vídeo, da proposta e dos limites.

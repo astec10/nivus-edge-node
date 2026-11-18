@@ -60,8 +60,8 @@ O YouTube limitou a leitura direta das páginas durante esta revisão. Por isso,
 
 - [Vídeo](https://www.youtube.com/watch?v=WgqDaqqto90)
 - **Tema/tags:** interface multimodal, voz, visão, hardware embarcado, privacidade física, automação residencial.
-- **Extraído:** a descrição indexada apresenta um protótipo chamado NOVA com display, rastreamento, voz, integração residencial e chave física para câmera/microfone.
-- **Verificação:** informação de descrição/promocional; arquivos de construção, segurança do controle doméstico e funcionamento offline não foram verificados.
+- **Extraído:** página, descrição e transcrição acessadas em 17/11/2026. O Project NOVA usa uma ilusão refletiva com OLED de 5,5", iluminação, gabinete impresso em 3D, PCBs personalizadas, câmera USB e display motorizado com potenciômetro de posição. A demonstração inclui rastreamento de rosto/mãos, identificação de objetos, voz, app Android, áudio/música, comandos de luz/ar-condicionado e interruptor físico que corta câmera/microfone. O vídeo não é holografia volumétrica.
+- **Verificação:** fonte primária assistida, mas a dublagem era automática e o transcript pode errar nomes técnicos. As especificações são alegações/demonstrações do criador; não foram conferidos esquemas, BOM, operação offline, retenção de áudio/vídeo ou segurança dos comandos. O modelo exato do Orange Pi não foi confirmado. A adaptação do operador e o avatar 3D estão separados em [`DESKTOP_ASSISTANT.md`](DESKTOP_ASSISTANT.md).
 
 ## Como integrar à biblioteca compartilhada Nivus
 

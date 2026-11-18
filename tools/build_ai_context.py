@@ -27,6 +27,7 @@ DOCS = (
     "docs/VIDEO_RESEARCH_INDEX.md",
     "docs/MODULE_MAP.md",
     "docs/NODE_REGISTRY.md",
+    "docs/DESKTOP_ASSISTANT.md",
     "docs/HARDWARE_TELEMETRY.md",
     "docs/PROJECT_STATUS.md",
     "docs/PROJECT_ROADMAP.md",
