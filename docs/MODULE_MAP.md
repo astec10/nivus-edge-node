@@ -26,6 +26,10 @@ flowchart TD
   Routers --> Schemas[backend/api/schemas.py]
   Routers --> Auth[backend/api/dependencies.py + security.py]
   Routers --> DB
+  AIExecutor[api/routers/ai_executor.py] -->|admin + explicit task| Inference[services/ai_executor.py]
+  Inference --> ProviderProfiles[services/ai_providers.py]
+  Inference --> ExecutorLedger[(ai_execution_tasks + ai_execution_requests)]
+  Inference --> SelectedProvider[Selected provider only]
   API --> MQTT
   Operator[Admin dashboard or CLI] --> Maintenance[backend/services/maintenance.py]
   Maintenance --> State[/run maintenance marker/]
@@ -50,6 +54,7 @@ flowchart TD
 | `node_agent/agent.py` | CLI pareamento/run ↔ API de nós | Cliente stdlib candidato no PR #69: código oculto de uso único, TLS obrigatório, token local `0600`/diretório `0700`, sessão renovável e heartbeat apenas com metadados. Sem telemetria, comandos ou ações remotas; smoke físico pendente. |
 | `backend/services/mobile_battery.py` | Leitura móvel validada → regra + auditoria MQTT | Rejeita leituras antigas/repetidas; publica somente `OFF` em `nivus/edge/relay1` a ≤20%; recuperação acima de 20% rearma sem enviar `ON`. |
 | `backend/services/` | chamadas internas ↔ serviços | MQTT, logs e operações de domínio; não expõe portas diretamente. |
+| `backend/api/routers/ai_executor.py` + `backend/services/ai_executor.py` | tarefa explícita → provedor selecionado | Execução administrativa única, com classe de dados, orçamento, timeout, cancelamento e auditoria mínima; sem retry, fallback ou execução do resultado. Issue #74 ainda em revisão. |
 | `backend/database.py` | conexões ↔ SQLite | Persistência, migrações aditivas e consultas. |
 | `backend/mqtt_worker.py` | MQTT → validação/persistência | Consome telemetria e registra alertas de regra determinística. |
 | `backend/services/maintenance.py` | Admin API/CLI → estado volátil + audit SQLite | Alterna coleta em background com allowlist; o marcador desaparece no reboot. |
@@ -95,3 +100,5 @@ identidade de nó → inventário de capacidade → fila/lease → worker isolad
 ```
 
 Esse scheduler não está implementado. A Fase 2 fornece cadastro/heartbeat e a Fase 5 define leases, idempotência, quotas, cancelamento e recuperação. Compartilhar um arquivo ou GPU pela LAN não agrega RAM/VRAM por si só.
+
+O executor runtime da issue #74 é separado do dispatcher GitHub Actions e do futuro scheduler distribuído. Ele opera em uma solicitação administrativa explícita para o provedor selecionado; não distribui tarefas entre nós.

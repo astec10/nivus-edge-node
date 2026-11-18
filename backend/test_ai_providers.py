@@ -1,3 +1,4 @@
+import datetime as dt
 import tempfile
 import unittest
 from pathlib import Path
@@ -38,6 +39,9 @@ class ProviderSecretTests(unittest.TestCase):
             "auth_method": "bearer",
             "api_key": SecretStr("sk-test-secret-value"),
             "monthly_budget_usd": 5,
+            "input_cost_per_million_usd": 1.0,
+            "output_cost_per_million_usd": 2.0,
+            "pricing_verified_on": dt.date.today(),
             "allowed_data_classes": ["public", "synthetic"],
         }
         values.update(overrides)

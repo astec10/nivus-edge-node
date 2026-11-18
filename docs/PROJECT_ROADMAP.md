@@ -14,7 +14,7 @@ O alvo de distribuição é Ubuntu Server minimal x86_64/amd64. “Alvo” não 
 
 **Instalação portátil: código integrado, validação física pendente.** Ubuntu Server completo instalado no USB, com raiz e NIVUS_DATA persistentes. O PR #34 foi integrado à `main` (`703efa4128f60460910b05ab344b60b082006a7e`); todos os checks hospedados passaram no head `3a1621dc11d2532853ef83b9ab5ea47f64cfaca5`, incluindo schema Subiquity, bootstrap, ext4 em loop, smoke Compose, índice e CodeQL. Essa evidência não substitui instalação/reinicialização em USB físico nem teste de compatibilidade. O operador não usará VMs no computador pessoal.
 
-**Multi-nó operacional, Home Assistant, Zigbee, sensores domésticos, vídeo, IA local, P2P e inferência por provedores comerciais continuam futuros. A gestão administrativa de conexões da issue #68 está implementada no PR #72 e passou pela CI hospedada; ainda não foi implantada no notebook.** A primeira camada de identidade/pareamento/heartbeat está integrada pelo PR #66 e implantada em `fff64a68f252f0b1290576e30b39ed78fbc15a7a`; ela não agrega telemetria, executa comandos nem atualiza frota. O agente mínimo de nó foi implementado no PR #69; falta validar dois dispositivos reais e avançar com a telemetria agregada.
+**Multi-nó operacional, Home Assistant, Zigbee, sensores domésticos, vídeo, IA local, P2P e inferência por provedores comerciais continuam futuros. A gestão administrativa de conexões da issue #68 está implementada pelo PR #72 e incluída na release `f896de8` aplicada no notebook; uso prático ainda não foi confirmado.** A primeira camada de identidade/pareamento/heartbeat está integrada pelo PR #66 e implantada em `fff64a68f252f0b1290576e30b39ed78fbc15a7a`; ela não agrega telemetria, executa comandos nem atualiza frota. O agente mínimo de nó foi implementado no PR #69; falta validar dois dispositivos reais e avançar com a telemetria agregada.
 
 ## Fases de software
 
@@ -113,18 +113,19 @@ Compartilhar arquivos por P2P não soma automaticamente a RAM/VRAM de máquinas 
 
 ### Fase 6 — Provedores de IA comerciais
 
-**Estado: camada administrativa implementada no PR #72, com CI hospedada aprovada; implantação no notebook pendente. Integração do executor, enforcement de orçamento/quota e fallback continuam planejados. Consulte [AI_PROVIDER_CONNECTORS.md](AI_PROVIDER_CONNECTORS.md).
+**Estado: cadastro administrativo integrado no PR #72 e incluído na release `f896de8`; o executor de inferência da issue #74 está em proposta nesta branch, ainda aguardando CI/revisão. Consulte [AI_PROVIDER_CONNECTORS.md](AI_PROVIDER_CONNECTORS.md).
 
-1. Criar conectores isolados por provedor, com timeout, custo e quota configuráveis; a tela administrativa da issue #68 mantém perfil/modelo/responsável e nunca retorna uma chave já salva.
-2. Registrar limites semanais/mensais sem guardar tokens de acesso em logs; guardar credenciais cifradas com chave mestra fora do SQLite e do repositório.
-3. Classificar dados e exigir decisão do operador antes de enviar conteúdo da casa para fora.
-4. Respeitar quotas e falhas; usar modelo local ou fila pendente como fallback.
-5. Comparar respostas, citar fontes e exigir revisão antes de entregar automação ou código crítico.
+1. [x] Cadastro administrativo com credenciais cifradas, classificação de dados e perfis explicitamente habilitados (PR #72).
+2. Propor conectores isolados por protocolo, com timeout, preços configuráveis e reserva de orçamento/quota antes da chamada (issue #74; aguardando CI/revisão).
+3. Não guardar prompt, saída nem token de acesso no banco/auditoria; manter chave mestra fora do SQLite e do repositório.
+4. Classificar dados e exigir solicitação explícita; a nuvem só recebe conteúdo público/sintético.
+5. Manter fallback automático desligado até política, orçamento e provedor alternativo receberem validação própria.
+6. Exigir revisão humana antes de usar a saída para automação ou código crítico.
 
 Critério de saída: limite financeiro não é ultrapassado silenciosamente; dados locais não saem sem política explícita; falha de Internet não interrompe monitoramento local.
 
 ## Sequência recomendada
 
-**Próximos trabalhos:** concluir validações físicas da Fase 1; executar o smoke de agente com dois nós independentes; implantar e validar a issue #68 no notebook sem misturar suas chaves com o executor GitHub Actions; e executar no host o procedimento reversível da issue #70 para promover a dashboard a HTTPS 443. O PR da issue #70 implementa seleção de porta em instalação limpa e proxy Nginx aditivo, preservando a porta Compose de retorno; a promoção real continua pendente. Registro multi-nó inicial está integrado, mas agregação de dados e atualização de frota não existem.
+**Próximos trabalhos:** conferir no navegador e após reboot a promoção HTTPS da issue #70; confirmar o uso da tela de perfis de provedores incluída na release `f896de8`; concluir CI/revisão da issue #74; depois retomar validações físicas da Fase 1 e o smoke do agente com dois nós independentes. O HTTPS sem sufixo de porta foi promovido no notebook, mas a confirmação visual/reboot ainda está pendente. Registro multi-nó inicial está integrado, mas agregação de dados e atualização de frota não existem.
 
 Para decidir a próxima entrega física da casa, veja “Decisões em aberto” em [`VISION.md`](VISION.md). Modelos exatos de roteador, switch PoE, câmeras, inversor, medidores e proteção elétrica ainda precisam ser escolhidos e conferidos com documentação de fabricante e profissionais habilitados.

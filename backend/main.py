@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.routers import (
     actuator,
+    ai_executor,
     ai_providers,
     alerts,
     auth,
@@ -58,6 +59,7 @@ app.include_router(actuator.router)
 app.include_router(alerts.router)
 app.include_router(settings.router)
 app.include_router(ai_providers.router)
+app.include_router(ai_executor.router)
 app.include_router(maintenance.router)
 app.include_router(users.router)
 app.include_router(mobile_battery.router)

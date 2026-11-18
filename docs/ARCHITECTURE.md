@@ -32,4 +32,4 @@ O worker MQTT persiste telemetria no mesmo SQLite da API; os serviços possuem l
 
 ## Gestão de provedores
 
-A issue #68 adiciona configuração administrativa sem acoplar o backend aos jobs do GitHub Actions. O detalhe das rotas, limites de rede, política de dados e recuperação da chave mestra está em [AI_PROVIDER_CONNECTORS.md](AI_PROVIDER_CONNECTORS.md). Os perfis não significam que o executor de inferência ou a contabilização de custos estejam implementados.
+A issue #68 adiciona configuração administrativa sem acoplar o backend aos jobs do GitHub Actions. O PR #72 foi incluído na release `f896de8` aplicada ao notebook. O executor de inferência da issue #74 está proposto nesta branch: `backend/api/routers/ai_executor.py` expõe execução/cancelamento/auditoria administrativos; `backend/services/ai_executor.py` verifica política, reserva orçamento e chama somente o provedor selecionado. A chave é descriptografada apenas em memória e prompts/respostas não são persistidos. Não há fallback, retry ou execução do resultado. Consulte [AI_PROVIDER_CONNECTORS.md](AI_PROVIDER_CONNECTORS.md) para limites e pendências.

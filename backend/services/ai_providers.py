@@ -1,6 +1,7 @@
 """Encrypted provider configuration and explicit, prompt-free connectivity probes."""
 
 import base64
+import datetime as dt
 import http.client
 import ipaddress
 import json
@@ -390,6 +391,9 @@ def _public(row) -> dict:
         "credential_configured": bool(row["credential_ciphertext"]),
         "enabled": bool(row["enabled"]),
         "monthly_budget_usd": row["monthly_budget_usd"],
+        "input_cost_per_million_usd": row["input_cost_per_million_usd"],
+        "output_cost_per_million_usd": row["output_cost_per_million_usd"],
+        "pricing_verified_on": row["pricing_verified_on"],
         "max_requests_per_hour": row["max_requests_per_hour"],
         "timeout_seconds": row["timeout_seconds"],
         "allowed_data_classes": json.loads(row["allowed_data_classes_json"]),
@@ -455,10 +459,11 @@ def create_connection(payload, actor: str) -> dict:
             """INSERT INTO ai_provider_connections
                (id, name, provider_type, protocol, endpoint_scope, base_url,
                 model_name, responsible, purpose, auth_method, credential_ciphertext,
-                enabled, monthly_budget_usd, max_requests_per_hour, timeout_seconds,
-                allowed_data_classes_json, last_test_status, last_test_at,
-                created_by, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 'not_tested',
+                enabled, monthly_budget_usd, input_cost_per_million_usd,
+                output_cost_per_million_usd, pricing_verified_on,
+                max_requests_per_hour, timeout_seconds, allowed_data_classes_json,
+                last_test_status, last_test_at, created_by, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, 'not_tested',
                        NULL, ?, ?, ?)""",
             (
                 provider_id,
@@ -473,6 +478,9 @@ def create_connection(payload, actor: str) -> dict:
                 auth_method,
                 encrypted,
                 payload.monthly_budget_usd,
+                payload.input_cost_per_million_usd,
+                payload.output_cost_per_million_usd,
+                payload.pricing_verified_on.isoformat() if payload.pricing_verified_on else None,
                 payload.max_requests_per_hour,
                 payload.timeout_seconds,
                 json.dumps(payload.allowed_data_classes, separators=(",", ":")),
@@ -508,12 +516,19 @@ def update_connection(provider_id: str, payload, actor: str) -> dict:
             "responsible": row["responsible"],
             "purpose": row["purpose"],
             "monthly_budget_usd": row["monthly_budget_usd"],
+            "input_cost_per_million_usd": row["input_cost_per_million_usd"],
+            "output_cost_per_million_usd": row["output_cost_per_million_usd"],
+            "pricing_verified_on": row["pricing_verified_on"],
             "max_requests_per_hour": row["max_requests_per_hour"],
             "timeout_seconds": row["timeout_seconds"],
             "allowed_data_classes": json.loads(row["allowed_data_classes_json"]),
         }
         merged.update(changes)
-        if any(value is None for key, value in changes.items() if key != "monthly_budget_usd"):
+        nullable_fields = {
+            "monthly_budget_usd", "input_cost_per_million_usd",
+            "output_cost_per_million_usd", "pricing_verified_on",
+        }
+        if any(value is None for key, value in changes.items() if key not in nullable_fields):
             raise ValueError("Um campo de configuração não pode ser apagado.")
         if row["endpoint_scope"] == "cloud" and any(
             item not in {"public", "synthetic"} for item in merged["allowed_data_classes"]
@@ -523,14 +538,20 @@ def update_connection(provider_id: str, payload, actor: str) -> dict:
         conn.execute(
             """UPDATE ai_provider_connections
                SET name=?, model_name=?, responsible=?, purpose=?, monthly_budget_usd=?,
-                   max_requests_per_hour=?, timeout_seconds=?, allowed_data_classes_json=?,
-                   updated_at=? WHERE id=?""",
+                   input_cost_per_million_usd=?, output_cost_per_million_usd=?,
+                   pricing_verified_on=?, max_requests_per_hour=?, timeout_seconds=?,
+                   allowed_data_classes_json=?, updated_at=? WHERE id=?""",
             (
                 merged["name"].strip(),
                 merged["model_name"].strip(),
                 merged["responsible"].strip(),
                 merged["purpose"].strip(),
                 merged["monthly_budget_usd"],
+                merged["input_cost_per_million_usd"],
+                merged["output_cost_per_million_usd"],
+                merged["pricing_verified_on"].isoformat()
+                if hasattr(merged["pricing_verified_on"], "isoformat")
+                else merged["pricing_verified_on"],
                 merged["max_requests_per_hour"],
                 merged["timeout_seconds"],
                 json.dumps(merged["allowed_data_classes"], separators=(",", ":")),
@@ -611,12 +632,17 @@ def _reserve_probe_slot(connection: dict, actor: str) -> dict | None:
                 "message": "Defina um orçamento mensal maior que zero antes do teste de nuvem.",
             }
 
-        attempts = conn.execute(
+        probe_attempts = conn.execute(
             """SELECT COUNT(*) FROM ai_provider_audit
                WHERE provider_id=? AND action='connection_test_started' AND created_at>=?""",
             (provider_id, now - 3600),
         ).fetchone()[0]
-        if attempts >= int(policy["max_requests_per_hour"]):
+        inference_attempts = conn.execute(
+            """SELECT COUNT(*) FROM ai_execution_requests
+               WHERE provider_id=? AND status!='blocked' AND created_at>=?""",
+            (provider_id, now - 3600),
+        ).fetchone()[0]
+        if int(probe_attempts) + int(inference_attempts) >= int(policy["max_requests_per_hour"]):
             _audit(conn, provider_id, actor, "connection_test_blocked", "rate_limited")
             conn.commit()
             return {
@@ -681,6 +707,20 @@ def test_connection(provider_id: str, actor: str) -> dict:
     return result
 
 
+def _cloud_pricing_is_current(row) -> bool:
+    input_rate = row["input_cost_per_million_usd"]
+    output_rate = row["output_cost_per_million_usd"]
+    verified = row["pricing_verified_on"]
+    if input_rate is None or output_rate is None or not verified:
+        return False
+    try:
+        pricing_day = dt.date.fromisoformat(str(verified))
+        today = dt.datetime.now(dt.timezone.utc).date()
+    except ValueError:
+        return False
+    return 0 <= (today - pricing_day).days <= 90
+
+
 def set_enabled(provider_id: str, enabled: bool, actor: str) -> dict:
     conn = get_db_connection()
     try:
@@ -696,6 +736,10 @@ def set_enabled(provider_id: str, enabled: bool, actor: str) -> dict:
                 row["monthly_budget_usd"] is None or row["monthly_budget_usd"] <= 0
             ):
                 raise ValueError("Defina um limite mensal maior que zero antes de habilitar nuvem.")
+            if row["endpoint_scope"] == "cloud" and not _cloud_pricing_is_current(row):
+                raise ValueError(
+                    "Informe preços de entrada/saída por milhão de tokens e uma data recente antes de habilitar."
+                )
             if not row["responsible"].strip() or not row["purpose"].strip():
                 raise ValueError("Informe responsável e finalidade antes de habilitar.")
         now = time.time()
