@@ -108,6 +108,12 @@ def _build_repository_context(repo_root: Path, allowed_paths: list[str]) -> tupl
         if not target.is_file():
             raise WorkerError("allowlisted_path_not_file")
         if target.stat().st_size > MAX_CONTEXT_FILE_BYTES:
+            if path in PROJECT_CONTEXT_PATHS:
+                parts.append(
+                    f"FILE: {path}{nl}STATE: omitted; exceeds the per-file context limit "
+                    f"of {MAX_CONTEXT_FILE_BYTES} bytes{nl}"
+                )
+                continue
             raise WorkerError("allowlisted_file_too_large")
         try:
             content = target.read_text(encoding="utf-8")
