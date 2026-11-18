@@ -110,8 +110,8 @@ def _build_repository_context(repo_root: Path, allowed_paths: list[str]) -> tupl
         if target.stat().st_size > MAX_CONTEXT_FILE_BYTES:
             if path in PROJECT_CONTEXT_PATHS:
                 parts.append(
-                    f"FILE: {path}{nl}STATE: omitted; exceeds the per-file context limit "
-                    f"of {MAX_CONTEXT_FILE_BYTES} bytes{nl}"
+                    f"FILE: {path}\nSTATE: omitted; exceeds the per-file context limit "
+                    f"of {MAX_CONTEXT_FILE_BYTES} bytes\n"
                 )
                 continue
             raise WorkerError("allowlisted_file_too_large")
