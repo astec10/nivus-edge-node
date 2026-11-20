@@ -21,8 +21,8 @@ Imagine que a documentação precisa de duas melhorias independentes. A pessoa i
 
 | Tarefa | Caminho permitido | Branch/PR |
 | --- | --- | --- |
-| Explicar como registrar fontes e verificar notas de conhecimento | `knowledge/README.md` | Branch e PR próprios da Issue A |
-| Documentar como ler o mapa de módulos do projeto | `docs/MODULE_MAP.md` | Branch e PR próprios da Issue B |
+| Documentar como registrar fontes e verificar notas de conhecimento | `docs/AI_WORKFLOW.md` | Branch e PR próprios da Issue A |
+| Documentar como ler o mapa de módulos e suas dependências | `docs/MODULE_MAP.md` | Branch e PR próprios da Issue B |
 
 Os caminhos não se sobrepõem. Cada agente trabalha somente no seu branch, envia uma PR e recebe CI e revisão. Depois, a pessoa integradora confere as duas propostas juntas e aprova os merges. Se uma tarefa depender da outra, faça primeiro a Issue da dependência e só então libere a seguinte.
 
