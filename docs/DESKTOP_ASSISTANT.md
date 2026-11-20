@@ -61,6 +61,12 @@ Avaliar legibilidade do rosto e do traje, brilho percebido, imagem dupla/fantasm
 
 Nesta bancada entram somente painel, refletor, suporte/invólucro temporário, fundo e iluminação ajustável. O ensaio não precisa de motor, câmera, microfone ou reconhecimento facial. Depois de escolher a geometria óptica, especificar o movimento e o acompanhamento como um subsistema separado; o vídeo usa motorredutor com realimentação, enquanto a proposta Nivus ainda considera motor de passo.
 
+### Base de referências abertas e decisões decorrentes
+
+A curadoria de repositórios, vídeos e documentação está organizada em [desktop-assistant-source-review](../knowledge/topics/desktop-assistant-source-review.md). As fontes dão referências concretas para cúpula/acrílico (Pepper Pi), cubo beam splitter (OpenGhost), experiência NOVA, pipeline local de voz, tracking facial sem identificação e renderer VRM. Nenhuma dessas referências foi validada no hardware Nivus nem representa uma lista de compra aprovada.
+
+Para o primeiro protótipo, comparar essas três geometrias em uma bancada estática; deixar motor, identificação facial, Home Assistant e microfone fora da etapa óptica. Depois, avaliar o host x86_64 Nivus para visão e áudio, tratar a ESP32-CAM como fonte de quadros JPEG e separar pose/rastreamento de identidade facial. A identidade, se for desenvolvida, fica em componente local independente e começa desativada. O projeto J.E.S.T.E.R. tem chamadas a serviço de nuvem/controle de desktop e não exibe licença na listagem consultada; é referência conceitual, não código aprovado.
+
 ## Adaptação proposta pelo operador
 
 O operador descreveu uma assistente de mesa com tela, efeitos de iluminação, motor de passo, ESP32-CAM, microfone e um computador para processar imagem e áudio, acompanhar a pessoa, reconhecer rostos e atender comandos. Essa é a lista da proposta do Nivus; o vídeo, por sua vez, descreve câmera USB, motorredutor com feedback de posição e Orange Pi. Os componentes não devem ser tratados como equivalentes até que a seleção seja feita.
