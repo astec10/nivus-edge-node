@@ -10,7 +10,7 @@ confidence: primary-source-review
 
 # Pesquisa aplicada ao conceito da assistente de mesa Nivus
 
-Esta nota reúne projetos abertos, vídeos de construção, artigo acadêmico e documentação oficial para resolver lacunas do conceito em [DESKTOP_ASSISTANT.md](../../../docs/DESKTOP_ASSISTANT.md). A revisão foi feita em 2026-11-20. “Verificado” significa que a fonte primária foi consultada; não significa que o hardware foi comprado, que o software foi instalado ou que desempenho foi medido no Nivus.
+Esta nota reúne projetos abertos, vídeos de construção, artigo acadêmico e documentação oficial para resolver lacunas do conceito em [DESKTOP_ASSISTANT.md](../../docs/DESKTOP_ASSISTANT.md). A revisão foi feita em 2026-11-20. “Verificado” significa que a fonte primária foi consultada; não significa que o hardware foi comprado, que o software foi instalado ou que desempenho foi medido no Nivus.
 
 ## Projetos e código aberto
 
@@ -30,7 +30,7 @@ Esta nota reúne projetos abertos, vídeos de construção, artigo acadêmico e 
 
 | Vídeo | Informação extraída da fonte | Limite |
 | --- | --- | --- |
-| [I Build a REAL Holographic AI Assistant! — DD ElectroTech](https://www.youtube.com/watch?v=WgqDaqqto90) | Projeto Project NOVA já descrito no [índice de vídeos](../../../docs/VIDEO_RESEARCH_INDEX.md): exibição refletiva, eletrônica personalizada, câmera, voz, movimento e corte físico de câmera/microfone. | A descrição/transcrição automática é uma fonte do criador; nomes de peças podem estar incorretos e não há BOM/esquemas completos disponíveis no material consultado. |
+| [I Build a REAL Holographic AI Assistant! — DD ElectroTech](https://www.youtube.com/watch?v=WgqDaqqto90) | Projeto Project NOVA já descrito no [índice de vídeos](../../docs/VIDEO_RESEARCH_INDEX.md): exibição refletiva, eletrônica personalizada, câmera, voz, movimento e corte físico de câmera/microfone. | A descrição/transcrição automática é uma fonte do criador; nomes de peças podem estar incorretos e não há BOM/esquemas completos disponíveis no material consultado. |
 | [The Ghost in the Machine — VEEB](https://www.youtube.com/watch?v=vGyMrAtvg8A) | A descrição do criador enumera Raspberry Pi 5 (16 GB), tela LED redonda, cúpula, refletor transparente e base 3D. Os capítulos destacados são 1:55 princípio óptico, 2:14 geometria, 3:24 montagem, 4:43 teste e 5:35 demonstração. O [artigo do projeto](https://www.veeb.ch/projects/the-valley-beneath-the-pepper-dome) e o [repositório](https://github.com/veebch/pepper) publicam a calculadora e arquivos 3D. | A análise registra descrição e marcadores de capítulo; não afirma que cada etapa do vídeo tenha sido medida independentemente. Construção diferente da tela de 5,5" do NOVA. |
 | [Voice Assistant Contest Launch — Home Assistant](https://www.youtube.com/watch?v=99lGuB4J-4o) | A página do vídeo lista um segmento aos 1:01:37 sobre detecção local de wake word em um Wyoming Satellite; útil para arquitetura de captura e pipeline de voz. | Vídeo de comunidade/arquitetura, não demonstra compatibilidade de áudio, latência ou privacidade com o hardware Nivus. |
 
