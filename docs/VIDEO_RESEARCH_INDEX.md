@@ -1,6 +1,6 @@
 # Índice de pesquisa dos vídeos
 
-Atualizado em 2026-11-15. Este índice é o catálogo legível por pessoas e agentes. O registro estruturado e os termos de busca estão em [`../knowledge/catalog/video_sources.jsonl`](../knowledge/catalog/video_sources.jsonl).
+Atualizado em 2026-11-20. Este índice é o catálogo legível por pessoas e agentes. O registro estruturado e os termos de busca estão em [`../knowledge/catalog/video_sources.jsonl`](../knowledge/catalog/video_sources.jsonl).
 
 O YouTube limitou a leitura direta das páginas durante esta revisão. Por isso, cada item distingue legenda secundária, metadado de descrição, rótulo enviado pelo operador e afirmação verificada em documentação primária. **“Catalogado” não significa “conteúdo integral assistido e verificado”.**
 
@@ -62,6 +62,24 @@ O YouTube limitou a leitura direta das páginas durante esta revisão. Por isso,
 - **Tema/tags:** interface multimodal, voz, visão, hardware embarcado, privacidade física, automação residencial.
 - **Extraído:** página, descrição e transcrição acessadas em 17/11/2026. O Project NOVA usa uma ilusão refletiva com OLED de 5,5", iluminação, gabinete impresso em 3D, PCBs personalizadas, câmera USB e display motorizado com potenciômetro de posição. A demonstração inclui rastreamento de rosto/mãos, identificação de objetos, voz, app Android, áudio/música, comandos de luz/ar-condicionado e interruptor físico que corta câmera/microfone. O vídeo não é holografia volumétrica.
 - **Verificação:** fonte primária assistida, mas a dublagem era automática e o transcript pode errar nomes técnicos. As especificações são alegações/demonstrações do criador; não foram conferidos esquemas, BOM, operação offline, retenção de áudio/vídeo ou segurança dos comandos. O modelo exato do Orange Pi não foi confirmado. A adaptação do operador e o avatar 3D estão separados em [`DESKTOP_ASSISTANT.md`](DESKTOP_ASSISTANT.md).
+
+### Display óptico em cúpula
+
+#### The Ghost in the Machine — VEEB
+
+- [Vídeo](https://www.youtube.com/watch?v=vGyMrAtvg8A)
+- **Projeto e arquivos:** [Pepper Pi](https://github.com/veebch/pepper), GPL-3.0, com calculadora de refletor e peças 3D.
+- **Fonte lida em 2026-11-20:** descrição pública e marcadores de capítulos; o projeto publica tela redonda 3,4", cúpula, acrílico refletor e base impressa. Capítulos apontam princípio óptico (1:55), geometria (2:14), montagem (3:24), teste (4:43) e demonstração (5:35).
+- **Uso no Nivus:** referência aberta para testar geometria pequena; não é igual à óptica de 5,5" do NOVA nem valida desempenho no x86/Ubuntu do Nivus.
+
+### Pipeline de voz local
+
+#### Voice Assistant Contest Launch — Home Assistant
+
+- [Vídeo](https://www.youtube.com/watch?v=99lGuB4J-4o)
+- **Fonte lida em 2026-11-20:** descrição e marcador de capítulo do segmento 1:01:37, “Local Wake Word detection on a Wyoming Satellite”.
+- **Uso no Nivus:** referência de arquitetura para separar satélite de áudio, serviço de wake-word e serviços STT/TTS. Ver [Wyoming](https://www.home-assistant.io/integrations/wyoming) e a [documentação de pipeline local](https://www.home-assistant.io/voice_control/).
+- **Limite:** descrição/marcador não provam precisão, privacidade ou compatibilidade com microfones e hardware do Nivus; validar localmente.
 
 ## Como integrar à biblioteca compartilhada Nivus
 
