@@ -15,6 +15,19 @@ Pessoa responsável descreve objetivo e aceite
 
 Cada agente recebe uma tarefa pequena com objetivo, caminhos próprios, dependências, contrato de entrada/saída, critérios de aceite, risco, dados permitidos e limite de recursos. Conversas e arquivos de um agente não são memória compartilhada: a Issue, a documentação versionada e o PR são o handoff comum.
 
+## Exemplo simples: duas tarefas em paralelo
+
+Imagine que a documentação precisa de duas melhorias independentes. A pessoa integradora abre duas Issues separadas:
+
+| Tarefa | Caminho permitido | Branch/PR |
+| --- | --- | --- |
+| Explicar como registrar fontes e verificar notas de conhecimento | `knowledge/README.md` | Branch e PR próprios da Issue A |
+| Documentar como ler o mapa de módulos do projeto | `docs/MODULE_MAP.md` | Branch e PR próprios da Issue B |
+
+Os caminhos não se sobrepõem. Cada agente trabalha somente no seu branch, envia uma PR e recebe CI e revisão. Depois, a pessoa integradora confere as duas propostas juntas e aprova os merges. Se uma tarefa depender da outra, faça primeiro a Issue da dependência e só então libere a seguinte.
+
+Agora suponha que uma mudança de API exige alterar schemas, banco, autorização, contrato MQTT, Compose ou instalação. Essas áreas definem contratos compartilhados: deixe uma pessoa integradora como responsável por decidir e integrar a mudança. Só distribua implementações paralelas depois que o contrato estiver escrito e todos os agentes concordarem em segui-lo.
+
 ## Pacotes de trabalho e dependências
 
 | Peça | Pode trabalhar em paralelo? | Contrato/dependência | Integração e aceite |
@@ -29,7 +42,7 @@ Cada agente recebe uma tarefa pequena com objetivo, caminhos próprios, dependê
 
 ## Contratos compartilhados: serializar antes de paralelizar
 
-Um integrador deve ser o único responsável por decidir mudanças simultâneas em `backend/api/schemas.py`, `backend/database.py`, autorização, envelopes MQTT, `docker-compose.yml` e instalação. Se várias peças dependem de um contrato novo, defina-o primeiro num PR pequeno; depois distribua as implementações paralelas contra esse contrato. Isso evita que cada agente invente uma interface incompatível.
+Um integrador deve ser o único responsável por decidir mudanças simultâneas em `backend/api/schemas.py`, `backend/database.py`, autorização, envelopes MQTT, `docker-compose.yml` e arquivos de instalação em `deploy/`. Se várias peças dependem de um contrato novo, defina-o primeiro num PR pequeno; depois distribua as implementações paralelas contra esse contrato. Isso evita que cada agente invente uma interface incompatível.
 
 ## Responsabilidade do integrador
 
@@ -44,7 +57,9 @@ Um integrador deve ser o único responsável por decidir mudanças simultâneas 
 
 O executor de desenvolvimento usa GitHub Issues e GitHub Actions, separado do runtime Nivus. O intake valida a tarefa, seus caminhos permitidos e a autorização explícita antes de iniciar o worker. A chamada ao modelo e a execução do worker ocorrem em runners GitHub-hosted; o fluxo não depende da telemetria do CCE nem do Nó Master.
 
-Uma chamada autorizada para uma issue pública/sintética gerou a proposta do PR #16. A CI passou, mas naquela execução a etapa de abertura automática falhou porque `gh repo view` não tinha checkout; o mantenedor abriu o draft manualmente. O commit `bec9573` corrigiu a leitura da branch padrão pela API. O PR #53 adicionou uma verificação contra propostas duplicadas antes da chamada, remove os rótulos de fila quando cria um draft e comenta o link. Esses checks passaram, mas ainda não houve uma nova chamada autorizada para confirmar o ciclo automático depois da correção. O PR #16 segue aberto como draft e exige revisão humana.
+Uma chamada autorizada para a Issue #6 gerou a proposta documental do [PR #16](https://github.com/astec10/nivus-edge-node/pull/16); os checks passaram e o PR continua aberto como draft, aguardando revisão humana. A abertura automática falhou naquela execução porque `gh repo view` foi chamado sem checkout; depois, a leitura do branch padrão foi corrigida pela API. O PR #53 acrescentou proteção contra propostas duplicadas, limpeza dos rótulos ao abrir o draft e comentário com o link.
+
+Na Issue #80, a primeira tentativa do worker parou em `interaction_failed`. A repetição da execução não chamou o modelo: foi interrompida porque os rótulos de fila já não estavam presentes. A Issue permanece aberta em `ai:queued`; portanto, o ciclo automático após a atualização do worker ainda não foi confirmado. Esta melhoria documental está sendo preparada diretamente para revisão sem uma nova chamada Gemini.
 
 O worker limita os caminhos permitidos e não faz merge nem deploy. Não há dispatcher persistente instalado no notebook nem integração ativa com Discord, Jira, Hermes ou OmniRoute. O PR #18 é apenas um draft de runner opcional para validar código confiável já integrado à branch principal; não está integrado nem instalado e não substitui a CI hospedada.
 
