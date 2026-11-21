@@ -71,7 +71,13 @@ A pasta `knowledge/` contém catálogo e notas próprias para contribuição pú
 
 ## Separação do executor e telemetria do Nó Master — 2026-11-15
 
-Telemetria agregada entre nós não é pré-requisito para o executor de desenvolvimento; será mais útil quando o Nó Master estiver operacional. O notebook CCE pode ser avaliado como controlador leve que despacha workflows para runners GitHub-hosted; não será runner self-hosted de código público nem sandbox paralela sem comprovar recursos e isolamento. Issues e Actions são o estado durável quando o notebook fica offline.
+Telemetria agregada entre nós não é pré-requisito para o executor de desenvolvimento; será mais útil quando o Nó Master estiver operacional. A possibilidade de usar o notebook CCE como controlador leve foi uma hipótese inicial, substituída pela decisão abaixo.
+
+## Execução de desenvolvimento e papel do notebook — 2026-11-20
+
+Decisão do operador: GitHub Issues e GitHub Actions hospedado são a fila durável e o executor principal do modo offline. O notebook é um apoio adicional opcional para cálculos, análises locais com código confiável e dados públicos/sintéticos, inspeção de progresso e coleta de relatórios sanitizados. Não é controlador permanente, fonte da fila nem ponto único de falha; não precisa ficar ligado para o trabalho continuar.
+
+Código não confiável de Issues e pull requests permanece em runners GitHub-hosted efêmeros. Não instalar runner self-hosted para o repositório público. Manter segredos, banco de produção, telemetria doméstica e dados pessoais fora das análises locais. Toda chamada externa de modelo continua sujeita à autorização, quota e política de dados; merge e deploy exigem revisão humana.
 
 ## Chamadas Gemini em segundo plano — 2026-11-15
 
