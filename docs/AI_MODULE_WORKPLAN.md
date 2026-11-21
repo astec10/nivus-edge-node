@@ -40,6 +40,21 @@ Um integrador deve ser o único responsável por decidir mudanças simultâneas 
 5. Rodar CI para a combinação completa, não apenas confiar nos resultados isolados.
 6. Abrir ou atualizar um PR para revisão humana; merge e produção permanecem decisão humana.
 
+## Exemplo prático: duas tarefas paralelas
+
+Suponha que queremos melhorar a documentação sem alterar o comportamento do sistema:
+
+| Issue | Objetivo | Caminho permitido |
+| --- | --- | --- |
+| A | Explicar o cadastro, o pareamento e a revogação de um nó em linguagem para iniciantes | `docs/NODE_REGISTRY.md` |
+| B | Explicar como interpretar sensores indisponíveis (`N/D`) e identificar a origem de uma leitura | `docs/HARDWARE_TELEMETRY.md` |
+
+As duas tarefas podem começar juntas porque cada uma tem um caminho exclusivo e não muda schemas, banco, autorização ou mensagens MQTT. Para cada uma, abra uma Issue com objetivo, critérios de aceite e o caminho permitido. O executor cria uma branch por Issue; cada resultado chega em um PR separado. A CI valida cada PR, e uma pessoa revisa e mescla cada alteração. Se uma tarefa precisar editar o arquivo da outra ou mudar uma interface compartilhada, pare a divisão e combine primeiro o contrato com a pessoa integradora.
+
+Exemplo de mudança que deve ser serializada: incluir o nível de bateria em um evento compartilhado. Uma única Issue e uma pessoa integradora devem definir primeiro a versão do evento, unidade, intervalo válido, significado de valor ausente e regras de autorização. Essa pessoa altera o contrato compartilhado — por exemplo, `backend/api/schemas.py`, `backend/database.py` e a documentação do envelope MQTT — em um PR. Depois de o contrato ser revisado e mesclado, tarefas separadas podem atualizar o coletor, a API, a dashboard e a documentação, cada uma com caminhos próprios e referindo-se à mesma versão do contrato.
+
+Este exemplo descreve paralelismo para desenvolver o repositório com Issues, branches, PRs e CI. Não é o scheduler de tarefas do produto Nivus nem uma autorização para nós executarem código uns dos outros.
+
 ## Estado atual do executor
 
 O executor de desenvolvimento usa GitHub Issues e GitHub Actions, separado do runtime Nivus. O intake valida a tarefa, seus caminhos permitidos e a autorização explícita antes de iniciar o worker. A chamada ao modelo e a execução do worker ocorrem em runners GitHub-hosted; o fluxo não depende da telemetria do CCE nem do Nó Master.
