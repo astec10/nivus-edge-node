@@ -1,19 +1,19 @@
 # Arquitetura da candidata
 
-Esta árvore descreve a implementação versionada do Nivus. O registro inicial seguro de nós foi integrado ao `main` pelo PR #66. O último estado do notebook informado pelo operador é `f896de8`, sem sondagem nesta revisão. A branch local `feat/node-telemetry-envelope` contém uma candidata não testada para ingestão/histórico de telemetria multi-nó; não está integrada nem implantada.
+Esta árvore descreve a implementação versionada do Nivus. O registro inicial seguro de nós foi integrado ao `main` pelo PR #66. O último estado do notebook informado pelo operador é `f896de8`, sem sondagem nesta revisão. O PR #97 (`feat/node-telemetry-stacked`) contém a candidata de ingestão/histórico multi-nó. Os quatro workflows hospedados passaram após a correção do cursor ISO 8601; o PR continua aberto, sem merge ou implantação. A CI usa ambientes isolados e não comprova TLS nem operação em dispositivos reais.
 
 ## Backend
 
 - backend/main.py compõe a aplicação FastAPI e inclui routers.
-- backend/api/routers/ contém autenticação, telemetria, atuadores, bateria móvel, alertas, configurações, usuários e `nodes.py`. `mobile_battery.py` separa cadastro administrativo de relatórios autenticados por token do celular. `nodes.py` contém rotas administrativas de pareamento/listagem/revogação e endpoints de agente para cadastro, sessão e heartbeat; a candidata local também acrescenta ingestão de envelopes e histórico.
+- backend/api/routers/ contém autenticação, telemetria, atuadores, bateria móvel, alertas, configurações, usuários e `nodes.py`. `mobile_battery.py` separa cadastro administrativo de relatórios autenticados por token do celular. `nodes.py` contém rotas administrativas de pareamento/listagem/revogação e endpoints de agente para cadastro, sessão e heartbeat; o PR #97 também propõe ingestão de envelopes e histórico protegido.
 - backend/api/schemas.py define os payloads de entrada.
 - backend/api/dependencies.py valida JWT e papel do usuário.
 - backend/database.py mantém SQLite e inicialização/migração aditiva.
 - backend/api/routers/ai_providers.py (issue #68) oferece CRUD administrativo; backend/services/ai_providers.py cifra chaves com AES-GCM usando chave externa, faz validação de rede e teste GET sem prompts. A rota não habilita um executor de inferência.
 - backend/services/maintenance.py compartilha o estado volátil do modo de manutenção, registra transições no SQLite e volta ao modo normal após reboot.
 - `backend/services/nodes.py` implementa o contrato de identidade multi-nó integrado no PR #66: código de pareamento de uso único, token armazenado como hash, sessão rotativa, sequência contra replay e presença derivada do heartbeat do servidor.
-- `backend/services/node_telemetry.py` contém a candidata local de normalização, replay/idempotência, retenção de 14 dias, limite de um lote novo a cada 30 segundos por nó e histórico administrativo; ainda precisa de testes completos, CI hospedada e revisão antes de integrar.
-- `node_agent/agent.py` (PR #69) é um cliente stdlib para pareamento HTTPS e heartbeat. A extensão local `node_agent/telemetry.py` coleta somente CPU, memória e disco do Linux, preserva a mesma sequência do heartbeat e não inventa valores quando a fonte falha. A candidata não executa comandos, e ainda falta CI e smoke TLS real entre dispositivos.
+- `backend/services/node_telemetry.py` no PR #97 valida métricas, sessão, replay/idempotência e limite de um lote novo a cada 30 segundos. Retém 14 dias e remove lotes expirados também ao consultar o histórico, mesmo para nó offline. O histórico é admin-only, limitado a 500 lotes por página, usa offset limitado e snapshot ISO 8601 estável. Os quatro workflows hospedados passaram; a candidata ainda não foi integrada ou implantada.
+- `node_agent/agent.py` (PR #69) é um cliente stdlib para pareamento HTTPS e heartbeat. O PR #97 estende `node_agent/telemetry.py` para coletar somente CPU, memória e disco do Linux, preservar a sequência do heartbeat e marcar fontes ausentes como indisponíveis. Não executa comandos; a CI hospedada passou, mas ainda falta smoke TLS real entre dispositivos.
 - backend/security.py contém hashing PBKDF2 e helpers JWT.
 - `backend/services/mobile_battery.py` aplica frescor, limiar de 20%, latch por ciclo e publica somente `OFF` no tópico fixo permitido; o broker não confirma o estado físico.
 - backend/services/mqtt.py publica comandos; backend/mqtt_worker.py persiste eventos.
