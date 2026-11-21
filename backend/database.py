@@ -98,6 +98,36 @@ def init_db():
             );
             CREATE INDEX IF NOT EXISTS idx_nodes_last_seen
                 ON nodes(last_seen);
+            CREATE TABLE IF NOT EXISTS node_telemetry_batches (
+                batch_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                node_id TEXT NOT NULL,
+                session_sha256 TEXT NOT NULL,
+                sequence INTEGER NOT NULL CHECK (sequence >= 0),
+                schema_version INTEGER NOT NULL CHECK (schema_version >= 1),
+                observed_at REAL NOT NULL,
+                received_at REAL NOT NULL,
+                payload_sha256 TEXT NOT NULL,
+                UNIQUE(node_id, session_sha256, sequence),
+                FOREIGN KEY(node_id) REFERENCES nodes(node_id) ON DELETE CASCADE
+            );
+            CREATE INDEX IF NOT EXISTS idx_node_telemetry_batches_node_received
+                ON node_telemetry_batches(node_id, received_at DESC);
+            CREATE TABLE IF NOT EXISTS node_telemetry_samples (
+                sample_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                batch_id INTEGER NOT NULL,
+                metric TEXT NOT NULL,
+                value REAL,
+                unit TEXT NOT NULL,
+                quality TEXT NOT NULL CHECK (quality IN ('measured', 'estimated', 'unavailable')),
+                CHECK (
+                    (quality = 'unavailable' AND value IS NULL)
+                    OR (quality IN ('measured', 'estimated') AND value IS NOT NULL)
+                ),
+                UNIQUE(batch_id, metric),
+                FOREIGN KEY(batch_id) REFERENCES node_telemetry_batches(batch_id) ON DELETE CASCADE
+            );
+            CREATE INDEX IF NOT EXISTS idx_node_telemetry_samples_batch
+                ON node_telemetry_samples(batch_id, metric);
             CREATE TABLE IF NOT EXISTS maintenance_audit (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,

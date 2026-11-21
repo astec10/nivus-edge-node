@@ -4,6 +4,8 @@
 **Issue:** [#65 concluída](https://github.com/astec10/nivus-edge-node/issues/65) pelo PR #66.
 **Próxima validação:** smoke real com dois nós, incluindo TLS, reboot e revogação.
 
+**Candidata local em andamento:** a branch `feat/node-telemetry-envelope` estende o agente e a API para amostras versionadas de CPU, memória e disco. O trabalho ainda não foi publicado, testado na CI ou integrado; consulte o diff e o status antes de tratar a candidata como disponível.
+
 Este módulo estabelece identidade, pareamento, presença e revogação para os próximos passos multi-nó. A entrega inicial não agrega telemetria e não dá aos nós capacidade de executar ações uns nos outros.
 
 ## Limites da primeira entrega
@@ -19,7 +21,7 @@ Implementado e integrado no PR #66:
 - Estados `online`, `offline` e `revoked`; cadastro fica offline até o primeiro heartbeat.
 - Listagem e revogação por administrador.
 
-Fora do escopo:
+Fora do escopo da primeira entrega do PR #66:
 
 - Enviar ou agregar amostras de telemetria.
 - Controlar atuadores ou publicar comandos MQTT.
@@ -119,6 +121,35 @@ A listagem nunca retorna token, hashes, sessão ou códigos de pareamento. A rot
 
 A sequência crescente evita reuso e ordena requests dentro de uma sessão. Um reinício do agente pede nova sessão, que reinicia a sequência; não se deve executar dois agentes simultaneamente com o mesmo token.
 
+## Envelope de telemetria multi-nó — candidata
+
+O endpoint candidato `POST /api/nodes/telemetry` aceita token de nó no cabeçalho `X-Nivus-Node-Token` e um corpo versionado:
+
+```json
+{
+  "session_id": "<SESSAO_ATUAL>",
+  "sequence": 1,
+  "schema_version": 1,
+  "observed_at": "2026-11-21T12:00:00Z",
+  "samples": [
+    {"metric": "cpu.utilization", "value": 23.5, "unit": "percent", "quality": "measured"},
+    {"metric": "memory.utilization", "value": 48.0, "unit": "percent", "quality": "measured"},
+    {"metric": "disk.utilization", "value": 61.0, "unit": "percent", "quality": "measured"}
+  ]
+}
+```
+
+- O contrato v1 permite `cpu.utilization`, `memory.utilization`, `disk.utilization`, `host_battery.level`, temperaturas identificadas e `power.estimated`, sempre com unidade, faixa, qualidade e número limitado de amostras. O agente inicial coleta somente CPU, memória e disco; os demais permanecem indisponíveis até integrações específicas.
+- Qualidades aceitas: `measured`, `estimated` e `unavailable`. Leitura indisponível exige `value: null`; NaN, infinito, booleanos, unidade incorreta, métrica desconhecida, duplicatas e campos adicionais são rejeitados.
+- A sequência é compartilhada com heartbeat. O agente envia heartbeat e depois telemetria com sequência crescente; o servidor serializa a validação SQLite sob transação. Repetição exata da mesma sessão, sequência e conteúdo retorna aceite idempotente. Conteúdo divergente ou sequência antiga sem lote correspondente retorna `409`.
+- O servidor aceita no máximo um lote novo a cada 30 segundos por nó, inclusive após renovar a sessão. Repetições idênticas continuam idempotentes e não consomem intervalo; uma tentativa antecipada recebe `429` com `Retry-After`. Na candidata local, o agente mantém heartbeats mais frequentes se configurados, mas coleta/envia telemetria somente a cada 30 segundos.
+- `observed_at` registra o relógio UTC informado pelo nó; `received_at` e `last_seen` vêm do servidor. O histórico administrativo devolve ambos e o desvio em segundos; relógio do cliente não decide presença.
+- Os dados ficam em `node_telemetry_batches` e `node_telemetry_samples`, associados ao `node_id`, com chaves estrangeiras e remoção de lotes vencidos após 14 dias durante a ingestão. Isso é aditivo e não altera `telemetry.node` nem o histórico legado.
+- A rota candidata de histórico é `GET /api/nodes/{node_id}/telemetry`, exclusiva para administrador, limitada a 500 lotes por consulta e ordenada do mais antigo para o mais recente dentro da janela retornada.
+- O agente só declara capacidades de CPU/memória/disco quando `/proc` está disponível. Usa amostras de `/proc/stat`, `/proc/meminfo` e uso do filesystem raiz; primeira leitura de CPU e fontes inválidas ficam explicitamente indisponíveis. Temperatura, bateria e energia não são inferidas por este coletor.
+
+Esta candidata ainda requer testes CI, revisão do tratamento de falhas e merge. A resposta de aceite confirma armazenamento no Nó Master, não validade física do sensor nem uma ação de automação.
+
 ## Validação e limites observados
 
 Validação atual por PR #66, PR #69 e release do notebook:
@@ -135,7 +166,6 @@ A release `fff64a68f252f0b1290576e30b39ed78fbc15a7a` foi aplicada no notebook; s
 ## Próximas entregas separadas
 
 1. Executar smoke do agente em dois dispositivos reais; confirmar TLS, reboot e revogação.
-2. Definir envelope de telemetria com timestamp de origem, unidade, qualidade, versão de esquema e timestamp de recepção.
-3. Guardar dados por `node_id` sem quebrar consumidores do schema legado.
-4. Criar visualização de nós com presença antiga claramente sinalizada e revogação administrativa.
-5. Só após revisão separada, projetar atualização de artefatos assinados com canário e rollback por nó.
+2. Revisar, validar na CI e integrar o envelope versionado e armazenamento por nó sem quebrar consumidores do schema legado.
+3. Integrar o histórico à visualização de nós, com presença antiga claramente sinalizada e revogação administrativa.
+4. Só após revisão separada, projetar atualização de artefatos assinados com canário e rollback por nó.

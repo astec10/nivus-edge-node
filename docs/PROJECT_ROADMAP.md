@@ -54,15 +54,15 @@ CI aprovado comprova o fluxo no runner virtual Ubuntu, não em cada chipset ou p
 
 ### Fase 2 — Identidade e telemetria de vários nós
 
-**Estado: registro inicial implantado; agente mínimo implementado no PR #69; multi-nó operacional ainda incompleto.** A release `fff64a68f252f0b1290576e30b39ed78fbc15a7a` contém o cadastro seguro da issue #65 / PR #66. O PR #69 acrescenta um cliente mínimo de pareamento e heartbeat, com CI hospedada aprovada. Os testes usam dois nós simulados, handlers FastAPI e SQLite temporário; não substituem HTTPS end-to-end ou smoke com dispositivos reais. Não há comandos remotos, agregação de telemetria ou atualização coordenada.
+**Estado: registro inicial implantado; agente mínimo implementado no PR #69; ingestão autenticada de telemetria em PR #97; multi-nó operacional ainda incompleto.** A release `fff64a68f252f0b1290576e30b39ed78fbc15a7a` contém o cadastro seguro da issue #65 / PR #66. O PR #69 acrescenta um cliente mínimo de pareamento e heartbeat, com CI hospedada aprovada. Os testes existentes usam dois nós simulados, handlers FastAPI e SQLite temporário; não substituem HTTPS end-to-end ou smoke com dispositivos reais. O PR #97 propõe envio HTTPS e persistência por nó, envelope estrito, sequência compartilhada, retries idempotentes, retenção de 14 dias e limite de uma amostra nova por nó a cada 30 segundos. `py_compile`, smoke isolado de limite, retry e cadência passaram; a suíte unittest local não executou por ausência de FastAPI e a CI hospedada do PR #97 continua pendente. O PR #93 permanece aberto e modifica arquivos compartilhados; a branch de telemetria deve ser reconciliada quando o controlador for integrado. Não há comandos remotos ou atualização coordenada.
 
 1. [x] Identidade criada pelo servidor e cadastro administrativo por código de uso único — PR #66.
 2. [x] Heartbeat autenticado, sequência contra replay e presença baseada no relógio do servidor — PR #66.
 3. [x] Implementar agente mínimo de pareamento/heartbeat (PR #69; CI hospedada aprovada).
 4. [ ] Testar pareamento e heartbeat em dois dispositivos reais, incluindo TLS confiável, reinício e revogação.
-5. [ ] Versionar o envelope de telemetria: nó, timestamp, unidade, origem, qualidade e versão do esquema.
-6. [ ] Exibir lista de nós, último contato e séries por nó no painel.
-7. [ ] Tratar duplicatas, atraso, relógios incorretos, perda de rede, revogação e nós desconhecidos.
+5. [ ] Revisar e integrar envelope versionado com timestamp de origem, unidade, qualidade, schema, idempotência e limite de taxa por nó; PR #97 também separa horário de origem e recebimento pelo servidor.
+6. [ ] Exibir lista de nós, último contato e séries por nó no painel (PR #96 está aberto para lista read-only; a série aguarda ingestão integrada).
+7. [ ] Validar duplicatas, atraso, relógios incorretos, perda de rede, revogação e nós desconhecidos na candidata e em dois dispositivos reais.
 8. [ ] Definir distribuição de releases assinadas: inventário de versão/capacidades, seleção dos nós elegíveis, canário seguido de ondas, health check, manutenção de dados e rollback independente por nó. Offline, baixa bateria ou recursos insuficientes devem adiar a atualização sem bloquear a frota.
 
 Critério de saída: dois dispositivos podem enviar telemetria autenticada; um nó desconectado não derruba os outros; credenciais podem ser revogadas; o painel identifica claramente dados ausentes ou antigos.

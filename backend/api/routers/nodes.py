@@ -1,7 +1,7 @@
 from typing import Literal
 
-from fastapi import APIRouter, Depends, Header, HTTPException
-from pydantic import BaseModel, ConfigDict, Field, StrictInt, field_validator
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StrictFloat, StrictInt, StrictStr, field_validator, model_validator
 
 from api.dependencies import get_current_admin
 from services.nodes import (
@@ -15,6 +15,14 @@ from services.nodes import (
     process_node_heartbeat,
     revoke_node,
     normalize_node_name,
+)
+from services.node_telemetry import (
+    MAX_TELEMETRY_SAMPLES,
+    TelemetryRateLimitError,
+    TELEMETRY_SCHEMA_VERSION,
+    get_node_telemetry_history,
+    normalize_telemetry_samples,
+    process_node_telemetry,
 )
 
 
@@ -57,6 +65,53 @@ class NodeHeartbeat(BaseModel):
         if len(set(value)) != len(value):
             raise ValueError("A lista de capacidades contém duplicatas.")
         return value
+
+
+class NodeTelemetrySample(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    metric: StrictStr = Field(min_length=1, max_length=64)
+    value: StrictInt | StrictFloat | None
+    unit: StrictStr = Field(min_length=1, max_length=16)
+    quality: Literal["measured", "estimated", "unavailable"]
+
+    @model_validator(mode="after")
+    def validate_metric_sample(self):
+        normalize_telemetry_samples([self.model_dump()])
+        return self
+
+
+class NodeTelemetryEnvelope(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    session_id: str = Field(min_length=40, max_length=128, pattern=r"^[A-Za-z0-9_-]+$")
+    sequence: StrictInt = Field(ge=0, le=2**63 - 1)
+    schema_version: StrictInt = Field(ge=TELEMETRY_SCHEMA_VERSION, le=TELEMETRY_SCHEMA_VERSION)
+    observed_at: AwareDatetime
+    samples: list[NodeTelemetrySample] = Field(min_length=1, max_length=MAX_TELEMETRY_SAMPLES)
+
+    @field_validator("samples")
+    @classmethod
+    def samples_are_unique(cls, value: list[NodeTelemetrySample]) -> list[NodeTelemetrySample]:
+        names = [sample.metric for sample in value]
+        if len(set(names)) != len(names):
+            raise ValueError("A amostra contém métricas duplicadas.")
+        return value
+
+    @field_validator("schema_version")
+    @classmethod
+    def supported_schema_version(cls, value: int) -> int:
+        if type(value) is not int or value != TELEMETRY_SCHEMA_VERSION:
+            raise ValueError("Versão de esquema de telemetria não suportada.")
+        return value
+
+
+class NodeTelemetryQueryResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    node_id: str
+    schema_version: int
+    observed_at: str
+    received_at: str
+    clock_skew_seconds: float
+    samples: list[NodeTelemetrySample]
 
 
 @router.post("/enrollments", status_code=201)
@@ -114,9 +169,50 @@ def heartbeat(
         raise HTTPException(status_code=422, detail=str(error))
 
 
+@router.post("/telemetry", status_code=202)
+def ingest_telemetry(
+    payload: NodeTelemetryEnvelope,
+    node_token: str = Header(..., alias="X-Nivus-Node-Token", min_length=40, max_length=128),
+):
+    try:
+        return process_node_telemetry(
+            node_token,
+            payload.session_id,
+            payload.sequence,
+            payload.schema_version,
+            payload.observed_at,
+            [sample.model_dump() for sample in payload.samples],
+        )
+    except NodeAuthenticationError:
+        raise HTTPException(status_code=401, detail="Credencial ou sessão do nó inválida ou revogada.")
+    except HeartbeatReplayError:
+        raise HTTPException(status_code=409, detail="Mensagem do nó duplicada ou fora de ordem.")
+    except TelemetryRateLimitError as error:
+        raise HTTPException(
+            status_code=429,
+            detail=str(error),
+            headers={"Retry-After": str(error.retry_after_seconds)},
+        )
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error))
+
+
 @router.get("")
 def get_nodes(admin: str = Depends(get_current_admin)):
     return list_nodes()
+
+
+@router.get("/{node_id}/telemetry", response_model=list[NodeTelemetryQueryResult])
+def get_node_telemetry(
+    node_id: str,
+    since: AwareDatetime | None = Query(default=None),
+    limit: int = Query(default=120, ge=1, le=500),
+    admin: str = Depends(get_current_admin),
+):
+    try:
+        return get_node_telemetry_history(node_id, since=since, limit=limit)
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error))
 
 
 @router.delete("/{node_id}")
