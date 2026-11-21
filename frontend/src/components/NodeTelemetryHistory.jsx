@@ -113,6 +113,8 @@ export default function NodeTelemetryHistory({
   const [loadedAt, setLoadedAt] = useState(null);
   const activeRequest = useRef(null);
   const paginationSnapshot = useRef(null);
+  const resultToken = useRef(token);
+  const resultMatchesToken = resultToken.current === token;
 
   const queryKey = node.node_id + ':' + range + ':' + reload + ':' + pageOffset;
 
@@ -141,6 +143,11 @@ export default function NodeTelemetryHistory({
 
   useEffect(() => {
     activeRequest.current && activeRequest.current.abort();
+    if (resultToken.current !== token) {
+      resultToken.current = token;
+      setResult({ key: '', batches: [], pageMetadata: null });
+      setLoadedAt(null);
+    }
     const controller = new AbortController();
     activeRequest.current = controller;
     setLoadingKey(queryKey);
@@ -199,7 +206,7 @@ export default function NodeTelemetryHistory({
     };
   }, [node.node_id, token, range, reload, pageOffset, windowReferenceMs, queryKey]);
 
-  const pageMetadata = result.key === queryKey ? result.pageMetadata : null;
+  const pageMetadata = resultMatchesToken && result.key === queryKey ? result.pageMetadata : null;
   const paginationSupported = Boolean(
     pageMetadata
       && pageMetadata.supported
@@ -207,7 +214,8 @@ export default function NodeTelemetryHistory({
       && Number.isSafeInteger(pageMetadata.limit)
       && pageMetadata.limit > 0,
   );
-  const batches = result.key === queryKey
+  const batches = resultMatchesToken
+    && result.key === queryKey
     && (pageOffset === 0 || paginationSupported)
     ? result.batches
     : [];
@@ -484,7 +492,7 @@ export default function NodeTelemetryHistory({
               : ''}.
           </span>
         )}
-        {loadedAt && result.key === queryKey && (
+        {loadedAt && resultMatchesToken && result.key === queryKey && (
           <span aria-live="polite">Atualizado às {formatTimestamp(loadedAt.toISOString(), displayPreferences)}</span>
         )}
       </div>
