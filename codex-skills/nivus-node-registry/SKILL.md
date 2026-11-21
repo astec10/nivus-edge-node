@@ -1,24 +1,20 @@
 ---
 name: nivus-node-registry
-description: "Design or implement the planned Nivus node catalog, per-node identity, enrollment, revocation, heartbeat, and multi-node telemetry."
+description: "Review Nivus node identity, pairing, revocation, heartbeat, validated capability profiles, and registry synchronization."
 ---
 
 # Nivus Node Registry
 
-Use only when multi-node identity or monitoring is part of the explicit task. This is a future Nivus capability until the code and project status show otherwise.
+The initial authenticated registry is implemented: the Master creates node identities, pairs nodes with one-time codes, rotates session credentials, tracks ordered heartbeats, and supports revocation. The minimal agent pairs and sends heartbeat metadata. Check current code and `docs/PROJECT_STATUS.md`; do not infer that capability discovery, multi-node telemetry, or task scheduling is complete.
 
-## Prerequisites and design
-Read docs/PROJECT_ROADMAP.md Phase 2, docs/MODULE_MAP.md, backend schemas, auth dependencies, and current telemetry ingestion. Do not begin by trusting telemetry.node or an IP address as identity.
+## Extend the registry safely
+- Read `docs/AI_CONTEXT.md`, `docs/MODULE_MAP.md`, Phase 2 of `docs/PROJECT_ROADMAP.md`, the node router/service/schemas, and the agent files directly involved.
+- Never treat hostname, IP, LAN discovery, `telemetry.node`, or agent self-assertion as identity or proof of capability.
+- Keep identity, validated capabilities, and dynamic availability separate. Capabilities require recorded evidence and a schema/profile revision.
+- Preserve the existing pairing and heartbeat contract. Store credential hashes, reject revoked identities and replayed enrollment credentials, and rotate credentials safely.
+- A replicated fleet catalog should be read-only at workers, versioned, fresh and contain no peer credentials. The Master remains authoritative; stale snapshots cannot grant new leases.
+- Begin with inventory and profile visibility. Do not add remote shell, arbitrary task execution, MQTT actuator privileges, or arbitrary file transfer to node registration.
 
-Design stable server and node identifiers, explicit enrollment, one-time pairing, per-node credentials stored as hashes, revocation, and authenticated heartbeat. Derive online/offline from last_seen and a configured timeout. Include agent version and allowlisted capability declarations, with schema versions.
+## Failure handling and validation
+Cover delayed/duplicate heartbeats, clock skew, network partitions, stale profiles, revocation, capability changes and schema compatibility. Validate real devices before claiming support. The scheduler, capability qualification and multi-node telemetry remain future work unless the inspected implementation proves otherwise.
 
-Keep the first increment read-only: list registered nodes, last contact, and telemetry freshness. Do not add remote shell, task execution, MQTT actuator privileges, or arbitrary file transfer as part of node registration.
-
-## Compatibility and failure handling
-- Preserve existing telemetry.node and payload compatibility during migration.
-- Reject unknown/revoked identities and replayed enrollment credentials.
-- Test delayed and duplicate heartbeats, clock skew, network partitions, stale nodes, and credential rotation.
-- Scope data and alerts by authenticated node identity before enabling multi-node actions.
-- Record the threat model and API contract before changing shared schema/database files.
-
-The skill and roadmap are design guidance, not proof that a node registry exists. Integrate only with an explicit task and update status after implementation and tests.
