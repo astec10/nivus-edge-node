@@ -7,6 +7,7 @@ import LoginPanel from './components/LoginPanel';
 import UserManagementPanel from './components/UserManagementPanel';
 import DashboardPanel from './components/DashboardPanel';
 import SettingsPanel from './components/SettingsPanel';
+import NodesPanel from './components/NodesPanel';
 const LegacyDashboardPanel = lazy(() => import('./components/LegacyDashboardPanel'));
 import LegalNotice from './components/LegalNotice';
 import { thresholdOrDefault } from './utils/telemetry';
@@ -517,6 +518,9 @@ function App() {
           <DashboardNavigation token={token} isAdmin={isAdmin} activeTab={activeTab} setActiveTab={setActiveTab} handleLogout={handleLogout} displayPreferences={displayPreferences} />
           <LoginPanel token={token} handleLogin={handleLogin} username={username} setUsername={setUsername} password={password} setPassword={setPassword} expanded={loginExpanded} onToggle={() => setLoginExpanded(value => !value)} />
           <UserManagementPanel token={token} isAdmin={isAdmin} activeTab={activeTab} newUsername={newUsername} setNewUsername={setNewUsername} newPassword={newPassword} setNewPassword={setNewPassword} newRole={newRole} setNewRole={setNewRole} handleSaveUser={handleSaveUser} usersList={usersList} setEditingUser={setEditingUser} setTargetNewPassword={setTargetNewPassword} setTargetConfirmPassword={setTargetConfirmPassword} setAdminAuthPassword={setAdminAuthPassword} handleDeleteUser={handleDeleteUser} />
+          {activeTab === 'nodes' && token && isAdmin && (
+            <NodesPanel token={token} displayPreferences={displayPreferences} />
+          )}
           {activeTab === 'settings' && token && (
             <SettingsPanel
               isAdmin={isAdmin}
