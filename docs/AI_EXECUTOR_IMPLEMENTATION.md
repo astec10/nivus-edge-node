@@ -1,1 +1,55 @@
-Y™Áäx-ÆÈ‹j◊ù¢Îi∫⁄+äßj[hëÈ‹¢ÈÌ€Õ7NãZñã≠¶Îeäw¨‘åÅ·ïç’—Ω»ÅëîÅ—Ö…ïôÖÃÅëîÅëïÕïπŸΩ±Ÿ•µïπ—ºÅçΩ¥Å%4(4)Õ—îÅï·ïç’—Ω»É§Å•πô…ÖïÕ—…’—’…ÑÅëîÅëïÕïπŸΩ±Ÿ•µïπ—ºÅëºÅ…ï¡ΩÕ•”Õ…•º∏Å;çºÅ…ΩëÑÅπºÅ…’π—•µîÅëºÅªÃÅ9•€nÙﬁ⁄$z{-ÆÈ‹j◊ùñ÷Fóf∆ˆ6¬FWVÊFRF2F&ñf2÷ÁVó2fW&ñfñ6F2V∆ÚF÷ñÊó7G&F˜"RFWfR6W"6ˆ◊ÊÜF˜"FWFÚFRv7FÚ6ˆÊfñwW&FÚÊÚ,;7&ñÚ6W'fú:vÚ‡–
+# Executor de tarefas de desenvolvimento com IA
+
+Este executor √© infraestrutura de desenvolvimento do reposit√≥rio. N√£o roda no runtime do n√≥ Nivus e n√£o √© o scheduler multi-n√≥ da Fase 5.
+
+## Estado verificado em 2026-11-16
+
+- O fluxo inicial foi integrado ao `main` no PR #3. Ele valida tarefas p√∫blicas/sint√©ticas em GitHub Issues, restringe altera√ß√µes a caminhos aprovados e cria um PR em rascunho depois da CI.
+- A chave `GEMINI_API_KEY` e a vari√°vel `NIVUS_AI_BUDGET_MODE=free-tier` foram configuradas no GitHub segundo confirma√ß√£o do mantenedor. O valor da chave nunca foi lido ou enviado ao chat. O mantenedor informou que usa um projeto Google sem faturamento; isso √© uma configura√ß√£o externa e n√£o pode ser verificada pelo executor.
+- Duas tentativas reais anteriores n√£o produziram proposta: a primeira recebeu HTTP 503; a segunda terminou no timeout de 75 segundos da chamada s√≠ncrona e foi exibida incorretamente como `None`.
+- O adaptador atual envia uma √∫nica chamada, consulta intera√ß√µes em segundo plano por at√© quatro minutos, registra metadados sanitizados e tenta excluir a intera√ß√£o; os testes simulados cobrem sucesso, falha, timeout e exclus√£o. Uma chamada explicitamente autorizada para a Issue #6 gerou a proposta documental do PR #16. A valida√ß√£o do PR passou, mas a etapa de abertura autom√°tica falhou porque `gh repo view` exige um checkout; o mantenedor abriu o draft manualmente. A workflow principal foi corrigida no commit `bec9573` para ler o branch padr√£o pela API sem checkout. O PR #53 adicionou um guard que detecta um draft aberto para a mesma issue antes de chamar o modelo, al√©m de limpar `ai:ready`/`ai:queued` e comentar o link quando cria um draft. O PR #53 passou os checks hospedados; na issue #6 existente, o guard pularia a chamada porque o PR #16 j√° est√° aberto. Ainda n√£o houve nova chamada autorizada para confirmar o fluxo completo de abertura autom√°tica.
+- O executor n√£o aprova, faz merge, implanta ou controla dispositivos dom√©sticos. A revis√£o humana continua obrigat√≥ria.
+
+## Implementa√ß√£o e limites
+
+- O intake valida o formul√°rio da Issue e a classifica√ß√£o de dados antes de enfileirar a tarefa.
+- O adaptador em `tools/ai_executor/gemini_client.py` usa `gemini-3.8-flash` e a API Interactions. A chamada `POST` n√£o √© repetida automaticamente; respostas em andamento s√£o consultadas por `GET` at√© o limite de 4 minutos. Cada requisi√ß√£o HTTP tem timeout pr√≥prio de at√© 30 segundos.
+- A execu√ß√£o em segundo plano da API exige armazenamento tempor√°rio. O adaptador envia `store=true`, consulta o estado e tenta cancelar tarefas ainda ativas no timeout; em seguida tenta `DELETE` da intera√ß√£o. O relat√≥rio de uso indica `interaction_deleted`. Se o provedor n√£o aceitar a exclus√£o, o registro pode permanecer segundo a reten√ß√£o da API; no plano gratuito documentado atualmente, a reten√ß√£o padr√£o √© de um dia.
+- O relat√≥rio de uso n√£o inclui prompt, resposta nem chave. Ele inclui estado, dura√ß√£o, c√≥digo de erro, uso de tokens, ID da intera√ß√£o e resultado da tentativa de exclus√£o; o artefato do Actions fica retido por 30 dias.
+- O conte√∫do enviado pode ser usado pelo Google para melhorar seus produtos no plano gratuito. Use exclusivamente c√≥digo p√∫blico e dados sint√©ticos; nunca inclua segredos, bancos, telemetria real, dados dom√©sticos, rostos ou informa√ß√µes pessoais.
+- A vari√°vel `NIVUS_AI_BUDGET_MODE=free-tier` confirma a inten√ß√£o do mantenedor, mas n√£o imp√µe limite financeiro. A configura√ß√£o de faturamento precisa ser conferida no projeto Google separado.
+- O intake autorizado inicia o worker somente pelo evento de adicionar a label `ai:ready`. Ele n√£o chama tamb√©m `workflow_dispatch`, evitando duas chamadas acidentais para uma autoriza√ß√£o. O despacho manual do workflow do worker continua sendo um caminho independente e requer a confirma√ß√£o expl√≠cita `reviewed_and_authorized=true`.
+- O worker n√£o executa comandos sugeridos pela Issue/modelo; valida e aplica somente arquivos completos nos caminhos exatos permitidos. CI roda em outro runner, sem a chave Gemini. Uma pessoa revisa o PR e aprova qualquer merge.
+
+## Como usar a fila
+
+1. Crie uma Issue usando o formul√°rio `AI development task`, com crit√©rios verific√°veis e caminhos espec√≠ficos.
+2. Revise se todo o conte√∫do √© p√∫blico ou sint√©tico. N√£o use dados do notebook ou da casa.
+3. Em **Actions ‚Üí AI task intake ‚Üí Run workflow**, informe o n√∫mero da Issue e confirme a revis√£o do conte√∫do. Sem autoriza√ß√£o de modelo, o intake adiciona `ai:queued` e n√£o chama Gemini.
+4. Para autorizar uma proposta, marque `authorize_free_model_call=true` somente depois de revisar a Issue. O intake adiciona `ai:ready`; esse √∫nico evento inicia o worker. N√£o inicie outro workflow em paralelo para a mesma autoriza√ß√£o.
+5. O worker verifica labels e contrato, l√™ o contexto p√∫blico e os caminhos aprovados, envia uma solicita√ß√£o e produz uma proposta limitada. Se o provedor falhar, a Issue permanece registrada e o relat√≥rio cont√©m somente metadados sanitizados.
+6. Se a tentativa falhar e for apropriado tentar novamente, fa√ßa uma nova autoriza√ß√£o expl√≠cita pelo intake; o fluxo remove a label anterior e a reaplica para emitir um √∫nico evento de execu√ß√£o.
+7. Revise o diff e o resultado da CI no PR em rascunho. O worker nunca aprova, faz merge ou deploy.
+
+## Pr√≥ximo marco
+
+O PR #16 continua em rascunho para revis√£o humana; os checks hospedados passaram. A proposta foi gerada, mas a abertura autom√°tica falhou naquela execu√ß√£o; `bec9573` corrigiu a leitura do branch e PR #53 acrescentou o guard de duplica√ß√£o. Nenhuma nova chamada foi feita. Pr√≥ximo marco: revisar o PR #16; depois, se necess√°rio, autorizar uma nova issue p√∫blica/sint√©tica para confirmar o ciclo autom√°tico, sem reutilizar a issue #6 enquanto o draft estiver aberto. Em paralelo, aplicar e conferir as mudan√ßas de dashboard no notebook; CI hospedada n√£o certifica hardware Intel/AMD nem sensores f√≠sicos.
+
+Issues e GitHub Actions s√£o o estado dur√°vel e o executor principal; nenhuma m√°quina do operador precisa ficar ligada. O notebook CCE √© suporte opcional: pode acelerar c√°lculos e an√°lises locais com c√≥digo confi√°vel e entradas p√∫blicas/sint√©ticas, al√©m de acompanhar progresso e reunir relat√≥rios sanitizados. Ele n√£o controla a fila nem hospeda o executor persistente. C√≥digo n√£o confi√°vel de Issues/PRs continua em runners GitHub-hosted ef√™meros; n√£o configure um runner self-hosted para este reposit√≥rio p√∫blico. Desligar, reiniciar ou desconectar o notebook n√£o perde tarefas nem bloqueia os workflows.
+
+## Refer√™ncias externas
+
+- [Gemini Interactions API](https://ai.google.dev/gemini-api/docs/interactions-overview)
+- [Gemini background execution, polling, cancelamento e exclus√£o](https://ai.google.dev/gemini-api/docs/background-execution)
+- [Gemini Interactions API reference](https://ai.google.dev/api/interactions-api)
+
+## Permiss√£o para criar PR
+
+A etapa final usa `gh pr create --draft` com o `GITHUB_TOKEN`. Confira **Settings ‚Üí Actions ‚Üí General ‚Üí Workflow permissions ‚Üí Allow GitHub Actions to create and approve pull requests**. Sem essa permiss√£o, a branch e a CI podem concluir, mas um mantenedor precisar√° criar o PR manualmente. O workflow solicita permiss√£o de escrita para PR somente no job de abertura; n√£o cont√©m etapas de aprova√ß√£o, merge ou deploy.
+
+
+## Executor de infer√™ncia no runtime do Nivus (separado)
+
+O cadastro de perfis de IA e o endpoint de infer√™ncia do runtime s√£o distintos do worker GitHub Actions documentado acima. O endpoint runtime exige administrador e usa um perfil explicitamente selecionado; n√£o executa o c√≥digo/texto gerado, n√£o faz fallback e n√£o compartilha GEMINI_API_KEY.
+
+A integra√ß√£o da issue #74 foi integrada pelo PR #82 e est√° na `main` atual. A chave de provedor √© descriptografada em mem√≥ria; budgets/quota s√£o reservados antes da chamada; prompt e resposta n√£o s√£o persistidos; e a auditoria registra apenas metadados sanitizados. Os checks CI usam mocks; nenhum provedor real foi chamado. A implanta√ß√£o no notebook n√£o foi confirmada. A estimativa local depende das tarifas manuais verificadas pelo administrador e deve ser acompanhada por teto de gasto configurado no pr√≥prio servi√ßo.
