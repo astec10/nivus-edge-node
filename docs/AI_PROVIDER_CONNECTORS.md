@@ -46,7 +46,7 @@ A inferência usa os protocolos OpenAI-compatible, Anthropic Messages, Gemini In
 
 A rota `POST /api/ai/executor/requests/{request_id}/cancel` fecha a conexão acompanhada e cancela o trabalho pendente local. Se a requisição já saiu do Nivus, o serviço externo ainda pode concluir e cobrar. Solicitações concluídas, desconhecidas ou de outro administrador não podem ser canceladas.
 
-A implementação está em proposta e não deve ser tratada como implantada até CI aprovada, revisão e atualização reversível do notebook. Os testes usam mocks e conteúdo sintético; não fazem chamadas reais de provedor.
+O runtime do executor foi integrado à `main` pelo PR #82, com CI aprovada. A última versão informada no notebook é `f896de8`, anterior a esse PR; a instalação do runtime permanece pendente de atualização reversível e validação no host. Os testes usam mocks e conteúdo sintético; não fazem chamadas reais de provedor.
 
 ## Relação com o executor GitHub Actions
 
