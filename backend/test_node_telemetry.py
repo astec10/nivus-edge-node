@@ -139,8 +139,30 @@ class NodeTelemetryTests(unittest.TestCase):
     def test_retention_removes_batches_older_than_fourteen_days(self):
         self.ingest(0)
         later = self.now + timedelta(seconds=TELEMETRY_RETENTION_SECONDS + 1)
+        # An idle node must not keep exposing expired records merely because it
+        # has not sent a new batch since the retention window elapsed.
+        history = get_node_telemetry_history(self.node["node_id"], now=later)
+        self.assertEqual(history, [])
+        conn = database.get_db_connection()
+        try:
+            self.assertEqual(
+                conn.execute("SELECT COUNT(*) FROM node_telemetry_batches").fetchone()[0],
+                0,
+            )
+            self.assertEqual(
+                conn.execute("SELECT COUNT(*) FROM node_telemetry_samples").fetchone()[0],
+                0,
+            )
+        finally:
+            conn.close()
+
+    def test_history_since_cannot_include_expired_batches(self):
+        self.ingest(0)
+        later = self.now + timedelta(seconds=TELEMETRY_RETENTION_SECONDS + 1)
         self.ingest(1, observed_at=later, now=later)
-        history = get_node_telemetry_history(self.node["node_id"])
+        history = get_node_telemetry_history(
+            self.node["node_id"], since=self.now - timedelta(days=30), now=later,
+        )
         self.assertEqual(len(history), 1)
         self.assertEqual(history[0]["observed_at"], later.isoformat(timespec="milliseconds").replace("+00:00", "Z"))
 

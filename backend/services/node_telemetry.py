@@ -233,21 +233,19 @@ def process_node_telemetry(
         conn.close()
 
 
-def get_node_telemetry_history(node_id: str, since=None, limit: int = 120) -> list[dict]:
+def get_node_telemetry_history(node_id: str, since=None, limit: int = 120, now=None) -> list[dict]:
     if not isinstance(node_id, str) or len(node_id) != 32 or any(char not in "0123456789abcdef" for char in node_id):
         raise ValueError("Identificador de nó inválido.")
     if type(limit) is not int or not 1 <= limit <= 500:
         raise ValueError("O limite deve estar entre 1 e 500 amostras.")
-    received_after = _epoch(since) if since is not None else None
+    retention_cutoff = _epoch(now) - TELEMETRY_RETENTION_SECONDS
+    received_after = max(_epoch(since), retention_cutoff) if since is not None else retention_cutoff
     sql = (
         "WITH recent_batches AS ("
         "SELECT batch_id, node_id, schema_version, observed_at, received_at "
-        "FROM node_telemetry_batches WHERE node_id = ?"
+        "FROM node_telemetry_batches WHERE node_id = ? AND received_at >= ?"
     )
-    params = [node_id]
-    if received_after is not None:
-        sql += " AND received_at >= ?"
-        params.append(received_after)
+    params = [node_id, received_after]
     sql += " ORDER BY received_at DESC, batch_id DESC LIMIT ?) "
     params.append(limit)
     sql += (
@@ -259,7 +257,18 @@ def get_node_telemetry_history(node_id: str, since=None, limit: int = 120) -> li
 
     conn = get_db_connection()
     try:
+        # Keep the retention contract consistent even when this node has gone
+        # offline and no new telemetry batch arrives to trigger ingestion cleanup.
+        conn.execute("BEGIN IMMEDIATE")
+        conn.execute(
+            "DELETE FROM node_telemetry_batches WHERE received_at < ?",
+            (retention_cutoff,),
+        )
         rows = conn.execute(sql, params).fetchall()
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
     finally:
         conn.close()
 
