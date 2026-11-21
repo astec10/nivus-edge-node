@@ -139,6 +139,7 @@ function renderSeries(chartType, series) {
 export default function TelemetryChart({ rows, mode, setMode, range, setRange }) {
   const [chartType, setChartType] = useState('line');
   const [visibleKeys, setVisibleKeys] = useState(() => new Set(CHARTS[mode].series.map(({ key }) => key)));
+  const [isNarrowScreen, setIsNarrowScreen] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches);
   const graphicsLabel = getGraphicsLabel(rows.at(-1)?.gpu_temperature_source);
   const chart = useMemo(() => ({
     ...CHARTS[mode],
@@ -159,6 +160,14 @@ export default function TelemetryChart({ rows, mode, setMode, range, setRange })
   useEffect(() => {
     setVisibleKeys(new Set(CHARTS[mode].series.map(({ key }) => key)));
   }, [mode]);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 640px)');
+    const updateScreenWidth = () => setIsNarrowScreen(media.matches);
+    updateScreenWidth();
+    media.addEventListener('change', updateScreenWidth);
+    return () => media.removeEventListener('change', updateScreenWidth);
+  }, []);
 
   const toggleSeries = (key) => {
     setVisibleKeys((current) => {
@@ -242,9 +251,14 @@ export default function TelemetryChart({ rows, mode, setMode, range, setRange })
       <div className="telemetry-chart-canvas">
         {hasValues ? (
           <ResponsiveContainer width="100%" height="100%">
-            <ChartComponent data={rows} margin={{ top: 8, right: units.length > 1 ? 88 : 12, left: 0, bottom: 6 }}>
+            <ChartComponent data={rows} margin={{
+              top: 8,
+              right: units.length > 1 ? (isNarrowScreen ? (units.length > 2 ? 62 : 36) : 88) : 12,
+              left: 0,
+              bottom: 6,
+            }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="time" stroke="#94a3b8" minTickGap={24} />
+              <XAxis dataKey="time" stroke="#94a3b8" minTickGap={isNarrowScreen ? 36 : 24} tick={{ fontSize: isNarrowScreen ? 9 : 11 }} />
               {units.map((unit, index) => (
                 <YAxis
                   key={unit}
@@ -252,11 +266,16 @@ export default function TelemetryChart({ rows, mode, setMode, range, setRange })
                   stroke="#94a3b8"
                   unit={unit}
                   domain={unit === '%' ? [0, 100] : ['auto', 'auto']}
-                  width={unit === '°C' ? 48 : 42}
+                  width={isNarrowScreen ? (index === 0 ? 36 : 30) : (unit === '°C' ? 48 : 42)}
                   orientation={index === 0 ? 'left' : 'right'}
                   hide={false}
-                  tick={{ fontSize: 11 }}
-                  {...(index > 1 ? { orientation: 'right', width: 42, offset: 38, tick: { fontSize: 10 } } : {})}
+                  tick={{ fontSize: isNarrowScreen ? 9 : 11 }}
+                  {...(index > 1 ? {
+                    orientation: 'right',
+                    width: isNarrowScreen ? 30 : 42,
+                    offset: isNarrowScreen ? 24 : 38,
+                    tick: { fontSize: isNarrowScreen ? 9 : 10 },
+                  } : {})}
                 />
               ))}
               <Tooltip
