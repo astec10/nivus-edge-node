@@ -289,7 +289,7 @@ body {
 
 .telemetry-chart-controls {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr) minmax(9rem, 0.65fr);
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr) repeat(2, minmax(9rem, 0.65fr));
   gap: 0.75rem;
   margin-top: 0.75rem;
 }
@@ -369,6 +369,53 @@ body {
   margin-top: 0.65rem;
   min-width: 0;
   box-sizing: border-box;
+}
+
+.telemetry-chart-canvas--stacked {
+  display: grid;
+  height: auto;
+  align-content: start;
+  gap: 0.75rem;
+}
+
+.telemetry-chart-unit {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  padding: 0.5rem 0.35rem 0.2rem;
+}
+
+.telemetry-chart-unit-title {
+  margin: 0 0.35rem 0.3rem;
+  color: var(--text-h);
+  font-size: 0.82rem;
+  line-height: 1.3;
+}
+
+.telemetry-chart-unit-title small {
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.telemetry-chart-unit-canvas {
+  width: 100%;
+  height: clamp(190px, 28vw, 260px);
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.telemetry-chart-unit-empty {
+  display: grid;
+  min-height: 4.5rem;
+  place-items: center;
+  color: var(--text);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.telemetry-chart-canvas--stacked > .telemetry-chart-empty {
+  min-height: 12rem;
 }
 
 .telemetry-chart-empty {
@@ -687,6 +734,13 @@ body {
 
   .telemetry-chart-canvas {
     height: clamp(220px, 62vw, 300px);
+  }
+  .telemetry-chart-canvas--stacked {
+    height: auto;
+  }
+
+  .telemetry-chart-unit-canvas {
+    height: clamp(190px, 58vw, 230px);
   }
   .connection-status {
     padding: 0.2rem 0.4rem;
