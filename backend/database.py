@@ -59,7 +59,9 @@ def init_db():
                 last_battery_percent INTEGER CHECK (last_battery_percent BETWEEN 0 AND 100),
                 last_observed_at REAL,
                 last_off_attempt_at REAL,
-                low_battery_latched INTEGER NOT NULL DEFAULT 0 CHECK (low_battery_latched IN (0, 1))
+                low_battery_latched INTEGER NOT NULL DEFAULT 0 CHECK (low_battery_latched IN (0, 1)),
+                source_type TEXT NOT NULL DEFAULT 'manual',
+                source_ref TEXT
             );
             CREATE TABLE IF NOT EXISTS mobile_battery_events (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -73,6 +75,40 @@ def init_db():
             );
             CREATE INDEX IF NOT EXISTS idx_mobile_battery_events_device_id
                 ON mobile_battery_events(device_id, id DESC);
+            CREATE UNIQUE INDEX IF NOT EXISTS uq_mobile_battery_source_ref
+                ON mobile_battery_devices(source_type, source_ref) WHERE source_ref IS NOT NULL;
+            CREATE TABLE IF NOT EXISTS mobile_battery_ha_pairings (
+                pairing_id TEXT PRIMARY KEY,
+                code_sha256 TEXT NOT NULL UNIQUE,
+                created_by TEXT NOT NULL,
+                created_at REAL NOT NULL,
+                expires_at REAL NOT NULL,
+                consumed_at REAL
+            );
+            CREATE TABLE IF NOT EXISTS mobile_battery_ha_connections (
+                connection_id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                token_sha256 TEXT NOT NULL UNIQUE,
+                active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1)),
+                created_at REAL NOT NULL,
+                last_seen_at REAL
+            );
+            CREATE TABLE IF NOT EXISTS mobile_battery_ha_candidates (
+                candidate_id TEXT PRIMARY KEY,
+                connection_id TEXT NOT NULL,
+                entity_id TEXT NOT NULL,
+                device_name TEXT NOT NULL,
+                manufacturer TEXT,
+                model TEXT,
+                selected INTEGER NOT NULL DEFAULT 0 CHECK (selected IN (0, 1)),
+                mobile_battery_device_id TEXT,
+                last_discovered_at REAL NOT NULL,
+                UNIQUE(connection_id, entity_id),
+                FOREIGN KEY (connection_id) REFERENCES mobile_battery_ha_connections(connection_id),
+                FOREIGN KEY (mobile_battery_device_id) REFERENCES mobile_battery_devices(device_id)
+            );
+            CREATE INDEX IF NOT EXISTS idx_mobile_battery_ha_candidates_connection
+                ON mobile_battery_ha_candidates(connection_id, selected);
             CREATE TABLE IF NOT EXISTS node_enrollments (
                 enrollment_id TEXT PRIMARY KEY,
                 token_sha256 TEXT NOT NULL UNIQUE,
@@ -210,6 +246,20 @@ def init_db():
                 conn.execute(
                     f"ALTER TABLE ai_provider_connections ADD COLUMN {column} {definition}"
                 )
+
+        mobile_battery_columns = {
+            row["name"] for row in conn.execute("PRAGMA table_info(mobile_battery_devices)")
+        }
+        if "source_type" not in mobile_battery_columns:
+            conn.execute(
+                "ALTER TABLE mobile_battery_devices ADD COLUMN source_type TEXT NOT NULL DEFAULT 'manual'"
+            )
+        if "source_ref" not in mobile_battery_columns:
+            conn.execute("ALTER TABLE mobile_battery_devices ADD COLUMN source_ref TEXT")
+        conn.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS uq_mobile_battery_source_ref "
+            "ON mobile_battery_devices(source_type, source_ref) WHERE source_ref IS NOT NULL"
+        )
 
         actuator_columns = {
             row["name"] for row in conn.execute("PRAGMA table_info(actuator_audit)")
