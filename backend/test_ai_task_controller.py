@@ -257,6 +257,105 @@ class AITaskControllerTests(unittest.TestCase):
         self.assertEqual(order, ["authorized", "disabled"])
         self.assertFalse(ai_task_controller.get_config()["enabled"])
 
+    def test_disable_waits_for_in_flight_poll(self):
+        self.configure_enabled()
+        poll_started = threading.Event()
+        release_poll = threading.Event()
+        disable_started = threading.Event()
+        disable_finished = threading.Event()
+
+        def request(method, path, _token, payload=None):
+            if method == "GET" and path == "/repos/astec10/nivus-edge-node":
+                return PUBLIC_REPOSITORY
+            if method == "GET" and "labels=ai%3Aqueued" in path:
+                poll_started.set()
+                if not release_poll.wait(timeout=3):
+                    raise RuntimeError("test timed out waiting to release the queue poll")
+                return [issue_payload()]
+            if method == "GET" and "labels=ai%3Aready" in path:
+                return []
+            raise AssertionError(f"Unexpected GitHub request: {method} {path}")
+
+        def disable_controller():
+            disable_started.set()
+            ai_task_controller.set_enabled(False, "admin")
+            disable_finished.set()
+
+        with patch.object(ai_task_controller, "_github_request", side_effect=request):
+            poller = threading.Thread(target=ai_task_controller.poll_once)
+            poller.start()
+            self.assertTrue(poll_started.wait(timeout=2))
+
+            disabler = threading.Thread(target=disable_controller)
+            disabler.start()
+            self.assertTrue(disable_started.wait(timeout=2))
+            try:
+                disabled_before_poll_finished = disable_finished.wait(timeout=0.25)
+            finally:
+                release_poll.set()
+                poller.join(timeout=3)
+                disabler.join(timeout=3)
+
+        self.assertFalse(poller.is_alive())
+        self.assertFalse(disabler.is_alive())
+        self.assertFalse(disabled_before_poll_finished)
+        status = ai_task_controller.get_status()
+        self.assertFalse(status["enabled"])
+        self.assertEqual(status["state"], "disabled")
+        self.assertEqual(status["tasks"], [])
+
+    def test_repository_change_waits_for_poll_and_discards_old_tasks(self):
+        self.configure_enabled()
+        poll_started = threading.Event()
+        release_poll = threading.Event()
+        update_started = threading.Event()
+        update_finished = threading.Event()
+        updated_config = {}
+
+        def request(method, path, _token, payload=None):
+            if method == "GET" and path == "/repos/astec10/nivus-edge-node":
+                return PUBLIC_REPOSITORY
+            if method == "GET" and "labels=ai%3Aqueued" in path:
+                poll_started.set()
+                if not release_poll.wait(timeout=3):
+                    raise RuntimeError("test timed out waiting to release the queue poll")
+                return [issue_payload()]
+            if method == "GET" and "labels=ai%3Aready" in path:
+                return []
+            raise AssertionError(f"Unexpected GitHub request: {method} {path}")
+
+        def update_repository():
+            update_started.set()
+            updated_config.update(
+                self.save_config(repository="astec10/other-public-repository")
+            )
+            update_finished.set()
+
+        with patch.object(ai_task_controller, "_github_request", side_effect=request):
+            poller = threading.Thread(target=ai_task_controller.poll_once)
+            poller.start()
+            self.assertTrue(poll_started.wait(timeout=2))
+
+            updater = threading.Thread(target=update_repository)
+            updater.start()
+            self.assertTrue(update_started.wait(timeout=2))
+            try:
+                update_before_poll_finished = update_finished.wait(timeout=0.25)
+            finally:
+                release_poll.set()
+                poller.join(timeout=3)
+                updater.join(timeout=3)
+
+        self.assertFalse(poller.is_alive())
+        self.assertFalse(updater.is_alive())
+        self.assertFalse(update_before_poll_finished)
+        self.assertEqual(updated_config["repository"], "astec10/other-public-repository")
+        status = ai_task_controller.get_status()
+        self.assertFalse(status["enabled"])
+        self.assertEqual(status["state"], "disabled")
+        self.assertEqual(status["repository"], "astec10/other-public-repository")
+        self.assertEqual(status["tasks"], [])
+
     def test_authorization_adds_one_label_and_repeat_never_posts_again(self):
         self.configure_enabled()
         queued = issue_payload()

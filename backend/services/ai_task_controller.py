@@ -119,8 +119,8 @@ def _get_token(row=None) -> str:
 
 
 def update_settings(payload, actor: str) -> dict:
-    # Serialize settings checks/changes with explicit issue authorization.
-    with _authorize_lock:
+    # Lock order is always authorization then polling so stale reads cannot replace config state.
+    with _authorize_lock, _poll_lock:
         return _update_settings_locked(payload, actor)
 
 
@@ -331,8 +331,8 @@ def _test_connection_locked(actor: str) -> dict:
 
 
 def set_enabled(enabled: bool, actor: str) -> dict:
-    # Serialize settings checks/changes with explicit issue authorization.
-    with _authorize_lock:
+    # Wait for in-flight reads before disabling or clearing the cached queue.
+    with _authorize_lock, _poll_lock:
         return _set_enabled_locked(enabled, actor)
 
 
@@ -501,7 +501,7 @@ def authorize_issue(issue_number: int, confirm_free_tier_call: bool, actor: str)
     if not 1 <= issue_number <= 2_147_483_647:
         raise TaskControllerError("invalid_issue_number", "Número de Issue inválido.", 422)
 
-    with _authorize_lock:
+    with _authorize_lock, _poll_lock:
         row = _settings_row()
         if not row["enabled"]:
             raise TaskControllerError(
