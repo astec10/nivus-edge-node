@@ -425,6 +425,10 @@
     "doc-project-status",
     "doc-project-roadmap"
   ],
+  "6909decef30150fe540846afc7c24a4ba32fd887": [
+    "doc-ai-executor-implementation",
+    "doc-project-status"
+  ],
   "7": [
     "doc-ai-context",
     "doc-ai-workflow",
@@ -690,7 +694,6 @@
     "nivus-mobile-battery-relay"
   ],
   "aciona": [
-    "doc-ai-executor-implementation",
     "doc-hardware-telemetry",
     "doc-project-status"
   ],
@@ -1272,7 +1275,6 @@
   ],
   "andamento": [
     "doc-ai-executor-implementation",
-    "doc-project-status",
     "doc-project-roadmap"
   ],
   "anterior": [
@@ -1811,7 +1813,6 @@
     "doc-ai-context",
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
-    "doc-ai-executor-implementation",
     "doc-node-registry",
     "doc-project-status",
     "doc-project-roadmap",
@@ -3345,7 +3346,6 @@
   ],
   "conclu": [
     "doc-ai-provider-connectors",
-    "doc-ai-executor-implementation",
     "doc-node-registry",
     "doc-project-status",
     "doc-project-roadmap"
@@ -5722,7 +5722,6 @@
   "esta": [
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
-    "doc-ai-executor-implementation",
     "doc-video-research-index",
     "doc-hardware-telemetry",
     "doc-project-status",
@@ -9446,10 +9445,6 @@
   ],
   "mostre": [
     "doc-ai-workflow"
-  ],
-  "mostrou": [
-    "doc-ai-executor-implementation",
-    "doc-project-status"
   ],
   "motherboard_temperature": [
     "doc-hardware-telemetry"
@@ -13643,6 +13638,7 @@
     "doc-node-registry"
   ],
   "sincroniza": [
+    "doc-ai-executor-implementation",
     "doc-project-status",
     "doc-project-roadmap"
   ],
@@ -14545,7 +14541,6 @@
     "local-inference-hardware-fit"
   ],
   "tr": [
-    "doc-ai-executor-implementation",
     "doc-project-status"
   ],
   "trabalha": [
@@ -14696,7 +14691,6 @@
     "doc-ai-context",
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
-    "doc-ai-executor-implementation",
     "doc-module-map",
     "doc-node-registry",
     "doc-hardware-telemetry",
@@ -15016,10 +15010,6 @@
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation"
   ],
-  "validation": [
-    "doc-ai-executor-implementation",
-    "doc-project-status"
-  ],
   "valor": [
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
@@ -15285,9 +15275,7 @@
     "doc-vision"
   ],
   "vm": [
-    "doc-ai-context",
-    "doc-ai-executor-implementation",
-    "doc-project-status"
+    "doc-ai-context"
   ],
   "vm_validation": [
     "doc-ai-context",
@@ -16100,7 +16088,6 @@
     "doc-vision"
   ],
   "ês": [
-    "doc-ai-executor-implementation",
     "doc-project-status",
     "ref-multipaz-developer-website"
   ],
@@ -16190,7 +16177,6 @@
     "ref-multipaz-developer-website"
   ],
   "ídos": [
-    "doc-ai-executor-implementation",
     "doc-video-research-index",
     "doc-project-status"
   ],
@@ -16650,9 +16636,7 @@
   ],
   "última": [
     "doc-ai-provider-connectors",
-    "doc-ai-executor-implementation",
     "doc-hardware-telemetry",
-    "doc-project-status",
     "doc-project-roadmap"
   ],
   "último": [
