@@ -12,6 +12,26 @@ confidence: primary-source-review
 
 Esta nota reúne projetos abertos, vídeos de construção, artigo acadêmico e documentação oficial para resolver lacunas do conceito em [DESKTOP_ASSISTANT.md](../../docs/DESKTOP_ASSISTANT.md). A revisão foi feita em 2026-11-20. “Verificado” significa que a fonte primária foi consultada; não significa que o hardware foi comprado, que o software foi instalado ou que desempenho foi medido no Nivus.
 
+## Hardware divulgado pelas referências Project NOVA / NOVA e AVA
+
+Revisão das páginas públicas em 2026-11-20. Os números abaixo são declarações das fontes; não são benchmark independente nem validação no Nivus.
+
+| Referência | Hardware ou plataforma explicitamente documentados | O que isso significa para o Nivus |
+| --- | --- | --- |
+| [PradeepaRW/project-nova](https://github.com/PradeepaRW/project-nova) | Repositório de orquestração com n8n, agentes especializados, servidores MCP e Docker Compose. O README não define BOM, computador de mesa, requisito de GPU/RAM nem modelo de inferência local. | Útil para estudar organização de agentes/workflows; não fornece base de dimensionamento do aparelho físico. |
+| [dujonwalker/project-nova](https://github.com/dujonwalker/project-nova) | Catálogo agnóstico de 25 servidores MCP e skills opcionais, com implantação por Docker Compose. O README remete os requisitos técnicos aos documentos de cada servidor e não define um computador único para assistente de mesa. | Útil para organização de conectores; escolher serviços individualmente e dimensionar seu host conforme cada serviço, sem inferir que Raspberry Pi seja necessário. |
+| [Navjot-Singh7/Project-Nova](https://github.com/Navjot-Singh7/Project-Nova) | O README pede GPU NVIDIA com 4–6 GB de VRAM como mínimo e declara desenvolvimento/teste em RTX 2050 de 4 GB com CUDA e Windows. O software recomenda Python 3.11 e Ollama; usa Phi-3.5 4B quantizado Q4_K_M, roteador qwen3.5:0.8b, Moonshine ASR, Soprano TTS e SmolVLM-256M quantizado, alternando modelos para conter uso de VRAM. CPU e RAM mínimas não são especificadas. | É a referência mais concreta de processamento local multimodal entre os três repositórios, mas seu perfil publicado é PC Windows + NVIDIA. Não comprova execução ou desempenho em Ubuntu Nivus, CPU sem GPU ou Raspberry Pi. |
+| [Razer AVA](https://www.razer.com/br-pt/razer-ava) | A página oficial descreve tela de 5,5 polegadas, câmera, microfone e alto-falante integrados, com ligação USB-C direta a um PC Windows. Não publica modelo de CPU/GPU/RAM do PC nem especificação do computador interno do aparelho. | Boa referência de integração física e tethered ao computador; não serve como BOM nem revela a capacidade de processamento interna. |
+| [Project NOVA — vídeo de construção](https://www.youtube.com/watch?v=WgqDaqqto90) | A referência do vídeo menciona OLED de 5,5 polegadas, Orange Pi (modelo exato não confirmado), câmera USB, iluminação e base motorizada com feedback de posição/PCBs personalizadas. A lista de peças não está completa. | Demonstra um protótipo embarcado para rastreamento e interação, mas não fixa a versão da placa nem prova que ela rode o modelo local da referência Navjot. |
+
+### Leitura para dimensionamento
+
+- Nenhuma dessas referências torna o Raspberry Pi obrigatório.
+- Para o Nivus, o computador x86_64 com Ubuntu Server é o candidato ao papel de host local de IA; a compatibilidade e a latência precisam ser medidas com os modelos escolhidos.
+- Um Raspberry Pi pode ser usado como terminal/periférico ou host independente para uma carga reduzida, mas isso exige teste próprio. Não inferir capacidade a partir de um modelo de placa citado em outro protótipo.
+- ESP32-CAM e outros microcontroladores devem ser tratados como periféricos de captura/controle; visão, reconhecimento de fala e inferência ficam no host local, salvo benchmark que prove o contrário.
+- Nenhuma lista de compra está aprovada. Separar GPU, RAM, CPU, display, câmera, microfone, áudio, óptica e controlador em requisitos distintos antes de selecionar peças.
+
 ## Projetos e código aberto
 
 | Fonte | O que a fonte oferece | Licença publicada | Uso recomendado no Nivus e limites |
