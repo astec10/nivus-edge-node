@@ -514,6 +514,10 @@ class AITaskControllerTests(unittest.TestCase):
 
     def test_poll_fails_closed_when_repository_is_private(self):
         self.configure_enabled()
+        ai_task_controller._set_state(
+            state="online",
+            tasks=[{"number": 10, "title": "Previously public task"}],
+        )
         with patch.object(
             ai_task_controller, "_github_request", return_value={"private": True}
         ) as request:
@@ -521,6 +525,7 @@ class AITaskControllerTests(unittest.TestCase):
 
         self.assertEqual(status["state"], "degraded")
         self.assertEqual(status["last_error_code"], "repository_not_public")
+        self.assertEqual(status["tasks"], [])
         request.assert_called_once()
         self.assertEqual(
             request.call_args.args[:3],

@@ -470,7 +470,14 @@ def _poll_once_locked() -> dict:
         token = _get_token(row)
         tasks = _fetch_tasks(row, token)
     except TaskControllerError as error:
-        _set_state(state="degraded", last_poll_at=now, last_error_code=error.code)
+        state_changes = {
+            "state": "degraded",
+            "last_poll_at": now,
+            "last_error_code": error.code,
+        }
+        if error.code in {"repository_not_public", "repository_visibility_unverified"}:
+            state_changes["tasks"] = []
+        _set_state(**state_changes)
         logger.warning("GitHub queue poll failed: %s", error.code)
         return get_status()
     _set_state(
