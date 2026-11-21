@@ -1,6 +1,6 @@
 # Arquitetura da candidata
 
-Esta árvore descreve a implementação versionada do Nivus. O registro inicial seguro de nós foi integrado ao `main` pelo PR #66 e está incluído na release ativa do notebook `fff64a68f252f0b1290576e30b39ed78fbc15a7a`; isso não significa que telemetria multi-nó ou coordenação remota estejam operacionais.
+Esta árvore descreve a implementação versionada do Nivus. O registro inicial seguro de nós foi integrado ao `main` pelo PR #66 e estava no update do notebook `fff64a68` informado em 17/11. O último estado reportado depois é `f896de8`, sem sondagem nesta revisão; isso não significa que telemetria multi-nó ou coordenação remota estejam operacionais.
 
 ## Backend
 
@@ -32,4 +32,6 @@ O worker MQTT persiste telemetria no mesmo SQLite da API; os serviços possuem l
 
 ## Gestão de provedores
 
-A issue #68 adiciona configuração administrativa sem acoplar o backend aos jobs do GitHub Actions. O PR #72 foi incluído na release `f896de8` aplicada ao notebook. O executor de inferência da issue #74 está proposto nesta branch: `backend/api/routers/ai_executor.py` expõe execução/cancelamento/auditoria administrativos; `backend/services/ai_executor.py` verifica política, reserva orçamento e chama somente o provedor selecionado. A chave é descriptografada apenas em memória e prompts/respostas não são persistidos. Não há fallback, retry ou execução do resultado. Consulte [AI_PROVIDER_CONNECTORS.md](AI_PROVIDER_CONNECTORS.md) para limites e pendências.
+A issue #68 adiciona configuração administrativa sem acoplar o backend aos jobs do GitHub Actions. O PR #72 foi incluído na release `f896de8` aplicada ao notebook. O executor runtime da issue #74 foi integrado pelo PR #82; `backend/api/routers/ai_executor.py` expõe execução/cancelamento/auditoria administrativos e `backend/services/ai_executor.py` valida política, reserva orçamento e chama somente o provedor escolhido. A chave é descriptografada apenas em memória; prompts/respostas não são persistidos; não há fallback, retry ou execução do resultado. CI hospedada passou, nenhuma chamada real foi feita e a implantação do #82 no notebook não foi confirmada. Consulte [AI_PROVIDER_CONNECTORS.md](AI_PROVIDER_CONNECTORS.md).
+
+- `telemetry/power_policy.py` lê alimentação via Linux power_supply ou NUT local, seleciona somente governadores listados em CPUFreq e permanece conservador diante de falha/ambiguidade. `deploy/nivus-performance-policy.service` e `.timer` são opt-in e executam fora do container. A unidade root tem escrita restrita à árvore CPUFreq; não muda limites de frequência/tensão, proteções térmicas, atuadores ou overclock. O candidato ainda aguarda CI, revisão e habilitação física.

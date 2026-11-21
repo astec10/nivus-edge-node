@@ -26,11 +26,11 @@ Entregas existentes: API modular, autenticação por senha/JWT, telemetria de ho
 
 Critérios já observados: login funcional; API exige token; health HTTPS responde; o SQLite candidato passa `quick_check` e recebe novas amostras; o coletor não reinicia; os serviços antigos continuam ativos.
 
-**Operação de manutenção (issue #26):** implementação merged no PR #28 e incluída na release ativa do notebook `fff64a68`; CI hospedada aprovada. A pausa interrompe amostragem/publicação de telemetria do host e gravação de novas amostras MQTT, sem desligar API, painel, health ou broker. Ainda falta executar `nivus help`, exercitar pausa/retomada e reinício normal no notebook.
+**Operação de manutenção (issue #26):** implementação integrada no PR #28 e presente no update `fff64a68` informado em 17/11; o último estado reportado depois é `f896de8`, sem sondagem nesta revisão. A CI hospedada passou. A pausa interrompe amostragem/publicação de telemetria do host e gravação de novas amostras MQTT, sem desligar API, painel, health ou broker. Ainda falta executar `nivus help`, exercitar pausa/retomada e reinício normal no notebook.
 
-**Relógio, interface e sensores (issues #21/#23):** PRs #37–#50 implementaram preferências, controle NTP, temas, gráficos, bateria interna e regra móvel. Em 17/11/2026, a release `fff64a68f252f0b1290576e30b39ed78fbc15a7a` foi aplicada no notebook; build, backup, restart, HTTPS 200 e 401 sem token passaram. PR #67 compactou medidores Glass e moveu as dicas dos cartões para os detalhes após 3 segundos. Ainda falta conferência visual no navegador. O operador não usará VMs locais; CI hospedada valida software, não hardware físico.
+**Relógio, interface e sensores (issues #21/#23):** PRs #37–#50 implementaram preferências, controle NTP, temas, gráficos, bateria interna e regra móvel. Em 17/11/2026, a release `fff64a68f252f0b1290576e30b39ed78fbc15a7a` foi aplicada com health HTTPS 200 e 401 sem token. Depois o operador informou `f896de8` e promoção reversível para HTTPS 443; reboot e conferência visual continuam pendentes e o host não foi sondado nesta revisão. PR #67 compactou medidores Glass e moveu as dicas dos cartões para os detalhes após 3 segundos. O operador não usará VMs locais; CI hospedada valida software, não hardware físico.
 
-**Perfil de desempenho condicionado à alimentação (issue #62):** sinal confirmado de alimentação AC do nó/UPS permite somente mudar para um governor de desempenho disponível, dentro dos limites térmicos. Sem sinal válido, perfil conservador; atuadores continuam em suas regras determinísticas e overclock é manual. Escopo decidido, implementação pendente.
+**Perfil de desempenho condicionado à alimentação (issue #62):** sinal confirmado de alimentação permite somente mudar para um governor disponível, dentro dos limites térmicos. Sem sinal válido, perfil conservador; atuadores mantêm regras e overclock é manual. A branch candidata usa Linux Mains somente com AC direta; para saída de UPS, requer NUT local com estado `OL`/`OB`. Erro/stale mantém o modo conservador. O timer vem desligado por padrão. Os testes simulados locais passaram; aguardam-se checks hospedados e revisão/merge. Ativação e validação no host continuam pendentes.
 
 ### Fase 1 — Instalação, recuperação e portabilidade
 
@@ -113,10 +113,10 @@ Compartilhar arquivos por P2P não soma automaticamente a RAM/VRAM de máquinas 
 
 ### Fase 6 — Provedores de IA comerciais
 
-**Estado: cadastro administrativo integrado no PR #72 e incluído na release `f896de8`; o executor de inferência da issue #74 está em proposta nesta branch, ainda aguardando CI/revisão. Consulte [AI_PROVIDER_CONNECTORS.md](AI_PROVIDER_CONNECTORS.md).
+**Estado: cadastro administrativo integrado no PR #72; o executor runtime da issue #74 foi integrado no PR #82 e os checks hospedados passaram na main.** A release `f896de8` do notebook contém o cadastro, não há confirmação de implantação do PR #82. Nenhuma inferência real foi chamada. Consulte [AI_PROVIDER_CONNECTORS.md](AI_PROVIDER_CONNECTORS.md).
 
 1. [x] Cadastro administrativo com credenciais cifradas, classificação de dados e perfis explicitamente habilitados (PR #72).
-2. Propor conectores isolados por protocolo, com timeout, preços configuráveis e reserva de orçamento/quota antes da chamada (issue #74; aguardando CI/revisão).
+2. [x] Implementar conectores isolados por protocolo, timeout, preço configurável e reserva de orçamento/quota antes da chamada (PR #82; CI hospedada aprovada).
 3. Não guardar prompt, saída nem token de acesso no banco/auditoria; manter chave mestra fora do SQLite e do repositório.
 4. Classificar dados e exigir solicitação explícita; a nuvem só recebe conteúdo público/sintético.
 5. Manter fallback automático desligado até política, orçamento e provedor alternativo receberem validação própria.
@@ -126,6 +126,6 @@ Critério de saída: limite financeiro não é ultrapassado silenciosamente; dad
 
 ## Sequência recomendada
 
-**Próximos trabalhos:** conferir no navegador e após reboot a promoção HTTPS da issue #70; confirmar o uso da tela de perfis de provedores incluída na release `f896de8`; concluir CI/revisão da issue #74; depois retomar validações físicas da Fase 1 e o smoke do agente com dois nós independentes. O HTTPS sem sufixo de porta foi promovido no notebook, mas a confirmação visual/reboot ainda está pendente. Registro multi-nó inicial está integrado, mas agregação de dados e atualização de frota não existem.
+**Próximos trabalhos:** fazer CI/revisão e merge da implementação candidata da issue #62; no notebook, confirmar visualmente e após reboot o HTTPS sem sufixo de porta, e conferir Configuração/provedores. Implantar PR #82 apenas após o pacote de update passar pelo fluxo reversível e haver conectividade SSH. Depois, retomar instalação USB física, smoke do agente em dois nós e validações Intel/AMD. O registro multi-nó inicial está integrado; agregação de dados e atualização de frota não existem.
 
 Para decidir a próxima entrega física da casa, veja “Decisões em aberto” em [`VISION.md`](VISION.md). Modelos exatos de roteador, switch PoE, câmeras, inversor, medidores e proteção elétrica ainda precisam ser escolhidos e conferidos com documentação de fabricante e profissionais habilitados.

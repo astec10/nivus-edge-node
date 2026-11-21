@@ -57,3 +57,7 @@ O pacote não instala `lm-sensors`, não executa `sensors-detect` automaticament
 - [lm-sensors](https://github.com/lm-sensors/lm-sensors)
 - [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor)
 - [HardwareMonitor/OpenHardwareMonitor](https://github.com/HardwareMonitor/OpenHardwareMonitor)
+
+## Alimentação AC/UPS e governor
+
+O perfil de desempenho opcional não reutiliza o percentual da bateria interna do nó como sinal de entrada AC. `telemetry/power_policy.py` pode ler a classe Linux `power_supply` do tipo `Mains` e seu atributo `online`, desde que a topologia seja AC direta. Uma fonte Mains ligada à saída de um UPS pode continuar online enquanto o UPS estiver em bateria, então não deve ser usada para inferir a entrada do UPS. Nesse arranjo, a fonte configurada é NUT local: `ups.status` com `OL` indica linha e `OB` indica bateria; resposta indisponível, stale, contraditória ou desconhecida seleciona o governor conservador. O controlador nunca altera limites térmicos nem aciona relés. Consulte [CONFIGURATION.md](CONFIGURATION.md) para ativação explícita e [DECISIONS.md](DECISIONS.md) para limites do perfil.

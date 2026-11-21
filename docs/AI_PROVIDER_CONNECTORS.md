@@ -1,6 +1,6 @@
 # Conexões com provedores de IA
 
-Estado: o cadastro administrativo foi integrado no PR #72 e está incluído na release `f896de8` aplicada no notebook. A inferência conectada da issue #74 está sendo proposta nesta branch; ainda não passou pela CI nem foi implantada. Nenhuma chamada real a modelo foi feita durante esta implementação.
+Estado: o cadastro administrativo foi integrado no PR #72 e está incluído na release `f896de8` aplicada no notebook. O executor runtime da issue #74 foi integrado no PR #82 e está na `main` atual; os checks hospedados passaram. Nenhuma chamada real a modelo foi feita, e não há confirmação de implantação do PR #82 no notebook.
 
 ## Onde encontrar e como usar
 
@@ -34,7 +34,7 @@ O backup normal do SQLite não contém a chave mestra. Para recuperar perfis em 
 - Nuvem aceita apenas as classes `public` e `synthetic`. Dados pessoais, de operação do nó, da casa e de câmeras são recusados pela API para provedores de nuvem.
 - A auditoria registra ator, ação, estado e horário sem chave, prompt ou resposta.
 
-O executor de inferência da issue #74 aplica o limite por hora em conjunto com os testes de conexão. Antes de cada chamada, reserva o custo estimado no orçamento mensal e no orçamento acumulado da tarefa. Provedores de nuvem exigem preços de entrada/saída por milhão de tokens configurados pelo administrador e conferidos nos últimos 90 dias; sem preços, orçamento ou classe de dados permitida, a chamada é bloqueada. O cálculo usa o tamanho UTF-8 da entrada com margem conservadora, a saída máxima permitida e, após a resposta, o uso de tokens informado pelo provedor.
+O executor de inferência da issue #74 aplica o limite por hora em conjunto com os testes de conexão. Antes de cada chamada, reserva o custo estimado no orçamento mensal e no orçamento acumulado da tarefa. Provedores de nuvem exigem preços de entrada/saída por milhão de tokens configurados pelo administrador e conferidos nos últimos 90 dias; sem preços, orçamento ou classe de dados permitida, a chamada é bloqueada. O cálculo usa o tamanho UTF-8 da entrada com margem conservadora, a saída máxima permitida e, após a resposta, o uso de tokens informado pelo provedor. Esse executor foi integrado pelo PR #82 e os checks hospedados passaram; isso não equivale a uma chamada real nem a implantação no notebook.
 
 Esse bloqueio é um limite local estimado, não uma fatura do provedor: tarifação por cache, ajustes da conta, mudanças de preço ou metadados internos do serviço podem diferir. Configure também um limite de gastos na conta do provedor. Em timeout ou cancelamento depois do envio, a reserva é mantida porque a cobrança pode ser incerta.
 
@@ -56,4 +56,4 @@ Esta configuração pertence ao runtime do Nivus. Ela não lê nem altera `GEMIN
 
 As rotas administrativas ficam em `backend/api/routers/ai_providers.py`; a cifra, validação de endpoint, teste explícito e auditoria ficam em `backend/services/ai_providers.py`. A migração é aditiva e cria as tabelas `ai_provider_connections` e `ai_provider_audit`.
 
-A CI do PR #72 passou nos workflows de smoke Compose Ubuntu 22.04, painel e sensores, índice de conhecimento e CodeQL. Os testes específicos cobrem cifra e alteração de texto, autorização da política, orçamento obrigatório antes do teste de nuvem, limite de testes por hora, teste sem prompt, bloqueio de endereços privados em nuvem e loopback em endpoint local. O código do PR #72 está na release aplicada `f896de8`. A inferência da issue #74 ainda aguarda CI, revisão e implantação; não foi feita chamada real a provedor.
+A CI do PR #72 passou nos workflows de smoke Compose Ubuntu 22.04, painel/sensores, índice e CodeQL; seu código está na release `f896de8`. O PR #82 integrou inferência runtime; seus checks hospedados e os workflows da `main` atual passaram. Os testes usam respostas simuladas e não fazem chamada real a provedor. A implantação do #82 no notebook continua pendente.

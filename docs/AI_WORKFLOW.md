@@ -44,4 +44,4 @@ python3 tools/build_ai_context.py --query "hermes gateway discord jira"
 
 Um roteador de modelos não é uma fila de tarefas; compartilhar arquivos/GPU pela rede não combina automaticamente RAM/VRAM. Veja [`AI_DEVELOPMENT_ORCHESTRATION.md`](AI_DEVELOPMENT_ORCHESTRATION.md) e a Fase 5 do [`PROJECT_ROADMAP.md`](PROJECT_ROADMAP.md).
 
-O executor de desenvolvimento por GitHub Issues está documentado em [`AI_EXECUTOR_IMPLEMENTATION.md`](AI_EXECUTOR_IMPLEMENTATION.md). O branch de revisão já contém intake, adaptador Gemini e worker que prepara PR em rascunho após autorização `ai:ready`; ainda faltam configuração da chave, validação end-to-end e integração no `main`.
+O executor de desenvolvimento por GitHub Issues está documentado em [`AI_EXECUTOR_IMPLEMENTATION.md`](AI_EXECUTOR_IMPLEMENTATION.md). O fluxo de propostas do GitHub Actions foi integrado à `main` nos PRs #3/#53: recebe tarefas elegíveis, gera propostas limitadas e abre PRs em rascunho, sem merge ou deploy. A criação automática após geração ainda aguarda uma nova validação end-to-end autorizada; revisão humana continua obrigatória.
