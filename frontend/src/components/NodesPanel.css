@@ -158,3 +158,39 @@
 }
 
 .dashboard-root[data-reduced-motion="true"] .node-registry-refresh .is-spinning { animation: none; }
+
+
+.node-registry-history-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2rem;
+  margin-top: 0.7rem;
+  border: 1px solid #0e7490;
+  border-radius: 0.45rem;
+  padding: 0.35rem 0.65rem;
+  color: #bae6fd;
+  background: #082f4933;
+  font: inherit;
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+.node-registry-history-toggle:hover { border-color: #38bdf8; }
+.node-registry-history-toggle:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
+
+.dashboard-root[data-theme="cupertino"] .node-registry-history-toggle {
+  color: #075985;
+  background: #e0f2fe;
+}
+.dashboard-root[data-theme="eink"] .node-registry-history-toggle {
+  border-radius: 0;
+  color: #fff;
+  background: #000;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  text-transform: uppercase;
+}
+.dashboard-root[data-high-contrast="true"] .node-registry-history-toggle {
+  border: 2px solid #fff !important;
+  color: #fff !important;
+  background: #000 !important;
+}
