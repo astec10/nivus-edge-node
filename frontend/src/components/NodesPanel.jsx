@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { Activity, CircleAlert, CircleCheck, CircleX, Network, RefreshCw } from 'lucide-react';
+import NodeTelemetryHistory from './NodeTelemetryHistory';
 import { DEFAULT_DISPLAY_PREFERENCES, formatDisplayDate } from '../utils/displayPreferences';
 import './NodesPanel.css';
 
@@ -36,7 +37,7 @@ function formatTimestamp(value, preferences) {
   return `${formatDisplayDate(date, preferences.timeZone, preferences.dateFormat)} ${time}`;
 }
 
-function NodeCard({ node, preferences }) {
+function NodeCard({ node, preferences, historyOpen, onToggleHistory }) {
   const statusKey = NODE_STATUS[node.status] ? node.status : 'offline';
   const status = NODE_STATUS[statusKey];
   const StatusIcon = status.Icon;
@@ -80,6 +81,17 @@ function NodeCard({ node, preferences }) {
         ) : <p>Nenhuma capacidade declarada.</p>}
         <small>Informação declarada pelo agente; não comprova leitura ou disponibilidade do recurso.</small>
       </div>
+
+      <button
+        className="node-registry-history-toggle"
+        type="button"
+        aria-expanded={historyOpen}
+        aria-controls={'node-history-' + node.node_id}
+        onClick={onToggleHistory}
+      >
+        <Activity size={15} aria-hidden="true" />
+        {historyOpen ? 'Ocultar histórico' : 'Ver histórico'}
+      </button>
     </article>
   );
 }
@@ -90,6 +102,7 @@ export default function NodesPanel({ token, displayPreferences = DEFAULT_DISPLAY
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [lastRefresh, setLastRefresh] = useState(null);
+  const [selectedNodeId, setSelectedNodeId] = useState(null);
   const requestController = useRef(null);
 
   const refreshNodes = useCallback(async (isInitial = false) => {
@@ -133,6 +146,12 @@ export default function NodesPanel({ token, displayPreferences = DEFAULT_DISPLAY
   }, [refreshNodes]);
 
   const handleRefresh = () => void refreshNodes();
+  const selectedNode = nodes.find((node) => node.node_id === selectedNodeId) || null;
+  const selectedLastSeenMs = selectedNode ? Date.parse(selectedNode.last_seen) : NaN;
+  const selectedHeartbeatAge = selectedNode ? Number(selectedNode.last_seen_seconds_ago) : NaN;
+  const serverNowMs = Number.isFinite(selectedLastSeenMs) && Number.isFinite(selectedHeartbeatAge)
+    ? selectedLastSeenMs + selectedHeartbeatAge * 1000
+    : null;
 
   return (
     <section className="dashboard-panel node-registry-panel" aria-labelledby="node-registry-title">
@@ -150,7 +169,7 @@ export default function NodesPanel({ token, displayPreferences = DEFAULT_DISPLAY
 
       <div className="node-registry-telemetry-note" role="note">
         <Activity size={17} aria-hidden="true" />
-        <p>As séries de telemetria ainda não são recebidas nem agregadas por nó nesta etapa.</p>
+        <p>Abra o histórico de um nó para consultar CPU, memória e disco. A consulta é somente leitura e limitada pela retenção da API.</p>
       </div>
 
       {lastRefresh && (
@@ -168,7 +187,27 @@ export default function NodesPanel({ token, displayPreferences = DEFAULT_DISPLAY
         <div className="node-registry-empty">Nenhum nó registrado ainda.</div>
       ) : (
         <div className="node-registry-grid">
-          {nodes.map(node => <NodeCard key={node.node_id} node={node} preferences={displayPreferences} />)}
+          {nodes.map((node) => (
+            <NodeCard
+              key={node.node_id}
+              node={node}
+              preferences={displayPreferences}
+              historyOpen={selectedNodeId === node.node_id}
+              onToggleHistory={() => setSelectedNodeId((current) => current === node.node_id ? null : node.node_id)}
+            />
+          ))}
+        </div>
+      )}
+
+      {selectedNode && (
+        <div id={'node-history-' + selectedNode.node_id}>
+          <NodeTelemetryHistory
+            key={selectedNode.node_id}
+            node={selectedNode}
+            token={token}
+            displayPreferences={displayPreferences}
+            serverNowMs={serverNowMs}
+          />
         </div>
       )}
     </section>
