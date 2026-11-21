@@ -20,9 +20,12 @@ from pathlib import Path
 from typing import Callable
 from urllib.parse import urlsplit
 
+from .telemetry import NodeTelemetryCollector
+
 AGENT_VERSION = "0.1.0"
 SCHEMA_VERSION = 1
 DEFAULT_HEARTBEAT_SECONDS = 30
+DEFAULT_TELEMETRY_INTERVAL_SECONDS = 30
 MAX_RESPONSE_BYTES = 64 * 1024
 MAX_BACKOFF_SECONDS = 60
 _TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{40,128}$")
@@ -55,6 +58,10 @@ class SequenceConflict(ApiError):
 
 class RetryableApiError(ApiError):
     """A transient HTTP response that is safe to retry for idempotent metadata."""
+
+    def __init__(self, status_code: int, retry_after_seconds: int | None = None):
+        self.retry_after_seconds = retry_after_seconds
+        super().__init__(status_code)
 
 
 class TransportError(AgentError):
@@ -270,14 +277,27 @@ class NivusApiClient:
             self.opener = opener
 
     @staticmethod
-    def _raise_status(status: int) -> None:
+    def _raise_status(status: int, retry_after_seconds: int | None = None) -> None:
         if status == 401:
             raise AuthenticationRejected()
         if status == 409:
             raise SequenceConflict()
         if status in {408, 425, 429} or 500 <= status <= 599:
-            raise RetryableApiError(status)
+            raise RetryableApiError(status, retry_after_seconds)
         raise ApiError(status)
+
+    @staticmethod
+    def _retry_after(headers) -> int | None:
+        if headers is None:
+            return None
+        raw = headers.get("Retry-After")
+        if raw is None:
+            return None
+        try:
+            value = int(raw)
+        except (TypeError, ValueError):
+            return None
+        return max(1, min(value, MAX_BACKOFF_SECONDS))
 
     def post_json(self, path: str, payload: dict, headers: dict | None = None) -> dict:
         if not path.startswith("/api/nodes/") or path.startswith("//"):
@@ -297,9 +317,10 @@ class NivusApiClient:
         try:
             with self.opener.open(request, timeout=self.timeout) as response:
                 status = int(response.status)
+                response_headers = getattr(response, "headers", None)
                 raw = response.read(MAX_RESPONSE_BYTES + 1)
         except urllib.error.HTTPError as error:
-            self._raise_status(int(error.code))
+            self._raise_status(int(error.code), self._retry_after(error.headers))
         except urllib.error.URLError as error:
             reason = getattr(error, "reason", None)
             if isinstance(reason, ssl.SSLCertVerificationError):
@@ -308,7 +329,7 @@ class NivusApiClient:
         except (TimeoutError, ConnectionError, ssl.SSLError):
             raise TransportError("Falha temporária de rede ao acessar o Nó Master.") from None
         if not 200 <= status < 300:
-            self._raise_status(status)
+            self._raise_status(status, self._retry_after(response_headers))
         if len(raw) > MAX_RESPONSE_BYTES:
             raise AgentError("A resposta da API excedeu o limite permitido.")
         try:
@@ -369,6 +390,8 @@ class NivusNodeAgent:
         client: NivusApiClient | None = None,
         interval: int = DEFAULT_HEARTBEAT_SECONDS,
         sleep_fn: Callable[[float], None] = time.sleep,
+        telemetry_collector: NodeTelemetryCollector | None = None,
+        monotonic_fn: Callable[[], float] = time.monotonic,
     ):
         if not 5 <= interval <= 600:
             raise AgentError("O intervalo do heartbeat deve estar entre 5 e 600 segundos.")
@@ -379,6 +402,8 @@ class NivusNodeAgent:
         )
         self.interval = interval
         self.sleep_fn = sleep_fn
+        self.telemetry_collector = telemetry_collector or NodeTelemetryCollector()
+        self.monotonic_fn = monotonic_fn
 
     def _renew_session(self) -> tuple[str, int]:
         result = self.client.post_json(
@@ -402,7 +427,20 @@ class NivusNodeAgent:
                 "sequence": sequence,
                 "agent_version": AGENT_VERSION,
                 "schema_version": SCHEMA_VERSION,
-                "capabilities": [],
+                "capabilities": list(self.telemetry_collector.capabilities),
+            },
+            {"X-Nivus-Node-Token": self.credentials.token},
+        )
+
+    def _send_telemetry(self, session_id: str, sequence: int, batch: dict) -> None:
+        self.client.post_json(
+            "/api/nodes/telemetry",
+            {
+                "session_id": session_id,
+                "sequence": sequence,
+                "schema_version": batch["schema_version"],
+                "observed_at": batch["observed_at"],
+                "samples": batch["samples"],
             },
             {"X-Nivus-Node-Token": self.credentials.token},
         )
@@ -421,44 +459,83 @@ class NivusNodeAgent:
         backoff = 1
         conflicts = 0
         sent = 0
+        heartbeat_done = False
+        pending_telemetry = None
+        next_telemetry_at = 0.0
 
         while stop_event is None or not stop_event.is_set():
             if session_id is None:
                 try:
                     session_id, sequence = self._renew_session()
                     backoff = 1
+                    heartbeat_done = False
+                    pending_telemetry = None
                 except AuthenticationRejected:
                     raise
-                except (RetryableApiError, TransportError):
+                except (RetryableApiError, TransportError) as error:
                     _LOG.warning("O Nó Master está temporariamente indisponível; nova tentativa programada.")
-                    if not self._wait(backoff, stop_event):
+                    retry_after = getattr(error, "retry_after_seconds", None) or 0
+                    if not self._wait(max(backoff, retry_after), stop_event):
                         break
                     backoff = min(backoff * 2, MAX_BACKOFF_SECONDS)
                     continue
 
-            try:
-                self._heartbeat(session_id, sequence)
-            except AuthenticationRejected:
-                raise
-            except SequenceConflict:
-                conflicts += 1
-                if conflicts > 3:
-                    raise AgentError(
-                        "O heartbeat conflitou repetidamente; confira se outro agente usa a mesma credencial."
-                    )
-                session_id = None
-                sequence = 0
-                continue
-            except (RetryableApiError, TransportError):
-                _LOG.warning("O Nó Master está temporariamente indisponível; nova tentativa programada.")
-                if not self._wait(backoff, stop_event):
-                    break
-                backoff = min(backoff * 2, MAX_BACKOFF_SECONDS)
-                continue
+            if not heartbeat_done:
+                try:
+                    self._heartbeat(session_id, sequence)
+                except AuthenticationRejected:
+                    raise
+                except SequenceConflict:
+                    conflicts += 1
+                    if conflicts > 3:
+                        raise AgentError(
+                            "A sequência do nó conflitou repetidamente; confira se outro agente usa a mesma credencial."
+                        )
+                    session_id = None
+                    continue
+                except (RetryableApiError, TransportError) as error:
+                    _LOG.warning("O Nó Master está temporariamente indisponível; nova tentativa programada.")
+                    retry_after = getattr(error, "retry_after_seconds", None) or 0
+                    if not self._wait(max(backoff, retry_after), stop_event):
+                        break
+                    backoff = min(backoff * 2, MAX_BACKOFF_SECONDS)
+                    continue
+
+                sequence += 1
+                heartbeat_done = True
+                if (
+                    self.telemetry_collector.capabilities
+                    and self.monotonic_fn() >= next_telemetry_at
+                ):
+                    pending_telemetry = self.telemetry_collector.collect()
+
+            if pending_telemetry is not None:
+                try:
+                    self._send_telemetry(session_id, sequence, pending_telemetry)
+                except AuthenticationRejected:
+                    raise
+                except SequenceConflict:
+                    conflicts += 1
+                    if conflicts > 3:
+                        raise AgentError(
+                            "A sequência do nó conflitou repetidamente; confira se outro agente usa a mesma credencial."
+                        )
+                    session_id = None
+                    continue
+                except (RetryableApiError, TransportError) as error:
+                    _LOG.warning("A telemetria do nó está temporariamente indisponível; nova tentativa programada.")
+                    retry_after = getattr(error, "retry_after_seconds", None) or 0
+                    if not self._wait(max(backoff, retry_after), stop_event):
+                        break
+                    backoff = min(backoff * 2, MAX_BACKOFF_SECONDS)
+                    continue
+                sequence += 1
+                next_telemetry_at = self.monotonic_fn() + DEFAULT_TELEMETRY_INTERVAL_SECONDS
 
             conflicts = 0
             backoff = 1
-            sequence += 1
+            heartbeat_done = False
+            pending_telemetry = None
             sent += 1
             if max_heartbeats is not None and sent >= max_heartbeats:
                 return sent

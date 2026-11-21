@@ -22,7 +22,9 @@ flowchart TD
   Admin[Administrador] -->|JWT admin| NodesRouter[backend/api/routers/nodes.py]
   NodeAgent[node_agent/agent.py] -->|HTTPS + token do nó| NodesRouter
   NodesRouter --> NodesService[backend/services/nodes.py]
+  NodesRouter --> NodeTelemetryService[backend/services/node_telemetry.py]
   NodesService --> DB
+  NodeTelemetryService --> DB
   Routers --> Schemas[backend/api/schemas.py]
   Routers --> Auth[backend/api/dependencies.py + security.py]
   Routers --> DB
@@ -49,9 +51,10 @@ flowchart TD
 | `telemetry/` | métricas do host → MQTT | Coleta CPU, memória, disco, energia estimada e sensores disponíveis; não implementa a política da API. |
 | `backend/api/routers/` | HTTP autenticado ↔ schemas | Endpoints por domínio; exige autorização nas rotas sensíveis. |
 | `backend/api/routers/mobile_battery.py` | Admin JWT + relatório tokenizado | Admin cadastra/revoga; celular envia somente percentual e horário. O cliente não escolhe tópico nem comando. |
-| `backend/api/routers/nodes.py` | Admin JWT ou credencial própria do nó | Pareamento one-use, sessão, heartbeat ordenado, listagem e revogação; a candidata atual não executa operações remotas. |
+| `backend/api/routers/nodes.py` | Admin JWT ou credencial própria do nó | Pareamento one-use, sessão, heartbeat ordenado, listagem e revogação; a candidata inclui ingestão e histórico protegido da telemetria do nó. Não executa operações remotas. |
 | `backend/services/nodes.py` | Contratos validados ↔ SQLite | Cria IDs no servidor, persiste somente hashes de códigos/tokens, deriva estado pelo heartbeat e restringe capacidades a uma allowlist; integrado pelo PR #66. |
-| `node_agent/agent.py` | CLI pareamento/run ↔ API de nós | Cliente stdlib candidato no PR #69: código oculto de uso único, TLS obrigatório, token local `0600`/diretório `0700`, sessão renovável e heartbeat apenas com metadados. Sem telemetria, comandos ou ações remotas; smoke físico pendente. |
+| `backend/services/node_telemetry.py` | Envelope validado ↔ tabelas do registro | Valida métricas, unidades, faixas, qualidade, sessão e sequência; armazena por `node_id`, limita lotes novos a 1/30 s por nó, permite histórico somente admin e remove lotes/amostras vencidos tanto na ingestão quanto na consulta (inclusive para nó offline). O PR #97 pagina até 500 lotes, limita offset e mantém snapshot ISO 8601 estável; CI aprovada, integração pendente. |
+| `node_agent/agent.py` + `node_agent/telemetry.py` | CLI pareamento/run ↔ API de nós | PR #69 adiciona identidade/heartbeat. A candidata local envia CPU, memória e disco via HTTPS com sequência compartilhada, retry idempotente e leituras indisponíveis explícitas; limita a telemetria a 1/30 s mesmo com heartbeat mais rápido. Sem comandos ou ações remotas; smoke físico pendente. |
 | `backend/services/mobile_battery.py` | Leitura móvel validada → regra + auditoria MQTT | Rejeita leituras antigas/repetidas; publica somente `OFF` em `nivus/edge/relay1` a ≤20%; recuperação acima de 20% rearma sem enviar `ON`. |
 | `backend/services/` | chamadas internas ↔ serviços | MQTT, logs e operações de domínio; não expõe portas diretamente. |
 | `backend/api/routers/ai_executor.py` + `backend/services/ai_executor.py` | tarefa explícita → provedor selecionado | Executor runtime integrado pelo PR #82; classe de dados, orçamento, timeout, cancelamento e auditoria mínima; sem retry, fallback ou execução do resultado. CI hospedada aprovada; implantação no notebook pendente. |

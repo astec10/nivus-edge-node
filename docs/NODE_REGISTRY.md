@@ -1,10 +1,13 @@
 # Cadastro seguro de nós
 
-**Estado:** API de registro integrada pelo PR #66 e presente no update `fff64a68` informado em 17/11; o último estado do notebook reportado depois é `f896de8`, sem sondagem nesta revisão. O agente mínimo foi implementado no [PR #69](https://github.com/astec10/nivus-edge-node/pull/69) e passou na CI hospedada. O smoke com dois dispositivos independentes ainda não foi executado.
+**Estado:** O cadastro/heartbeat do PR #66, a lista read-only do PR #96 e a ingestão/histórico API do PR #97 estão integrados à `main`. Os quatro workflows hospedados passaram. A interface gráfica de histórico está no PR #99; smoke TLS em dois dispositivos, reboot, revogação e backup/restore físico continuam pendentes.
 **Issue:** [#65 concluída](https://github.com/astec10/nivus-edge-node/issues/65) pelo PR #66.
-**Próxima validação:** smoke real com dois nós, incluindo TLS, reboot e revogação.
+**Próxima validação:** integrar a interface histórica do PR #99 e então executar smoke com dois dispositivos independentes, incluindo TLS confiável, reboot, revogação e backup/restore.
+**Situação do notebook:** o último update informado pelo operador antes desta sequência apontou a release `2dfcbc0c2029723e44ff507857c72e7e8b83dfa3`. PRs #96/#97 foram integrados à `main`, mas não há evidência de que tenham sido instalados no notebook.
 
-Este módulo estabelece identidade, pareamento, presença e revogação para os próximos passos multi-nó. A entrega inicial não agrega telemetria e não dá aos nós capacidade de executar ações uns nos outros.
+**Implementação do PR #97:** a branch integrou ao agente e à API amostras versionadas de CPU, memória e disco, além de contrato para outras métricas. A API retém e pagina dados por nó; o agente não executa comandos.
+
+Este módulo estabelece identidade, pareamento, presença e revogação para os próximos passos multi-nó. A entrega inicial do PR #66 não agrega telemetria e não dá aos nós capacidade de executar ações uns nos outros. A ingestão autenticada e o histórico API por nó foram integrados pelo PR #97. A interface gráfica desse histórico está no PR #99; nós não executam ações uns nos outros.
 
 ## Limites da primeira entrega
 
@@ -19,7 +22,7 @@ Implementado e integrado no PR #66:
 - Estados `online`, `offline` e `revoked`; cadastro fica offline até o primeiro heartbeat.
 - Listagem e revogação por administrador.
 
-Fora do escopo:
+Fora do escopo da primeira entrega do PR #66:
 
 - Enviar ou agregar amostras de telemetria.
 - Controlar atuadores ou publicar comandos MQTT.
@@ -29,7 +32,7 @@ Fora do escopo:
 
 ## Agente mínimo de identidade e heartbeat (PR #69)
 
-O candidato `node_agent/agent.py` contém um cliente de linha de comando sem dependências externas:
+A implementação inicial em `node_agent/agent.py` (PR #69) contém um cliente de linha de comando sem dependências externas:
 
 - `pair` recebe o código de uso único por prompt oculto e envia por HTTPS com validação de certificado ativa.
 - O agente grava a credencial bearer em `~/.config/nivus-node-agent/credentials.json` (diretório `0700`, arquivo `0600`). O arquivo não é criptografado; proteja o disco e seus backups. O servidor continua guardando apenas o hash do token.
@@ -119,23 +122,51 @@ A listagem nunca retorna token, hashes, sessão ou códigos de pareamento. A rot
 
 A sequência crescente evita reuso e ordena requests dentro de uma sessão. Um reinício do agente pede nova sessão, que reinicia a sequência; não se deve executar dois agentes simultaneamente com o mesmo token.
 
+## Envelope de telemetria multi-nó — PR #97 integrado
+
+O endpoint candidato `POST /api/nodes/telemetry` aceita token de nó no cabeçalho `X-Nivus-Node-Token` e um corpo versionado:
+
+```json
+{
+  "session_id": "<SESSAO_ATUAL>",
+  "sequence": 1,
+  "schema_version": 1,
+  "observed_at": "2026-11-21T12:00:00Z",
+  "samples": [
+    {"metric": "cpu.utilization", "value": 23.5, "unit": "percent", "quality": "measured"},
+    {"metric": "memory.utilization", "value": 48.0, "unit": "percent", "quality": "measured"},
+    {"metric": "disk.utilization", "value": 61.0, "unit": "percent", "quality": "measured"}
+  ]
+}
+```
+
+- O contrato v1 permite `cpu.utilization`, `memory.utilization`, `disk.utilization`, `host_battery.level`, temperaturas identificadas e `power.estimated`, sempre com unidade, faixa, qualidade e número limitado de amostras. O agente inicial coleta somente CPU, memória e disco; os demais permanecem indisponíveis até integrações específicas.
+- Qualidades aceitas: `measured`, `estimated` e `unavailable`. Leitura indisponível exige `value: null`; NaN, infinito, booleanos, unidade incorreta, métrica desconhecida, duplicatas e campos adicionais são rejeitados.
+- A sequência é compartilhada com heartbeat. O agente envia heartbeat e depois telemetria com sequência crescente; o servidor serializa a validação SQLite sob transação. Repetição exata da mesma sessão, sequência e conteúdo retorna aceite idempotente. Conteúdo divergente ou sequência antiga sem lote correspondente retorna `409`.
+- O servidor aceita no máximo um lote novo a cada 30 segundos por nó, inclusive após renovar a sessão. Repetições idênticas continuam idempotentes e não consomem intervalo; uma tentativa antecipada recebe `429` com `Retry-After`. Na implementação do agente PR #97, o agente mantém a cadência configurada de heartbeat e envia telemetria respeitando o intervalo mínimo de 30 segundos entre novos lotes.
+- `observed_at` registra o relógio UTC informado pelo nó; `received_at` e `last_seen` vêm do servidor. O histórico administrativo devolve ambos e o desvio em segundos; relógio do cliente não decide presença.
+- Os dados ficam em `node_telemetry_batches` e `node_telemetry_samples`, associados ao `node_id`, com chaves estrangeiras e remoção de lotes e amostras vencidos após 14 dias tanto na ingestão quanto na consulta do histórico, inclusive para nó offline. Isso é aditivo e não altera `telemetry.node` nem o histórico legado.
+- A rota proposta para histórico é `GET /api/nodes/{node_id}/telemetry`, exclusiva para administrador, limitada a 500 lotes por consulta (cada lote pode conter até 32 métricas) e ordenada cronologicamente dentro de cada página. `limit` aceita de 1 a 500; `offset` é limitado a 40.320 e o cliente reutiliza o `snapshot_until` ISO 8601 emitido na resposta. Metadados de total, offset, limite, mais páginas, faixa e snapshot são expostos por cabeçalhos HTTP; o corpo permanece uma lista JSON para compatibilidade.
+- O agente só declara capacidades de CPU/memória/disco quando `/proc` está disponível. Usa amostras de `/proc/stat`, `/proc/meminfo` e uso do filesystem raiz; primeira leitura de CPU e fontes inválidas ficam explicitamente indisponíveis. Temperatura, bateria e energia não são inferidas por este coletor.
+
+O PR #97 foi integrado à `main` após quatro workflows hospedados aprovados: Dashboard/sensores, Ubuntu 22.04, CodeQL e índice. Os testes cobrem paginação por 14 dias, lacunas, picos nas bordas, expiração offline, snapshot estável e rejeição de offset inválido. Isso valida software no runner, não a coleta real de sensores, transporte TLS entre dispositivos ou armazenamento numa instalação do usuário. A resposta de aceite confirma armazenamento no Nó Master, não validade física do sensor nem uma ação de automação.
+
 ## Validação e limites observados
 
-Validação atual por PR #66, PR #69 e release do notebook:
+Evidências disponíveis para PRs integrados:
 
-1. [x] API: pareamento único/expiração, persistência hash-only, duas identidades, heartbeat/presença, replay, renovação e revogação.
+1. [x] API inicial: pareamento único/expiração, persistência hash-only, duas identidades, heartbeat/presença, replay, renovação e revogação.
 2. [x] CI do PR #69: dois clientes, sessão por processo, recuperação de rede/resposta perdida, replay, permissões do arquivo de credenciais, HTTP recusado e revogação.
-3. [x] CI hospedada aprovada para Ubuntu 22.04 amd64 Compose smoke, backend, frontend, CodeQL e índice de conhecimento.
-4. [ ] Transporte simulado da CI não comprova uma conexão TLS de ponta a ponta; validar certificado e endpoints em execução.
+3. [x] CI hospedada do PR #97 após a correção do cursor ISO 8601: Dashboard and hardware telemetry, Ubuntu VM validation, CodeQL e Knowledge index — todos concluídos com sucesso.
+4. [ ] A validação em runner hospedado não comprova conexão TLS entre dispositivos reais; validar certificado e endpoints em execução.
 5. [ ] Parear e executar dois agentes em dispositivos independentes, incluindo reboot e revogação.
 6. [ ] Backup/restore com nós pareados precisa ser demonstrado operacionalmente.
 
-A release `fff64a68f252f0b1290576e30b39ed78fbc15a7a` foi aplicada no notebook; sua saída confirmou build, backup consistente, restart, health HTTPS 200 e telemetria sem token 401. Isso não comprova reboot, smoke do agente ou painel multi-nó.
+**Histórico de implantação relatado:** antes dos merges, o notebook estava na release `2dfcbc0c2029723e44ff507857c72e7e8b83dfa3`, com health HTTPS 200 e telemetria sem token 401. Esta sequência altera a `main`, não o notebook; não há evidência de implantação dos PRs #96/#97.
 
 ## Próximas entregas separadas
 
-1. Executar smoke do agente em dois dispositivos reais; confirmar TLS, reboot e revogação.
-2. Definir envelope de telemetria com timestamp de origem, unidade, qualidade, versão de esquema e timestamp de recepção.
-3. Guardar dados por `node_id` sem quebrar consumidores do schema legado.
-4. Criar visualização de nós com presença antiga claramente sinalizada e revogação administrativa.
-5. Só após revisão separada, projetar atualização de artefatos assinados com canário e rollback por nó.
+1. Integrar o PR #99 (histórico gráfico) à lista/API; então repetir os workflows hospedados na base atualizada.
+2. O PR #99 entrega a interface da issue #98; após sua integração, validar ausência, atraso, relógio divergente e erros sem enviar comandos remotos.
+3. Parear e executar dois agentes em dispositivos independentes; confirmar TLS, reboot, revogação e backup/restore com dados de nós.
+4. Só após revisão separada, projetar atualização de artefatos assinados com canário e rollback por nó.
