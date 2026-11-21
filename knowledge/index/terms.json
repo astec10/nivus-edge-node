@@ -2036,7 +2036,8 @@
     "doc-ai-module-workplan",
     "doc-module-map",
     "doc-node-registry",
-    "doc-hardware-telemetry"
+    "doc-hardware-telemetry",
+    "doc-project-status"
   ],
   "background": [
     "doc-ai-executor-implementation",
@@ -4009,6 +4010,7 @@
     "doc-module-map",
     "doc-node-registry",
     "doc-hardware-telemetry",
+    "doc-project-status",
     "doc-project-roadmap",
     "doc-vision"
   ],
@@ -6147,6 +6149,9 @@
   ],
   "expostos": [
     "doc-hardware-telemetry",
+    "doc-project-status"
+  ],
+  "expuseram": [
     "doc-project-status"
   ],
   "ext4": [
@@ -8325,7 +8330,8 @@
     "doc-vision"
   ],
   "janela": [
-    "doc-ai-development-orchestration"
+    "doc-ai-development-orchestration",
+    "doc-project-status"
   ],
   "javascript": [
     "doc-project-status"
@@ -8518,6 +8524,7 @@
   "leituras": [
     "doc-module-map",
     "doc-hardware-telemetry",
+    "doc-project-status",
     "doc-vision",
     "nivus-mobile-battery-relay"
   ],
@@ -9641,6 +9648,7 @@
   "neste": [
     "doc-ai-context",
     "doc-ai-executor-implementation",
+    "doc-project-status",
     "ref-multipaz-developer-website"
   ],
   "network": [
@@ -14168,6 +14176,7 @@
   ],
   "temperatura": [
     "doc-hardware-telemetry",
+    "doc-project-status",
     "doc-project-roadmap"
   ],
   "temperaturas": [
@@ -15014,7 +15023,8 @@
     "doc-project-roadmap"
   ],
   "vari": [
-    "doc-ai-executor-implementation"
+    "doc-ai-executor-implementation",
+    "doc-project-status"
   ],
   "varia": [
     "doc-hardware-telemetry"
