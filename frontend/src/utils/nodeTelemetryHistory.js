@@ -1,4 +1,5 @@
 export const NODE_HISTORY_QUERY_LIMIT = 500;
+export const NODE_HISTORY_MAX_OFFSET = 14 * 24 * 60 * 60 / 30;
 export const NODE_HISTORY_STALE_AFTER_SECONDS = 90;
 export const NODE_HISTORY_CLOCK_SKEW_WARNING_SECONDS = 60;
 
@@ -57,13 +58,48 @@ export function normalizeNodeTelemetryBatches(batches) {
   }).filter(Boolean);
 }
 
-export function getNodeTelemetryQueryParams(rangeKey, referenceNowMs = Date.now()) {
-  const params = { limit: NODE_HISTORY_QUERY_LIMIT };
+export function getNodeTelemetryQueryParams(rangeKey, referenceNowMs = Date.now(), offset = 0, snapshotUntil = null) {
+  const validOffset = Number.isSafeInteger(offset) && offset >= 0
+    ? Math.min(offset, NODE_HISTORY_MAX_OFFSET)
+    : 0;
+  const params = { limit: NODE_HISTORY_QUERY_LIMIT, offset: validOffset };
   const selectedRange = NODE_HISTORY_RANGES.find((item) => item.key === rangeKey);
   if (selectedRange && Number.isFinite(referenceNowMs)) {
     params.since = new Date(referenceNowMs - selectedRange.milliseconds).toISOString();
   }
+  if (typeof snapshotUntil === 'string' && Number.isFinite(Date.parse(snapshotUntil))) {
+    params.snapshot_until = snapshotUntil;
+  }
   return params;
+}
+
+function readHeader(headers, name) {
+  if (headers && typeof headers.get === 'function') {
+    const value = headers.get(name);
+    if (value !== null && value !== undefined) return value;
+  }
+  return headers && (headers[name] ?? headers[name.toLowerCase()]);
+}
+
+function parseNonNegativeInteger(value, fallback = null) {
+  if (value === null || value === undefined || value === '') return fallback;
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
+export function getNodeTelemetryPageMetadata(headers = {}, fallbackCount = 0) {
+  const supported = String(readHeader(headers, 'X-Nivus-History-Pagination') || '').toLowerCase() === 'offset-v1';
+  return {
+    supported,
+    totalBatches: parseNonNegativeInteger(readHeader(headers, 'X-Nivus-History-Total-Batches')),
+    offset: parseNonNegativeInteger(readHeader(headers, 'X-Nivus-History-Offset'), 0),
+    limit: parseNonNegativeInteger(readHeader(headers, 'X-Nivus-History-Limit'), NODE_HISTORY_QUERY_LIMIT),
+    hasMore: String(readHeader(headers, 'X-Nivus-History-Has-More') || '').toLowerCase() === 'true',
+    rangeStart: readHeader(headers, 'X-Nivus-History-Range-Start') || null,
+    rangeEnd: readHeader(headers, 'X-Nivus-History-Range-End') || null,
+    snapshotUntil: readHeader(headers, 'X-Nivus-History-Snapshot-Until') || null,
+    fallbackCount,
+  };
 }
 
 export function summarizeNodeTelemetry(rows, key) {
