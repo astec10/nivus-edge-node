@@ -116,6 +116,7 @@ function App() {
 
   const alertAudioContextRef = useRef(null);
   const lastAlertTimeRef = useRef(0);
+  const fetchDataInFlightRef = useRef(false);
 
   const emitAlertTone = (audioCtx) => {
     const osc = audioCtx.createOscillator();
@@ -236,6 +237,9 @@ function App() {
   };
 
   const fetchData = async (currentToken = token) => {
+    if (fetchDataInFlightRef.current) return;
+    fetchDataInFlightRef.current = true;
+
     try {
       await axios.get(`${API_BASE}/health`);
       setIsOnline(true);
@@ -263,8 +267,15 @@ function App() {
 
       const headers = currentToken ? { Authorization: `Bearer ${currentToken}` } : {};
       const payload = parseJwt(currentToken);
-      const [telRes, logRes, audRes, altRes, setRes, maintenanceRes] = await Promise.all([
-        axios.get(`${API_BASE}/api/telemetry?limit=1000`, { headers }),
+      const telemetryPromise = axios.get(`${API_BASE}/api/telemetry?limit=1000`, { headers }).then(telRes => {
+        const formattedData = telRes.data.map(item => ({
+          ...item,
+          temperature: item.temperature_source ? item.temperature : null,
+          time: new Date(item.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        }));
+        setTelemetry(formattedData);
+      });
+      const secondaryDataPromise = Promise.all([
         axios.get(`${API_BASE}/api/logs?lines=15`, { headers }).catch(() => ({ data: { logs: [] } })),
         axios.get(`${API_BASE}/api/actuator/audit?limit=10`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_BASE}/api/alerts/history?limit=10`, { headers }).catch(() => ({ data: [] })),
@@ -273,14 +284,11 @@ function App() {
           ? axios.get(`${API_BASE}/api/maintenance`, { headers }).catch(() => ({ data: null }))
           : Promise.resolve({ data: null })
       ]);
-      
-      const formattedData = telRes.data.map(item => ({
-        ...item,
-        temperature: item.temperature_source ? item.temperature : null,
-        time: new Date(item.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-      }));
 
-      setTelemetry(formattedData);
+      const [, [logRes, audRes, altRes, setRes, maintenanceRes]] = await Promise.all([
+        telemetryPromise,
+        secondaryDataPromise,
+      ]);
       setSystemLogs(logRes.data.logs || []);
       setAuditLogs(audRes.data || []);
       setAlertsHistory(altRes.data || []);
@@ -300,9 +308,10 @@ function App() {
       }
       setIsOnline(false);
       setError('Erro ao comunicar com o backend do Nivus.');
+    } finally {
+      fetchDataInFlightRef.current = false;
     }
   };
-
   const handleSaveUser = async (e) => {
     e.preventDefault();
     try {
