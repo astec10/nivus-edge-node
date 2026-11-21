@@ -54,14 +54,14 @@ CI aprovado comprova o fluxo no runner virtual Ubuntu, não em cada chipset ou p
 
 ### Fase 2 — Identidade e telemetria de vários nós
 
-**Estado: registro inicial implantado; agente mínimo implementado no PR #69; multi-nó operacional ainda incompleto.** A release `fff64a68f252f0b1290576e30b39ed78fbc15a7a` contém o cadastro seguro da issue #65 / PR #66. O PR #69 acrescenta um cliente mínimo de pareamento e heartbeat, com CI hospedada aprovada. Os testes usam dois nós simulados, handlers FastAPI e SQLite temporário; não substituem HTTPS end-to-end ou smoke com dispositivos reais. Não há comandos remotos, agregação de telemetria ou atualização coordenada.
+**Estado: registro, lista administrativa e ingestão de telemetria integrados; histórico visual e operação multi-nó real pendentes.** PR #96 acrescentou a lista somente leitura de nós; PR #97 integrou envelope versionado, agente, armazenamento por nó, histórico API, paginação limitada e retenção de 14 dias. Os quatro workflows hospedados passaram na main depois da sequência de merges. Testes em runner não substituem TLS e smoke com dois dispositivos reais. Não há comandos remotos nem atualização coordenada.
 
 1. [x] Identidade criada pelo servidor e cadastro administrativo por código de uso único — PR #66.
 2. [x] Heartbeat autenticado, sequência contra replay e presença baseada no relógio do servidor — PR #66.
 3. [x] Implementar agente mínimo de pareamento/heartbeat (PR #69; CI hospedada aprovada).
 4. [ ] Testar pareamento e heartbeat em dois dispositivos reais, incluindo TLS confiável, reinício e revogação.
-5. [ ] Versionar o envelope de telemetria: nó, timestamp, unidade, origem, qualidade e versão do esquema.
-6. [ ] Exibir lista de nós, último contato e séries por nó no painel.
+5. [x] Versionar e receber envelopes de telemetria com autenticação, sequência/idempotência, limite por nó, qualidade, histórico limitado e retenção — PR #97.
+6. [ ] Exibir lista de nós e último contato — PR #96 integrado; histórico gráfico por nó — PR #99 em revisão.
 7. [ ] Tratar duplicatas, atraso, relógios incorretos, perda de rede, revogação e nós desconhecidos.
 8. [ ] Definir distribuição de releases assinadas: inventário de versão/capacidades, seleção dos nós elegíveis, canário seguido de ondas, health check, manutenção de dados e rollback independente por nó. Offline, baixa bateria ou recursos insuficientes devem adiar a atualização sem bloquear a frota.
 
@@ -126,6 +126,6 @@ Critério de saída: limite financeiro não é ultrapassado silenciosamente; dad
 
 ## Sequência recomendada
 
-**Próximos trabalhos:** confirmar a visualização atualizada no Android físico após recarregar; o notebook já está na release `2dfcbc0c2029723e44ff507857c72e7e8b83dfa3` e a viewport móvel do navegador mostrou o padrão separado por unidade. A política AC/UPS deve continuar desabilitada até verificar a fonte e o governor conservador no hardware. Depois, retomar instalação USB física, smoke do agente em dois nós e validações Intel/AMD. O registro multi-nó inicial está integrado; agregação de dados e atualização de frota não existem.
+**Próximos trabalhos:** concluir o histórico gráfico por nó no PR #99; depois executar smoke TLS com dois dispositivos físicos, reboot, revogação e backup/restore com amostras. O notebook continua na release `2dfcbc0c2029723e44ff507857c72e7e8b83dfa3`; os merges #96/#97 não foram implantados. Reboot, instalação USB física, validação Intel/AMD e atualização assinada de frota continuam pendentes.
 
 Para decidir a próxima entrega física da casa, veja “Decisões em aberto” em [`VISION.md`](VISION.md). Modelos exatos de roteador, switch PoE, câmeras, inversor, medidores e proteção elétrica ainda precisam ser escolhidos e conferidos com documentação de fabricante e profissionais habilitados.

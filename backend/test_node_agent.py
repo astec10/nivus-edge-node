@@ -5,6 +5,7 @@ import tempfile
 import unittest
 from collections import Counter
 from pathlib import Path
+from types import SimpleNamespace
 from urllib.error import URLError
 from urllib.parse import urlsplit
 from unittest.mock import patch
@@ -17,9 +18,11 @@ from node_agent.agent import (
     AuthenticationRejected,
     NivusApiClient,
     NivusNodeAgent,
+    RetryableApiError,
     load_credentials,
     pair_node,
 )
+from node_agent.telemetry import NodeTelemetryCollector
 from services import nodes
 
 
@@ -46,6 +49,7 @@ class TemporaryNodesApi:
         self.drop_after = Counter()
         self.session_ids = []
         self.request_paths = []
+        self.telemetry_results = []
 
     @staticmethod
     def _headers(request):
@@ -82,6 +86,13 @@ class TemporaryNodesApi:
                     node_token=headers["x-nivus-node-token"],
                 )
                 status = 202
+            elif path == "/api/nodes/telemetry":
+                result = node_routes.ingest_telemetry(
+                    node_routes.NodeTelemetryEnvelope.model_validate(payload),
+                    node_token=headers["x-nivus-node-token"],
+                )
+                self.telemetry_results.append(result)
+                status = 202
             else:
                 status, result = 404, {"detail": "not found"}
         except HTTPException as error:
@@ -91,6 +102,51 @@ class TemporaryNodesApi:
             self.drop_after[path] -= 1
             raise URLError("simulated response loss")
         return FakeResponse(status, result)
+
+
+class FakeTelemetryCollector:
+    capabilities = ("telemetry.cpu", "telemetry.memory", "telemetry.disk")
+
+    def __init__(self):
+        self.calls = 0
+
+    def collect(self):
+        self.calls += 1
+        return {
+            "schema_version": 1,
+            "observed_at": "2026-11-21T12:00:00Z",
+            "samples": [
+                {"metric": "cpu.utilization", "value": 23.5, "unit": "percent", "quality": "measured"},
+                {"metric": "memory.utilization", "value": 48.0, "unit": "percent", "quality": "measured"},
+                {"metric": "disk.utilization", "value": 61.0, "unit": "percent", "quality": "measured"},
+            ],
+        }
+
+
+class FakeMonotonicClock:
+    def __init__(self):
+        self.now = 0.0
+
+    def monotonic(self):
+        return self.now
+
+    def sleep(self, seconds):
+        self.now += seconds
+
+
+class RecordingNodeApi:
+    def __init__(self, fail_telemetry_once=False):
+        self.requests = []
+        self.fail_telemetry_once = fail_telemetry_once
+
+    def post_json(self, path, payload, headers=None):
+        self.requests.append((path, json.loads(json.dumps(payload))))
+        if path == "/api/nodes/session":
+            return {"session_id": "S" * 43, "next_sequence": 0}
+        if path == "/api/nodes/telemetry" and self.fail_telemetry_once:
+            self.fail_telemetry_once = False
+            raise RetryableApiError(429, 11)
+        return {"status": "ok"}
 
 
 class NodeAgentTests(unittest.TestCase):
@@ -119,13 +175,14 @@ class NodeAgentTests(unittest.TestCase):
         credentials = load_credentials(credential_path)
         return enrollment, credential_path, returned_id, credentials
 
-    def make_agent(self, credential_path, sleeps=None):
+    def make_agent(self, credential_path, sleeps=None, collector=None):
         credentials = load_credentials(credential_path)
         client = NivusApiClient(credentials.master_url, opener=self.transport)
         return NivusNodeAgent(
             credentials,
             client=client,
             sleep_fn=(sleeps.append if sleeps is not None else lambda _: None),
+            telemetry_collector=collector or FakeTelemetryCollector(),
         )
 
     def test_two_clients_pair_with_distinct_server_ids_and_presence(self):
@@ -144,10 +201,12 @@ class NodeAgentTests(unittest.TestCase):
         by_id = {entry["node_id"]: entry for entry in listed}
         self.assertEqual(by_id[first_id]["status"], "online")
         self.assertEqual(by_id[second_id]["status"], "online")
-        self.assertEqual(by_id[first_id]["capabilities"], [])
-        self.assertEqual(by_id[second_id]["capabilities"], [])
+        expected_capabilities = ["telemetry.cpu", "telemetry.disk", "telemetry.memory"]
+        self.assertEqual(by_id[first_id]["capabilities"], expected_capabilities)
+        self.assertEqual(by_id[second_id]["capabilities"], expected_capabilities)
         self.assertNotIn("token", by_id[first_id])
         self.assertNotIn("token_sha256", by_id[first_id])
+        self.assertEqual(len(self.transport.telemetry_results), 2)
 
     def test_network_loss_and_lost_response_recover_without_losing_identity(self):
         enrollment, path, node_id, credentials = self.pair("Edge Rede")
@@ -170,6 +229,105 @@ class NodeAgentTests(unittest.TestCase):
         self.assertGreaterEqual(len(self.transport.session_ids), old_session_count + 2)
         self.assertEqual(nodes.list_nodes()[0]["node_id"], node_id)
         self.assertEqual(nodes.list_nodes()[0]["status"], "online")
+
+    def test_telemetry_retries_same_batch_after_network_loss(self):
+        _, path, node_id, _ = self.pair("Edge Telemetria")
+        collector = FakeTelemetryCollector()
+        self.transport.fail_before["/api/nodes/telemetry"] = 1
+        sleeps = []
+        self.make_agent(path, sleeps, collector).run(max_heartbeats=1)
+
+        self.assertEqual(collector.calls, 1)
+        self.assertEqual(sleeps, [1])
+        self.assertEqual(self.transport.request_paths.count("/api/nodes/telemetry"), 2)
+        conn = database.get_db_connection()
+        try:
+            self.assertEqual(
+                conn.execute(
+                    "SELECT COUNT(*) AS n FROM node_telemetry_batches WHERE node_id = ?",
+                    (node_id,),
+                ).fetchone()["n"],
+                1,
+            )
+            self.assertEqual(
+                conn.execute("SELECT COUNT(*) AS n FROM node_telemetry_samples").fetchone()["n"],
+                3,
+            )
+            last_sequence = conn.execute(
+                "SELECT last_sequence FROM nodes WHERE node_id = ?", (node_id,)
+            ).fetchone()["last_sequence"]
+        finally:
+            conn.close()
+        self.assertEqual(last_sequence, 1)
+
+    def test_lost_telemetry_response_is_idempotent_without_recollection(self):
+        _, path, node_id, _ = self.pair("Edge Resposta Perdida")
+        collector = FakeTelemetryCollector()
+        self.transport.drop_after["/api/nodes/telemetry"] = 1
+        self.make_agent(path, collector=collector).run(max_heartbeats=1)
+
+        self.assertEqual(collector.calls, 1)
+        self.assertEqual(len(self.transport.telemetry_results), 2)
+        self.assertFalse(self.transport.telemetry_results[0]["duplicate"])
+        self.assertTrue(self.transport.telemetry_results[1]["duplicate"])
+        conn = database.get_db_connection()
+        try:
+            self.assertEqual(
+                conn.execute(
+                    "SELECT COUNT(*) AS n FROM node_telemetry_batches WHERE node_id = ?",
+                    (node_id,),
+                ).fetchone()["n"],
+                1,
+            )
+        finally:
+            conn.close()
+
+    def test_fast_heartbeats_do_not_exceed_telemetry_cadence(self):
+        _, path, _, credentials = self.pair("Edge Cadencia")
+        clock = FakeMonotonicClock()
+        api = RecordingNodeApi()
+        collector = FakeTelemetryCollector()
+        agent = NivusNodeAgent(
+            credentials,
+            client=api,
+            interval=5,
+            sleep_fn=clock.sleep,
+            telemetry_collector=collector,
+            monotonic_fn=clock.monotonic,
+        )
+
+        self.assertEqual(agent.run(max_heartbeats=7), 7)
+        heartbeats = [payload for path, payload in api.requests if path == "/api/nodes/heartbeat"]
+        telemetry = [payload for path, payload in api.requests if path == "/api/nodes/telemetry"]
+        self.assertEqual(len(heartbeats), 7)
+        self.assertEqual(len(telemetry), 2)
+        self.assertEqual(collector.calls, 2)
+        self.assertGreaterEqual(clock.monotonic(), 30)
+
+    def test_retry_after_is_respected_without_recollecting_or_changing_payload(self):
+        _, path, _, credentials = self.pair("Edge Retry-After")
+        clock = FakeMonotonicClock()
+        api = RecordingNodeApi(fail_telemetry_once=True)
+        collector = FakeTelemetryCollector()
+        agent = NivusNodeAgent(
+            credentials,
+            client=api,
+            sleep_fn=clock.sleep,
+            telemetry_collector=collector,
+            monotonic_fn=clock.monotonic,
+        )
+
+        agent.run(max_heartbeats=1)
+        retries = [payload for path, payload in api.requests if path == "/api/nodes/telemetry"]
+        self.assertEqual(clock.now, 11)
+        self.assertEqual(collector.calls, 1)
+        self.assertEqual(len(retries), 2)
+        self.assertEqual(retries[0], retries[1])
+
+    def test_retry_after_header_is_bounded_and_parsed(self):
+        self.assertEqual(NivusApiClient._retry_after({"Retry-After": "17"}), 17)
+        self.assertEqual(NivusApiClient._retry_after({"Retry-After": "999"}), 60)
+        self.assertIsNone(NivusApiClient._retry_after({"Retry-After": "tomorrow"}))
 
     def test_each_process_start_renews_session_and_revocation_stops_connection(self):
         _, path, node_id, _ = self.pair("Edge Revogável")
@@ -218,6 +376,55 @@ class NodeAgentTests(unittest.TestCase):
             nodes.enroll_node(enrollment["code"], "Código preservado")["name"],
             "Código preservado",
         )
+
+
+class NodeTelemetryCollectorTests(unittest.TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.proc = Path(self.temp_dir.name)
+        self.stat_path = self.proc / "stat"
+        self.meminfo_path = self.proc / "meminfo"
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    def collector(self):
+        return NodeTelemetryCollector(
+            proc_root=self.proc,
+            disk_usage=lambda _: SimpleNamespace(total=1000, used=600, free=400),
+        )
+
+    def test_collects_only_os_values_and_marks_first_cpu_sample_unavailable(self):
+        self.stat_path.write_text("cpu 100 2 50 800 10 1 2 0\n", encoding="ascii")
+        self.meminfo_path.write_text(
+            "MemTotal: 1000 kB\nMemAvailable: 250 kB\n", encoding="ascii"
+        )
+        collector = self.collector()
+        first = collector.collect()
+        first_by_metric = {sample["metric"]: sample for sample in first["samples"]}
+        self.assertEqual(first_by_metric["cpu.utilization"]["quality"], "unavailable")
+        self.assertIsNone(first_by_metric["cpu.utilization"]["value"])
+        self.assertEqual(first_by_metric["memory.utilization"]["value"], 75.0)
+        self.assertEqual(first_by_metric["disk.utilization"]["value"], 60.0)
+        self.assertTrue(first["observed_at"].endswith("Z"))
+        self.assertEqual(collector.capabilities, ("telemetry.cpu", "telemetry.memory", "telemetry.disk"))
+
+        self.stat_path.write_text("cpu 120 4 58 820 12 1 3 0\n", encoding="ascii")
+        second = collector.collect()
+        second_by_metric = {sample["metric"]: sample for sample in second["samples"]}
+        self.assertEqual(second_by_metric["cpu.utilization"]["quality"], "measured")
+        self.assertAlmostEqual(second_by_metric["cpu.utilization"]["value"], 58.49, places=2)
+
+    def test_meminfo_fallback_is_marked_estimated(self):
+        self.stat_path.write_text("cpu 100 2 50 800\n", encoding="ascii")
+        self.meminfo_path.write_text(
+            "MemTotal: 1000 kB\nMemFree: 100 kB\nBuffers: 50 kB\nCached: 200 kB\n",
+            encoding="ascii",
+        )
+        samples = self.collector().collect()["samples"]
+        memory = next(item for item in samples if item["metric"] == "memory.utilization")
+        self.assertEqual(memory["quality"], "estimated")
+        self.assertEqual(memory["value"], 65.0)
 
 
 if __name__ == "__main__":
