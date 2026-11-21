@@ -40,7 +40,7 @@ Três PRs seguem abertos e não mesclados. Os resultados abaixo se referem aos h
 ## Documentação e checkout
 
 - O checkpoint e `PROGRESS.html` deste branch refletem o estado atual do PR #93.
-Esta atualização corrige as referências históricas de `docs/PROJECT_STATUS.md` e `docs/AI_EXECUTOR_IMPLEMENTATION.md` que chamavam o PR #93 de rascunho e regenera o índice lexical; a CI do novo head precisa concluir.
+Esta atualização corrige as referências históricas de `docs/PROJECT_STATUS.md` e `docs/AI_EXECUTOR_IMPLEMENTATION.md` que chamavam o PR #93 de rascunho e regenera o índice lexical. A CI passou nos quatro workflows no head documental `6909decef30150fe540846afc7c24a4ba32fd887`.
 - Última verificação do checkout local: `work/nivus-current`, branch `feat/node-telemetry-main`, HEAD `101f825`, árvore limpa. Não é o branch remoto do PR #97.
 - Nenhuma VM foi usada e nenhuma alteração ou implantação foi feita no notebook durante este trabalho.
 
@@ -50,7 +50,7 @@ GitHub Issues e GitHub Actions podem continuar o fluxo de desenvolvimento em run
 
 ## Próximos passos
 
-1. Aguardar a CI do head documental atualizado e revisar o diff completo de #93.
+1. Revisar o diff completo de #93; a CI do head documental `6909decef30150fe540846afc7c24a4ba32fd887` passou nos quatro workflows.
 2. Revisar #96 e #97 e verificar conflitos/documentação compartilhada antes da integração.
 3. Aguardar aprovação humana para qualquer merge; nenhum dos três PRs está mesclado.
 4. Após merge autorizado do #93, planejar implantação reversível e validar login, leitura da fila e autorização no notebook.
