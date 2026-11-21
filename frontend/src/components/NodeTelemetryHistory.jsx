@@ -20,33 +20,19 @@ import {
   YAxis,
 } from 'recharts';
 import { formatDisplayDate } from '../utils/displayPreferences';
+import {
+  NODE_HISTORY_CLOCK_SKEW_WARNING_SECONDS,
+  NODE_HISTORY_QUERY_LIMIT,
+  NODE_HISTORY_RANGES,
+  NODE_HISTORY_SERIES,
+  NODE_HISTORY_STALE_AFTER_SECONDS,
+  NODE_HISTORY_QUALITY_LABELS,
+  getNodeTelemetryIndicators,
+  getNodeTelemetryQueryParams,
+  normalizeNodeTelemetryBatches,
+  summarizeNodeTelemetry,
+} from '../utils/nodeTelemetryHistory';
 import './NodeTelemetryHistory.css';
-
-const QUERY_LIMIT = 500;
-const STALE_AFTER_SECONDS = 90;
-const CLOCK_SKEW_WARNING_SECONDS = 60;
-
-const RANGES = [
-  { key: '5m', label: '5 min', milliseconds: 5 * 60 * 1000 },
-  { key: '15m', label: '15 min', milliseconds: 15 * 60 * 1000 },
-  { key: '30m', label: '30 min', milliseconds: 30 * 60 * 1000 },
-  { key: '1h', label: '1 hora', milliseconds: 60 * 60 * 1000 },
-  { key: '6h', label: '6 horas', milliseconds: 6 * 60 * 60 * 1000 },
-  { key: '24h', label: '24 horas', milliseconds: 24 * 60 * 60 * 1000 },
-  { key: '14d', label: '14 dias', milliseconds: 14 * 24 * 60 * 60 * 1000 },
-];
-
-const SERIES = [
-  { metric: 'cpu.utilization', key: 'cpuPercent', label: 'CPU', unit: '%', color: '#38bdf8' },
-  { metric: 'memory.utilization', key: 'memoryPercent', label: 'Memória', unit: '%', color: '#a78bfa' },
-  { metric: 'disk.utilization', key: 'diskPercent', label: 'Disco', unit: '%', color: '#34d399' },
-];
-
-const QUALITY_LABELS = {
-  measured: 'Medido',
-  estimated: 'Estimado',
-  unavailable: 'Indisponível',
-};
 
 function formatValue(value, unit) {
   if (typeof value !== 'number' || !Number.isFinite(value)) return 'N/D';
@@ -81,37 +67,6 @@ function formatClockTime(value, timeZone) {
   }).format(date);
 }
 
-function normalizeBatches(batches) {
-  if (!Array.isArray(batches)) return [];
-  return batches.map((batch) => {
-    const receivedMs = Date.parse(batch.received_at);
-    if (!Number.isFinite(receivedMs)) return null;
-    const row = {
-      receivedMs,
-      receivedAt: batch.received_at,
-      observedAt: batch.observed_at,
-      clockSkewSeconds: typeof batch.clock_skew_seconds === 'number'
-        && Number.isFinite(batch.clock_skew_seconds)
-        ? batch.clock_skew_seconds
-        : null,
-    };
-    const samples = Array.isArray(batch.samples) ? batch.samples : [];
-    SERIES.forEach((series) => {
-      const sample = samples.find((item) => item && item.metric === series.metric);
-      const numericValue = sample && typeof sample.value === 'number'
-        && Number.isFinite(sample.value)
-        ? sample.value
-        : null;
-      const quality = sample && QUALITY_LABELS[sample.quality]
-        ? sample.quality
-        : 'unavailable';
-      row[series.key] = quality !== 'unavailable' ? numericValue : null;
-      row[series.key + 'Quality'] = row[series.key] === null ? 'unavailable' : quality;
-    });
-    return row;
-  }).filter(Boolean);
-}
-
 function HistoryTooltip({ active, payload, visibleSeries, displayPreferences }) {
   const row = payload && payload.length ? payload[0].payload : null;
   if (!active || !row) return null;
@@ -123,10 +78,10 @@ function HistoryTooltip({ active, payload, visibleSeries, displayPreferences }) 
         <div className="node-history-tooltip__metric" key={series.key}>
           <span style={{ color: series.color }}>{series.label}</span>
           <strong>{formatValue(row[series.key], series.unit)}</strong>
-          <small>{QUALITY_LABELS[row[series.key + 'Quality']] || 'Indisponível'}</small>
+          <small>{NODE_HISTORY_QUALITY_LABELS[row[series.key + 'Quality']] || 'Indisponível'}</small>
         </div>
       ))}
-      {row.clockSkewSeconds !== null && Math.abs(row.clockSkewSeconds) > CLOCK_SKEW_WARNING_SECONDS && (
+      {row.clockSkewSeconds !== null && Math.abs(row.clockSkewSeconds) > NODE_HISTORY_CLOCK_SKEW_WARNING_SECONDS && (
         <small className="node-history-tooltip__warning">
           Diferença observada de horário: {new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 }).format(row.clockSkewSeconds)} s.
           O atraso de rede também influencia esta diferença.
@@ -134,16 +89,6 @@ function HistoryTooltip({ active, payload, visibleSeries, displayPreferences }) 
       )}
     </div>
   );
-}
-
-function summarize(rows, key) {
-  const values = rows.map((row) => row[key]).filter((value) => typeof value === 'number' && Number.isFinite(value));
-  if (!values.length) return { minimum: null, maximum: null, latest: null };
-  return {
-    minimum: Math.min(...values),
-    maximum: Math.max(...values),
-    latest: values[values.length - 1],
-  };
 }
 
 export default function NodeTelemetryHistory({
@@ -154,7 +99,7 @@ export default function NodeTelemetryHistory({
 }) {
   const [range, setRange] = useState('15m');
   const [chartType, setChartType] = useState('line');
-  const [visibleKeys, setVisibleKeys] = useState(() => new Set(SERIES.map((item) => item.key)));
+  const [visibleKeys, setVisibleKeys] = useState(() => new Set(NODE_HISTORY_SERIES.map((item) => item.key)));
   const [reload, setReload] = useState(0);
   const [showDetails, setShowDetails] = useState(false);
   const [result, setResult] = useState({ key: '', batches: [] });
@@ -172,12 +117,10 @@ export default function NodeTelemetryHistory({
     setLoadingKey(queryKey);
     setError({ key: queryKey, message: '' });
 
-    const selectedRange = RANGES.find((item) => item.key === range);
-    const referenceNow = Number.isFinite(serverNowMs) ? serverNowMs : Date.now();
-    const params = { limit: QUERY_LIMIT };
-    if (selectedRange) {
-      params.since = new Date(referenceNow - selectedRange.milliseconds).toISOString();
-    }
+    const params = getNodeTelemetryQueryParams(
+      range,
+      Number.isFinite(serverNowMs) ? serverNowMs : Date.now(),
+    );
 
     axios.get('/api/nodes/' + encodeURIComponent(node.node_id) + '/telemetry', {
       params,
@@ -222,20 +165,19 @@ export default function NodeTelemetryHistory({
   const batches = result.key === queryKey ? result.batches : [];
   const requestError = error.key === queryKey ? error.message : '';
   const isLoading = loadingKey === queryKey;
-  const rows = useMemo(() => normalizeBatches(batches), [batches]);
-  const visibleSeries = SERIES.filter((item) => visibleKeys.has(item.key));
+  const rows = useMemo(() => normalizeNodeTelemetryBatches(batches), [batches]);
+  const visibleSeries = NODE_HISTORY_SERIES.filter((item) => visibleKeys.has(item.key));
   const summaries = useMemo(
-    () => Object.fromEntries(SERIES.map((item) => [item.key, summarize(rows, item.key)])),
+    () => Object.fromEntries(NODE_HISTORY_SERIES.map((item) => [item.key, summarize(rows, item.key)])),
     [rows],
   );
   const hasVisibleValues = visibleSeries.some((item) => summaries[item.key].latest !== null);
-  const latest = rows.length ? rows[rows.length - 1] : null;
-  const latestAgeSeconds = latest && Number.isFinite(serverNowMs)
-    ? (serverNowMs - latest.receivedMs) / 1000
-    : latest ? (Date.now() - latest.receivedMs) / 1000 : null;
-  const stale = Number.isFinite(latestAgeSeconds) && latestAgeSeconds > STALE_AFTER_SECONDS;
-  const hasClockSkew = rows.some((row) => row.clockSkewSeconds !== null
-    && Math.abs(row.clockSkewSeconds) > CLOCK_SKEW_WARNING_SECONDS);
+  const telemetryIndicators = getNodeTelemetryIndicators(
+    rows,
+    Number.isFinite(serverNowMs) ? serverNowMs : Date.now(),
+  );
+  const stale = telemetryIndicators.stale;
+  const hasClockSkew = telemetryIndicators.hasClockSkew;
   const ChartComponent = chartType === 'area' ? AreaChart : chartType === 'bar' ? BarChart : LineChart;
   const nodeStatus = node.status || 'offline';
 
@@ -249,8 +191,8 @@ export default function NodeTelemetryHistory({
   }
 
   function toggleAllSeries() {
-    const allVisible = visibleKeys.size === SERIES.length;
-    setVisibleKeys(allVisible ? new Set() : new Set(SERIES.map((item) => item.key)));
+    const allVisible = visibleKeys.size === NODE_HISTORY_SERIES.length;
+    setVisibleKeys(allVisible ? new Set() : new Set(NODE_HISTORY_SERIES.map((item) => item.key)));
   }
 
   return (
@@ -296,7 +238,7 @@ export default function NodeTelemetryHistory({
         <div className="node-history-control-group" role="group" aria-label="Período do histórico">
           <span>Período</span>
           <div className="node-history-button-row">
-            {RANGES.map((item) => (
+            {NODE_HISTORY_RANGES.map((item) => (
               <button
                 type="button"
                 key={item.key}
@@ -313,7 +255,7 @@ export default function NodeTelemetryHistory({
         <div className="node-history-control-group" role="group" aria-label="Séries visíveis">
           <span>Séries</span>
           <div className="node-history-button-row">
-            {SERIES.map((item) => (
+            {NODE_HISTORY_SERIES.map((item) => (
               <button
                 type="button"
                 key={item.key}
@@ -328,10 +270,10 @@ export default function NodeTelemetryHistory({
             <button
               type="button"
               className="node-history-choice"
-              aria-pressed={visibleKeys.size === SERIES.length}
+              aria-pressed={visibleKeys.size === NODE_HISTORY_SERIES.length}
               onClick={toggleAllSeries}
             >
-              {visibleKeys.size === SERIES.length ? 'Ocultar todas' : 'Mostrar todas'}
+              {visibleKeys.size === NODE_HISTORY_SERIES.length ? 'Ocultar todas' : 'Mostrar todas'}
             </button>
           </div>
         </div>
@@ -429,7 +371,7 @@ export default function NodeTelemetryHistory({
 
       <div className="node-history-footer">
         <span>
-          {batches.length} lotes exibidos; máximo {QUERY_LIMIT}. {Number.isFinite(serverNowMs) ? 'Período calculado pelo horário estimado do Master.' : 'Período calculado pelo relógio deste navegador.'}
+          {batches.length} lotes exibidos; máximo {NODE_HISTORY_QUERY_LIMIT}. {Number.isFinite(serverNowMs) ? 'Período calculado pelo horário estimado do Master.' : 'Período calculado pelo relógio deste navegador.'}
         </span>
         {loadedAt && result.key === queryKey && (
           <span aria-live="polite">Atualizado às {formatTimestamp(loadedAt.toISOString(), displayPreferences)}</span>
@@ -453,7 +395,7 @@ export default function NodeTelemetryHistory({
               <tr>
                 <th scope="col">Recebido no Master</th>
                 <th scope="col">Informado pelo nó</th>
-                {SERIES.map((item) => <th scope="col" key={item.key}>{item.label}</th>)}
+                {NODE_HISTORY_SERIES.map((item) => <th scope="col" key={item.key}>{item.label}</th>)}
               </tr>
             </thead>
             <tbody>
@@ -461,16 +403,16 @@ export default function NodeTelemetryHistory({
                 <tr key={row.receivedAt + ':' + index}>
                   <td>{formatTimestamp(row.receivedAt, displayPreferences)}</td>
                   <td>{formatTimestamp(row.observedAt, displayPreferences)}</td>
-                  {SERIES.map((item) => (
+                  {NODE_HISTORY_SERIES.map((item) => (
                     <td key={item.key}>
                       {formatValue(row[item.key], item.unit)}
-                      <small>{QUALITY_LABELS[row[item.key + 'Quality']] || 'Indisponível'}</small>
+                      <small>{NODE_HISTORY_QUALITY_LABELS[row[item.key + 'Quality']] || 'Indisponível'}</small>
                     </td>
                   ))}
                 </tr>
               ))}
               {!rows.length && (
-                <tr><td colSpan={SERIES.length + 2}>Nenhum lote disponível para detalhar.</td></tr>
+                <tr><td colSpan={NODE_HISTORY_SERIES.length + 2}>Nenhum lote disponível para detalhar.</td></tr>
               )}
             </tbody>
           </table>
