@@ -22,11 +22,13 @@ import {
 import { formatDisplayDate } from '../utils/displayPreferences';
 import {
   NODE_HISTORY_CLOCK_SKEW_WARNING_SECONDS,
+  NODE_HISTORY_MAX_OFFSET,
   NODE_HISTORY_QUERY_LIMIT,
   NODE_HISTORY_RANGES,
   NODE_HISTORY_SERIES,
   NODE_HISTORY_QUALITY_LABELS,
   getNodeTelemetryIndicators,
+  getNodeTelemetryPageMetadata,
   getNodeTelemetryQueryParams,
   normalizeNodeTelemetryBatches,
   summarizeNodeTelemetry,
@@ -100,14 +102,42 @@ export default function NodeTelemetryHistory({
   const [chartType, setChartType] = useState('line');
   const [visibleKeys, setVisibleKeys] = useState(() => new Set(NODE_HISTORY_SERIES.map((item) => item.key)));
   const [reload, setReload] = useState(0);
+  const [pageOffset, setPageOffset] = useState(0);
+  const [windowReferenceMs, setWindowReferenceMs] = useState(
+    () => Number.isFinite(serverNowMs) ? serverNowMs : Date.now(),
+  );
   const [showDetails, setShowDetails] = useState(false);
-  const [result, setResult] = useState({ key: '', batches: [] });
+  const [result, setResult] = useState({ key: '', batches: [], pageMetadata: null });
   const [loadingKey, setLoadingKey] = useState('');
   const [error, setError] = useState({ key: '', message: '' });
   const [loadedAt, setLoadedAt] = useState(null);
   const activeRequest = useRef(null);
+  const paginationSnapshot = useRef(null);
 
-  const queryKey = node.node_id + ':' + range + ':' + reload;
+  const queryKey = node.node_id + ':' + range + ':' + reload + ':' + pageOffset;
+
+  useEffect(() => {
+    paginationSnapshot.current = null;
+    setPageOffset(0);
+  }, [node.node_id, token]);
+
+  function currentReferenceTime() {
+    return Number.isFinite(serverNowMs) ? serverNowMs : Date.now();
+  }
+
+  function selectRange(nextRange) {
+    paginationSnapshot.current = null;
+    setPageOffset(0);
+    setWindowReferenceMs(currentReferenceTime());
+    setRange(nextRange);
+  }
+
+  function refreshHistory() {
+    paginationSnapshot.current = null;
+    setPageOffset(0);
+    setWindowReferenceMs(currentReferenceTime());
+    setReload((value) => value + 1);
+  }
 
   useEffect(() => {
     activeRequest.current && activeRequest.current.abort();
@@ -118,7 +148,9 @@ export default function NodeTelemetryHistory({
 
     const params = getNodeTelemetryQueryParams(
       range,
-      Number.isFinite(serverNowMs) ? serverNowMs : Date.now(),
+      windowReferenceMs,
+      pageOffset,
+      paginationSnapshot.current,
     );
 
     axios.get('/api/nodes/' + encodeURIComponent(node.node_id) + '/telemetry', {
@@ -127,9 +159,15 @@ export default function NodeTelemetryHistory({
       signal: controller.signal,
     }).then((response) => {
       if (!controller.signal.aborted && activeRequest.current === controller) {
+        const responseBatches = Array.isArray(response.data) ? response.data : [];
+        const pageMetadata = getNodeTelemetryPageMetadata(response.headers, responseBatches.length);
+        if (!paginationSnapshot.current && pageMetadata.supported && pageMetadata.snapshotUntil) {
+          paginationSnapshot.current = pageMetadata.snapshotUntil;
+        }
         setResult({
           key: queryKey,
-          batches: Array.isArray(response.data) ? response.data : [],
+          batches: responseBatches,
+          pageMetadata,
         });
         setLoadedAt(new Date());
       }
@@ -159,12 +197,34 @@ export default function NodeTelemetryHistory({
       controller.abort();
       if (activeRequest.current === controller) activeRequest.current = null;
     };
-  }, [node.node_id, token, range, reload, queryKey, serverNowMs]);
+  }, [node.node_id, token, range, reload, pageOffset, windowReferenceMs, queryKey]);
 
-  const batches = result.key === queryKey ? result.batches : [];
+  const pageMetadata = result.key === queryKey ? result.pageMetadata : null;
+  const paginationSupported = Boolean(
+    pageMetadata
+      && pageMetadata.supported
+      && Number.isSafeInteger(pageMetadata.totalBatches)
+      && Number.isSafeInteger(pageMetadata.limit)
+      && pageMetadata.limit > 0,
+  );
+  const batches = result.key === queryKey
+    && (pageOffset === 0 || paginationSupported)
+    ? result.batches
+    : [];
   const requestError = error.key === queryKey ? error.message : '';
   const isLoading = loadingKey === queryKey;
   const rows = useMemo(() => normalizeNodeTelemetryBatches(batches), [batches]);
+  const pageLimit = paginationSupported && pageMetadata.limit > 0
+    ? pageMetadata.limit
+    : NODE_HISTORY_QUERY_LIMIT;
+  const currentPage = Math.floor(pageOffset / pageLimit) + 1;
+  const totalPages = paginationSupported
+    ? Math.max(1, Math.ceil(pageMetadata.totalBatches / pageLimit))
+    : 1;
+  const currentRange = NODE_HISTORY_RANGES.find((item) => item.key === range);
+  const requestedSince = currentRange
+    ? new Date(windowReferenceMs - currentRange.milliseconds).toISOString()
+    : null;
   const visibleSeries = NODE_HISTORY_SERIES.filter((item) => visibleKeys.has(item.key));
   const summaries = useMemo(
     () => Object.fromEntries(NODE_HISTORY_SERIES.map((item) => [item.key, summarizeNodeTelemetry(rows, item.key)])),
@@ -204,7 +264,7 @@ export default function NodeTelemetryHistory({
         <button
           className="node-history-refresh"
           type="button"
-          onClick={() => setReload((value) => value + 1)}
+          onClick={refreshHistory}
           disabled={isLoading}
         >
           <RefreshCw size={14} aria-hidden="true" className={isLoading ? 'is-spinning' : ''} />
@@ -243,7 +303,7 @@ export default function NodeTelemetryHistory({
                 key={item.key}
                 aria-pressed={range === item.key}
                 className="node-history-choice"
-                onClick={() => setRange(item.key)}
+                onClick={() => selectRange(item.key)}
               >
                 {item.label}
               </button>
@@ -287,7 +347,39 @@ export default function NodeTelemetryHistory({
         </label>
       </div>
 
-      <div className="node-history-summary" aria-label="Resumo das métricas visíveis">
+      {(paginationSupported || pageOffset > 0) && (
+        <nav className="node-history-pagination" aria-label="Navegação do histórico">
+          <button
+            type="button"
+            className="node-history-choice"
+            onClick={() => setPageOffset((value) => Math.max(0, value - pageLimit))}
+            disabled={isLoading || pageOffset === 0}
+          >
+            Mais recentes
+          </button>
+          <span className="node-history-pagination__status" aria-live="polite">
+            {paginationSupported
+              ? `Página ${currentPage} de ${totalPages} · ${pageMetadata.totalBatches} lotes no período`
+              : 'A API atual não informa paginação; volte à página mais recente.'}
+          </span>
+          <button
+            type="button"
+            className="node-history-choice"
+            onClick={() => setPageOffset((value) => Math.min(NODE_HISTORY_MAX_OFFSET, value + pageLimit))}
+            disabled={isLoading || !paginationSupported || !pageMetadata.hasMore}
+          >
+            Mais antigas
+          </button>
+        </nav>
+      )}
+
+      {!paginationSupported && batches.length >= NODE_HISTORY_QUERY_LIMIT && pageOffset === 0 && (
+        <p className="node-history-banner node-history-banner--partial" role="status">
+          A API retornou o limite de {NODE_HISTORY_QUERY_LIMIT} lotes sem metadados de paginação. Este resultado pode cobrir apenas parte do período; atualize o Nivus Master para navegar por todo o histórico.
+        </p>
+      )}
+
+      <div className="node-history-summary" aria-label="Resumo da página visível">
         {visibleSeries.map((item) => (
           <div key={item.key} className="node-history-summary__item">
             <span><i style={{ backgroundColor: item.color }} aria-hidden="true" />{item.label}</span>
@@ -305,7 +397,11 @@ export default function NodeTelemetryHistory({
       )}
       {!isLoading && !requestError && batches.length === 0 && (
         <div className="node-history-empty" role="status">
-          Nenhuma amostra no período selecionado. A API mantém até 14 dias e 500 lotes por consulta.
+          {pageOffset > 0 && !paginationSupported
+            ? 'A API atual não informa suporte à paginação. Volte para a página mais recente.'
+            : paginationSupported && pageMetadata.totalBatches > 0 && pageOffset > 0
+              ? 'Não há lotes nesta página. Volte para páginas mais recentes; a retenção pode ter removido dados antigos durante a consulta.'
+              : 'Nenhuma amostra no período selecionado. A API mantém até 14 dias de histórico e limita cada página.'}
         </div>
       )}
       {!requestError && rows.length > 0 && !hasVisibleValues && visibleSeries.length > 0 && (
@@ -318,7 +414,7 @@ export default function NodeTelemetryHistory({
       )}
       {!requestError && rows.length > 0 && hasVisibleValues && visibleSeries.length > 0 && (
         <figure className="node-history-figure" aria-labelledby="node-history-chart-caption">
-          <figcaption id="node-history-chart-caption">Uso de CPU, memória e disco — eixo horizontal: horário de recebimento no Master</figcaption>
+          <figcaption id="node-history-chart-caption">Uso de CPU, memória e disco nesta página — eixo horizontal: horário de recebimento no Master</figcaption>
           <div className="node-history-chart">
             <ResponsiveContainer width="100%" height="100%">
               <ChartComponent data={rows} margin={{ top: 8, right: 14, bottom: 4, left: 0 }} accessibilityLayer>
@@ -370,8 +466,24 @@ export default function NodeTelemetryHistory({
 
       <div className="node-history-footer">
         <span>
-          {batches.length} lotes exibidos; máximo {NODE_HISTORY_QUERY_LIMIT}. {Number.isFinite(serverNowMs) ? 'Período calculado pelo horário estimado do Master.' : 'Período calculado pelo relógio deste navegador.'}
+          {paginationSupported
+            ? `${pageMetadata.totalBatches} lotes brutos na janela; ${batches.length} lotes nesta página; ${rows.length} pontos exibidos sem agregação (máx. ${pageLimit}).`
+            : `${batches.length} lotes exibidos; máximo ${NODE_HISTORY_QUERY_LIMIT}.`}
+          {' '}{Number.isFinite(serverNowMs) ? 'Janela baseada no horário estimado do Master.' : 'Janela baseada no relógio deste navegador.'}
         </span>
+        {paginationSupported && (
+          <span>
+            Faixa desta página: {pageMetadata.rangeStart && pageMetadata.rangeEnd
+              ? `${formatTimestamp(pageMetadata.rangeStart, displayPreferences)} — ${formatTimestamp(pageMetadata.rangeEnd, displayPreferences)}`
+              : 'sem lotes'}.
+            {' '}Janela solicitada desde {formatTimestamp(
+              requestedSince,
+              displayPreferences,
+            )}{pageMetadata.snapshotUntil
+              ? ` até ${formatTimestamp(pageMetadata.snapshotUntil, displayPreferences)}`
+              : ''}.
+          </span>
+        )}
         {loadedAt && result.key === queryKey && (
           <span aria-live="polite">Atualizado às {formatTimestamp(loadedAt.toISOString(), displayPreferences)}</span>
         )}
@@ -389,7 +501,7 @@ export default function NodeTelemetryHistory({
       {showDetails && (
         <div id="node-history-details" className="node-history-table-wrap">
           <table className="node-history-table">
-            <caption>Até 500 lotes mais recentes dentro do período e da retenção de 14 dias</caption>
+            <caption>Até {pageLimit} lotes da página atual dentro do período e da retenção de 14 dias</caption>
             <thead>
               <tr>
                 <th scope="col">Recebido no Master</th>
