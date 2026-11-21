@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Lock, PauseCircle, PlayCircle, RotateCcw, Save, Unlock, Wrench } from 'lucide-react';
 import MobileBatteryAutomationPanel from './MobileBatteryAutomationPanel';
 import ProviderSettingsPanel from './ProviderSettingsPanel';
+import AITaskControllerPanel from './AITaskControllerPanel';
 import {
   DASHBOARD_THEMES,
   DATE_FORMATS,
@@ -204,6 +205,17 @@ export default function SettingsPanel({
               onClick={() => setSettingsSection('providers')}
             >
               Provedores de IA
+            </button>
+          )}
+          {isAdmin && (
+            <button
+              type="button"
+              role="tab"
+              aria-selected={settingsSection === 'ai-tasks'}
+              className={settingsSection === 'ai-tasks' ? 'is-selected' : ''}
+              onClick={() => setSettingsSection('ai-tasks')}
+            >
+              Executor GitHub
             </button>
           )}
         </nav>
@@ -413,6 +425,7 @@ export default function SettingsPanel({
         </div>
         )}
         {isAdmin && settingsSection === 'providers' && <ProviderSettingsPanel token={token} />}
+        {isAdmin && settingsSection === 'ai-tasks' && <AITaskControllerPanel token={token} />}
       </section>
     </main>
   );

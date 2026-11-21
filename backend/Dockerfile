@@ -7,6 +7,7 @@ WORKDIR /app
 COPY backend/requirements.txt /tmp/requirements.txt
 RUN python -m pip install --no-cache-dir -r /tmp/requirements.txt
 COPY --chown=${NIVUS_RUNTIME_UID}:${NIVUS_RUNTIME_GID} backend/ /app/
+COPY --chown=${NIVUS_RUNTIME_UID}:${NIVUS_RUNTIME_GID} scripts/validate_ai_task.py /app/scripts/validate_ai_task.py
 USER ${NIVUS_RUNTIME_UID}:${NIVUS_RUNTIME_GID}
 EXPOSE 8000
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--proxy-headers", "--forwarded-allow-ips", "*"]

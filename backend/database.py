@@ -172,6 +172,32 @@ def init_db():
                 ON ai_execution_requests(provider_id, created_at DESC);
             CREATE INDEX IF NOT EXISTS idx_ai_execution_task_created
                 ON ai_execution_requests(task_id, created_at DESC);
+            CREATE TABLE IF NOT EXISTS ai_task_controller_settings (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                repository TEXT NOT NULL DEFAULT 'astec10/nivus-edge-node',
+                enabled INTEGER NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
+                poll_interval_seconds INTEGER NOT NULL DEFAULT 60
+                    CHECK (poll_interval_seconds BETWEEN 30 AND 900),
+                max_authorizations_per_day INTEGER NOT NULL DEFAULT 3
+                    CHECK (max_authorizations_per_day BETWEEN 1 AND 10),
+                credential_ciphertext TEXT,
+                last_test_status TEXT NOT NULL DEFAULT 'not_tested',
+                last_test_at REAL,
+                updated_by TEXT,
+                updated_at REAL NOT NULL DEFAULT 0
+            );
+            INSERT OR IGNORE INTO ai_task_controller_settings (id) VALUES (1);
+            CREATE TABLE IF NOT EXISTS ai_task_controller_audit (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                actor TEXT NOT NULL,
+                repository TEXT NOT NULL,
+                issue_number INTEGER,
+                action TEXT NOT NULL,
+                outcome TEXT NOT NULL,
+                created_at REAL NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_ai_task_controller_audit_created
+                ON ai_task_controller_audit(created_at DESC);
             CREATE TABLE IF NOT EXISTS system_settings (
                 key TEXT PRIMARY KEY,
                 value TEXT

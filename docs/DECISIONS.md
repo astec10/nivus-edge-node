@@ -81,6 +81,10 @@ O worker usa background polling limitado porque chamadas síncronas anteriores e
 
 Decisão do operador: oferecer um controle explícito na configuração e comandos `nivus maintenance enable|disable|status`, com `nivus help` para explicar os comandos. A manutenção pausa somente a coleta local do host e a gravação de novas mensagens de telemetria MQTT. API, login, dashboard, health, banco existente e broker continuam disponíveis; serviços não relacionados não são parados. `disable` retoma a operação sem reboot. O marcador temporário fica em `/run`, portanto um reboot também volta ao modo normal. Transições são registradas em SQLite, sem persistir o estado ativo entre boots. A implementação aguarda CI e publicação; ainda não está no notebook.
 
+## Controlador do executor externo no notebook — 2026-11-20
+
+Usar o notebook cabeado à ONU como controlador sempre ligado, com a fila durável no GitHub Issues e execução de tarefas em runners GitHub-hosted efêmeros. O controlador consulta por HTTPS de saída, inicia junto à API/Compose após reboot, fica desabilitado por padrão e oferece configuração/status/autorizações na dashboard. Token fine-grained restrito a `Issues: Read and write` para o repositório único, cifrado com a chave mestra externa ao SQLite. Cada chamada de modelo exige revisão e confirmação humana individual; limite de autorizações da dashboard é configurável e não é teto de cobrança. Sem retry automático quando o resultado é incerto. Nenhum checkout, build ou execução de código de Issue no notebook; sem self-hosted runner, portas públicas encaminhadas, merge ou deploy automático. Desligar o notebook não perde a fila nem impede workflows já autorizados no GitHub. A configuração da ONU e a validação física de 24 horas ficam fora da mudança de software.
+
 
 ## Sincronização NTP do host — 2026-11-16
 
