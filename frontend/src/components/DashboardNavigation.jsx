@@ -1,5 +1,5 @@
 import React from 'react';
-import { Settings, Users } from 'lucide-react';
+import { Network, Settings, Users } from 'lucide-react';
 import ClockDisplay from './ClockDisplay';
 import { DEFAULT_DISPLAY_PREFERENCES } from '../utils/displayPreferences';
 
@@ -39,6 +39,15 @@ export default function DashboardNavigation({
           onClick={() => setActiveTab('users')}
         >
           <Users size={16} aria-hidden="true" /> Gestão de Utilizadores
+        </NavigationButton>
+      )}
+      {isAdmin && (
+        <NavigationButton
+          active={activeTab === 'nodes'}
+          className="dashboard-nav-button--nodes"
+          onClick={() => setActiveTab('nodes')}
+        >
+          <Network size={16} aria-hidden="true" /> Nós
         </NavigationButton>
       )}
       <ClockDisplay preferences={displayPreferences} />
