@@ -78,4 +78,4 @@ A promoção da dashboard para HTTPS sem sufixo de porta foi concluída no noteb
 
 A implementação da issue #74 foi integrada pelo PR #82 à `main`, e os workflows hospedados passaram. Ela conecta o cadastro cifrado a uma rota de inferência administrativa, reserva orçamento por tarefa/mês e quota antes da chamada, aplica classe de dados, timeout e limite de saída, permite cancelamento e registra auditoria sem conteúdo. Cada pedido escolhe explicitamente um provedor; não há fallback ou retry automático e conteúdo gerado não é executado. Nenhum provedor real foi chamado e a implantação do PR #82 no notebook não foi confirmada.
 
-Cloud exige preço configurado e conferido nos últimos 90 dias. A reserva é uma estimativa local, não um limite da fatura: também é necessário configurar teto de gastos na conta do provedor. CI usa mocks e conteúdo sintético, sem chaves reais ou chamadas pagas.
+Provedores de nuvem exigem preços configurados e conferidos nos últimos 90 dias. A reserva é uma estimativa local, não um limite da fatura: também é necessário configurar teto de gastos na conta do provedor. CI usa mocks e conteúdo sintético, sem chaves reais ou chamadas pagas.
