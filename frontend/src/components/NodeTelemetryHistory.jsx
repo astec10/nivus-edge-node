@@ -102,10 +102,11 @@ function normalizeBatches(batches) {
         && Number.isFinite(sample.value)
         ? sample.value
         : null;
-      row[series.key] = sample && sample.quality !== 'unavailable' ? numericValue : null;
-      row[series.key + 'Quality'] = sample && QUALITY_LABELS[sample.quality]
+      const quality = sample && QUALITY_LABELS[sample.quality]
         ? sample.quality
         : 'unavailable';
+      row[series.key] = quality !== 'unavailable' ? numericValue : null;
+      row[series.key + 'Quality'] = row[series.key] === null ? 'unavailable' : quality;
     });
     return row;
   }).filter(Boolean);
@@ -413,13 +414,12 @@ export default function NodeTelemetryHistory({
                     fill: item.color,
                     strokeWidth: 2,
                     isAnimationActive: false,
-                    connectNulls: false,
                   };
                   if (chartType === 'area') {
-                    return <Area {...commonProps} type="monotone" fillOpacity={0.12} dot={false} />;
+                    return <Area {...commonProps} type="monotone" fillOpacity={0.12} dot={false} connectNulls={false} />;
                   }
                   if (chartType === 'bar') return <Bar {...commonProps} />;
-                  return <Line {...commonProps} type="monotone" dot={false} />;
+                  return <Line {...commonProps} type="monotone" dot={false} connectNulls={false} />;
                 })}
               </ChartComponent>
             </ResponsiveContainer>
