@@ -546,6 +546,9 @@
     "video-yc5sg321g0y",
     "video-wgqdaqqto90"
   ],
+  "aba": [
+    "doc-project-status"
+  ],
   "abaixo": [
     "doc-ai-context",
     "doc-ai-development-orchestration",
@@ -687,6 +690,9 @@
   ],
   "aciona": [
     "doc-hardware-telemetry",
+    "doc-project-status"
+  ],
+  "acionadas": [
     "doc-project-status"
   ],
   "acionamento": [
@@ -974,6 +980,9 @@
     "doc-module-map",
     "doc-project-status",
     "doc-project-roadmap"
+  ],
+  "aguardam": [
+    "doc-project-status"
   ],
   "ai": [
     "doc-ai-provider-connectors",
@@ -3769,8 +3778,7 @@
     "doc-ai-executor-implementation",
     "doc-module-map",
     "doc-node-registry",
-    "doc-project-status",
-    "doc-project-roadmap"
+    "doc-project-status"
   ],
   "continuam": [
     "doc-ai-context",
@@ -4336,6 +4344,7 @@
   "demais": [
     "doc-ai-module-workplan",
     "doc-node-registry",
+    "doc-project-status",
     "doc-project-roadmap"
   ],
   "demo": [
@@ -5780,6 +5789,8 @@
   "evento": [
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-project-status",
+    "doc-project-roadmap",
     "doc-vision"
   ],
   "eventos": [
@@ -6172,6 +6183,10 @@
   ],
   "f5": [
     "doc-project-status"
+  ],
+  "f57e03d": [
+    "doc-project-status",
+    "doc-project-roadmap"
   ],
   "f896de8": [
     "doc-ai-context",
@@ -7654,6 +7669,8 @@
   ],
   "index": [
     "doc-ai-workflow",
+    "doc-project-status",
+    "doc-project-roadmap",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation"
@@ -7818,7 +7835,8 @@
     "doc-ai-provider-connectors",
     "doc-ai-module-workplan",
     "doc-node-registry",
-    "doc-project-status"
+    "doc-project-status",
+    "doc-project-roadmap"
   ],
   "inicie": [
     "doc-ai-executor-implementation"
@@ -8334,6 +8352,7 @@
     "doc-video-research-index",
     "doc-module-map",
     "doc-project-status",
+    "doc-project-roadmap",
     "local-inference-hardware-fit",
     "ref-multipaz-developer-website"
   ],
@@ -9348,6 +9367,8 @@
   "mostra": [
     "doc-ai-provider-connectors",
     "doc-hardware-telemetry",
+    "doc-project-status",
+    "doc-project-roadmap",
     "doc-vision"
   ],
   "mostrado": [
@@ -9526,6 +9547,7 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-project-status",
+    "doc-project-roadmap",
     "doc-vision"
   ],
   "necessidade": [
@@ -10315,6 +10337,7 @@
   "outros": [
     "doc-ai-module-workplan",
     "doc-node-registry",
+    "doc-project-status",
     "doc-project-roadmap"
   ],
   "over": [
@@ -11613,6 +11636,10 @@
   ],
   "pull_request": [
     "doc-ai-development-orchestration"
+  ],
+  "push": [
+    "doc-project-status",
+    "doc-project-roadmap"
   ],
   "py": [
     "doc-ai-context",
@@ -13931,6 +13958,10 @@
   "switches": [
     "doc-vision"
   ],
+  "synchronize": [
+    "doc-project-status",
+    "doc-project-roadmap"
+  ],
   "synthetic": [
     "doc-ai-provider-connectors"
   ],
@@ -15351,6 +15382,7 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-project-status",
+    "doc-project-roadmap",
     "ai-development-persistent-worker",
     "video-q-yobcyc71a"
   ],
