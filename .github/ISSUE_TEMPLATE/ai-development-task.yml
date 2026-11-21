@@ -12,7 +12,7 @@ body:
     attributes:
       label: Objective
       description: One concrete problem or outcome.
-      placeholder: What should change and why?
+      placeholder: "Exemplo: Adicionar indicador de estado offline no card de telemetria do dashboard quando o último heartbeat tiver mais de 60 segundos."
     validations:
       required: true
 
@@ -22,9 +22,8 @@ body:
       label: Acceptance criteria
       description: Observable checks that define completion.
       placeholder: |
-        - Given ...
-        - When ...
-        - Then ...
+        - O card exibe o texto "Offline" em vermelho quando a diferença entre agora e o timestamp da última telemetria for superior a 60 segundos.
+        - O card mantém o indicador verde de "Online" quando o timestamp da telemetria for menor ou igual a 60 segundos.
     validations:
       required: true
 
