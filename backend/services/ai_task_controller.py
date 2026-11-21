@@ -177,7 +177,7 @@ def _update_settings_locked(payload, actor: str) -> dict:
     return get_config()
 
 
-def _github_request(method: str, path: str, token: str, payload: dict | None = None):
+def _github_request(method: str, path: str, token: str | None, payload: dict | None = None):
     if not path.startswith("/repos/") or "\r" in path or "\n" in path:
         raise TaskControllerError("invalid_github_path", "Caminho da API GitHub inválido.")
     try:
@@ -188,10 +188,11 @@ def _github_request(method: str, path: str, token: str, payload: dict | None = N
         body = json.dumps(payload, separators=(",", ":")).encode("utf-8") if payload is not None else None
         headers = {
             "Accept": "application/vnd.github+json",
-            "Authorization": f"Bearer {token}",
             "User-Agent": "Nivus-Edge-Task-Controller",
             "X-GitHub-Api-Version": GITHUB_API_VERSION,
         }
+        if token is not None:
+            headers["Authorization"] = f"Bearer {token}"
         if body is not None:
             headers["Content-Type"] = "application/json"
         connection.request(method, path, body=body, headers=headers)
@@ -202,6 +203,12 @@ def _github_request(method: str, path: str, token: str, payload: dict | None = N
                 "github_response_too_large", "A resposta do GitHub excedeu o limite seguro.", 502
             )
         if response.status == 401:
+            if token is None:
+                raise TaskControllerError(
+                    "repository_visibility_unverified",
+                    "Não foi possível confirmar a visibilidade pública do repositório.",
+                    503,
+                )
             raise TaskControllerError(
                 "github_auth_failed", "O GitHub recusou o token configurado.", 401
             )
@@ -210,6 +217,12 @@ def _github_request(method: str, path: str, token: str, payload: dict | None = N
             if remaining == "0":
                 raise TaskControllerError(
                     "github_rate_limited", "O limite temporário da API GitHub foi atingido.", 429
+                )
+            if token is None:
+                raise TaskControllerError(
+                    "repository_visibility_unverified",
+                    "Não foi possível confirmar a visibilidade pública do repositório.",
+                    503,
                 )
             raise TaskControllerError(
                 "github_permission_denied",
@@ -249,6 +262,28 @@ def _github_request(method: str, path: str, token: str, payload: dict | None = N
             pass
 
 
+def _require_public_repository(repository: str) -> None:
+    """Verify repository visibility anonymously before touching its Issues."""
+    owner, name = _repo_parts(repository)
+    path = f"/repos/{owner}/{name}"
+    try:
+        details = _github_request("GET", path, None)
+    except TaskControllerError as error:
+        if error.code == "github_not_found":
+            raise TaskControllerError(
+                "repository_not_public",
+                "O repositório precisa existir e ser público para este controlador.",
+                422,
+            ) from None
+        raise
+    if not isinstance(details, dict) or details.get("private") is not False:
+        raise TaskControllerError(
+            "repository_not_public",
+            "O repositório precisa existir e ser público para este controlador.",
+            422,
+        )
+
+
 def test_connection(actor: str) -> dict:
     # Serialize settings checks/changes with explicit issue authorization.
     with _authorize_lock:
@@ -260,6 +295,7 @@ def _test_connection_locked(actor: str) -> dict:
     repository = row["repository"]
     try:
         token = _get_token(row)
+        _require_public_repository(repository)
         owner, name = repository.split("/", 1)
         path = (
             f"/repos/{quote(owner, safe='')}/{quote(name, safe='')}/issues"
@@ -375,6 +411,7 @@ def _fetch_tasks(row, token: str) -> list[dict]:
     owner, name = _repo_parts(row["repository"])
     collected: dict[int, dict] = {}
     for label in ("ai:queued", "ai:ready"):
+        _require_public_repository(row["repository"])
         path = (
             f"/repos/{owner}/{name}/issues?state=open&labels={quote(label, safe='')}"
             "&per_page=50"
@@ -471,6 +508,11 @@ def authorize_issue(issue_number: int, confirm_free_tier_call: bool, actor: str)
                 "controller_disabled", "Habilite o controlador antes de autorizar uma Issue.", 409
             )
         token = _get_token(row)
+        try:
+            _require_public_repository(row["repository"])
+        except TaskControllerError as error:
+            _audit(actor, row["repository"], issue_number, "authorization_blocked", error.code)
+            raise
         owner, name = _repo_parts(row["repository"])
         issue_path = f"/repos/{owner}/{name}/issues/{issue_number}"
         issue = _github_request("GET", issue_path, token)
@@ -518,6 +560,12 @@ def authorize_issue(issue_number: int, confirm_free_tier_call: bool, actor: str)
                 429,
             )
 
+        try:
+            _require_public_repository(row["repository"])
+        except TaskControllerError as error:
+            _audit(actor, row["repository"], issue_number, "authorization_blocked", error.code)
+            raise
+
         _audit(actor, row["repository"], issue_number, "authorization_requested", "started")
         try:
             _github_request(
@@ -530,6 +578,7 @@ def authorize_issue(issue_number: int, confirm_free_tier_call: bool, actor: str)
             # A POST may have reached GitHub before a network timeout. Inspect the Issue before
             # reporting the outcome; never repeat the POST automatically.
             try:
+                _require_public_repository(row["repository"])
                 refreshed = _github_request("GET", issue_path, token)
             except TaskControllerError:
                 _audit(actor, row["repository"], issue_number, "authorization_requested", "outcome_unknown")
