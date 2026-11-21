@@ -12,7 +12,7 @@ body:
     attributes:
       label: Objective
       description: One concrete problem or outcome.
-      placeholder: What should change and why?
+      placeholder: Exibir a métrica de temperatura da CPU em destaque no painel do Nivus para alertar sobre aquecimento.
     validations:
       required: true
 
@@ -22,9 +22,8 @@ body:
       label: Acceptance criteria
       description: Observable checks that define completion.
       placeholder: |
-        - Given ...
-        - When ...
-        - Then ...
+        - O card de temperatura exibe o valor em graus Celsius quando o dado estiver presente no payload.
+        - O valor exibe N/D quando o sensor de temperatura retornar nulo ou ausente.
     validations:
       required: true
 
