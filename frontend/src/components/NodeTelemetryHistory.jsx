@@ -167,7 +167,7 @@ export default function NodeTelemetryHistory({
   const rows = useMemo(() => normalizeNodeTelemetryBatches(batches), [batches]);
   const visibleSeries = NODE_HISTORY_SERIES.filter((item) => visibleKeys.has(item.key));
   const summaries = useMemo(
-    () => Object.fromEntries(NODE_HISTORY_SERIES.map((item) => [item.key, summarize(rows, item.key)])),
+    () => Object.fromEntries(NODE_HISTORY_SERIES.map((item) => [item.key, summarizeNodeTelemetry(rows, item.key)])),
     [rows],
   );
   const hasVisibleValues = visibleSeries.some((item) => summaries[item.key].latest !== null);
