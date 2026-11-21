@@ -102,5 +102,3 @@ def authorize_issue(
         )
     except ai_task_controller.TaskControllerError as error:
         _raise_controller_error(error)
-
-\n
