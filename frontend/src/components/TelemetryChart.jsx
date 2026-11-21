@@ -78,6 +78,11 @@ const CHART_TYPES = [
   { key: 'bar', label: 'Barras' },
 ];
 
+const CHART_LAYOUTS = [
+  { key: 'combined', label: 'Combinado' },
+  { key: 'by-unit', label: 'Separado por unidade' },
+];
+
 function ChartTooltip({ active, payload, series, rows, mode }) {
   const sample = payload?.[0]?.payload;
 
@@ -101,7 +106,7 @@ function ChartTooltip({ active, payload, series, rows, mode }) {
           </div>
         );
       })}
-      {(mode === 'all' || mode === 'temperature') && HOTSPOT_DETAILS.map(({ key, name, unit, source }) => {
+      {(mode === 'all' || mode === 'temperature') && series.some(({ unit }) => unit === '°C') && HOTSPOT_DETAILS.map(({ key, name, unit, source }) => {
         const summary = summarizeMetric(rows, key);
         return (
           <div key={key} className="telemetry-chart-tooltip-row telemetry-chart-tooltip-detail">
@@ -140,6 +145,8 @@ export default function TelemetryChart({ rows, mode, setMode, range, setRange })
   const [chartType, setChartType] = useState('line');
   const [visibleKeys, setVisibleKeys] = useState(() => new Set(CHARTS[mode].series.map(({ key }) => key)));
   const [isNarrowScreen, setIsNarrowScreen] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches);
+  const [layoutPreference, setLayoutPreference] = useState(null);
+  const chartLayout = layoutPreference ?? (isNarrowScreen ? 'by-unit' : 'combined');
   const graphicsLabel = getGraphicsLabel(rows.at(-1)?.gpu_temperature_source);
   const chart = useMemo(() => ({
     ...CHARTS[mode],
@@ -179,6 +186,46 @@ export default function TelemetryChart({ rows, mode, setMode, range, setRange })
   };
 
   const ChartComponent = chartType === 'area' ? AreaChart : chartType === 'bar' ? BarChart : LineChart;
+  const renderChart = (seriesToRender, chartUnits) => (
+    <ResponsiveContainer width="100%" height="100%">
+      <ChartComponent data={rows} margin={{
+        top: 8,
+        right: chartUnits.length > 1 ? (isNarrowScreen ? (chartUnits.length > 2 ? 62 : 36) : 88) : 12,
+        left: 0,
+        bottom: 6,
+      }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+        <XAxis dataKey="time" stroke="#94a3b8" minTickGap={isNarrowScreen ? 36 : 24} tick={{ fontSize: isNarrowScreen ? 9 : 11 }} />
+        {chartUnits.map((unit, index) => (
+          <YAxis
+            key={unit}
+            yAxisId={unit}
+            stroke="#94a3b8"
+            unit={unit}
+            domain={unit === '%' ? [0, 100] : ['auto', 'auto']}
+            width={isNarrowScreen ? (index === 0 ? 36 : 30) : (unit === '°C' ? 48 : 42)}
+            orientation={index === 0 ? 'left' : 'right'}
+            hide={false}
+            tick={{ fontSize: isNarrowScreen ? 9 : 11 }}
+            {...(index > 1 ? {
+              orientation: 'right',
+              width: isNarrowScreen ? 30 : 42,
+              offset: isNarrowScreen ? 24 : 38,
+              tick: { fontSize: isNarrowScreen ? 9 : 10 },
+            } : {})}
+          />
+        ))}
+        <Tooltip
+          trigger="hover"
+          shared
+          isAnimationActive={false}
+          animationDuration={0}
+          content={<ChartTooltip series={seriesToRender} rows={rows} mode={mode} />}
+        />
+        {seriesToRender.map((series) => renderSeries(chartType, series))}
+      </ChartComponent>
+    </ResponsiveContainer>
+  );
 
   return (
     <section className="telemetry-chart-panel" aria-labelledby="telemetry-chart-title">
@@ -213,6 +260,16 @@ export default function TelemetryChart({ rows, mode, setMode, range, setRange })
             {CHART_TYPES.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
           </select>
         </label>
+        <label className="telemetry-chart-type">
+          <span className="telemetry-control-label">Modelo do gráfico</span>
+          <select
+            value={chartLayout}
+            onChange={(event) => setLayoutPreference(event.target.value)}
+            aria-label="Modelo do gráfico"
+          >
+            {CHART_LAYOUTS.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
+          </select>
+        </label>
       </div>
 
       <div className="telemetry-series-toolbar">
@@ -244,51 +301,18 @@ export default function TelemetryChart({ rows, mode, setMode, range, setRange })
 
       <div className="telemetry-chart-caption">
         <small>{rows.length} amostras no período · até 1000 amostras armazenadas</small>
-        {mode === 'all' && <small>°C, %, e W usam escalas próprias; a potência é estimada por software.</small>}
+        {mode === 'all' && (
+          <small>
+            {chartLayout === 'by-unit'
+              ? 'Temperatura, uso e potência são separados para facilitar a leitura.'
+              : '°C, %, e W usam escalas próprias; a potência é estimada por software.'}
+          </small>
+        )}
         <small>Passe o ponteiro sobre o gráfico para ver imediatamente os dados do ponto.</small>
       </div>
 
-      <div className="telemetry-chart-canvas">
-        {hasValues ? (
-          <ResponsiveContainer width="100%" height="100%">
-            <ChartComponent data={rows} margin={{
-              top: 8,
-              right: units.length > 1 ? (isNarrowScreen ? (units.length > 2 ? 62 : 36) : 88) : 12,
-              left: 0,
-              bottom: 6,
-            }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="time" stroke="#94a3b8" minTickGap={isNarrowScreen ? 36 : 24} tick={{ fontSize: isNarrowScreen ? 9 : 11 }} />
-              {units.map((unit, index) => (
-                <YAxis
-                  key={unit}
-                  yAxisId={unit}
-                  stroke="#94a3b8"
-                  unit={unit}
-                  domain={unit === '%' ? [0, 100] : ['auto', 'auto']}
-                  width={isNarrowScreen ? (index === 0 ? 36 : 30) : (unit === '°C' ? 48 : 42)}
-                  orientation={index === 0 ? 'left' : 'right'}
-                  hide={false}
-                  tick={{ fontSize: isNarrowScreen ? 9 : 11 }}
-                  {...(index > 1 ? {
-                    orientation: 'right',
-                    width: isNarrowScreen ? 30 : 42,
-                    offset: isNarrowScreen ? 24 : 38,
-                    tick: { fontSize: isNarrowScreen ? 9 : 10 },
-                  } : {})}
-                />
-              ))}
-              <Tooltip
-                trigger="hover"
-                shared
-                isAnimationActive={false}
-                animationDuration={0}
-                content={<ChartTooltip series={selectedSeries} rows={rows} mode={mode} />}
-              />
-              {selectedSeries.map((series) => renderSeries(chartType, series))}
-            </ChartComponent>
-          </ResponsiveContainer>
-        ) : (
+      <div className={`telemetry-chart-canvas${chartLayout === 'by-unit' ? ' telemetry-chart-canvas--stacked' : ''}`}>
+        {!hasValues ? (
           <div className="telemetry-chart-empty">
             {selectedSeries.length === 0
               ? 'Selecione uma ou mais séries para exibir.'
@@ -296,6 +320,27 @@ export default function TelemetryChart({ rows, mode, setMode, range, setRange })
                 ? 'Nenhuma temperatura identificada neste período. Leituras antigas sem origem não são reutilizadas.'
                 : 'Sem amostras para as séries selecionadas neste período.'}
           </div>
+        ) : chartLayout === 'combined' ? (
+          renderChart(selectedSeries, units)
+        ) : (
+          units.map((unit) => {
+            const unitSeries = selectedSeries.filter((series) => series.unit === unit);
+            const title = unit === '°C' ? 'Temperatura' : unit === '%' ? 'Uso' : 'Potência estimada';
+            const unitHasValues = unitSeries.some(({ key }) => summaries[key].count > 0);
+
+            if (unitSeries.length === 0) return null;
+
+            return (
+              <section key={unit} className="telemetry-chart-unit" aria-label={`Gráfico de ${title}`}>
+                <h4 className="telemetry-chart-unit-title">{title} <small>({unit.trim()})</small></h4>
+                {unitHasValues ? (
+                  <div className="telemetry-chart-unit-canvas">{renderChart(unitSeries, [unit])}</div>
+                ) : (
+                  <div className="telemetry-chart-unit-empty">Sem amostras para esta unidade no período.</div>
+                )}
+              </section>
+            );
+          })
         )}
       </div>
     </section>
