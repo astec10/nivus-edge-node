@@ -21,19 +21,30 @@ Este executor é infraestrutura de desenvolvimento do repositório. Não roda no
 - O intake autorizado inicia o worker somente pelo evento de adicionar a label `ai:ready`. Ele não chama também `workflow_dispatch`, evitando duas chamadas acidentais para uma autorização. O despacho manual do workflow do worker continua sendo um caminho independente e requer a confirmação explícita `reviewed_and_authorized=true`.
 - O worker não executa comandos sugeridos pela Issue/modelo; valida e aplica somente arquivos completos nos caminhos exatos permitidos. CI roda em outro runner, sem a chave Gemini. Uma pessoa revisa o PR e aprova qualquer merge.
 
+## Compatibilidade do runtime das GitHub Actions
+
+O worker atual usa `actions/checkout@v7`, `actions/setup-python@v7` e `actions/upload-artifact@v7`. Os metadados dessas versões declaram `runs.using: node24`, portanto as Actions do worker já acompanham a transição do Node 20 para Node 24. Uma execução antiga pode continuar mostrando o aviso de depreciação nos logs daquele run. Esse aviso é separado do erro `interaction_failed`: esse código significa que a API Gemini informou estado terminal `failed` para a interação, mas, sozinho, não identifica a causa no provedor. O controlador do notebook não repete chamadas nem faz inferência; outra tentativa requer nova autorização explícita depois de revisar o estado e os metadados sanitizados.
+
+Referências de runtime: [checkout v7](https://github.com/actions/checkout/blob/v7/action.yml), [setup-python v7](https://github.com/actions/setup-python/blob/v7/action.yml) e [upload-artifact v7](https://github.com/actions/upload-artifact/blob/v7/action.yml).
+
+## Diagnóstico dos runs da Issue #80
+
+A [tentativa 1 do run #7](https://github.com/astec10/nivus-edge-node/actions/runs/44236019706/attempts/1) e o [run #6](https://github.com/astec10/nivus-edge-node/actions/runs/44235610603) terminam em `interaction_failed`: a interação Gemini chegou ao estado terminal `failed`, sem expor a causa interna do provedor. A [tentativa 2 do run #7](https://github.com/astec10/nivus-edge-node/actions/runs/44236019706/attempts/2) parou antes do modelo com `issue_missing_ai_queue_labels`, pois os rótulos já não estavam na Issue. Esses logs antigos resolveram checkout@v4, setup-python@v5 e upload-artifact@v4, o que gerou o aviso de Node 20. A versão atual do workflow usa versões v7 cujo metadata declara runtime Node 24; o aviso de depreciação está corrigido na fonte atual. O erro do provedor permanece sem causa identificada e não deve ser repetido sem nova autorização humana.
+
 ## Como usar a fila
 
 1. Crie uma Issue usando o formulário `AI development task`, com critérios verificáveis e caminhos específicos.
 2. Revise se todo o conteúdo é público ou sintético. Não use dados do notebook ou da casa.
 3. Em **Actions → AI task intake → Run workflow**, informe o número da Issue e confirme a revisão do conteúdo. Sem autorização de modelo, o intake adiciona `ai:queued` e não chama Gemini.
-4. Para autorizar uma proposta, marque `authorize_free_model_call=true` somente depois de revisar a Issue. O intake adiciona `ai:ready`; esse único evento inicia o worker. Não inicie outro workflow em paralelo para a mesma autorização.
-5. O worker verifica labels e contrato, lê o contexto público e os caminhos aprovados, envia uma solicitação e produz uma proposta limitada. Se o provedor falhar, a Issue permanece registrada e o relatório contém somente metadados sanitizados.
-6. Se a tentativa falhar e for apropriado tentar novamente, faça uma nova autorização explícita pelo intake; o fluxo remove a label anterior e a reaplica para emitir um único evento de execução.
-7. Revise o diff e o resultado da CI no PR em rascunho. O worker nunca aprova, faz merge ou deploy.
+4. No notebook, também é possível usar **Configuração → Executor GitHub** para configurar um token fine-grained com `Issues: Read and write`, testar a API e acompanhar a fila. O botão **Atualizar fila** executa uma consulta GET imediata ao GitHub; não chama o modelo nem altera Issues. O controlador permanece desligado até o administrador habilitá-lo. Sem notebook, o intake manual continua disponível no GitHub.
+5. Para autorizar uma proposta, revise o conteúdo e confirme uma única chamada free-tier no intake ou no botão da dashboard. A dashboard aplica `ai:ready` uma vez; não repita a ação quando o resultado estiver incerto. O controlador aplica um limite configurável de 1–10 autorizações em 24 horas, padrão 3, somente para ações originadas na dashboard. Isso não é limite de cobrança do provedor nem cobre o disparo manual no GitHub.
+6. O worker verifica labels e contrato, lê o contexto público e os caminhos aprovados, envia uma solicitação e produz uma proposta limitada. Se o provedor falhar, a Issue permanece registrada e o relatório contém somente metadados sanitizados.
+7. Se a tentativa falhar e for apropriado tentar novamente, faça uma nova autorização explícita pelo intake do GitHub após confirmar o estado do workflow. O controlador não repete automaticamente chamadas nem altera `ai:ready`.
+8. Revise o diff e o resultado da CI no PR em rascunho. O worker nunca aprova, faz merge ou deploy.
 
 ## Próximo marco
 
-O PR #16 continua em rascunho para revisão humana; os checks hospedados passaram. A proposta foi gerada, mas a abertura automática falhou naquela execução; `bec9573` corrigiu a leitura do branch e PR #53 acrescentou o guard de duplicação. Nenhuma nova chamada foi feita. Próximo marco: revisar o PR #16; depois, se necessário, autorizar uma nova issue pública/sintética para confirmar o ciclo automático, sem reutilizar a issue #6 enquanto o draft estiver aberto. Em paralelo, aplicar e conferir as mudanças de dashboard no notebook; CI hospedada não certifica hardware Intel/AMD nem sensores físicos.
+O controlador notebook está sendo implementado na Issue #91. Até merge e update, a dashboard instalada ainda não tem esse painel; não há confirmação de execução no notebook. O PR #16 continua em rascunho para revisão humana; os checks hospedados passaram. Nenhuma nova chamada foi feita neste trabalho. A CI hospedada não certifica hardware, conexão pela ONU ou reboot do host.
 
 Issues e GitHub Actions são o estado durável e o executor principal; nenhuma máquina do operador precisa ficar ligada. O notebook CCE é suporte opcional para análise e relatórios, não um runner self-hosted para um repositório público.
 

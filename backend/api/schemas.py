@@ -196,3 +196,45 @@ class AIExecutorRequest(BaseModel):
         if not value.strip():
             raise ValueError("A instrução não pode ficar vazia.")
         return value
+
+
+class AITaskControllerSettingsUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    repository: str = Field(min_length=3, max_length=141)
+    poll_interval_seconds: int = Field(default=60, ge=30, le=900)
+    max_authorizations_per_day: int = Field(default=3, ge=1, le=10)
+    github_token: SecretStr | None = Field(default=None, min_length=1, max_length=255)
+
+    @field_validator("repository")
+    @classmethod
+    def validate_github_repository(cls, value: str) -> str:
+        normalized = value.strip()
+        if not re.fullmatch(
+            r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})/[A-Za-z0-9](?:[A-Za-z0-9_.-]{0,99})",
+            normalized,
+        ) or normalized.split("/", 1)[1] in {".", ".."}:
+            raise ValueError("Informe o repositório no formato proprietário/nome.")
+        return normalized
+
+    @field_validator("github_token")
+    @classmethod
+    def validate_github_token(cls, value: SecretStr | None) -> SecretStr | None:
+        if value is None:
+            return None
+        token = value.get_secret_value()
+        if any(ord(character) < 33 or ord(character) > 126 for character in token):
+            raise ValueError("O token GitHub contém caracteres inválidos.")
+        return value
+
+
+class AITaskControllerEnabled(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool
+
+
+class AITaskAuthorization(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    confirm_free_tier_call: bool = False

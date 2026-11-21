@@ -45,6 +45,7 @@ services:
     networks:
       - web_private
       - mqtt_private
+      - github_egress
     depends_on:
       mqtt:
         condition: service_healthy
@@ -168,6 +169,8 @@ networks:
     internal: true
   mqtt_private:
     internal: true
+  github_egress:
+    driver: bridge
   edge_ingress:
     driver: bridge
 
