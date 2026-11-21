@@ -260,3 +260,28 @@
   .node-history-controls { grid-template-columns: minmax(0, 1fr); }
   .node-history-chart-type { grid-column: auto; max-width: none; }
 }
+
+.node-history-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.65rem 0;
+}
+.node-history-pagination__status {
+  min-width: min(100%, 14rem);
+  color: var(--text, #94a3b8);
+  font-size: 0.72rem;
+  text-align: center;
+}
+.node-history-pagination .node-history-choice:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+.node-history-banner--partial { color: #fbbf24; }
+
+@media (max-width: 600px) {
+  .node-history-pagination { justify-content: flex-start; }
+  .node-history-pagination__status { order: -1; width: 100%; text-align: left; }
+}
