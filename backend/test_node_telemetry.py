@@ -1,3 +1,4 @@
+import hashlib
 import math
 import tempfile
 import unittest
@@ -8,14 +9,16 @@ from unittest.mock import patch
 import database
 from api.routers import nodes as node_routes
 from api.routers.nodes import NodeTelemetryEnvelope
-from fastapi import HTTPException
+from fastapi import HTTPException, Response
 from pydantic import ValidationError
 from services import nodes
 from services.node_telemetry import (
+    MAX_TELEMETRY_HISTORY_OFFSET,
     TELEMETRY_MIN_INTERVAL_SECONDS,
     TELEMETRY_RETENTION_SECONDS,
     TelemetryRateLimitError,
     get_node_telemetry_history,
+    get_node_telemetry_history_page,
     normalize_telemetry_samples,
     process_node_telemetry,
 )
@@ -145,6 +148,195 @@ class NodeTelemetryTests(unittest.TestCase):
         self.assertEqual(history[0]["samples"][0]["metric"], "cpu.utilization")
         self.assertNotIn("token", history[0])
         self.assertNotIn("session_id", history[0])
+
+    def test_history_page_reports_stable_count_and_range_for_older_pages(self):
+        first = self.ingest(0, now=self.now)
+        second = self.ingest(1, now=self.now + timedelta(seconds=30))
+        third = self.ingest(2, now=self.now + timedelta(seconds=60))
+        since = self.now - timedelta(days=14)
+        snapshot_now = self.now + timedelta(seconds=90)
+
+        newest = get_node_telemetry_history_page(
+            self.node["node_id"], since=since, limit=2, offset=0, now=snapshot_now
+        )
+        self.assertEqual(newest["snapshot_until"], snapshot_now.isoformat(timespec="milliseconds").replace("+00:00", "Z"))
+
+        # A batch arriving after page one must not alter the snapshot or shift page two.
+        fourth = self.ingest(3, now=snapshot_now + timedelta(seconds=30))
+        oldest = get_node_telemetry_history_page(
+            self.node["node_id"],
+            since=since,
+            limit=2,
+            offset=2,
+            snapshot_until=newest["snapshot_until"],
+            now=snapshot_now + timedelta(seconds=30),
+        )
+
+        self.assertEqual(newest["total_batches"], 3)
+        self.assertEqual(len(newest["batches"]), 2)
+        self.assertTrue(newest["has_more"])
+        self.assertEqual(newest["range_start"], second["received_at"])
+        self.assertEqual(newest["range_end"], third["received_at"])
+        self.assertFalse(oldest["has_more"])
+        self.assertEqual(oldest["batches"][0]["received_at"], first["received_at"])
+        self.assertEqual(oldest["total_batches"], newest["total_batches"])
+        self.assertNotIn(fourth["received_at"], [item["received_at"] for item in oldest["batches"]])
+
+    def test_fourteen_day_history_gaps_offline_and_spikes_are_navigable_with_bounded_pages(self):
+        conn = database.get_db_connection()
+        now_epoch = self.now.timestamp()
+        start = now_epoch - TELEMETRY_RETENTION_SECONDS
+        generated = TELEMETRY_RETENTION_SECONDS // TELEMETRY_MIN_INTERVAL_SECONDS + 1
+        skipped_index = generated // 2
+        session_hash = hashlib.sha256(self.node["session_id"].encode("utf-8")).hexdigest()
+        try:
+            conn.execute("BEGIN IMMEDIATE")
+            for index in range(generated):
+                if index == skipped_index:
+                    continue
+                received_at = start + index * TELEMETRY_MIN_INTERVAL_SECONDS
+                value = 100.0 if index in (0, generated - 1) else float(index % 80)
+                batch_cursor = conn.execute(
+                    "INSERT INTO node_telemetry_batches "
+                    "(node_id, session_sha256, sequence, schema_version, observed_at, received_at, payload_sha256) "
+                    "VALUES (?, ?, ?, 1, ?, ?, ?)",
+                    (
+                        self.node["node_id"],
+                        session_hash,
+                        index,
+                        received_at,
+                        received_at,
+                        hashlib.sha256(f"synthetic-{index}".encode("utf-8")).hexdigest(),
+                    ),
+                )
+                conn.execute(
+                    "INSERT INTO node_telemetry_samples (batch_id, metric, value, unit, quality) "
+                    "VALUES (?, 'cpu.utilization', ?, 'percent', 'measured')",
+                    (batch_cursor.lastrowid, value),
+                )
+            expired_at = now_epoch - TELEMETRY_RETENTION_SECONDS - 1
+            expired_cursor = conn.execute(
+                "INSERT INTO node_telemetry_batches "
+                "(node_id, session_sha256, sequence, schema_version, observed_at, received_at, payload_sha256) "
+                "VALUES (?, ?, ?, 1, ?, ?, ?)",
+                (
+                    self.node["node_id"],
+                    session_hash,
+                    generated + 1,
+                    expired_at,
+                    expired_at,
+                    hashlib.sha256(b"expired-synthetic").hexdigest(),
+                ),
+            )
+            conn.execute(
+                "INSERT INTO node_telemetry_samples (batch_id, metric, value, unit, quality) "
+                "VALUES (?, 'cpu.utilization', 88, 'percent', 'measured')",
+                (expired_cursor.lastrowid,),
+            )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+        since = self.now - timedelta(days=14)
+        newest = get_node_telemetry_history_page(
+            self.node["node_id"], since=since, limit=500, offset=0, now=self.now
+        )
+        self.assertEqual(newest["total_batches"], generated - 1)
+        self.assertEqual(newest["snapshot_until"], self.now.isoformat(timespec="milliseconds").replace("+00:00", "Z"))
+
+        pages = [newest]
+        for offset in range(500, newest["total_batches"], 500):
+            pages.append(get_node_telemetry_history_page(
+                self.node["node_id"],
+                since=since,
+                limit=500,
+                offset=offset,
+                snapshot_until=newest["snapshot_until"],
+                now=self.now,
+            ))
+
+        self.assertEqual(len(pages), math.ceil((generated - 1) / 500))
+        self.assertTrue(all(len(page["batches"]) <= 500 for page in pages))
+        self.assertEqual(len(pages[-1]["batches"]), (generated - 1) % 500)
+        self.assertTrue(all(page["has_more"] for page in pages[:-1]))
+        self.assertFalse(pages[-1]["has_more"])
+        self.assertEqual(pages[0]["batches"][-1]["samples"][0]["value"], 100.0)
+        self.assertEqual(pages[-1]["batches"][0]["samples"][0]["value"], 100.0)
+
+        chronological = [batch for page in reversed(pages) for batch in page["batches"]]
+        received_times = [item["received_at"] for item in chronological]
+        self.assertEqual(len(received_times), generated - 1)
+        self.assertEqual(len(set(received_times)), generated - 1)
+        parsed_times = [datetime.fromisoformat(value.replace("Z", "+00:00")) for value in received_times]
+        self.assertTrue(all(left < right for left, right in zip(parsed_times, parsed_times[1:])))
+        self.assertEqual(
+            (parsed_times[skipped_index] - parsed_times[skipped_index - 1]).total_seconds(),
+            TELEMETRY_MIN_INTERVAL_SECONDS * 2,
+        )
+
+        offline_view = get_node_telemetry_history_page(
+            self.node["node_id"],
+            since=since,
+            limit=500,
+            offset=0,
+            snapshot_until=newest["snapshot_until"],
+            now=self.now + timedelta(hours=1),
+        )
+        self.assertLess(offline_view["total_batches"], newest["total_batches"])
+        self.assertEqual(offline_view["range_end"], newest["range_end"])
+
+    def test_history_route_keeps_list_body_and_exposes_bounded_pagination_headers(self):
+        page = {
+            "batches": [{"received_at": "2026-11-21T12:00:00.000Z"}],
+            "total_batches": 1,
+            "offset": 0,
+            "limit": 1,
+            "has_more": False,
+            "range_start": "2026-11-21T12:00:00.000Z",
+            "range_end": "2026-11-21T12:00:00.000Z",
+            "snapshot_until": "2026-11-21T12:00:00.000Z",
+        }
+        response = Response()
+        since = self.now - timedelta(minutes=5)
+        with patch.object(node_routes, "get_node_telemetry_history_page", return_value=page) as query:
+            batches = node_routes.get_node_telemetry(
+                self.node["node_id"],
+                response=response,
+                since=since,
+                limit=1,
+                offset=0,
+                snapshot_until=None,
+                admin="admin",
+            )
+
+        self.assertEqual(batches, page["batches"])
+        query.assert_called_once_with(
+            self.node["node_id"],
+            since=since,
+            limit=1,
+            offset=0,
+            snapshot_until=None,
+        )
+        self.assertEqual(response.headers["X-Nivus-History-Pagination"], "offset-v1")
+        self.assertEqual(response.headers["X-Nivus-History-Total-Batches"], "1")
+        self.assertEqual(response.headers["X-Nivus-History-Offset"], "0")
+        self.assertEqual(response.headers["X-Nivus-History-Limit"], "1")
+        self.assertEqual(response.headers["X-Nivus-History-Has-More"], "false")
+        self.assertEqual(
+            response.headers["X-Nivus-History-Snapshot-Until"],
+            page["snapshot_until"],
+        )
+
+    def test_history_page_rejects_boolean_and_excessive_offsets(self):
+        for offset in (True, -1, MAX_TELEMETRY_HISTORY_OFFSET + 1):
+            with self.subTest(offset=offset):
+                with self.assertRaises(ValueError):
+                    get_node_telemetry_history_page(
+                        self.node["node_id"], limit=500, offset=offset, now=self.now
+                    )
 
     def test_retention_removes_batches_older_than_fourteen_days(self):
         self.ingest(0)
