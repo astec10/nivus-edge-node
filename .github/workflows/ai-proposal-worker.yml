@@ -180,12 +180,17 @@ jobs:
           [[ "$PROPOSAL_BRANCH" =~ ^ai/issue-[1-9][0-9]*-run-[0-9]+$ ]]
           base_branch="$(gh api "repos/$REPOSITORY" --jq '.default_branch')"
           [[ -n "$base_branch" ]]
-          pr_url="$(gh pr create \
-            --draft \
-            --base "$base_branch" \
-            --head "$PROPOSAL_BRANCH" \
-            --title "AI proposal for issue #${ISSUE_NUMBER}" \
-            --body "Generated from a validated public/synthetic task. The proposal passed the Ubuntu CI workflow. Human review and approval are required before merge or deployment. Closes #${ISSUE_NUMBER}. Workflow: https://github.com/${REPOSITORY}/actions/runs/${GITHUB_RUN_ID}")"
+          pr_body="$(cat <<EOF
+          Generated from a validated public/synthetic task. The proposal passed the Ubuntu CI workflow. Human review and approval are required before merge or deployment. Closes #${ISSUE_NUMBER}. Workflow: https://github.com/${REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+          EOF
+          )"
+          pr_url="$(gh api --method POST "repos/$REPOSITORY/pulls" \
+            -F head="$PROPOSAL_BRANCH" \
+            -F base="$base_branch" \
+            -F title="AI proposal for issue #${ISSUE_NUMBER}" \
+            -F draft=true \
+            -f body="$pr_body" \
+            --jq .html_url)"
           echo "Created draft: $pr_url"
 
           labels="$(gh issue view "$ISSUE_NUMBER" --repo "$REPOSITORY" --json labels --jq '.labels[].name')"
