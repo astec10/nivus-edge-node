@@ -1,0 +1,12 @@
+[Unit]
+Description=Periodically reconcile the Nivus CPU governor with the power source
+
+[Timer]
+OnBootSec=60s
+OnUnitActiveSec=30s
+AccuracySec=5s
+Unit=nivus-performance-policy.service
+
+[Install]
+WantedBy=timers.target
+

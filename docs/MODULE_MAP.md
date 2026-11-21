@@ -54,7 +54,8 @@ flowchart TD
 | `node_agent/agent.py` | CLI pareamento/run ↔ API de nós | Cliente stdlib candidato no PR #69: código oculto de uso único, TLS obrigatório, token local `0600`/diretório `0700`, sessão renovável e heartbeat apenas com metadados. Sem telemetria, comandos ou ações remotas; smoke físico pendente. |
 | `backend/services/mobile_battery.py` | Leitura móvel validada → regra + auditoria MQTT | Rejeita leituras antigas/repetidas; publica somente `OFF` em `nivus/edge/relay1` a ≤20%; recuperação acima de 20% rearma sem enviar `ON`. |
 | `backend/services/` | chamadas internas ↔ serviços | MQTT, logs e operações de domínio; não expõe portas diretamente. |
-| `backend/api/routers/ai_executor.py` + `backend/services/ai_executor.py` | tarefa explícita → provedor selecionado | Execução administrativa única, com classe de dados, orçamento, timeout, cancelamento e auditoria mínima; sem retry, fallback ou execução do resultado. Issue #74 ainda em revisão. |
+| `backend/api/routers/ai_executor.py` + `backend/services/ai_executor.py` | tarefa explícita → provedor selecionado | Executor runtime integrado pelo PR #82; classe de dados, orçamento, timeout, cancelamento e auditoria mínima; sem retry, fallback ou execução do resultado. CI hospedada aprovada; implantação no notebook pendente. |
+| `telemetry/power_policy.py` + `deploy/nivus-performance-policy.*` | fonte AC/NUT → governor CPUFreq | Candidato opt-in; fonte falha/ambígua usa governor conservador; escrita limitada a `scaling_governor`; sem ação em atuadores/overclock. Issue #62 aguarda CI/revisão. |
 | `backend/database.py` | conexões ↔ SQLite | Persistência, migrações aditivas e consultas. |
 | `backend/mqtt_worker.py` | MQTT → validação/persistência | Consome telemetria e registra alertas de regra determinística. |
 | `backend/services/maintenance.py` | Admin API/CLI → estado volátil + audit SQLite | Alterna coleta em background com allowlist; o marcador desaparece no reboot. |

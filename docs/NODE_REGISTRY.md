@@ -1,6 +1,6 @@
 # Cadastro seguro de nós
 
-**Estado:** API de registro integrada pelo PR #66 e incluída na release ativa `fff64a68f252f0b1290576e30b39ed78fbc15a7a`. O agente mínimo foi implementado no [PR #69](https://github.com/astec10/nivus-edge-node/pull/69) e passou na CI hospedada. O smoke com dois dispositivos independentes ainda não foi executado.
+**Estado:** API de registro integrada pelo PR #66 e presente no update `fff64a68` informado em 17/11; o último estado do notebook reportado depois é `f896de8`, sem sondagem nesta revisão. O agente mínimo foi implementado no [PR #69](https://github.com/astec10/nivus-edge-node/pull/69) e passou na CI hospedada. O smoke com dois dispositivos independentes ainda não foi executado.
 **Issue:** [#65 concluída](https://github.com/astec10/nivus-edge-node/issues/65) pelo PR #66.
 **Próxima validação:** smoke real com dois nós, incluindo TLS, reboot e revogação.
 

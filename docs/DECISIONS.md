@@ -43,7 +43,9 @@ Decisão do operador: licenciar o Nivus Edge Node sob AGPL-3.0-only para que pes
 
 ## Perfil de desempenho com alimentação AC/UPS — 2026-11-16
 
-Decisão do operador: usar presença confirmada de alimentação AC no nó ou no UPS como sinal para selecionar automaticamente o governor de desempenho, limitado aos modos suportados pelo hardware e pelo sistema. A ausência, falha ou ambiguidade desse sinal mantém o governor conservador. O perfil não habilita overclock: overclock permanece manual. O sinal de alimentação não altera nem libera atuadores; eles continuam sujeitos às suas regras determinísticas e intertravamentos. Dados de bateria do UPS/nobreak pertencem ao futuro Nó Master e à automação, não ao sensor de bateria interna do nó. Esta é uma decisão de escopo; implementação, privilégios necessários e validação em hardware ainda estão pendentes.
+Decisão do operador: usar presença confirmada de alimentação AC no nó ou na entrada do UPS como sinal para selecionar automaticamente um governor de desempenho suportado. A ausência, falha ou ambiguidade mantém o governor conservador. O perfil não habilita overclock: overclock permanece manual. O sinal de alimentação não altera nem libera atuadores; eles continuam sujeitos às suas regras determinísticas e intertravamentos. Dados de bateria do UPS/nobreak pertencem ao futuro Nó Master e à automação, não ao sensor de bateria interna do nó.
+
+Desdobramento implementado nesta branch: a fonte Linux `Mains/online` só é aceita para AC direta; ela não indica a entrada elétrica do UPS quando o computador está conectado à saída do UPS. Para esse arranjo, o controlador pode ler NUT local e falha para o perfil conservador quando a resposta está indisponível, stale ou ambígua. O serviço systemd opcional muda somente `scaling_governor`, usa governors suportados e deixa o timer desabilitado por padrão. Não altera limites térmicos, frequência/voltagem manual, atuadores ou overclock. A validação física ainda está pendente.
 
 ## Semântica da telemetria térmica — 2026-11-14
 

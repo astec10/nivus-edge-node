@@ -61,6 +61,8 @@ jobs:
           python3 -m compileall -q backend telemetry scripts tools
           python3 -m py_compile deploy/nivusctl
           python3 -m py_compile deploy/nivus-timesyncd.py
+          python3 -m py_compile deploy/nivus-performance-policy.py
+          systemd-analyze verify deploy/nivus-performance-policy.service deploy/nivus-performance-policy.timer
           python3 deploy/nivusctl help | grep -q 'sudo nivus maintenance disable'
           python3 -m unittest discover -s tools/ai_executor -p 'test_*.py'
           python3 -m unittest discover -s telemetry -p 'test_*.py'

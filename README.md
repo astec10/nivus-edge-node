@@ -2,7 +2,7 @@
 
 O Nivus é um projeto aberto para construir uma plataforma de borda local-first, modular e de baixo consumo. Telemetria é um módulo da plataforma; sua agregação entre nós não é pré-requisito para o executor nem para a biblioteca compartilhada e será mais útil quando o Nó Master estiver operacional.
 
-O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não significa compatibilidade comprovada com qualquer computador. O stack Compose está instalado em paralelo num único notebook Ubuntu CCE U25; a release `fff64a68f252f0b1290576e30b39ed78fbc15a7a` foi aplicada em 17/11/2026. O registro seguro de nós está na release (PR #66); o agente mínimo de pareamento e heartbeat foi implementado no PR #69 e passou na CI hospedada. Ainda faltam smoke real entre dois dispositivos, instalação limpa, reboot, restauração e validação de outros hardwares.
+O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não significa compatibilidade comprovada com qualquer computador. O stack Compose está instalado em paralelo num único notebook Ubuntu CCE U25. O último estado informado pelo operador é a release `f896de8`, com promoção HTTPS para 443 concluída; a conexão remota não foi verificada nesta revisão. Consulte [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) para separar implantação reportada, evidências da CI e validações pendentes. Ainda faltam smoke real entre dois dispositivos, instalação limpa, reboot, restauração e validação de outros hardwares.
 
 ## Estado do projeto
 
@@ -13,7 +13,7 @@ O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não sign
 - Painel React/Vite dividido em componentes, com login, telemetria, usuários e seções do dashboard.
 - SQLite persistente, ingestão MQTT e agente de telemetria do host na instalação de teste. Telemetria agregada de vários nós é uma fase futura ligada ao Nó Master.
 - Instalação Compose paralela com API, worker, Mosquitto e Nginx; HTTPS, backup e procedimento de rollback.
-- A instalação Compose paralela passou health HTTPS, HTTP 401 sem token e login; a última atualização reconstruiu e reiniciou os containers, criou backup SQLite consistente e confirmou health 200/401. A instalação antiga systemd/Nginx continua separada e ativa. Na release atual, a nova dashboard atende HTTPS 8443; a promoção da nova interface para a porta 443 ainda está pendente (issue #70).
+- Na última atualização informada pelo operador, a release `f896de8` foi instalada e a dashboard Compose foi promovida para HTTPS padrão (443); health/autenticação passaram e 8443 permaneceu como caminho de retorno. Reboot do Ubuntu e revisão visual posterior ainda não foram confirmados. A conexão remota ao notebook não respondeu nesta verificação, portanto isso é o último estado informado, não uma sondagem atual.
 - A interface servida mostra os avisos AGPL e links para o código e a licença.
 
 ### Planejado ou aguardando validação
@@ -21,9 +21,9 @@ O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não sign
 - Registro seguro de nós integrado no PR #66. O agente mínimo está no PR #69 e passou CI hospedada (Ubuntu 22.04 amd64, testes isolados, Compose smoke e CodeQL); a validação em dois dispositivos reais continua pendente. Agregação de telemetria e painel multi-nó seguem pendentes.
 - Home Assistant, Zigbee, sensores residenciais, medidores, câmeras, interfone e integração com inversor/baterias.
 - Automação residencial real, VPN integrada ao produto e ações remotas em dispositivos.
-- Inferência local, consulta à biblioteca de PDFs, fila de trabalhos entre máquinas, transferência P2P e conectores para provedores comerciais com limites de uso. A gestão administrativa de perfis de API do runtime está implementada no PR #72 e passou pela CI hospedada, mas ainda não foi implantada no notebook; não é a mesma credencial do executor GitHub Actions. A tela administrativa não conecta ainda o executor de inferência. Consulte [docs/AI_PROVIDER_CONNECTORS.md](docs/AI_PROVIDER_CONNECTORS.md).
-- Modo de manutenção reversível na aba Configuração e CLI (`nivus maintenance enable|disable|status`), com `nivus help`, integrado no PR #28 e incluído na release atual. A CI passou; execução operacional dos comandos no notebook ainda pendente.
-- Configuração de sincronização NTP do Ubuntu, controle administrativo e rollback integrados nos PRs #40/#41 e incluídos na release atual; ainda falta validar visualmente os campos e o cadeado no notebook. Alterar NTP do host continua sendo ação explícita de administrador.
+- Inferência local, consulta à biblioteca de PDFs, fila de trabalhos entre máquinas e transferência P2P continuam planejadas. O cadastro administrativo de provedores está no PR #72; o executor de inferência runtime foi integrado no PR #82 e passou na CI hospedada em `main` (c0de53e). Nenhuma chamada real a provedor foi feita; a implantação do PR #82 no notebook ainda não foi confirmada. Isso é separado do executor GitHub Actions. Consulte [docs/AI_PROVIDER_CONNECTORS.md](docs/AI_PROVIDER_CONNECTORS.md).
+- Modo de manutenção reversível na aba Configuração e CLI (`nivus maintenance enable|disable|status`), com `nivus help`, integrado no PR #28 e presente no update `fff64a68` informado em 17/11. O operador informou depois a release `f896de8`, sem sondagem remota nesta revisão. A CI passou; execução operacional dos comandos no notebook ainda pendente.
+- Configuração de sincronização NTP do Ubuntu, controle administrativo e rollback integrados nos PRs #40/#41 e presentes no update `fff64a68`; o último estado informado depois é `f896de8`. Ainda falta validar visualmente os campos e o cadeado no notebook. Alterar NTP do host continua sendo ação explícita de administrador.
 - Instalação limpa validada, reboot, atualização com rollback e matriz de hardware x86_64.
 - O executor externo de desenvolvimento foi integrado no PR #3. Uma chamada autorizada para uma tarefa pública/sintética gerou o PR rascunho #16 e a CI passou. A abertura automática falhou naquela execução; a correção da leitura do branch padrão e a proteção contra propostas duplicadas foram integradas (PR #53). O fluxo completo ainda aguarda validação com uma nova chamada explicitamente autorizada; o PR #16 continua à espera de revisão humana. O notebook é suporte opcional; GitHub Actions é o executor principal.
 
@@ -58,6 +58,7 @@ O roteiro de Ubuntu + Nivus instalado em USB foi integrado à `main` pelo PR #34
 | `backend/services/` e `backend/mqtt_worker.py` | Serviços de domínio, manutenção reversível e processamento MQTT |
 | `telemetry/agent.py` | Amostras de recursos do host e envio MQTT |
 | `telemetry/hardware_sensors.py` | Classificação de temperaturas CPU/APU, placa-mãe e GPU |
+| `telemetry/power_policy.py` | Fonte AC/NUT e governor CPUFreq opt-in, conservador por padrão |
 | `frontend/src/components/` | Login e componentes visuais do dashboard |
 | `deploy/` | Compose, Nginx, Mosquitto, instalador candidato, `nivus` CLI e operações |
 | `deploy/portable_usb/` | Seleção explícita do USB, seed Subiquity privado e instalação pós-boot com dados persistentes |
@@ -68,7 +69,7 @@ A semântica, origem e limites das leituras térmicas estão em [docs/HARDWARE_T
 
 ## Instalação e execução
 
-O desenvolvimento local está descrito em [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md). A instalação Compose para teste está em [deploy/README.md](deploy/README.md); ela requer Ubuntu, Docker/Compose, privilégios administrativos e credenciais iniciais criadas no terminal. A API e o broker ficam em redes privadas do Compose; MQTT não é publicado no host. O instalador publica a dashboard em HTTPS na porta 8443 por padrão e tenta a próxima porta livre se ela estiver ocupada; ele não altera o Nginx do host nem promove o Compose para 443. Acessar sem sufixo de porta em instalação existente é acompanhado pela issue #70. O certificado autoassinado gera aviso no navegador.
+O desenvolvimento local está descrito em [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md). A instalação Compose para teste está em [deploy/README.md](deploy/README.md); ela requer Ubuntu, Docker/Compose, privilégios administrativos e credenciais iniciais criadas no terminal. A API e o broker ficam em redes privadas do Compose; MQTT não é publicado no host. Uma instalação nova publica a dashboard em HTTPS na porta 8443 por padrão e tenta a próxima porta livre se ela estiver ocupada; o instalador não altera o Nginx do host. No notebook de teste, o operador informou que a promoção reversível da issue #70 colocou o Compose em HTTPS 443 e preservou 8443 para retorno. O certificado autoassinado gera aviso no navegador.
 
 Não há promessa de suporte a toda máquina x86_64 até validar Ubuntu minimal em instalações limpas e medir CPU, memória, armazenamento e periféricos. Veja os marcos pendentes antes de instalar fora do notebook de teste.
 

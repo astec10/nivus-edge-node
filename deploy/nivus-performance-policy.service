@@ -1,0 +1,25 @@
+[Unit]
+Description=Nivus opt-in AC/UPS CPU performance governor policy
+ConditionPathExists=/etc/nivus-compose/power-policy.json
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/usr/bin/python3 /opt/nivus-compose/current/deploy/nivus-performance-policy.py
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=no
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ReadWritePaths=-/sys/devices/system/cpu/cpufreq
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+
