@@ -75,8 +75,6 @@ def init_db():
             );
             CREATE INDEX IF NOT EXISTS idx_mobile_battery_events_device_id
                 ON mobile_battery_events(device_id, id DESC);
-            CREATE UNIQUE INDEX IF NOT EXISTS uq_mobile_battery_source_ref
-                ON mobile_battery_devices(source_type, source_ref) WHERE source_ref IS NOT NULL;
             CREATE TABLE IF NOT EXISTS mobile_battery_ha_pairings (
                 pairing_id TEXT PRIMARY KEY,
                 code_sha256 TEXT NOT NULL UNIQUE,
