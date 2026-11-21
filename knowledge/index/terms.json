@@ -504,6 +504,9 @@
     "doc-ai-development-orchestration"
   ],
   "91": [
+    "doc-project-status"
+  ],
+  "93": [
     "doc-ai-executor-implementation",
     "doc-project-status"
   ],
@@ -2531,7 +2534,6 @@
   "candidato": [
     "doc-module-map",
     "doc-node-registry",
-    "doc-project-status",
     "doc-project-roadmap"
   ],
   "capabilities": [
@@ -2953,6 +2955,7 @@
   ],
   "codeql": [
     "doc-ai-provider-connectors",
+    "doc-ai-executor-implementation",
     "doc-node-registry",
     "doc-project-status",
     "doc-project-roadmap"
@@ -3865,6 +3868,7 @@
     "doc-vision"
   ],
   "controller": [
+    "doc-project-status",
     "ai-development-persistent-worker"
   ],
   "controls": [
@@ -7579,6 +7583,9 @@
     "doc-project-status",
     "doc-project-roadmap"
   ],
+  "implementados": [
+    "doc-project-status"
+  ],
   "implementar": [
     "doc-project-roadmap",
     "doc-vision"
@@ -9972,6 +9979,9 @@
   ],
   "ocorrer": [
     "doc-ai-module-workplan"
+  ],
+  "ocorreram": [
+    "doc-project-status"
   ],
   "ocr": [
     "doc-module-map",
@@ -13254,6 +13264,7 @@
   "sensores": [
     "doc-ai-context",
     "doc-ai-provider-connectors",
+    "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
     "doc-module-map",
     "doc-hardware-telemetry",
@@ -14598,6 +14609,7 @@
     "doc-ai-context",
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
+    "doc-ai-executor-implementation",
     "doc-module-map",
     "doc-node-registry",
     "doc-hardware-telemetry",
@@ -15176,7 +15188,9 @@
     "doc-vision"
   ],
   "vm": [
-    "doc-ai-context"
+    "doc-ai-context",
+    "doc-ai-executor-implementation",
+    "doc-project-status"
   ],
   "vm_validation": [
     "doc-ai-context",
@@ -16112,6 +16126,7 @@
   "índice": [
     "doc-ai-provider-connectors",
     "doc-ai-workflow",
+    "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
     "doc-video-research-index",
     "doc-module-map",
