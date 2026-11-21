@@ -1,5 +1,5 @@
 # Estado do projeto Nivus
-Atualizado: 2026-11-20 (`main` em `c0de53e`; último estado informado do notebook: release `f896de8` e promoção HTTPS concluída; reboot e revisão visual pendentes)
+Atualizado: 2026-11-21 (`main` em `ee8d75b`; último estado informado pelo operador: release `f896de8` e promoção HTTPS para 443 confirmada em 18/11; sem sondagem remota desde então)
 Licença: AGPL-3.0-only
 ## Resumo verificado
 O projeto tem API modular FastAPI, autenticação por senha/JWT, telemetria MQTT, SQLite persistente, dashboard React e uma stack Docker Compose paralela em operação no notebook de teste. O alvo Ubuntu Server minimal x86_64 continua em validação; não há certificação para qualquer computador.
@@ -36,7 +36,7 @@ A CI do PR #69 cobre dois IDs separados, sessões, heartbeat, retry após rede i
 
 ## Perfil de desempenho condicionado à alimentação AC/UPS
 
-A issue #62 registra a decisão do operador: presença confirmada de alimentação AC do nó/UPS aciona somente um governor suportado pelo hardware/kernel, mantendo os limites térmicos; sinal ausente ou ambíguo seleciona o perfil conservador. Atuadores continuam independentes e overclock manual. O candidato `telemetry/power_policy.py` e seu timer opt-in estão nesta branch; ainda aguardam CI, revisão e merge. A fonte Linux Mains só é válida com alimentação AC direta: a saída de um UPS não comprova a entrada AC do UPS. Para UPS local, o candidato lê NUT `ups.status` e trata falha/stale como desconhecido. Ativação física continua pendente.
+A issue #62 registra a decisão do operador: presença confirmada de alimentação AC do nó/UPS aciona somente um governor suportado pelo hardware/kernel, mantendo os limites térmicos; sinal ausente ou ambíguo seleciona o perfil conservador. Atuadores continuam independentes e overclock manual. O PR #87 foi mesclado em 21/11/2026; os 12 testes simulados locais e os quatro workflows hospedados passaram. A fonte Linux Mains só é válida com alimentação AC direta; a saída de um UPS não comprova a entrada AC do UPS. Para UPS local, o controlador lê NUT `ups.status` e trata falha, leitura desatualizada ou estado ambíguo como desconhecido. Serviço, timer e configuração ficam desabilitados por padrão; `enabled: false` restaura o perfil conservador. Nenhum governor real ou serviço do notebook foi alterado. A instalação e validação física continuam pendentes.
 
 ## Descoberta da bateria móvel no Home Assistant
 
