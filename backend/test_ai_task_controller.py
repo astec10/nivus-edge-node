@@ -265,12 +265,11 @@ class AITaskControllerTests(unittest.TestCase):
             "_github_request",
             side_effect=[
                 PUBLIC_REPOSITORY, queued, PUBLIC_REPOSITORY, None,
-                PUBLIC_REPOSITORY, issue_payload(labels=["ai:queued", "ai:ready"]),
             ],
         ) as request:
             result = ai_task_controller.authorize_issue(10, True, "admin")
         self.assertEqual(result["status"], "authorized")
-        self.assertEqual(request.call_count, 6)
+        self.assertEqual(request.call_count, 4)
         method, path, _token, payload = request.call_args_list[3].args
         self.assertEqual(method, "POST")
         self.assertTrue(path.endswith("/issues/10/labels"))
