@@ -264,6 +264,19 @@
   background: #64748b12;
 }
 
+.time-sync-status--online {
+  border-color: #34d399;
+  color: #a7f3d0;
+  background: #10b98112;
+}
+
+.time-sync-status--not_configured,
+.time-sync-status--stopped {
+  border-color: #64748b;
+  color: #cbd5e1;
+  background: #64748b12;
+}
+
 .settings-explanation {
   max-width: 680px;
   margin: 1rem 0;
@@ -680,4 +693,99 @@
 }
 .provider-metadata-editor .time-sync-actions {
   margin-top: 0.1rem;
+}
+
+.ai-task-controller {
+  width: min(100%, 1000px);
+}
+.ai-controller-token-field {
+  grid-column: 1 / -1;
+}
+.provider-inline-note a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: #7dd3fc;
+}
+.ai-controller-actions button,
+.ai-task-authorize {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 38px;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid #0e7490;
+  border-radius: 0.55rem;
+  color: #cffafe;
+  background: #164e63;
+  font: inherit;
+  cursor: pointer;
+}
+.ai-controller-actions button:disabled,
+.ai-task-authorize:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.ai-task-queue {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid #334155;
+}
+.ai-task-queue .provider-entry-heading {
+  margin-bottom: 0.7rem;
+}
+.ai-task-queue .provider-entry-heading h4,
+.ai-task-queue .provider-entry-heading p {
+  margin: 0;
+}
+.ai-task-queue .provider-entry-heading p {
+  margin-top: 0.3rem;
+  color: #94a3b8;
+  font-size: 0.8rem;
+}
+.ai-task-list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ai-task-entry {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0.8rem;
+  border: 1px solid #334155;
+  border-radius: 0.65rem;
+  background: #0b122066;
+}
+.ai-task-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+.ai-task-summary a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  color: #cbd5e1;
+  overflow-wrap: anywhere;
+}
+.ai-task-authorize {
+  justify-self: start;
+}
+.ai-controller-warning {
+  color: #fde68a;
+}
+@media (max-width: 560px) {
+  .ai-controller-actions button {
+    flex: 1 1 100%;
+  }
+  .ai-task-summary {
+    align-items: flex-start;
+  }
 }

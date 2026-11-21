@@ -1,0 +1,260 @@
+import tempfile
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+
+import database
+from api.schemas import AITaskControllerSettingsUpdate
+from pydantic import SecretStr
+from services import ai_providers, ai_task_controller
+
+
+VALID_TASK_BODY = """### Objective
+Update public documentation.
+
+### Acceptance criteria
+- The updated documentation is accurate.
+
+### Allowed paths
+- `docs/example.md`
+
+### Module
+documentation
+
+### Risk
+low
+
+### Data classification
+synthetic test data only
+
+### Maximum runtime in minutes
+5
+
+### External model budget
+free-tier model call — public/synthetic content only
+
+### Human owner
+@astec10
+
+### Review gate
+- [x] I understand that a human must review the PR before merge.
+"""
+
+
+def issue_payload(number=10, labels=None, body=VALID_TASK_BODY):
+    return {
+        "number": number,
+        "title": "Synthetic documentation task",
+        "html_url": f"https://github.com/astec10/nivus-edge-node/issues/{number}",
+        "created_at": "2026-11-20T12:00:00Z",
+        "state": "open",
+        "body": body,
+        "labels": [{"name": label} for label in (labels or ["ai:queued"])],
+    }
+
+
+class AITaskControllerTests(unittest.TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp_dir.name)
+        self.db_patch = patch.object(database, "DB_PATH", self.root / "nivus.db")
+        self.key_patch = patch.object(ai_providers, "KEY_FILE", self.root / "provider.key")
+        self.db_patch.start()
+        self.key_patch.start()
+        ai_providers.KEY_FILE.write_bytes(b"K" * 32)
+        database.init_db()
+        ai_task_controller._set_state(
+            state="stopped", last_poll_at=None, last_success_at=None,
+            last_error_code=None, tasks=[],
+        )
+
+    def tearDown(self):
+        self.key_patch.stop()
+        self.db_patch.stop()
+        self.temp_dir.cleanup()
+
+    def save_config(self, **overrides):
+        values = {
+            "repository": "astec10/nivus-edge-node",
+            "poll_interval_seconds": 60,
+            "github_token": SecretStr("github_pat_synthetic_test"),
+        }
+        values.update(overrides)
+        return ai_task_controller.update_settings(
+            AITaskControllerSettingsUpdate(**values), "admin"
+        )
+
+    def configure_enabled(self):
+        self.save_config()
+        with patch.object(ai_task_controller, "_github_request", return_value=[]):
+            ai_task_controller.test_connection("admin")
+        ai_task_controller.set_enabled(True, "admin")
+
+    def test_token_is_encrypted_and_never_returned(self):
+        public = self.save_config()
+        self.assertTrue(public["credential_configured"])
+        self.assertNotIn("github_token", public)
+        self.assertNotIn("credential_ciphertext", public)
+        self.assertNotIn("github_pat_synthetic_test", repr(public))
+
+        conn = database.get_db_connection()
+        try:
+            row = conn.execute(
+                "SELECT credential_ciphertext FROM ai_task_controller_settings WHERE id=1"
+            ).fetchone()
+        finally:
+            conn.close()
+        self.assertNotIn("github_pat_synthetic_test", row["credential_ciphertext"])
+        self.assertEqual(ai_task_controller._get_token(), "github_pat_synthetic_test")
+
+    def test_token_change_disables_controller_and_requires_new_connection_test(self):
+        self.configure_enabled()
+        result = self.save_config(github_token=SecretStr("github_pat_replaced_test"))
+        self.assertFalse(result["enabled"])
+        self.assertEqual(result["last_test_status"], "not_tested")
+        with self.assertRaisesRegex(ai_task_controller.TaskControllerError, "github_connection_not_tested"):
+            ai_task_controller.set_enabled(True, "admin")
+
+    def test_repository_change_disables_controller_and_clears_cached_tasks(self):
+        self.configure_enabled()
+        ai_task_controller._set_state(
+            state="online", tasks=[{"number": 10}], last_success_at="2026-11-20T12:00:00+00:00"
+        )
+
+        result = self.save_config(repository="astec10/other-public-repository")
+
+        self.assertFalse(result["enabled"])
+        self.assertEqual(ai_task_controller.get_status()["state"], "disabled")
+        self.assertEqual(ai_task_controller.get_status()["tasks"], [])
+        self.assertIsNone(ai_task_controller.get_status()["last_success_at"])
+
+    def test_connection_test_is_read_only_and_enables_after_success(self):
+        self.save_config()
+        with patch.object(ai_task_controller, "_github_request", return_value=[]) as request:
+            result = ai_task_controller.test_connection("admin")
+        self.assertEqual(result["status"], "success")
+        self.assertFalse(result["enabled"])
+        request.assert_called_once()
+        self.assertEqual(request.call_args.args[0], "GET")
+        self.assertIn("labels=ai%3Aqueued", request.call_args.args[1])
+        enabled = ai_task_controller.set_enabled(True, "admin")
+        self.assertTrue(enabled["enabled"])
+
+    def test_manual_refresh_polls_github_and_requires_controller_enabled(self):
+        with self.assertRaisesRegex(ai_task_controller.TaskControllerError, "controller_disabled"):
+            ai_task_controller.refresh_now()
+
+        self.configure_enabled()
+        with patch.object(ai_task_controller, "_github_request", return_value=[]) as request:
+            result = ai_task_controller.refresh_now()
+
+        self.assertEqual(result["state"], "online")
+        self.assertEqual(request.call_count, 2)
+        self.assertTrue(all(call.args[0] == "GET" for call in request.call_args_list))
+
+    def test_poll_recovers_after_github_failure_without_losing_queue(self):
+        self.configure_enabled()
+        queued = issue_payload()
+        ready = issue_payload(number=11, labels=["ai:queued", "ai:ready"])
+        with patch.object(
+            ai_task_controller,
+            "_github_request",
+            side_effect=[
+                ai_task_controller.TaskControllerError("github_unreachable", "offline", 503),
+                [queued], [ready],
+            ],
+        ):
+            first = ai_task_controller.poll_once()
+            second = ai_task_controller.poll_once()
+        self.assertEqual(first["state"], "degraded")
+        self.assertEqual(first["last_error_code"], "github_unreachable")
+        self.assertEqual(second["state"], "online")
+        self.assertEqual([task["number"] for task in second["tasks"]], [11, 10])
+        self.assertEqual(second["tasks"][0]["queue_state"], "authorized")
+        self.assertTrue(second["tasks"][1]["can_authorize"])
+
+    def test_authorization_requires_explicit_confirmation(self):
+        self.configure_enabled()
+        with patch.object(ai_task_controller, "_github_request") as request:
+            with self.assertRaisesRegex(
+                ai_task_controller.TaskControllerError, "explicit_authorization_required"
+            ):
+                ai_task_controller.authorize_issue(10, False, "admin")
+        request.assert_not_called()
+
+    def test_authorization_adds_one_label_and_repeat_never_posts_again(self):
+        self.configure_enabled()
+        queued = issue_payload()
+        with patch.object(
+            ai_task_controller, "_github_request", side_effect=[queued, None]
+        ) as request:
+            result = ai_task_controller.authorize_issue(10, True, "admin")
+        self.assertEqual(result["status"], "authorized")
+        self.assertEqual(request.call_count, 2)
+        method, path, _token, payload = request.call_args.args
+        self.assertEqual(method, "POST")
+        self.assertTrue(path.endswith("/issues/10/labels"))
+        self.assertEqual(payload, {"labels": ["ai:ready"]})
+
+        already_ready = issue_payload(labels=["ai:queued", "ai:ready"])
+        with patch.object(ai_task_controller, "_github_request", return_value=already_ready) as repeated:
+            again = ai_task_controller.authorize_issue(10, True, "admin")
+        self.assertEqual(again["status"], "already_authorized")
+        repeated.assert_called_once()
+        self.assertEqual(repeated.call_args.args[0], "GET")
+
+    def test_authorization_blocks_invalid_or_private_task_and_never_posts(self):
+        self.configure_enabled()
+        invalid = issue_payload(body=VALID_TASK_BODY.replace(
+            "synthetic test data only", "home telemetry"
+        ))
+        with patch.object(
+            ai_task_controller, "_github_request", return_value=invalid
+        ) as request:
+            with self.assertRaisesRegex(
+                ai_task_controller.TaskControllerError, "issue_contract_invalid"
+            ):
+                ai_task_controller.authorize_issue(10, True, "admin")
+        request.assert_called_once()
+        self.assertEqual(request.call_args.args[0], "GET")
+
+    def test_uncertain_post_result_is_checked_and_not_retried(self):
+        self.configure_enabled()
+        queued = issue_payload()
+        ready = issue_payload(labels=["ai:queued", "ai:ready"])
+        with patch.object(
+            ai_task_controller,
+            "_github_request",
+            side_effect=[queued,
+                         ai_task_controller.TaskControllerError("github_unreachable", "offline", 503),
+                         ready],
+        ) as request:
+            result = ai_task_controller.authorize_issue(10, True, "admin")
+        self.assertEqual(result["status"], "authorized")
+        self.assertEqual(request.call_count, 3)
+        self.assertEqual([call.args[0] for call in request.call_args_list], ["GET", "POST", "GET"])
+
+    def test_daily_authorization_limit_is_enforced_before_post(self):
+        self.save_config(max_authorizations_per_day=1)
+        with patch.object(ai_task_controller, "_github_request", return_value=[]):
+            ai_task_controller.test_connection("admin")
+        ai_task_controller.set_enabled(True, "admin")
+        with patch.object(
+            ai_task_controller, "_github_request", side_effect=[issue_payload(), None]
+        ):
+            first = ai_task_controller.authorize_issue(10, True, "admin")
+        self.assertEqual(first["status"], "authorized")
+
+        with patch.object(
+            ai_task_controller, "_github_request", return_value=issue_payload(number=11)
+        ) as request:
+            with self.assertRaisesRegex(
+                ai_task_controller.TaskControllerError, "daily_authorization_limit"
+            ):
+                ai_task_controller.authorize_issue(11, True, "admin")
+        request.assert_called_once()
+        self.assertEqual(request.call_args.args[0], "GET")
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,4 +1,5 @@
 import os
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,6 +8,7 @@ from api.routers import (
     actuator,
     ai_executor,
     ai_providers,
+    ai_task_controller as ai_task_controller_router,
     alerts,
     auth,
     maintenance,
@@ -19,6 +21,7 @@ from api.routers import (
 from database import init_db
 from services.app_logging import configure_service_logger
 from services.maintenance import record_boot_reset
+from services import ai_task_controller
 from security import load_jwt_secret
 
 
@@ -38,7 +41,16 @@ CORS_ORIGINS = [
     if item.strip()
 ]
 
-app = FastAPI(title="Nivus Edge API", version="2.9.0")
+@asynccontextmanager
+async def lifespan(_app):
+    ai_task_controller.start()
+    try:
+        yield
+    finally:
+        ai_task_controller.stop()
+
+
+app = FastAPI(title="Nivus Edge API", version="2.9.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
@@ -60,6 +72,7 @@ app.include_router(alerts.router)
 app.include_router(settings.router)
 app.include_router(ai_providers.router)
 app.include_router(ai_executor.router)
+app.include_router(ai_task_controller_router.router)
 app.include_router(maintenance.router)
 app.include_router(users.router)
 app.include_router(mobile_battery.router)

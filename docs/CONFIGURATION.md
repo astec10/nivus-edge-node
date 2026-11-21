@@ -40,6 +40,14 @@ O timer reconcilia a cada 30 segundos. Veja `systemctl status nivus-performance-
 
 Para a candidata Compose, consulte `deploy/README.md` e `.env.example`. Não reutilize o banco do notebook nem segredos de produção numa instalação de teste.
 
+## Controlador de tarefas GitHub no notebook
+
+O painel **Configuração → Executor GitHub** mantém o controlador desligado por padrão. Para configurá-lo, crie um token fine-grained restrito ao repositório Nivus com `Issues: Read and write`; `Metadata: read` é concedido automaticamente pelo GitHub. Não conceda `Contents`, `Actions`, administração ou acesso a outros repositórios. O token é cifrado com `NIVUS_PROVIDER_ENCRYPTION_KEY_FILE`; APIs e auditoria guardam somente estado e metadados, nunca o token ou ciphertext.
+
+Informe `astec10/nivus-edge-node`, um intervalo de 30–900 segundos (padrão 60) e limite de 1–10 autorizações originadas pela dashboard em uma janela móvel de 24 horas (padrão 3). Salve, teste a conexão e habilite. Alterar repositório/token desliga o controlador e exige novo teste. Cada Issue `ai:queued` mostra o contrato de validade; uma confirmação explícita adiciona somente `ai:ready`, que dispara o workflow GitHub já existente. O serviço não autoriza chamadas sozinho e não repete a autorização se a resposta ficar incerta.
+
+Na rede Docker, somente o container `api` participa da bridge de saída `github_egress`; o endpoint usado pelo controlador é fixo em `api.github.com` e usa TLS com endereço DNS público validado. A bridge permite que o container alcance destinos externos; o Nivus não cria porta publicada para entrada nem configura a ONU. O host precisa de saída HTTPS/DNS. Não configure encaminhamento de portas públicas; use VPN para administração remota. Se o notebook reiniciar ou perder Internet, as Issues continuam no GitHub e o controlador retoma a consulta ao voltar. O daily cap da dashboard não substitui limite de gasto/quota da conta Google, nem impede disparos feitos diretamente no GitHub.
+
 
 ## Hora do host
 

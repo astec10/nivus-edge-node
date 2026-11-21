@@ -39,9 +39,20 @@ requested -> triaged -> queued -> leased -> running -> pull_request -> ci -> sta
 
 O desenvolvimento externo pode usar esse fluxo para preparar mudanças no repositório Nivus. Ele não é runtime do nó de borda. Para distribuição futura entre máquinas Nivus, a Fase 5 do roadmap exige identidade, capacidade anunciada, leases, quotas, cancelamento, isolamento, verificação de artefatos e recuperação de falhas. A Fase 4 da biblioteca pode fornecer conhecimento citável a esses workers.
 
+## Projetos de referência avaliados para o Nivus
+
+| Base | Padrão útil | Decisão |
+|---|---|---|
+| [GitHub Issues + GitHub Actions do próprio Nivus](https://github.com/astec10/nivus-edge-node/tree/main/.github/workflows) | Issue como fila durável; evento `ai:ready` inicia worker isolado e PR em rascunho. | Adotado. O notebook só acompanha e autoriza; o runner hospedado executa a tarefa. |
+| [LeaseQueue](https://github.com/kyan9400/leasequeue) | Lease atômico, idempotência, retry limitado e dead-letter em serviço FastAPI/SQLite. | Referência para futuros workers Nivus. Não duplicamos a fila local: Issues já persiste as tarefas e Actions mantém a execução. |
+| [simpleq](https://github.com/trtrojo/simpleq) | Exemplo pequeno de fila FastAPI/SQLite com workers que reivindicam e confirmam tarefas. | Não adotado nesta etapa porque criaria uma segunda fila e outra dashboard paralela. |
+| [run-gemini-cli do Google](https://github.com/google-github-actions/run-gemini-cli) | Action para invocar Gemini CLI em workflows, com modos de triagem, análise e alteração. | Mantemos o worker Nivus existente, que valida caminhos exatos, aplica mudanças limitadas e abre PR em rascunho. A Action é apenas referência para análise sem escrita. |
+
+Avaliados pelos READMEs e metadados dos repositórios públicos. Nenhum código desses projetos foi copiado nem adicionado como dependência. O Nivus reaproveita ideias de idempotência e confirmação e preserva Issues/Actions como fonte única da fila e execução.
+
 ## Execução contínua sem o PC do operador
 
-GitHub Issues guarda a fila e GitHub Actions executa as tarefas em runners hospedados. O processo não depende do PC nem do notebook do operador: depois que uma Issue passa pelo intake e um mantenedor revisa e autoriza uma chamada, o runner inicia sozinho e prepara um PR em rascunho. A chamada ao modelo ainda exige Internet, quota do provedor e uma chave de escopo mínimo. A máquina local pode ficar desligada; GitHub e a API do modelo continuam como dependências externas.
+GitHub Issues guarda a fila e GitHub Actions executa as tarefas em runners hospedados. Um controlador leve opcional na API do notebook acompanha essa fila continuamente e oferece revisão/autorizações na dashboard. O PC pessoal pode ficar desligado; o notebook precisa permanecer ligado e com saída HTTPS para GitHub para manter a tela e a consulta atualizadas. Se o notebook ficar offline, Issues e Actions continuam disponíveis e o intake do GitHub segue como alternativa.
 
 ```text
 GitHub Issue validada (ai:queued)
@@ -51,10 +62,16 @@ GitHub Issue validada (ai:queued)
   -> proposta aplicada aos caminhos exatos e PR em rascunho
   -> CI e revisão humana
 
-Notebook online: painel/inspeção e agregação opcional dos relatórios de uso.
+Notebook online: controlador/API de baixo consumo consulta Issues; a dashboard permite aprovar cada chamada individual.
 ```
 
-O notebook é suporte adicional, não controlador nem ponto único de falha. Ele pode acompanhar a página de progresso, baixar relatórios de uso ou executar análises locais quando disponível. Se ficar offline, a fila e os workflows continuam no GitHub. Telemetria do Nivus não é dependência; agregação entre nós será útil quando o Nó Master estiver operacional.
+O controlador fica desligado por padrão. O administrador configura o repositório, um token fine-grained e intervalo de consulta entre 30 e 900 segundos na **Configuração → Executor GitHub**; testa a conexão e então habilita o serviço. O token fica cifrado com a chave mestra que já é externa ao SQLite. Conceda somente `Issues: Read and write` para o repositório Nivus e `Metadata: read` (automático); o controlador não precisa de `Contents` nem `Actions` write.
+
+A dashboard mostra Issues `ai:queued` e `ai:ready`, limita autorizações configuradas pelo administrador (1–10 por janela móvel de 24 horas; padrão 3) e nunca chama o modelo automaticamente. Cada botão exige confirmação da revisão da Issue e de uma única chamada free-tier; a confirmação não é um teto de cobrança, então o operador deve conferir faturamento e quota na conta do provedor. O Nivus valida novamente formulário, risco, classificação pública/sintética, tempo e allowlist antes de adicionar apenas `ai:ready`. O evento existente inicia o workflow GitHub; CI e geração de proposta rodam no runner hospedado. Merge e deploy continuam humanos.
+
+A API não faz checkout, build ou execução de código da Issue. Seu container recebe uma rede Docker de saída para acessar `api.github.com` por HTTPS; não publica porta nova e não requer encaminhamento de portas na ONU. A integração fixa o host da API e valida/pina DNS público. A administração remota da dashboard deve usar VPN. Quedas de rede deixam a Issue no GitHub; a API volta a consultar no intervalo seguinte e confere o rótulo antes de repetir qualquer autorização. Se não conseguir confirmar o resultado de uma solicitação, a dashboard instrui atualizar o estado antes de tentar de novo.
+
+O controlador facilita monitoramento e aprovação sem depender do PC, mas não é a fila nem o executor. Se o notebook ficar desligado, GitHub continua guardando e executando Issues já autorizadas; novas tarefas ainda podem ser submetidas pelo intake em **Actions → AI task intake**. Telemetria do Nivus não é dependência; agregação entre nós será útil quando o Nó Master estiver operacional.
 
 O executor inicial foi integrado ao `main` no PR #3; o mantenedor confirmou a configuração de `GEMINI_API_KEY` e `NIVUS_AI_BUDGET_MODE=free-tier`, sem expor o valor da chave. Duas tentativas anteriores falharam (HTTP 503 e timeout síncrono); o adaptador foi então alterado para polling em segundo plano limitado, sem repetir chamadas POST, e testes simulados. Uma chamada autorizada para a Issue #6 gerou o documento proposto no PR #16, cuja CI passou. A etapa de criação automática do draft falhou porque `gh repo view` foi executado sem checkout, e o mantenedor abriu o draft manualmente. O commit `bec9573` corrigiu a workflow para obter o branch padrão via API sem checkout. O PR #53 adicionou verificação read-only para pular uma chamada quando há draft aberto da mesma issue; ao criar um PR, remove rótulos da fila e publica comentário com o link. Os checks hospedados passaram. Uma nova chamada autorizada numa issue separada ainda será necessária para verificar a abertura automática após a correção. O executor não aprova, mescla ou implanta.
 
