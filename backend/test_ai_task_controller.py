@@ -188,7 +188,7 @@ class AITaskControllerTests(unittest.TestCase):
             first = ai_task_controller.poll_once()
             second = ai_task_controller.poll_once()
         self.assertEqual(first["state"], "degraded")
-        self.assertEqual(first["last_error_code"], "github_unreachable")
+        self.assertEqual(first["last_error_code"], "repository_visibility_unverified")
         self.assertEqual(second["state"], "online")
         self.assertEqual([task["number"] for task in second["tasks"]], [11, 10])
         self.assertEqual(second["tasks"][0]["queue_state"], "authorized")
