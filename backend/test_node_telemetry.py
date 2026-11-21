@@ -91,6 +91,16 @@ class NodeTelemetryTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     normalize_telemetry_samples(value)
 
+    def test_oversized_integer_metric_returns_validation_error(self):
+        sample = {
+            "metric": "cpu.utilization",
+            "value": 10 ** 1000,
+            "unit": "percent",
+            "quality": "measured",
+        }
+        with self.assertRaisesRegex(ValueError, "número finito"):
+            normalize_telemetry_samples([sample])
+
     def test_exact_retry_is_idempotent_and_conflicting_replay_is_rejected(self):
         first = self.ingest(0)
         duplicate = self.ingest(0)

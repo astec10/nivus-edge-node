@@ -93,11 +93,16 @@ def normalize_telemetry_samples(samples) -> list[dict]:
                 raise ValueError("Métrica indisponível deve ter valor nulo.")
             normalized_value = None
         else:
-            if type(value) not in (int, float) or not math.isfinite(value):
+            if type(value) not in (int, float):
                 raise ValueError("O valor da métrica deve ser um número finito.")
-            if not minimum <= value <= maximum:
+            try:
+                normalized_value = float(value)
+            except OverflowError:
+                raise ValueError("O valor da métrica deve ser um número finito.") from None
+            if not math.isfinite(normalized_value):
+                raise ValueError("O valor da métrica deve ser um número finito.")
+            if not minimum <= normalized_value <= maximum:
                 raise ValueError("Valor fora da faixa permitida para a métrica.")
-            normalized_value = float(value)
         normalized.append({
             "metric": metric,
             "value": normalized_value,
