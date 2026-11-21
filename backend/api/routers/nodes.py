@@ -1,6 +1,6 @@
 from typing import Literal
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StrictFloat, StrictInt, StrictStr, field_validator, model_validator
 
 from api.dependencies import get_current_admin
@@ -18,9 +18,10 @@ from services.nodes import (
 )
 from services.node_telemetry import (
     MAX_TELEMETRY_SAMPLES,
+    MAX_TELEMETRY_HISTORY_OFFSET,
     TelemetryRateLimitError,
     TELEMETRY_SCHEMA_VERSION,
-    get_node_telemetry_history,
+    get_node_telemetry_history_page,
     normalize_telemetry_samples,
     process_node_telemetry,
 )
@@ -205,12 +206,33 @@ def get_nodes(admin: str = Depends(get_current_admin)):
 @router.get("/{node_id}/telemetry", response_model=list[NodeTelemetryQueryResult])
 def get_node_telemetry(
     node_id: str,
+    response: Response,
     since: AwareDatetime | None = Query(default=None),
     limit: int = Query(default=120, ge=1, le=500),
+    offset: int = Query(default=0, ge=0, le=MAX_TELEMETRY_HISTORY_OFFSET),
+    snapshot_until: AwareDatetime | None = Query(default=None),
     admin: str = Depends(get_current_admin),
 ):
     try:
-        return get_node_telemetry_history(node_id, since=since, limit=limit)
+        page = get_node_telemetry_history_page(
+            node_id,
+            since=since,
+            limit=limit,
+            offset=offset,
+            snapshot_until=snapshot_until,
+        )
+        response.headers["X-Nivus-History-Pagination"] = "offset-v1"
+        response.headers["X-Nivus-History-Total-Batches"] = str(page["total_batches"])
+        response.headers["X-Nivus-History-Offset"] = str(page["offset"])
+        response.headers["X-Nivus-History-Limit"] = str(page["limit"])
+        response.headers["X-Nivus-History-Has-More"] = "true" if page["has_more"] else "false"
+        if page["range_start"] is not None:
+            response.headers["X-Nivus-History-Range-Start"] = page["range_start"]
+        if page["range_end"] is not None:
+            response.headers["X-Nivus-History-Range-End"] = page["range_end"]
+        if page["snapshot_until"] is not None:
+            response.headers["X-Nivus-History-Snapshot-Until"] = page["snapshot_until"]
+        return page["batches"]
     except ValueError as error:
         raise HTTPException(status_code=422, detail=str(error))
 
