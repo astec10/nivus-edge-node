@@ -5,11 +5,11 @@
 
 ## Estado do GitHub
 
-Três PRs continuam abertos e não mesclados. As verificações descritas abaixo são as dos heads consultados em 2026-11-21.
+Três PRs continuam abertos e não mesclados. Os quatro workflows de código foram verificados em cada head indicado; o commit de checkpoint documental mais recente tem somente o Knowledge index ainda em execução no momento deste registro.
 
 | PR | Head | Situação | CI hospedada |
 | --- | --- | --- | --- |
-| [#93 — controlador de tarefas GitHub no notebook](https://github.com/astec10/nivus-edge-node/pull/93) | `ba3e723` | Aberto, mergeável, sem merge | Quatro workflows passaram |
+| [#93 — controlador de tarefas GitHub no notebook](https://github.com/astec10/nivus-edge-node/pull/93) | `87fee5f` | Aberto, mergeável, sem merge | Quatro workflows passaram em `ba3e723`; Knowledge index do checkpoint em `87fee5f` pendente |
 | [#96 — lista administrativa de nós](https://github.com/astec10/nivus-edge-node/pull/96) | `2646e83` | Aberto, mergeável, sem merge | Quatro workflows passaram |
 | [#97 — ingestão de telemetria por nó](https://github.com/astec10/nivus-edge-node/pull/97) | `bb28f29` | Aberto, mergeável, sem merge | Quatro workflows passaram |
 
