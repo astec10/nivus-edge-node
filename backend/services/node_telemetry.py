@@ -238,22 +238,35 @@ def process_node_telemetry(
         conn.close()
 
 
-def get_node_telemetry_history(node_id: str, since=None, limit: int = 120, now=None) -> list[dict]:
+MAX_TELEMETRY_HISTORY_OFFSET = TELEMETRY_RETENTION_SECONDS // TELEMETRY_MIN_INTERVAL_SECONDS
+
+
+def get_node_telemetry_history_page(
+    node_id: str,
+    since=None,
+    limit: int = 120,
+    offset: int = 0,
+    snapshot_until=None,
+    now=None,
+) -> dict:
     if not isinstance(node_id, str) or len(node_id) != 32 or any(char not in "0123456789abcdef" for char in node_id):
         raise ValueError("Identificador de nó inválido.")
     if type(limit) is not int or not 1 <= limit <= 500:
         raise ValueError("O limite deve estar entre 1 e 500 amostras.")
-    retention_cutoff = _epoch(now) - TELEMETRY_RETENTION_SECONDS
+    if type(offset) is not int or not 0 <= offset <= MAX_TELEMETRY_HISTORY_OFFSET:
+        raise ValueError("O deslocamento do histórico está fora da faixa permitida.")
+
+    now_epoch = _epoch(now)
+    retention_cutoff = now_epoch - TELEMETRY_RETENTION_SECONDS
     received_after = max(_epoch(since), retention_cutoff) if since is not None else retention_cutoff
+    requested_snapshot = _epoch(snapshot_until) if snapshot_until is not None else None
+    received_before = min(requested_snapshot, now_epoch) if requested_snapshot is not None else now_epoch
+
     sql = (
         "WITH recent_batches AS ("
         "SELECT batch_id, node_id, schema_version, observed_at, received_at "
-        "FROM node_telemetry_batches WHERE node_id = ? AND received_at >= ?"
-    )
-    params = [node_id, received_after]
-    sql += " ORDER BY received_at DESC, batch_id DESC LIMIT ?) "
-    params.append(limit)
-    sql += (
+        "FROM node_telemetry_batches WHERE node_id = ? AND received_at >= ? AND received_at <= ? "
+        "ORDER BY received_at DESC, batch_id DESC LIMIT ? OFFSET ?) "
         "SELECT b.batch_id, b.node_id, b.schema_version, b.observed_at, b.received_at, "
         "s.metric, s.value, s.unit, s.quality FROM recent_batches b "
         "JOIN node_telemetry_samples s ON s.batch_id = b.batch_id "
@@ -262,14 +275,33 @@ def get_node_telemetry_history(node_id: str, since=None, limit: int = 120, now=N
 
     conn = get_db_connection()
     try:
-        # Keep the retention contract consistent even when this node has gone
-        # offline and no new telemetry batch arrives to trigger ingestion cleanup.
+        # Cleanup and page metadata share a transaction so count and rows use
+        # the same retention boundary, including when the node is offline.
         conn.execute("BEGIN IMMEDIATE")
         conn.execute(
             "DELETE FROM node_telemetry_batches WHERE received_at < ?",
             (retention_cutoff,),
         )
-        rows = conn.execute(sql, params).fetchall()
+        if received_after <= received_before:
+            count_row = conn.execute(
+                "SELECT COUNT(*) AS total FROM node_telemetry_batches "
+                "WHERE node_id = ? AND received_at >= ? AND received_at <= ?",
+                (node_id, received_after, received_before),
+            ).fetchone()
+            rows = conn.execute(
+                sql, (node_id, received_after, received_before, limit, offset)
+            ).fetchall()
+            latest_row = conn.execute(
+                "SELECT MAX(received_at) AS latest FROM node_telemetry_batches "
+                "WHERE node_id = ? AND received_at >= ? AND received_at <= ?",
+                (node_id, received_after, received_before),
+            ).fetchone()
+            total_batches = int(count_row["total"])
+            latest_received = latest_row["latest"]
+        else:
+            total_batches = 0
+            latest_received = None
+            rows = []
         conn.commit()
     except Exception:
         conn.rollback()
@@ -299,4 +331,24 @@ def get_node_telemetry_history(node_id: str, since=None, limit: int = 120, now=N
             "unit": row["unit"],
             "quality": row["quality"],
         })
-    return list(batches.values())
+
+    ordered_batches = list(batches.values())
+    # Fix the upper bound at the server's query time, even when the range is empty.
+    # Clients reuse this value on later pages so newly ingested batches do not shift offsets.
+    snapshot_epoch = received_before
+    return {
+        "batches": ordered_batches,
+        "total_batches": total_batches,
+        "offset": offset,
+        "limit": limit,
+        "has_more": offset + len(ordered_batches) < total_batches,
+        "range_start": ordered_batches[0]["received_at"] if ordered_batches else None,
+        "range_end": ordered_batches[-1]["received_at"] if ordered_batches else None,
+        "snapshot_until": _iso(float(snapshot_epoch)) if snapshot_epoch is not None else None,
+    }
+
+
+def get_node_telemetry_history(node_id: str, since=None, limit: int = 120, now=None) -> list[dict]:
+    return get_node_telemetry_history_page(
+        node_id, since=since, limit=limit, offset=0, now=now
+    )["batches"]
