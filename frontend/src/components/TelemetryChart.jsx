@@ -124,6 +124,13 @@ function ChartTooltip({ active, payload, series, rows, mode }) {
     </div>
   );
 }
+function getUnitTitle(unit, mode) {
+  if (unit === '°C') return 'Temperatura';
+  if (unit.trim() === 'W') return 'Potência estimada';
+  if (mode === 'battery') return 'Bateria do nó';
+  return 'Uso';
+}
+
 function renderSeries(chartType, series) {
   const props = {
     key: series.key,
@@ -325,7 +332,7 @@ export default function TelemetryChart({ rows, mode, setMode, range, setRange })
         ) : (
           units.map((unit) => {
             const unitSeries = selectedSeries.filter((series) => series.unit === unit);
-            const title = unit === '°C' ? 'Temperatura' : unit === '%' ? 'Uso' : 'Potência estimada';
+            const title = getUnitTitle(unit, mode);
             const unitHasValues = unitSeries.some(({ key }) => summaries[key].count > 0);
 
             if (unitSeries.length === 0) return null;
