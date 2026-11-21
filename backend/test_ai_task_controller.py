@@ -512,6 +512,28 @@ class AITaskControllerTests(unittest.TestCase):
             ("GET", "/repos/astec10/nivus-edge-node", None),
         )
 
+    def test_poll_clears_queue_when_repository_visibility_cannot_be_verified(self):
+        self.configure_enabled()
+        ai_task_controller._set_state(
+            state="online",
+            tasks=[{"number": 10, "title": "Previously public task"}],
+        )
+        with patch.object(
+            ai_task_controller,
+            "_github_request",
+            side_effect=ai_task_controller.TaskControllerError(
+                "github_unreachable", "offline", 503
+            ),
+        ) as request:
+            status = ai_task_controller.poll_once()
+
+        self.assertEqual(status["state"], "degraded")
+        self.assertEqual(status["last_error_code"], "repository_visibility_unverified")
+        self.assertEqual(status["tasks"], [])
+        request.assert_called_once_with(
+            "GET", "/repos/astec10/nivus-edge-node", None
+        )
+
     def test_poll_fails_closed_when_repository_is_private(self):
         self.configure_enabled()
         ai_task_controller._set_state(

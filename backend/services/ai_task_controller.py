@@ -275,7 +275,13 @@ def _require_public_repository(repository: str) -> None:
                 "O repositório precisa existir e ser público para este controlador.",
                 422,
             ) from None
-        raise
+        if error.code == "repository_visibility_unverified":
+            raise
+        raise TaskControllerError(
+            "repository_visibility_unverified",
+            "Não foi possível confirmar que o repositório continua público.",
+            error.http_status,
+        ) from None
     if not isinstance(details, dict) or details.get("private") is not False:
         raise TaskControllerError(
             "repository_not_public",
