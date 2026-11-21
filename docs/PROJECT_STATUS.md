@@ -1,5 +1,5 @@
 # Estado do projeto Nivus
-Atualizado: 2026-11-20 (último relato do operador: release `ecca6ad` ativa, sistema normal e aba Provedores de IA visível; sem sondagem remota nesta atualização)
+Atualizado: 2026-11-21 (sondagem SSH somente leitura; release `ecca6ad` confirmada no host)
 Licença: AGPL-3.0-only
 ## Resumo verificado
 O projeto tem API modular FastAPI, autenticação por senha/JWT, telemetria MQTT, SQLite persistente, dashboard React e uma stack Docker Compose paralela em operação no notebook de teste. O alvo Ubuntu Server minimal x86_64 continua em validação; não há certificação para qualquer computador.
@@ -19,7 +19,15 @@ O PR #45 define três fontes de provedores distintos (a.ntp.br, time.google.com,
 O PR #46 coleta a bateria interna do nó por psutil no agente de telemetria do host. O cartão e o gráfico mostram N/D quando o sistema não expõe leitura. Esse valor não é a bateria de celular nem a do inversor e não controla o relé.
 - O atualizador está em `deploy/update.sh`; exige clone Git limpo e sudo, cria backup consistente do SQLite, constrói imagens sequencialmente e preserva a release anterior para rollback. Em 17/11/2026, a release `fff64a68f252f0b1290576e30b39ed78fbc15a7a` foi instalada; a saída confirmou builds da API/dashboard, backup consistente, reinício dos serviços, health HTTPS 200 e API sem token 401. Depois o operador informou a release `f896de8` e a promoção para HTTPS 443; isso não foi sondado nesta revisão.
 ## Estado do notebook de teste
-Histórico: em 17/11/2026, o operador informou a instalação da release `f896de86d0dd02927e60ae86d46f528482b59ff8` e promoção do painel para HTTPS padrão. Em 20/11, informou que `ecca6ad` está ativa, o sistema funciona normalmente e a aba Provedores de IA está visível. Esse relato confirma a interface segundo o operador, não uma sondagem remota, reboot validado ou inferência real de modelo.
+Histórico: em 17/11/2026, o operador informou a instalação da release `f896de86d0dd02927e60ae86d46f528482b59ff8` e promoção do painel para HTTPS padrão. Em 20/11, informou que `ecca6ad` estava ativa e que a aba Provedores de IA era visível.
+
+Sondagem SSH somente leitura em 21/11/2026, 14:09 UTC:
+- O link `/opt/nivus-compose/current` resolve para a release `20261121T010026Z-ecca6adde473593d91e23255bf64f397c890be36`; as imagens dos containers também contêm o identificador `ecca6adde473`.
+- Os containers API, worker, web e Mosquitto estavam ativos; a API estava saudável e API/worker tinham zero reinícios no momento da leitura.
+- Em loopback, os health checks em 443 e 8443 responderam HTTP 200 e `/api/telemetry` sem token retornou 401. O `curl` de diagnóstico registrou erro de verificação TLS 20 e usou `-k`; portanto, isso confirma resposta HTTPS e autenticação, mas não cadeia confiável para navegador.
+- O Tailscale estava conectado no notebook, mas `tailscale serve status` informava que Serve não estava configurado; o celular estava offline. A publicação MagicDNS e o login pelo celular continuam pendentes.
+- Esta sondagem não alterou serviços nem configurações. Não comprova reboot, inferência real de modelo nem validação física adicional.
+
 Os backups de cada implantação permanecem no próprio host. Para rollback, use somente o backup indicado pela saída da atualização correspondente; não associe um backup antigo a uma release diferente.
 ## Melhoria térmica e gráficos
 O PR #20 foi integrado ao main e aplicado no notebook. A build confirmou os componentes API/web e a migração SQLite; a saída de implantação e a leitura pós-reboot confirmaram coleta contínua com origem térmica coretemp. Valores reais não são publicados. Placa-mãe, GPU e hotspot continuam dependentes dos sensores expostos pelo sistema e driver do equipamento.
