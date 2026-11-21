@@ -44,7 +44,7 @@ A [tentativa 1 do run #7](https://github.com/astec10/nivus-edge-node/actions/run
 
 ## Próximo marco
 
-O controlador notebook está implementado no [PR #93](https://github.com/astec10/nivus-edge-node/pull/93), aberto para revisão e sem status de rascunho. O código funcional passou nos quatro workflows no head `9806601`. A última verificação do head documental anterior mostrou três workflows concluídos e Ubuntu VM validation em andamento; esta atualização aciona nova CI. Ainda sem merge, instalação ou validação no host; a dashboard instalada não tem confirmação de execução desse painel. O PR #16 da Issue #6 continua em rascunho para revisão humana; seus checks hospedados passaram. Nenhuma nova chamada de modelo foi feita neste trabalho. A CI hospedada não certifica hardware, conexão pela ONU ou reboot do host.
+O controlador notebook está implementado no [PR #93](https://github.com/astec10/nivus-edge-node/pull/93), aberto para revisão e sem status de rascunho. O código funcional passou nos quatro workflows no head `9806601`. A sincronização documental anterior, head `6909decef30150fe540846afc7c24a4ba32fd887`, também passou nos quatro workflows. Ainda sem merge, instalação ou validação no host; a dashboard instalada não tem confirmação de execução desse painel. O PR #16 da Issue #6 continua em rascunho para revisão humana; seus checks hospedados passaram. Nenhuma nova chamada de modelo foi feita neste trabalho. A CI hospedada não certifica hardware, conexão pela ONU ou reboot do host.
 
 Issues e GitHub Actions são o estado durável e o executor principal; nenhuma máquina do operador precisa ficar ligada. O notebook CCE é suporte opcional para análise e relatórios, não um runner self-hosted para um repositório público.
 
