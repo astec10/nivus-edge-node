@@ -119,6 +119,12 @@ def _get_token(row=None) -> str:
 
 
 def update_settings(payload, actor: str) -> dict:
+    # Serialize settings checks/changes with explicit issue authorization.
+    with _authorize_lock:
+        return _update_settings_locked(payload, actor)
+
+
+def _update_settings_locked(payload, actor: str) -> dict:
     row = _settings_row()
     repository = payload.repository.strip()
     if not _REPOSITORY_PATTERN.fullmatch(repository):
@@ -244,6 +250,12 @@ def _github_request(method: str, path: str, token: str, payload: dict | None = N
 
 
 def test_connection(actor: str) -> dict:
+    # Serialize settings checks/changes with explicit issue authorization.
+    with _authorize_lock:
+        return _test_connection_locked(actor)
+
+
+def _test_connection_locked(actor: str) -> dict:
     row = _settings_row()
     repository = row["repository"]
     try:
@@ -283,6 +295,12 @@ def test_connection(actor: str) -> dict:
 
 
 def set_enabled(enabled: bool, actor: str) -> dict:
+    # Serialize settings checks/changes with explicit issue authorization.
+    with _authorize_lock:
+        return _set_enabled_locked(enabled, actor)
+
+
+def _set_enabled_locked(enabled: bool, actor: str) -> dict:
     row = _settings_row()
     if enabled and not row["credential_ciphertext"]:
         raise TaskControllerError(

@@ -1,4 +1,5 @@
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -181,6 +182,58 @@ class AITaskControllerTests(unittest.TestCase):
             ):
                 ai_task_controller.authorize_issue(10, False, "admin")
         request.assert_not_called()
+
+    def test_disable_waits_for_in_flight_authorization(self):
+        self.configure_enabled()
+        issue_read_started = threading.Event()
+        release_issue_read = threading.Event()
+        disable_started = threading.Event()
+        disable_finished = threading.Event()
+        order = []
+        order_lock = threading.Lock()
+
+        def request(method, path, _token, payload=None):
+            if method == "GET":
+                issue_read_started.set()
+                if not release_issue_read.wait(timeout=3):
+                    raise RuntimeError("test timed out waiting to release the issue read")
+                return issue_payload()
+            if method == "POST":
+                with order_lock:
+                    order.append("authorized")
+                return {"labels": ["ai:queued", "ai:ready"]}
+            raise AssertionError(f"Unexpected GitHub method: {method}")
+
+        def disable_controller():
+            disable_started.set()
+            ai_task_controller.set_enabled(False, "admin")
+            with order_lock:
+                order.append("disabled")
+            disable_finished.set()
+
+        with patch.object(ai_task_controller, "_github_request", side_effect=request):
+            authorizer = threading.Thread(
+                target=ai_task_controller.authorize_issue,
+                args=(10, True, "admin"),
+            )
+            authorizer.start()
+            self.assertTrue(issue_read_started.wait(timeout=2))
+
+            disabler = threading.Thread(target=disable_controller)
+            disabler.start()
+            self.assertTrue(disable_started.wait(timeout=2))
+            try:
+                disabled_before_authorization_finished = disable_finished.wait(timeout=0.25)
+            finally:
+                release_issue_read.set()
+                authorizer.join(timeout=3)
+                disabler.join(timeout=3)
+
+        self.assertFalse(authorizer.is_alive())
+        self.assertFalse(disabler.is_alive())
+        self.assertFalse(disabled_before_authorization_finished)
+        self.assertEqual(order, ["authorized", "disabled"])
+        self.assertFalse(ai_task_controller.get_config()["enabled"])
 
     def test_authorization_adds_one_label_and_repeat_never_posts_again(self):
         self.configure_enabled()
