@@ -39,6 +39,13 @@ QUALITY_VALUES = frozenset({"measured", "estimated", "unavailable"})
 def _epoch(value=None) -> float:
     if value is None:
         return time.time()
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(
+                value[:-1] + "+00:00" if value.endswith("Z") else value
+            )
+        except ValueError:
+            raise ValueError("Horário de telemetria inválido.") from None
     if isinstance(value, datetime):
         if value.tzinfo is None or value.utcoffset() is None:
             raise ValueError("Use um horário de origem com fuso horário.")
