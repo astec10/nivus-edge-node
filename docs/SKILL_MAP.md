@@ -18,7 +18,9 @@ As fontes destas skills ficam em codex-skills/ para revisão e distribuição pe
 | nivus-local-ai-knowledge | PDFs, busca local e inferência | 4 | Organizar biblioteca, indexar fontes ou medir IA local |
 | nivus-task-orchestration | Fila e execução de tarefas entre nós | 5 | Distribuir processamento com leases, limites e resultados verificáveis |
 | nivus-ai-provider-connectors | Provedores externos, privacidade e quotas | 6 | Criar conectores comerciais opcionais |
-| nivus-security-review | Autenticação, autorização, segredos, dados e limites de rede | Transversal | Revisões e correções de segurança do Nivus |\n| nivus-release-validation | CI, instalação isolada, recuperação e hardware físico | Transversal | Gates de release e alegações de compatibilidade |\n| nivus-ai-dev-workflow | Intake GitHub Issues/Actions, worker Gemini, PR draft e aprovação humana | Processo de contribuição; fora do runtime do Nivus | Manter ou revisar o executor de desenvolvimento atual |
+| nivus-security-review | Autenticação, autorização, segredos, dados e limites de rede | Transversal | Revisões e correções de segurança do Nivus |
+| nivus-release-validation | CI, instalação isolada, recuperação e hardware físico | Transversal | Gates de release e alegações de compatibilidade |
+| nivus-ai-dev-workflow | Intake GitHub Issues/Actions, worker Gemini, PR draft e aprovação humana | Processo de contribuição; fora do runtime do Nivus | Manter ou revisar o executor de desenvolvimento atual |
 
 ## Análise de aderência
 
@@ -36,4 +38,5 @@ A skill `nivus-ai-dev-workflow` descreve o executor externo já versionado com G
 2. Valide frontmatter, nome e descrição. Mantenha descoberta automática; não defina invocação explícita sem pedido do operador.
 3. Instale a pasta no diretório de skills do Codex.
 4. Quando mudar a fonte, atualize a cópia instalada e confirme a próxima sessão do Codex.
-5. `scripts/validate_codex_skills.py` verifica frontmatter e presença no mapa durante a CI. A sincronização da cópia instalada em `~/.codex/skills` continua sendo uma etapa explícita do mantenedor.\n6. Antes de publicar alterações no repositório, atualize este mapa se cobertura ou limites mudarem.
+5. `scripts/validate_codex_skills.py` verifica frontmatter e presença no mapa durante a CI. A sincronização da cópia instalada em `~/.codex/skills` continua sendo uma etapa explícita do mantenedor.
+6. Antes de publicar alterações no repositório, atualize este mapa se cobertura ou limites mudarem.
