@@ -364,9 +364,11 @@ body {
 
 .telemetry-chart-canvas {
   width: 100%;
+  max-width: 100%;
   height: clamp(250px, 34vw, 370px);
   margin-top: 0.65rem;
   min-width: 0;
+  box-sizing: border-box;
 }
 
 .telemetry-chart-empty {
@@ -677,6 +679,15 @@ body {
 }
 
 @media (max-width: 640px) {
+  .telemetry-chart-panel {
+    width: 100%;
+    max-width: 100%;
+    padding: 0.75rem;
+  }
+
+  .telemetry-chart-canvas {
+    height: clamp(220px, 62vw, 300px);
+  }
   .connection-status {
     padding: 0.2rem 0.4rem;
   }

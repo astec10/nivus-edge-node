@@ -20,7 +20,7 @@ function getSparklinePoints(values) {
   const max = Math.max(...sampled);
   const span = max - min || 1;
   return sampled.map((value, index) => {
-    const x = 2 + (index / (numeric.length - 1)) * 116;
+    const x = 2 + (index / (sampled.length - 1)) * 116;
     const y = 26 - ((value - min) / span) * 22;
     return x.toFixed(1) + ',' + y.toFixed(1);
   }).join(' ');
