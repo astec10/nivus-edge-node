@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   NODE_HISTORY_QUERY_LIMIT,
+  getNodeTelemetryPageMetadata,
   getNodeTelemetryIndicators,
   getNodeTelemetryQueryParams,
   normalizeNodeTelemetryBatches,
@@ -62,12 +63,51 @@ test('bounds every request to 500 batches and calculates the selected range from
   const referenceNow = Date.parse('2026-11-21T12:00:00.000Z');
   assert.deepEqual(getNodeTelemetryQueryParams('1h', referenceNow), {
     limit: NODE_HISTORY_QUERY_LIMIT,
+    offset: 0,
     since: '2026-11-21T11:00:00.000Z',
   });
   assert.deepEqual(getNodeTelemetryQueryParams('14d', referenceNow), {
     limit: NODE_HISTORY_QUERY_LIMIT,
+    offset: 0,
     since: '2026-11-07T12:00:00.000Z',
   });
+  assert.equal(getNodeTelemetryQueryParams('14d', referenceNow, 500).offset, 500);
+  assert.deepEqual(
+    getNodeTelemetryQueryParams('14d', referenceNow, 500, '2026-11-21T11:59:30.000Z'),
+    {
+      limit: NODE_HISTORY_QUERY_LIMIT,
+      offset: 500,
+      since: '2026-11-07T12:00:00.000Z',
+      snapshot_until: '2026-11-21T11:59:30.000Z',
+    },
+  );
+});
+
+test('reads bounded history page metadata and handles older servers explicitly', () => {
+  const metadata = getNodeTelemetryPageMetadata({
+    'x-nivus-history-pagination': 'offset-v1',
+    'x-nivus-history-total-batches': '1200',
+    'x-nivus-history-offset': '500',
+    'x-nivus-history-limit': '500',
+    'x-nivus-history-has-more': 'true',
+    'x-nivus-history-range-start': '2026-11-14T00:00:00.000Z',
+    'x-nivus-history-range-end': '2026-11-18T12:00:00.000Z',
+    'x-nivus-history-snapshot-until': '2026-11-21T12:00:00.000Z',
+  }, 500);
+
+  assert.deepEqual(metadata, {
+    supported: true,
+    totalBatches: 1200,
+    offset: 500,
+    limit: 500,
+    hasMore: true,
+    rangeStart: '2026-11-14T00:00:00.000Z',
+    rangeEnd: '2026-11-18T12:00:00.000Z',
+    snapshotUntil: '2026-11-21T12:00:00.000Z',
+    fallbackCount: 500,
+  });
+  assert.equal(getNodeTelemetryPageMetadata({}, 500).supported, false);
+  assert.equal(getNodeTelemetryPageMetadata({}, 500).totalBatches, null);
 });
 
 test('summarizes only finite numeric telemetry values', () => {
