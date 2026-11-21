@@ -105,22 +105,33 @@ class NodeTelemetryTests(unittest.TestCase):
             self.ingest(0, observed_at=self.now + timedelta(seconds=1))
 
     def test_heartbeat_and_telemetry_share_sequence_replay_boundary(self):
-        self.ingest(0)
+        accepted = self.ingest(0)
         heartbeat = nodes.process_node_heartbeat(
             self.node["token"], self.node["session_id"], 1,
             "1.0.0", 1, ["telemetry.cpu"], now=self.now.timestamp() + 1,
         )
         self.assertEqual(heartbeat["status"], "ok")
+
+        # An exact retry stays idempotent even if a newer heartbeat advanced
+        # the shared sequence. A conflicting reuse of that old sequence is a replay.
+        duplicate = self.ingest(0, now=self.now + timedelta(seconds=2))
+        self.assertTrue(duplicate["duplicate"])
+        self.assertEqual(duplicate["received_at"], accepted["received_at"])
         with self.assertRaises(nodes.HeartbeatReplayError):
-            self.ingest(0, now=self.now + timedelta(seconds=2))
+            self.ingest(0, samples=self.samples(cpu=26.0), now=self.now + timedelta(seconds=2))
+        self.assertEqual(len(get_node_telemetry_history(self.node["node_id"])), 1)
 
     def test_history_is_per_node_chronological_and_reports_clock_skew(self):
         first = self.ingest(0, observed_at=self.now - timedelta(seconds=3), now=self.now)
-        second = self.ingest(1, observed_at=self.now + timedelta(seconds=2), now=self.now + timedelta(seconds=5))
+        second = self.ingest(
+            1,
+            observed_at=self.now + timedelta(seconds=32),
+            now=self.now + timedelta(seconds=TELEMETRY_MIN_INTERVAL_SECONDS),
+        )
         history = get_node_telemetry_history(self.node["node_id"], limit=2)
         self.assertEqual([item["received_at"] for item in history], [first["received_at"], second["received_at"]])
         self.assertEqual(history[0]["clock_skew_seconds"], 3.0)
-        self.assertEqual(history[1]["clock_skew_seconds"], 3.0)
+        self.assertEqual(history[1]["clock_skew_seconds"], -2.0)
         self.assertEqual(history[0]["samples"][0]["metric"], "cpu.utilization")
         self.assertNotIn("token", history[0])
         self.assertNotIn("session_id", history[0])
