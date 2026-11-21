@@ -191,6 +191,10 @@ export default function NodeTelemetryHistory({
               ? 'O período ou identificador foi rejeitado pela API.'
               : 'Falha de rede ao consultar o histórico. Tente atualizar novamente.';
       if (activeRequest.current === controller) {
+        if (statusCode === 401 || statusCode === 403) {
+          setResult({ key: '', batches: [], pageMetadata: null });
+          setLoadedAt(null);
+        }
         setError({ key: queryKey, message });
       }
     }).finally(() => {
