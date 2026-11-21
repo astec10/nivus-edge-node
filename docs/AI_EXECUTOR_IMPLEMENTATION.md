@@ -35,7 +35,7 @@ Este executor é infraestrutura de desenvolvimento do repositório. Não roda no
 
 O PR #16 continua em rascunho para revisão humana; os checks hospedados passaram. A proposta foi gerada, mas a abertura automática falhou naquela execução; `bec9573` corrigiu a leitura do branch e PR #53 acrescentou o guard de duplicação. Nenhuma nova chamada foi feita. Próximo marco: revisar o PR #16; depois, se necessário, autorizar uma nova issue pública/sintética para confirmar o ciclo automático, sem reutilizar a issue #6 enquanto o draft estiver aberto. Em paralelo, aplicar e conferir as mudanças de dashboard no notebook; CI hospedada não certifica hardware Intel/AMD nem sensores físicos.
 
-Issues e GitHub Actions são o estado durável e o executor principal; nenhuma máquina do operador precisa ficar ligada. O notebook CCE é suporte opcional para análise e relatórios, não um runner self-hosted para um repositório público.
+Issues e GitHub Actions são o estado durável e o executor principal; nenhuma máquina do operador precisa ficar ligada. O notebook CCE é suporte opcional: pode acelerar cálculos e análises locais com código confiável e entradas públicas/sintéticas, além de acompanhar progresso e reunir relatórios sanitizados. Ele não controla a fila nem hospeda o executor persistente. Código não confiável de Issues/PRs continua em runners GitHub-hosted efêmeros; não configure um runner self-hosted para este repositório público. Desligar, reiniciar ou desconectar o notebook não perde tarefas nem bloqueia os workflows.
 
 ## Referências externas
 
