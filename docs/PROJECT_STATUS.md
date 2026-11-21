@@ -26,6 +26,7 @@ Sondagem SSH somente leitura em 21/11/2026, 14:09 UTC:
 - Os containers API, worker, web e Mosquitto estavam ativos; a API estava saudável e API/worker tinham zero reinícios no momento da leitura.
 - Em loopback, os health checks em 443 e 8443 responderam HTTP 200 e `/api/telemetry` sem token retornou 401. O `curl` de diagnóstico registrou erro de verificação TLS 20 e usou `-k`; portanto, isso confirma resposta HTTPS e autenticação, mas não cadeia confiável para navegador.
 - O Tailscale estava conectado no notebook, mas `tailscale serve status` informava que Serve não estava configurado; o celular estava offline. A publicação MagicDNS e o login pelo celular continuam pendentes.
+- Uma consulta SQLite somente leitura à janela recente confirmou novas amostras de temperatura da CPU, com valores variáveis e origem `coretemp`; placa-mãe, GPU e hotspots não expuseram leituras neste notebook. Isso confirma a coleta no backend, mas não valida a atualização visual do gráfico.
 - Esta sondagem não alterou serviços nem configurações. Não comprova reboot, inferência real de modelo nem validação física adicional.
 
 Os backups de cada implantação permanecem no próprio host. Para rollback, use somente o backup indicado pela saída da atualização correspondente; não associe um backup antigo a uma release diferente.
