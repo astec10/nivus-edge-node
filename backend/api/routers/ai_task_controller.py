@@ -52,7 +52,7 @@ def save_controller_settings(
         raise HTTPException(status_code=503, detail=str(error)) from error
     except ValueError as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
-    logger.info("Configuração do controlador GitHub atualizada pelo administrador %s.", admin)
+    logger.info("Configuração do controlador GitHub atualizada.")
     return result
 
 
@@ -62,7 +62,7 @@ def test_connection(admin: str = Depends(get_current_admin)):
         result = ai_task_controller.test_connection(admin)
     except ai_task_controller.TaskControllerError as error:
         _raise_controller_error(error)
-    logger.info("Teste de conexão do controlador GitHub concluído pelo administrador %s.", admin)
+    logger.info("Teste de conexão do controlador GitHub concluído.")
     return result
 
 
@@ -83,9 +83,8 @@ def set_enabled(
     except ai_task_controller.TaskControllerError as error:
         _raise_controller_error(error)
     logger.info(
-        "Controlador GitHub %s pelo administrador %s.",
+        "Controlador GitHub %s.",
         "habilitado" if payload.enabled else "desabilitado",
-        admin,
     )
     return result
 
