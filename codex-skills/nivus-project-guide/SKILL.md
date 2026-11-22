@@ -5,26 +5,28 @@ description: "Orient work in the Nivus Edge Node repository using its current st
 
 # Nivus Project Guide
 
-Use this skill for project-level planning, status questions, architecture reviews, and work that crosses module boundaries.
+Use for project-level planning, status questions, architecture reviews, and changes that cross module boundaries.
 
 ## Start with current evidence
 - Locate the actual Nivus checkout or staging tree; do not assume a path from another session.
-- Read AGENTS.md, docs/AI_CONTEXT.md, docs/PROJECT_STATUS.md, docs/MODULE_MAP.md, docs/PROJECT_ROADMAP.md, docs/ARCHITECTURE.md, and docs/DECISIONS.md.
+- Start with `docs/AI_CONTEXT.md` and read the relevant parts of `docs/PROJECT_STATUS.md`.
+- Read `docs/MODULE_MAP.md` and `docs/PROJECT_ROADMAP.md` for cross-module or future-phase work. Read `docs/ARCHITECTURE.md` and `docs/DECISIONS.md` before changing shared contracts; do not load every reference document for a contained change.
 - Inspect the current code and GitHub branch before describing a change as present, published, installed, or tested.
 - Keep four states distinct: implemented in the tree, observed on the CCE U25, staged for review, and planned.
 
 ## Keep work modular
-- Assign a change to one functional owner from docs/MODULE_MAP.md.
+- Assign a change to one functional owner from the module map.
 - Identify inputs, outputs, dependencies, persistence, permissions, and failure behavior before integrating.
 - For CPU/APU, motherboard, or GPU sensor work, use `nivus-hardware-telemetry` to identify the driver/source and avoid treating a generic ACPI zone as a CPU sensor.
 - Avoid simultaneous edits to shared contracts such as backend/main.py, backend/api/schemas.py, backend/database.py, Compose, and MQTT ACLs.
 - Integrate small changes through reviewable commits and update status/roadmap documents when facts change.
 
 ## Preserve project decisions
-- Target Ubuntu Server minimal x86_64, but do not claim universal hardware support without the recorded compatibility evidence.
-- Current product is single-node; authenticated node identity, home automation, local AI, task federation, and commercial connectors are future roadmap capabilities unless the inspected code proves otherwise.
-- Current user authentication is password/JWT. USB and biometrics are not implemented.
+- Target Ubuntu Server minimal x86_64; do not claim universal hardware support without compatibility evidence.
+- The initial authenticated node registry and heartbeat exist. The provider registry and bounded inference runtime are implemented; the operator reports that release `ecca6ad` is active and the provider tab is visible. No real commercial inference is confirmed. Capability inventory, authenticated multi-node telemetry, task scheduling, home automation and local AI remain future or partially validated work unless inspected code proves otherwise.
+- User authentication currently uses password/JWT; USB and biometrics are not implemented.
 - Preserve AGPL-3.0-only and third-party notices. Do not publish local temp knowledge, credentials, real databases, or private household data.
-- Never claim a deploy or test passed without observable output. Do not treat a skill or roadmap entry as proof of implementation.
+- Never claim a deploy or test passed without observable output. A skill or roadmap entry is not proof of implementation.
 
-Use the operations skill for host installation/recovery, and use the relevant domain skill only for the module in scope.
+Use the operations skill for host installation/recovery and the relevant domain skill for the module in scope.
+
