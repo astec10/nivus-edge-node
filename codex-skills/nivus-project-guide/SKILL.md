@@ -23,7 +23,7 @@ Use for project-level planning, status questions, architecture reviews, and chan
 
 ## Preserve project decisions
 - Target Ubuntu Server minimal x86_64; do not claim universal hardware support without compatibility evidence.
-- The initial authenticated node registry and heartbeat exist. The provider registry and bounded inference runtime are implemented; the operator reports that release `ecca6ad` is active and the provider tab is visible. No real commercial inference is confirmed. Capability inventory, authenticated multi-node telemetry, task scheduling, home automation and local AI remain future or partially validated work unless inspected code proves otherwise.
+- The initial authenticated node registry and heartbeat exist. The provider registry and bounded inference runtime are implemented; the latest recorded read-only check reports notebook release `2dfcbc0c2029723e44ff507857c72e7e8b83dfa3`, and the operator reported the provider tab visible. This is historical evidence only; no real commercial inference is confirmed. Capability inventory, authenticated multi-node telemetry, task scheduling, home automation and local AI remain future or partially validated work unless inspected code proves otherwise.
 - User authentication currently uses password/JWT; USB and biometrics are not implemented.
 - Preserve AGPL-3.0-only and third-party notices. Do not publish local temp knowledge, credentials, real databases, or private household data.
 - Never claim a deploy or test passed without observable output. A skill or roadmap entry is not proof of implementation.
