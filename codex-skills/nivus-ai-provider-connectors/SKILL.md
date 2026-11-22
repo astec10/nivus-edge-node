@@ -5,7 +5,7 @@ description: "Review Nivus AI provider profiles and optional inference connector
 
 # Nivus AI Provider Connectors
 
-The administrative provider catalog and encrypted profile management were implemented by PR #72; the bounded inference runtime was connected by PR #82. The operator reports that release `ecca6ad` is active and the provider tab is visible on the test notebook. This does not confirm that a provider credential was saved or that a real inference was run. Verify current status and code before changing these claims.
+The administrative provider catalog and encrypted profile management were implemented by PR #72; the bounded inference runtime was connected by PR #82. The latest recorded read-only check reports notebook release `2dfcbc0c2029723e44ff507857c72e7e8b83dfa3`, and the operator reported seeing the provider tab. This is historical evidence, not a current host check, and it does not confirm saved credentials or a real inference. Verify current status and code before changing these claims.
 
 ## Privacy and credentials
 - Read `docs/AI_CONTEXT.md`, `docs/AI_PROVIDER_CONNECTORS.md`, the relevant provider adapter, and current official provider documentation.
