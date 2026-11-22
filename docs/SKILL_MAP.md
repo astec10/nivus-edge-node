@@ -18,7 +18,9 @@ As fontes destas skills ficam em codex-skills/ para revisão e distribuição pe
 | nivus-local-ai-knowledge | PDFs, busca local e inferência | 4 | Organizar biblioteca, indexar fontes ou medir IA local |
 | nivus-task-orchestration | Fila e execução de tarefas entre nós | 5 | Distribuir processamento com leases, limites e resultados verificáveis |
 | nivus-ai-provider-connectors | Provedores externos, privacidade e quotas | 6 | Criar conectores comerciais opcionais |
-| nivus-ai-dev-workflow | Orquestração externa de tarefas de desenvolvimento | Processo de contribuição; fora do runtime do Nivus | Planejar automação Discord/Jira/GitHub, roteamento de modelos e PRs com aprovação humana |
+| nivus-security-review | Autenticação, autorização, segredos, dados e limites de rede | Transversal | Revisões e correções de segurança do Nivus |
+| nivus-release-validation | CI, instalação isolada, recuperação e hardware físico | Transversal | Gates de release e alegações de compatibilidade |
+| nivus-ai-dev-workflow | Intake GitHub Issues/Actions, worker Gemini, PR draft e aprovação humana | Processo de contribuição; fora do runtime do Nivus | Manter ou revisar o executor de desenvolvimento atual |
 
 ## Análise de aderência
 
@@ -28,7 +30,7 @@ A divisão reduz conflito de edição: cada skill orienta uma fronteira funciona
 
 `nivus-hardware-telemetry` foi acrescentada porque a cobertura anterior não distinguia sensores genéricos ACPI de temperaturas de pacote/core. No CCE U25, isso fazia o painel gravar 29,8 °C de `acpitz` apesar do driver `coretemp` expor a temperatura real do pacote. A skill orienta como classificar leituras pelo driver/label, manter valores ausentes como N/A e validar cobertura sem inventar medições.
 
-A skill `nivus-ai-dev-workflow` descreve uma ferramenta de produtividade para desenvolver o repositório. Ela não propõe instalar Hermes, OmniRoute, Jira ou Discord no computador de borda, nem altera as fases do produto. O fluxo requer integração e configuração explícitas; mantenha contas, quotas e termos dos provedores separados e preserve PR, CI e aprovação humana antes de produção.
+A skill `nivus-ai-dev-workflow` descreve o executor externo já versionado com GitHub Issues/Actions, autorização explícita por tarefa, Gemini e PR em rascunho. Discord, Jira, Hermes e OmniRoute são referências opcionais, não integrações ativas do produto.
 
 ## Instalação e manutenção
 
@@ -36,4 +38,6 @@ A skill `nivus-ai-dev-workflow` descreve uma ferramenta de produtividade para de
 2. Valide frontmatter, nome e descrição. Mantenha descoberta automática; não defina invocação explícita sem pedido do operador.
 3. Instale a pasta no diretório de skills do Codex.
 4. Quando mudar a fonte, atualize a cópia instalada e confirme a próxima sessão do Codex.
-5. Antes de publicar alterações no repositório, atualize este mapa se cobertura ou limites mudarem.
+5. `scripts/validate_codex_skills.py` verifica frontmatter e presença no mapa durante a CI. A sincronização da cópia instalada em `~/.codex/skills` continua sendo uma etapa explícita do mantenedor.
+6. Antes de publicar alterações no repositório, atualize este mapa se cobertura ou limites mudarem.
+
