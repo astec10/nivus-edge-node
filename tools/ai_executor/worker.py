@@ -7,6 +7,7 @@ import json
 import os
 import stat
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -131,7 +132,7 @@ def _build_repository_context(repo_root: Path, allowed_paths: list[str]) -> tupl
 
 def _apply_proposal(repo_root: Path, proposal: Any, allowed_paths: list[str], exists_by_path: dict[str, bool]) -> list[str]:
     allowed = set(allowed_paths)
-    prepared: list[tuple[str, Path, Path, str, int]] = []
+    prepared: list[tuple[str, Path, Path, str, int, bytes | None]] = []
     for item in proposal.changes:
         if item.path not in allowed:
             raise WorkerError("proposal_path_outside_allowlist")
@@ -150,31 +151,66 @@ def _apply_proposal(repo_root: Path, proposal: Any, allowed_paths: list[str], ex
         if temporary.exists() or temporary.is_symlink():
             raise WorkerError("temporary_output_path_exists")
         mode = stat.S_IMODE(target.stat().st_mode) if exists_now else 0o644
-        prepared.append((item.path, target, temporary, item.content, mode))
+        try:
+            original_content = target.read_bytes() if exists_now else None
+        except OSError:
+            raise WorkerError("proposal_read_failed") from None
+        prepared.append((item.path, target, temporary, item.content, mode, original_content))
 
     if not prepared:
         raise WorkerError("proposal_has_no_changes")
 
     staged: list[Path] = []
+    applied: list[tuple[Path, bytes | None, int]] = []
     try:
-        for _path, _target, temporary, content, mode in prepared:
+        for _path, _target, temporary, content, mode, _original in prepared:
             descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, mode)
             staged.append(temporary)
-            with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as stream:
+            with os.fdopen(descriptor, "w", encoding="utf-8", newline="\\n") as stream:
                 stream.write(content)
             os.chmod(temporary, mode)
-        for _path, target, temporary, _content, _mode in prepared:
+        for _path, target, temporary, _content, mode, original_content in prepared:
             os.replace(temporary, target)
+            applied.append((target, original_content, mode))
     except OSError:
         for temporary in staged:
             try:
                 temporary.unlink(missing_ok=True)
             except OSError:
                 pass
+
+        rollback_failed = False
+        for target, original_content, mode in reversed(applied):
+            if original_content is None:
+                try:
+                    target.unlink(missing_ok=True)
+                except OSError:
+                    rollback_failed = True
+                continue
+            rollback_path: Path | None = None
+            try:
+                descriptor, rollback_name = tempfile.mkstemp(
+                    prefix=f".{target.name}.nivus-ai-rollback-",
+                    dir=target.parent,
+                )
+                rollback_path = Path(rollback_name)
+                with os.fdopen(descriptor, "wb") as stream:
+                    stream.write(original_content)
+                os.chmod(rollback_path, mode)
+                os.replace(rollback_path, target)
+            except OSError:
+                rollback_failed = True
+                if rollback_path is not None:
+                    try:
+                        rollback_path.unlink(missing_ok=True)
+                    except OSError:
+                        pass
+
+        if rollback_failed:
+            raise WorkerError("proposal_rollback_failed") from None
         raise WorkerError("proposal_write_failed") from None
 
-    return [path for path, _target, _temporary, _content, _mode in prepared]
-
+    return [path for path, _target, _temporary, _content, _mode, _original in prepared]
 
 def _safe_error_code(exc: Exception) -> str:
     """Return stable codes only; never echo filesystem or provider error details."""
