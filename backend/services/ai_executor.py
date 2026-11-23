@@ -970,16 +970,16 @@ def execute_parallel(payload, actor: str) -> dict:
         success_count = sum(1 for item in results if item["status"] == "succeeded")
         failure_count = len(results) - success_count
         return {
-        "request_id": str(payload.request_id),
-        "task_id": payload.task_id,
-        "status": (
-            "succeeded" if failure_count == 0
-            else "partial" if success_count > 0
-            else "failed"
-        ),
-        "results": results,
-        "success_count": success_count,
-        "failure_count": failure_count,
+            "request_id": str(payload.request_id),
+            "task_id": payload.task_id,
+            "status": (
+                "succeeded" if failure_count == 0
+                else "partial" if success_count > 0
+                else "failed"
+            ),
+            "results": results,
+            "success_count": success_count,
+            "failure_count": failure_count,
             "note": "Chamadas paralelas sem retry ou fallback; cada provedor usa o mesmo teto agregado de tarefa.",
         }
     finally:
