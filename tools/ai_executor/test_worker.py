@@ -13,7 +13,7 @@ from unittest.mock import patch
 from contextlib import redirect_stderr
 
 from scripts.validate_ai_task import runtime_minutes, validate
-from tools.ai_executor import gemini_client, worker
+from tools.ai_executor import openrouter_client, worker
 from tools.ai_executor.gemini_client import ProposedFileChange
 
 
@@ -129,7 +129,7 @@ class WorkerTests(unittest.TestCase):
             issue_file.write_text(json.dumps(issue_payload()), encoding="utf-8")
             usage_file = root / "usage.json"
             with patch.dict(os.environ, {"NIVUS_AI_BUDGET_MODE": "free-tier"}, clear=True):
-                with patch.object(gemini_client.urllib.request, "build_opener") as network:
+                with patch.object(openrouter_client.urllib.request, "build_opener") as network:
                     result = worker.run(issue_file, root, usage_file)
                 network.assert_not_called()
             self.assertEqual(result, 1)
@@ -148,8 +148,8 @@ class WorkerTests(unittest.TestCase):
                 self.last_usage_report = None
 
             def propose_changes(self, **_kwargs):
-                raise gemini_client.GeminiAPIError(
-                    "Gemini API returned HTTP 503",
+                raise openrouter_client.OpenRouterAPIError(
+                    "OpenRouter API returned HTTP 503",
                     error_code="provider_http_503",
                     status_code=503,
                 )
@@ -165,7 +165,7 @@ class WorkerTests(unittest.TestCase):
             issue_file.write_text(json.dumps(issue_payload()), encoding="utf-8")
             usage_file = root / "usage.json"
             stderr = io.StringIO()
-            with patch.object(worker, "GeminiClient", FailedClient), redirect_stderr(stderr):
+            with patch.object(worker, "OpenRouterClient", FailedClient), redirect_stderr(stderr):
                 result = worker.run(issue_file, root, usage_file)
 
             report = json.loads(usage_file.read_text(encoding="utf-8"))
