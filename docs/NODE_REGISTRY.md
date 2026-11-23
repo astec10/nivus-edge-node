@@ -1,13 +1,13 @@
 # Cadastro seguro de nós
 
-**Estado:** O cadastro/heartbeat do PR #66, a lista read-only do PR #96 e a ingestão/histórico API do PR #97 estão integrados à `main`. Os quatro workflows hospedados passaram. A interface gráfica de histórico está no PR #99; smoke TLS em dois dispositivos, reboot, revogação e backup/restore físico continuam pendentes.
+**Estado:** Cadastro/heartbeat (#66), lista read-only (#96), ingestão/histórico API (#97) e interface gráfica de histórico por nó (#99) estão integrados à `main`. Quatro workflows hospedados passaram após o merge #99 e novamente na `main` consultada. Smoke TLS em dois dispositivos, reboot, revogação e backup/restore físico continuam pendentes.
 **Issue:** [#65 concluída](https://github.com/astec10/nivus-edge-node/issues/65) pelo PR #66.
-**Próxima validação:** integrar a interface histórica do PR #99 e então executar smoke com dois dispositivos independentes, incluindo TLS confiável, reboot, revogação e backup/restore.
-**Situação do notebook:** o último update informado pelo operador antes desta sequência apontou a release `2dfcbc0c2029723e44ff507857c72e7e8b83dfa3`. PRs #96/#97 foram integrados à `main`, mas não há evidência de que tenham sido instalados no notebook.
+**Próxima validação:** executar smoke com dois dispositivos independentes, incluindo TLS confiável, amostras no histórico gráfico, reboot, revogação e backup/restore.
+**Situação do notebook (23/11):** checagem somente leitura via SSH confirmou a release `5a7ebd0b3e99895b4aa1c92461a0a89069cf6030`, serviço Compose ativo, health HTTPS local 200 e telemetria sem token 401. Portanto, PRs #96/#97/#99 estão instalados. Essa checagem não comprova reboot completo, TLS confiável ou operação com dois dispositivos físicos.
 
 **Implementação do PR #97:** a branch integrou ao agente e à API amostras versionadas de CPU, memória e disco, além de contrato para outras métricas. A API retém e pagina dados por nó; o agente não executa comandos.
 
-Este módulo estabelece identidade, pareamento, presença e revogação para os próximos passos multi-nó. A entrega inicial do PR #66 não agrega telemetria e não dá aos nós capacidade de executar ações uns nos outros. A ingestão autenticada e o histórico API por nó foram integrados pelo PR #97. A interface gráfica desse histórico está no PR #99; nós não executam ações uns nos outros.
+Este módulo estabelece identidade, pareamento, presença e revogação para os próximos passos multi-nó. A entrega inicial do PR #66 não agrega telemetria e não dá aos nós capacidade de executar ações uns nos outros. A ingestão autenticada e o histórico API por nó foram integrados pelo PR #97. A interface gráfica desse histórico foi integrada pelo PR #99; nós não executam ações uns nos outros.
 
 ## Limites da primeira entrega
 
@@ -151,6 +151,12 @@ O endpoint candidato `POST /api/nodes/telemetry` aceita token de nó no cabeçal
 
 O PR #97 foi integrado à `main` após quatro workflows hospedados aprovados: Dashboard/sensores, Ubuntu 22.04, CodeQL e índice. Os testes cobrem paginação por 14 dias, lacunas, picos nas bordas, expiração offline, snapshot estável e rejeição de offset inválido. Isso valida software no runner, não a coleta real de sensores, transporte TLS entre dispositivos ou armazenamento numa instalação do usuário. A resposta de aceite confirma armazenamento no Nó Master, não validade física do sensor nem uma ação de automação.
 
+## Histórico paginado — Issue #103 concluída
+
+A issue #103 foi encerrada após revisão do código de #97/#99. A consulta mantém páginas limitadas a 500 lotes e informa total, faixa, snapshot e cobertura; a interface distingue janela selecionada, lotes brutos, página e pontos exibidos, sem agregar amostras. Testes sintéticos de 14 dias cobrem lacuna, nó offline, expiração e picos nas bordas. Não é necessário abrir uma nova tarefa de runtime para esses critérios.
+
+A CI valida esses comportamentos com dados sintéticos; TLS, dois dispositivos físicos, reboot, revogação e backup/restore operacional permanecem validações separadas.
+
 ## Validação e limites observados
 
 Evidências disponíveis para PRs integrados:
@@ -162,11 +168,10 @@ Evidências disponíveis para PRs integrados:
 5. [ ] Parear e executar dois agentes em dispositivos independentes, incluindo reboot e revogação.
 6. [ ] Backup/restore com nós pareados precisa ser demonstrado operacionalmente.
 
-**Histórico de implantação relatado:** antes dos merges, o notebook estava na release `2dfcbc0c2029723e44ff507857c72e7e8b83dfa3`, com health HTTPS 200 e telemetria sem token 401. Esta sequência altera a `main`, não o notebook; não há evidência de implantação dos PRs #96/#97.
+**Histórico de implantação relatado:** em 23/11, a release ativa `5a7ebd0b3e99895b4aa1c92461a0a89069cf6030` e o health local foram confirmados por SSH; PRs #96/#97/#99 estão implantados. A sequência de testes físicos ainda está pendente.
 
 ## Próximas entregas separadas
 
-1. Integrar o PR #99 (histórico gráfico) à lista/API; então repetir os workflows hospedados na base atualizada.
-2. O PR #99 entrega a interface da issue #98; após sua integração, validar ausência, atraso, relógio divergente e erros sem enviar comandos remotos.
-3. Parear e executar dois agentes em dispositivos independentes; confirmar TLS, reboot, revogação e backup/restore com dados de nós.
+1. PR #99 integrou o histórico gráfico da issue #98; validar ausência, atraso, relógio divergente, erros e paginação no painel, sem enviar comandos remotos.
+2. Parear e executar dois agentes em dispositivos independentes; confirmar TLS confiável, coleta, reboot, revogação e backup/restore com dados de nós.
 4. Só após revisão separada, projetar atualização de artefatos assinados com canário e rollback por nó.
