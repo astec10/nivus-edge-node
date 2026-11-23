@@ -1,6 +1,8 @@
 # Arquitetura da candidata
 
-Esta árvore descreve a implementação versionada do Nivus. O cadastro inicial, lista administrativa read-only e ingestão/histórico API multi-nó foram integrados pelos PRs #66, #96 e #97. A UI do histórico por nó está no PR #99, ainda em revisão. Os quatro workflows hospedados passaram; CI não comprova TLS ou operação em dispositivos reais. Os merges #96/#97 ainda não foram implantados no notebook.
+Esta árvore descreve a implementação versionada do Nivus. Cadastro inicial, lista administrativa read-only, ingestão/histórico API e UI de histórico por nó foram integrados pelos PRs #66, #96, #97 e #99. Quatro workflows hospedados passaram após o merge #99 e novamente na `main` consultada; a CI não comprova TLS ou operação em dispositivos reais. O notebook permanece na release `2dfcbc0c2029723e44ff507857c72e7e8b83dfa3`, sem evidência de implantação dos PRs #96/#97/#99.
+
+A issue #103 de cobertura do histórico foi encerrada: paginação limitada, metadados de cobertura, amostras preservadas sem agregação e testes sintéticos de 14 dias já fazem parte do código integrado. Temperatura e bateria interna por nó seguem planejadas na issue #102, com a cadeia #112 (contrato v2 com origem) → #113 (coleta Linux) → #114 (visão por nó e unidades separadas).
 
 ## Backend
 

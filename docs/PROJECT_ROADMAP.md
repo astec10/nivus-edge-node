@@ -54,16 +54,20 @@ CI aprovado comprova o fluxo no runner virtual Ubuntu, não em cada chipset ou p
 
 ### Fase 2 — Identidade e telemetria de vários nós
 
-**Estado: registro, lista administrativa e ingestão de telemetria integrados; histórico visual e operação multi-nó real pendentes.** PR #96 acrescentou a lista somente leitura de nós; PR #97 integrou envelope versionado, agente, armazenamento por nó, histórico API, paginação limitada e retenção de 14 dias. Os quatro workflows hospedados passaram na main depois da sequência de merges. Testes em runner não substituem TLS e smoke com dois dispositivos reais. Não há comandos remotos nem atualização coordenada.
+**Estado: registro, lista administrativa, ingestão de telemetria e histórico visual por nó integrados; operação multi-nó real pendente.** PR #96 acrescentou a lista somente leitura, PR #97 integrou envelope versionado, agente, armazenamento por nó, histórico API, paginação limitada e retenção de 14 dias, e PR #99 integrou o histórico gráfico. Quatro workflows hospedados passaram após o merge #99 (`ff80b01e339e5d74ed297cbd98875f89e9d29a39`) e novamente na `main` consultada (`5a7ebd0b3e99895b4aa1c92461a0a89069cf6030`). O notebook permanece na release `2dfcbc0c2029723e44ff507857c72e7e8b83dfa3`; esses merges não foram implantados. CI em runner não substitui TLS e smoke com dois dispositivos reais. Não há comandos remotos nem atualização coordenada.
 
 1. [x] Identidade criada pelo servidor e cadastro administrativo por código de uso único — PR #66.
 2. [x] Heartbeat autenticado, sequência contra replay e presença baseada no relógio do servidor — PR #66.
 3. [x] Implementar agente mínimo de pareamento/heartbeat (PR #69; CI hospedada aprovada).
 4. [ ] Testar pareamento e heartbeat em dois dispositivos reais, incluindo TLS confiável, reinício e revogação.
 5. [x] Versionar e receber envelopes de telemetria com autenticação, sequência/idempotência, limite por nó, qualidade, histórico limitado e retenção — PR #97.
-6. [ ] Exibir lista de nós e último contato — PR #96 integrado; histórico gráfico por nó — PR #99 em revisão.
+6. [x] Exibir lista de nós e último contato — PR #96; histórico gráfico por nó — PR #99, integrados à `main`.
 7. [ ] Tratar duplicatas, atraso, relógios incorretos, perda de rede, revogação e nós desconhecidos.
 8. [ ] Definir distribuição de releases assinadas: inventário de versão/capacidades, seleção dos nós elegíveis, canário seguido de ondas, health check, manutenção de dados e rollback independente por nó. Offline, baixa bateria ou recursos insuficientes devem adiar a atualização sem bloquear a frota.
+
+A issue #103 foi encerrada após revisão: paginação limitada, cobertura declarada, amostras brutas sem agregação e testes sintéticos de 14 dias já estão cobertos pelos PRs #97/#99. Não é uma tarefa adicional de runtime.
+
+A extensão térmica/bateria da issue #102 tem dependências próprias e ordenadas: #112 contrato/API v2 com origem e compatibilidade v1 → #113 coleta Linux identificada → #114 gráficos por nó com eixos separados por unidade. As três etapas ainda estão pendentes; testes sintéticos e CI não certificam sensores físicos.
 
 Critério de saída: dois dispositivos podem enviar telemetria autenticada; um nó desconectado não derruba os outros; credenciais podem ser revogadas; o painel identifica claramente dados ausentes ou antigos.
 
@@ -126,6 +130,6 @@ Critério de saída: limite financeiro não é ultrapassado silenciosamente; dad
 
 ## Sequência recomendada
 
-**Próximos trabalhos:** concluir o histórico gráfico por nó no PR #99; depois executar smoke TLS com dois dispositivos físicos, reboot, revogação e backup/restore com amostras. O notebook continua na release `2dfcbc0c2029723e44ff507857c72e7e8b83dfa3`; os merges #96/#97 não foram implantados. Reboot, instalação USB física, validação Intel/AMD e atualização assinada de frota continuam pendentes.
+**Próximos trabalhos:** validar em dois dispositivos físicos o caminho integrado: TLS confiável, coleta, painel por nó, reboot, revogação e backup/restore com amostras. O notebook continua na release `2dfcbc0c2029723e44ff507857c72e7e8b83dfa3`; PRs #96/#97/#99 não foram implantados. Em paralelo, a sequência térmica/bateria #112 → #113 → #114 permanece como próxima evolução de software, ainda não executada. Instalação USB física, validação Intel/AMD e atualização assinada de frota continuam pendentes.
 
 Para decidir a próxima entrega física da casa, veja “Decisões em aberto” em [`VISION.md`](VISION.md). Modelos exatos de roteador, switch PoE, câmeras, inversor, medidores e proteção elétrica ainda precisam ser escolhidos e conferidos com documentação de fabricante e profissionais habilitados.
