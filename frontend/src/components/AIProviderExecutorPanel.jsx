@@ -59,8 +59,11 @@ export default function AIProviderExecutorPanel({ token }) {
 
   useEffect(() => {
     const eligibleIds = new Set(eligibleProviders.map(item => item.id));
-    setProviderIds(current => current.filter(id => eligibleIds.has(id)));
-    if (!eligibleIds.has(providerId)) setProviderId(eligibleProviders[0]?.id || '');
+    setProviderIds(current => {
+      const next = current.filter(id => eligibleIds.has(id));
+      return next.length === current.length ? current : next;
+    });
+    setProviderId(current => eligibleIds.has(current) ? current : eligibleProviders[0]?.id || '');
   }, [dataClass, providers]);
 
   const toggleProvider = id => {
