@@ -131,6 +131,22 @@ class OpenRouterClientTests(unittest.TestCase):
         self.assertNotIn("sensitive", str(raised.exception))
         self.assertEqual(client.last_usage_report.error_code, "provider_http_429")
 
+    def test_json_error_envelope_is_sanitized_without_retry(self) -> None:
+        payload = json.dumps(
+            {"error": {"code": 429, "message": "sensitive provider response"}}
+        ).encode("utf-8")
+        opener = FakeOpener(FakeResponse(payload))
+        client = self._client(opener)
+
+        with self.assertRaises(openrouter_client.OpenRouterAPIError) as raised:
+            client.propose_changes(**self._proposal_arguments())
+
+        self.assertEqual(opener.calls, 1)
+        self.assertEqual(raised.exception.error_code, "provider_http_429")
+        self.assertNotIn("sensitive", str(raised.exception))
+        self.assertEqual(client.last_usage_report.error_code, "provider_http_429")
+        self.assertIsNone(client.last_usage_report.retry_after)
+
     def test_invalid_model_json_stops_without_retry(self) -> None:
         opener = FakeOpener(FakeResponse(valid_response("not valid JSON")))
         client = self._client(opener)
