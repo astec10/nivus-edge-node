@@ -131,3 +131,12 @@ O operador prefere substituir, no desenho futuro, a chave cliente persistente po
 Esta é uma direção de arquitetura, não implementação. O canal diagnóstico atualmente relatado continua usando credencial cliente persistente, não foi convertido e não foi auditado independentemente. Não alterar o SSH do notebook sem tarefa específica, backup e validação. A issue #130 permanece aberta.
 
 Referências: [OpenBSD sshd_config(5)](https://man.openbsd.org/sshd_config) e [OpenBSD ssh-keygen(1)](https://man.openbsd.org/ssh-keygen).
+
+
+## Política configurável de sessões SSH — requisito futuro — 2026-11-23
+
+O operador solicita que a Gestão de usuários permita configurar a duração máxima da credencial/sessão (padrão inicial de 2 horas), a redução do prazo por nova sessão (15 minutos) e o intervalo de reset (24 horas). A janela fixa começando na primeira emissão e o bloqueio de nova emissão quando o prazo calculado chega a zero são propostas para implementação segura; confirmar antes de codificar. O cálculo e as faixas permitidas devem ser aplicados e auditados no servidor, com controle contra sessões paralelas.
+
+A interface deve permitir logout, revogação da credencial e encerramento de sessões remotas abertas. Revogação impede reautenticação e encerra também conexões existentes; o logout web precisa chamar esse mecanismo explicitamente. Logs de acesso detalhados ficam locais, persistentes e disponíveis para leitura somente a administradores autorizados, com retenção/rotação definidas. Registrar ator, nó, horário, sessão/certificado, ação, resultado, motivo e validade; não registrar chaves privadas, passphrases, tokens nem dados secretos. O servidor da API valida e autoriza, e mudanças de política também geram auditoria.
+
+Requisitos planejados, ainda sem implementação ou teste no notebook. Consulte a issue #130 para critérios e decisões pendentes.
