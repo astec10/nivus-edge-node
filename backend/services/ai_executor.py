@@ -383,6 +383,8 @@ def _request_body(
                 "data_collection": "deny",
                 "allow_fallbacks": False,
             }
+        if provider_type == "llama_cpp":
+            body["reasoning_effort"] = "none"
         return body
     if protocol == "anthropic":
         return {
