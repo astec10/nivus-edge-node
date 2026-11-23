@@ -30,6 +30,13 @@ Criar uma plataforma local-first, modular e econômica para monitorar nós x86_6
 
 Relato do operador em 23/11/2026: uma consulta de diagnóstico `status` respondeu pelo canal restrito. Uma tentativa independente nesta sessão não autenticou; disponibilidade e configuração atuais não estão verificadas. A existência do canal não autoriza conexão ou operação. Exija autorização específica por tarefa, valide identidade e chave de host e use somente operações explicitamente autorizadas. Não presuma shell, sudo, Docker, atualização ou deploy. Mantenha identificadores de conexão e credenciais fora do repositório. Direção futura preferida: chave cliente efêmera e certificado de usuário OpenSSH de curta duração por sessão Nivus autenticada/aprovada, vinculados ao usuário, nó e operações autorizadas. Ainda não implementado. Expirar um certificado impede novas autenticações após a validade, mas não encerra uma conexão já autenticada; logout, revogação e encerramento precisam de controles próprios. A issue #130 continua aberta para o desenho completo do canal.
 
+
+
+## Política configurável de sessões SSH — proposta do operador — 2026-11-23
+
+O operador solicita estes valores iniciais, editáveis por administrador em **Gestão de usuários**: duração máxima de 2 horas, redução de 15 minutos a cada nova emissão dentro do período e reset após 24 horas. A janela de 24 horas a partir da primeira emissão e a negação de nova emissão quando o prazo calculado chega a zero são propostas seguras a confirmar no desenho. Aplicar limites no servidor, auditar mudanças e evitar sessões paralelas que contornem a redução.
+
+A dashboard deve oferecer logout, revogação de credencial e encerramento de sessões remotas ativas. Revogar deve impedir novas autenticações e fechar a conexão aberta; logout web não fecha SSH automaticamente sem vínculo explícito. Os logs detalhados ficam persistidos localmente e disponíveis para leitura somente a administradores autorizados; registrar ator, nó, horário, sessão/identificador de certificado, ação, resultado, motivo e validade, mas nunca chave privada, token, passphrase ou conteúdo secreto. Definir retenção e rotação. Tudo acima é requisito de projeto, ainda não implementado.
 ## Regras invariáveis
 
 1. Preserve autenticação, isolamento, dados persistentes, backup e rollback.
