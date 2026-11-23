@@ -1,5 +1,6 @@
 {
   "0": [
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-node-registry",
     "doc-hardware-telemetry",
@@ -31,6 +32,7 @@
     "doc-project-status"
   ],
   "07": [
+    "doc-ai-provider-connectors",
     "doc-vision"
   ],
   "0700": [
@@ -39,6 +41,7 @@
   ],
   "1": [
     "doc-ai-context",
+    "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
@@ -87,6 +90,9 @@
   "1234": [
     "doc-ai-provider-connectors"
   ],
+  "127": [
+    "doc-ai-provider-connectors"
+  ],
   "13": [
     "doc-vision"
   ],
@@ -121,6 +127,7 @@
   ],
   "2": [
     "doc-ai-context",
+    "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
@@ -220,6 +227,7 @@
   ],
   "3": [
     "doc-ai-context",
+    "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
@@ -232,6 +240,7 @@
   ],
   "30": [
     "doc-ai-context",
+    "doc-ai-provider-connectors",
     "doc-ai-executor-implementation",
     "doc-module-map",
     "doc-node-registry",
@@ -700,6 +709,7 @@
   ],
   "acesso": [
     "doc-ai-context",
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
     "doc-project-status",
@@ -820,10 +830,14 @@
   "adding": [
     "local-inference-hardware-fit"
   ],
+  "adiado": [
+    "doc-ai-provider-connectors"
+  ],
   "adiar": [
     "doc-project-roadmap"
   ],
   "adiciona": [
+    "doc-ai-provider-connectors",
     "doc-ai-executor-implementation",
     "doc-module-map"
   ],
@@ -949,6 +963,7 @@
     "doc-node-registry"
   ],
   "agente": [
+    "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
@@ -999,6 +1014,7 @@
     "doc-node-registry"
   ],
   "aguarda": [
+    "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-module-map",
     "doc-project-status"
@@ -1606,6 +1622,7 @@
     "doc-vision"
   ],
   "arquitetura": [
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-project-status",
     "doc-vision"
@@ -1766,6 +1783,7 @@
     "doc-ai-executor-implementation"
   ],
   "ativo": [
+    "doc-ai-provider-connectors",
     "doc-node-registry",
     "doc-project-status"
   ],
@@ -2054,6 +2072,7 @@
     "multimodal-assistant-demo"
   ],
   "b": [
+    "doc-ai-provider-connectors",
     "doc-ai-module-workplan",
     "doc-project-roadmap"
   ],
@@ -2270,6 +2289,7 @@
     "doc-ai-provider-connectors"
   ],
   "blob": [
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "ref-multipaz-developer-website"
   ],
@@ -2287,6 +2307,7 @@
     "doc-vision"
   ],
   "bloquear": [
+    "doc-ai-provider-connectors",
     "doc-project-roadmap"
   ],
   "bloqueia": [
@@ -2467,9 +2488,6 @@
   "cadastra": [
     "doc-module-map"
   ],
-  "cadastrada": [
-    "doc-ai-provider-connectors"
-  ],
   "cadastrado": [
     "doc-ai-provider-connectors",
     "doc-project-status"
@@ -2510,6 +2528,7 @@
     "doc-hardware-telemetry"
   ],
   "camada": [
+    "doc-ai-provider-connectors",
     "doc-project-roadmap",
     "doc-vision"
   ],
@@ -2963,6 +2982,7 @@
     "doc-project-roadmap"
   ],
   "cloud": [
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-project-status"
   ],
@@ -3019,6 +3039,7 @@
     "doc-node-registry"
   ],
   "coleta": [
+    "doc-ai-provider-connectors",
     "doc-module-map",
     "doc-node-registry",
     "doc-hardware-telemetry",
@@ -3173,6 +3194,7 @@
     "nivus-mobile-battery-relay"
   ],
   "compara": [
+    "doc-ai-provider-connectors",
     "doc-video-research-index",
     "doc-node-registry"
   ],
@@ -3400,9 +3422,6 @@
   "conectividade": [
     "doc-vision"
   ],
-  "conector": [
-    "doc-ai-provider-connectors"
-  ],
   "conectores": [
     "doc-project-roadmap",
     "doc-vision"
@@ -3437,7 +3456,6 @@
     "doc-project-roadmap"
   ],
   "conferir": [
-    "doc-ai-provider-connectors",
     "doc-ai-executor-implementation",
     "doc-hardware-telemetry"
   ],
@@ -3564,6 +3582,7 @@
     "multimodal-assistant-demo"
   ],
   "confirme": [
+    "doc-ai-provider-connectors",
     "doc-ai-executor-implementation"
   ],
   "confirmed": [
@@ -3803,6 +3822,7 @@
   ],
   "continuam": [
     "doc-ai-context",
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-node-registry",
     "doc-project-status",
@@ -3877,6 +3897,7 @@
     "doc-node-registry"
   ],
   "controle": [
+    "doc-ai-provider-connectors",
     "doc-video-research-index",
     "doc-project-roadmap",
     "doc-vision"
@@ -4160,6 +4181,7 @@
     "video-q-yobcyc71a"
   ],
   "d": [
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
     "doc-node-registry",
@@ -4212,6 +4234,7 @@
     "ref-multipaz-developer-website"
   ],
   "dashboard": [
+    "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
@@ -4420,6 +4443,7 @@
   ],
   "depend": [
     "doc-ai-context",
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
     "doc-video-research-index",
@@ -4886,7 +4910,6 @@
   ],
   "dispon": [
     "doc-ai-context",
-    "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "doc-module-map",
@@ -5152,6 +5175,7 @@
     "doc-vision"
   ],
   "duplica": [
+    "doc-ai-provider-connectors",
     "doc-ai-executor-implementation"
   ],
   "duplicada": [
@@ -5335,6 +5359,9 @@
   ],
   "encerra": [
     "doc-node-registry"
+  ],
+  "encerrado": [
+    "doc-ai-provider-connectors"
   ],
   "encerrar": [
     "doc-ai-development-orchestration"
@@ -5557,6 +5584,7 @@
     "doc-vision"
   ],
   "escolher": [
+    "doc-ai-provider-connectors",
     "doc-ai-module-workplan",
     "doc-video-research-index",
     "doc-hardware-telemetry",
@@ -5598,8 +5626,10 @@
   "escrito": [
     "doc-ai-development-orchestration"
   ],
+  "escuta": [
+    "doc-ai-provider-connectors"
+  ],
   "espa": [
-    "doc-ai-provider-connectors",
     "doc-node-registry",
     "doc-project-roadmap",
     "doc-vision"
@@ -5808,6 +5838,7 @@
     "doc-vision"
   ],
   "etapas": [
+    "doc-ai-provider-connectors",
     "doc-ai-executor-implementation"
   ],
   "etc": [
@@ -5899,7 +5930,6 @@
     "doc-node-registry"
   ],
   "exclusivamente": [
-    "doc-ai-provider-connectors",
     "doc-ai-executor-implementation"
   ],
   "exclusivo": [
@@ -6317,6 +6347,9 @@
   "familiar": [
     "doc-vision"
   ],
+  "fan": [
+    "doc-ai-provider-connectors"
+  ],
   "far": [
     "doc-vision"
   ],
@@ -6446,6 +6479,7 @@
     "local-inference-hardware-fit"
   ],
   "fila": [
+    "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
@@ -6512,6 +6546,7 @@
     "doc-ai-development-orchestration"
   ],
   "fixo": [
+    "doc-ai-provider-connectors",
     "nivus-mobile-battery-relay"
   ],
   "fixture": [
@@ -6522,6 +6557,7 @@
     "ref-multipaz-developer-website"
   ],
   "flowchart": [
+    "doc-ai-provider-connectors",
     "doc-module-map"
   ],
   "fluxo": [
@@ -6535,6 +6571,7 @@
     "ref-multipaz-developer-website"
   ],
   "fluxos": [
+    "doc-ai-provider-connectors",
     "doc-vision"
   ],
   "foi": [
@@ -6577,6 +6614,7 @@
     "ref-multipaz-developer-website"
   ],
   "for": [
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "local-inference-hardware-fit",
@@ -6656,6 +6694,9 @@
   ],
   "fracos": [
     "doc-vision"
+  ],
+  "framework": [
+    "doc-ai-provider-connectors"
   ],
   "frase": [
     "doc-project-roadmap"
@@ -6758,12 +6799,15 @@
     "doc-project-roadmap"
   ],
   "g": [
+    "doc-ai-provider-connectors",
     "doc-vision"
   ],
   "garante": [
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration"
   ],
   "garantia": [
+    "doc-ai-provider-connectors",
     "doc-vision"
   ],
   "gargalo": [
@@ -6781,6 +6825,7 @@
     "ai-development-persistent-worker"
   ],
   "gateway": [
+    "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "ai-development-persistent-worker"
@@ -6846,6 +6891,7 @@
     "doc-project-roadmap"
   ],
   "geral": [
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-project-roadmap",
     "doc-vision",
@@ -6879,6 +6925,9 @@
     "doc-ai-provider-connectors",
     "doc-ai-executor-implementation",
     "doc-node-registry"
+  ],
+  "ggml": [
+    "doc-ai-provider-connectors"
   ],
   "gh": [
     "doc-ai-development-orchestration",
@@ -6947,6 +6996,7 @@
     "doc-vision"
   ],
   "gpu": [
+    "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-video-research-index",
     "doc-module-map",
@@ -7543,6 +7593,9 @@
   "implantada": [
     "doc-project-roadmap"
   ],
+  "implantado": [
+    "doc-ai-provider-connectors"
+  ],
   "implantados": [
     "doc-project-roadmap"
   ],
@@ -7902,7 +7955,6 @@
   ],
   "instalar": [
     "doc-ai-context",
-    "doc-ai-provider-connectors",
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision"
@@ -8403,9 +8455,13 @@
     "doc-node-registry"
   ],
   "lan": [
+    "doc-ai-provider-connectors",
     "doc-module-map",
     "doc-project-status",
     "doc-vision"
+  ],
+  "langgraph": [
+    "doc-ai-provider-connectors"
   ],
   "largura": [
     "doc-project-status"
@@ -8539,6 +8595,7 @@
     "doc-hardware-telemetry"
   ],
   "licen": [
+    "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
@@ -8592,7 +8649,6 @@
     "ref-multipaz-developer-website"
   ],
   "limitada": [
-    "doc-ai-provider-connectors",
     "doc-ai-executor-implementation",
     "doc-module-map",
     "doc-node-registry",
@@ -8606,6 +8662,7 @@
     "doc-ai-workflow"
   ],
   "limitado": [
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-module-map",
     "doc-node-registry",
@@ -8729,6 +8786,12 @@
   "listava": [
     "doc-hardware-telemetry"
   ],
+  "listener": [
+    "doc-ai-provider-connectors"
+  ],
+  "litellm": [
+    "doc-ai-provider-connectors"
+  ],
   "literalmente": [
     "doc-ai-development-orchestration"
   ],
@@ -8813,6 +8876,9 @@
     "doc-node-registry",
     "doc-project-roadmap"
   ],
+  "longo": [
+    "doc-ai-provider-connectors"
+  ],
   "loop": [
     "doc-ai-development-orchestration",
     "doc-project-status",
@@ -8835,6 +8901,7 @@
     "doc-project-status"
   ],
   "lr": [
+    "doc-ai-provider-connectors",
     "doc-module-map"
   ],
   "m": [
@@ -8973,6 +9040,7 @@
     "doc-module-map"
   ],
   "mapeia": [
+    "doc-ai-provider-connectors",
     "doc-ai-workflow"
   ],
   "marca": [
@@ -9021,6 +9089,7 @@
   ],
   "master": [
     "doc-ai-context",
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
     "doc-module-map",
@@ -9048,6 +9117,7 @@
   ],
   "md": [
     "doc-ai-context",
+    "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
@@ -9100,6 +9170,7 @@
     "doc-vision"
   ],
   "medir": [
+    "doc-ai-provider-connectors",
     "doc-project-roadmap",
     "doc-vision",
     "ref-multipaz-developer-website"
@@ -9177,6 +9248,7 @@
     "doc-project-roadmap"
   ],
   "mermaid": [
+    "doc-ai-provider-connectors",
     "doc-module-map"
   ],
   "mescla": [
@@ -9184,6 +9256,7 @@
     "doc-ai-module-workplan"
   ],
   "mesclado": [
+    "doc-ai-provider-connectors",
     "doc-ai-module-workplan",
     "doc-project-status"
   ],
@@ -9486,6 +9559,7 @@
   ],
   "multi": [
     "doc-ai-context",
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
@@ -10186,10 +10260,14 @@
     "doc-vision"
   ],
   "open": [
+    "doc-ai-provider-connectors",
     "doc-hardware-telemetry",
     "ai-development-persistent-worker"
   ],
   "openai": [
+    "doc-ai-provider-connectors"
+  ],
+  "openhands": [
     "doc-ai-provider-connectors"
   ],
   "openhardwaremonitor": [
@@ -10304,6 +10382,7 @@
     "doc-project-status"
   ],
   "org": [
+    "doc-ai-provider-connectors",
     "doc-hardware-telemetry"
   ],
   "organize": [
@@ -10369,6 +10448,9 @@
     "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
+  "out": [
+    "doc-ai-provider-connectors"
+  ],
   "outputs": [
     "networked-gpu-versus-task-federation"
   ],
@@ -10387,6 +10469,7 @@
     "doc-project-status"
   ],
   "outros": [
+    "doc-ai-provider-connectors",
     "doc-ai-module-workplan",
     "doc-node-registry",
     "doc-project-roadmap"
@@ -10451,6 +10534,7 @@
   ],
   "padr": [
     "doc-ai-context",
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
@@ -10470,6 +10554,9 @@
   ],
   "paginado": [
     "doc-project-status"
+  ],
+  "pago": [
+    "doc-ai-provider-connectors"
   ],
   "painel": [
     "doc-ai-context",
@@ -10531,6 +10618,7 @@
     "doc-ai-module-workplan"
   ],
   "paralelo": [
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
@@ -10826,7 +10914,6 @@
     "doc-project-status"
   ],
   "permanecer": [
-    "doc-ai-provider-connectors",
     "doc-ai-executor-implementation",
     "doc-vision"
   ],
@@ -10945,6 +11032,9 @@
   "pesquisa": [
     "doc-video-research-index",
     "doc-vision"
+  ],
+  "pesquisado": [
+    "doc-ai-provider-connectors"
   ],
   "pesquisas": [
     "doc-vision"
@@ -11249,6 +11339,7 @@
     "doc-ai-module-workplan"
   ],
   "precisaria": [
+    "doc-ai-provider-connectors",
     "ref-multipaz-developer-website"
   ],
   "preenche": [
@@ -11309,6 +11400,9 @@
     "doc-ai-context",
     "doc-project-status"
   ],
+  "preservado": [
+    "doc-ai-provider-connectors"
+  ],
   "preservando": [
     "doc-project-roadmap",
     "ref-multipaz-developer-website"
@@ -11348,6 +11442,7 @@
     "doc-vision"
   ],
   "primeiro": [
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
     "doc-video-research-index",
@@ -11382,11 +11477,11 @@
     "video-wgqdaqqto90"
   ],
   "privada": [
-    "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-vision"
   ],
   "privado": [
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-project-roadmap"
   ],
@@ -11529,6 +11624,7 @@
     "doc-project-status"
   ],
   "prop": [
+    "doc-ai-provider-connectors",
     "doc-module-map"
   ],
   "proposta": [
@@ -11645,6 +11741,9 @@
   "provocar": [
     "doc-project-status"
   ],
+  "proxy": [
+    "doc-ai-provider-connectors"
+  ],
   "prs": [
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
@@ -11663,7 +11762,6 @@
   ],
   "publica": [
     "doc-ai-context",
-    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-module-map",
     "doc-hardware-telemetry",
@@ -11773,6 +11871,7 @@
   ],
   "quando": [
     "doc-ai-context",
+    "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
@@ -11787,6 +11886,9 @@
   ],
   "quantiza": [
     "doc-video-research-index"
+  ],
+  "quantizados": [
+    "doc-ai-provider-connectors"
   ],
   "quantization": [
     "local-inference-hardware-fit",
@@ -11935,6 +12037,7 @@
   ],
   "readme": [
     "doc-ai-context",
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-project-status",
     "doc-project-roadmap",
@@ -12511,6 +12614,7 @@
   ],
   "requisito": [
     "doc-ai-context",
+    "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-project-status",
     "doc-vision"
@@ -12666,6 +12770,9 @@
     "doc-ai-module-workplan",
     "doc-project-roadmap"
   ],
+  "resume": [
+    "doc-ai-provider-connectors"
+  ],
   "resumo": [
     "doc-ai-context",
     "doc-project-status"
@@ -12684,6 +12791,7 @@
   ],
   "reten": [
     "doc-ai-context",
+    "doc-ai-provider-connectors",
     "doc-ai-executor-implementation",
     "doc-project-status",
     "doc-project-roadmap",
@@ -12790,6 +12898,7 @@
     "doc-ai-module-workplan"
   ],
   "revisado": [
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan"
   ],
@@ -12897,6 +13006,9 @@
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-vision"
+  ],
+  "roteia": [
+    "doc-ai-provider-connectors"
   ],
   "roteiro": [
     "doc-project-roadmap"
@@ -13357,6 +13469,7 @@
     "doc-project-status"
   ],
   "separadas": [
+    "doc-ai-provider-connectors",
     "doc-ai-module-workplan",
     "doc-video-research-index",
     "doc-node-registry",
@@ -13442,6 +13555,7 @@
   ],
   "server": [
     "doc-ai-context",
+    "doc-ai-provider-connectors",
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
@@ -13472,6 +13586,9 @@
   ],
   "servida": [
     "doc-project-status"
+  ],
+  "servido": [
+    "doc-ai-provider-connectors"
   ],
   "servidor": [
     "doc-ai-provider-connectors",
@@ -13577,6 +13694,7 @@
     "doc-ai-module-workplan"
   ],
   "simples": [
+    "doc-ai-provider-connectors",
     "doc-vision",
     "ref-multipaz-developer-website"
   ],
@@ -13692,6 +13810,9 @@
   "sobre": [
     "doc-hardware-telemetry"
   ],
+  "sobreporia": [
+    "doc-ai-provider-connectors"
+  ],
   "sobreposi": [
     "doc-ai-module-workplan"
   ],
@@ -13746,6 +13867,7 @@
     "ref-multipaz-developer-website"
   ],
   "source": [
+    "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-hardware-telemetry",
     "multimodal-assistant-demo",
@@ -13796,6 +13918,7 @@
     "ref-multipaz-developer-website"
   ],
   "ssh": [
+    "doc-ai-provider-connectors",
     "doc-project-status",
     "doc-vision"
   ],
@@ -14176,6 +14299,7 @@
     "doc-hardware-telemetry"
   ],
   "tempo": [
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-node-registry",
     "doc-hardware-telemetry",
@@ -14188,6 +14312,9 @@
   ],
   "temporais": [
     "doc-vision"
+  ],
+  "tenha": [
+    "doc-ai-provider-connectors"
   ],
   "tenham": [
     "doc-node-registry"
@@ -14422,6 +14549,7 @@
     "doc-hardware-telemetry"
   ],
   "todo": [
+    "doc-ai-provider-connectors",
     "doc-ai-executor-implementation",
     "doc-vision"
   ],
@@ -14469,6 +14597,7 @@
     "ref-multipaz-developer-website"
   ],
   "tools": [
+    "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
@@ -14659,6 +14788,7 @@
   ],
   "ui": [
     "doc-ai-context",
+    "doc-ai-provider-connectors",
     "doc-module-map",
     "doc-hardware-telemetry"
   ],
@@ -14946,6 +15076,9 @@
   ],
   "validado": [
     "doc-module-map"
+  ],
+  "validador": [
+    "doc-ai-provider-connectors"
   ],
   "validados": [
     "doc-ai-development-orchestration",
@@ -15241,6 +15374,9 @@
   "vlans": [
     "doc-vision"
   ],
+  "vllm": [
+    "doc-ai-provider-connectors"
+  ],
   "vm": [
     "doc-ai-context",
     "doc-node-registry"
@@ -15305,6 +15441,7 @@
     "video-cfdoXn6yvE4"
   ],
   "w": [
+    "doc-ai-provider-connectors",
     "doc-hardware-telemetry"
   ],
   "wait": [
@@ -15380,6 +15517,7 @@
     "ai-development-persistent-worker"
   ],
   "worker": [
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
@@ -16424,7 +16562,6 @@
     "doc-vision"
   ],
   "ópria": [
-    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-module-map",
     "doc-project-roadmap",
@@ -16574,6 +16711,7 @@
     "ref-multipaz-developer-website"
   ],
   "õe": [
+    "doc-ai-provider-connectors",
     "doc-ai-executor-implementation",
     "doc-module-map",
     "doc-hardware-telemetry",
