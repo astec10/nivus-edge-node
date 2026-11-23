@@ -216,6 +216,16 @@ class WorkflowDispatchTests(unittest.TestCase):
         self.assertIn("needs.open-draft-pr.result == 'failure'", cleanup)
         self.assertIn("No automatic retry was started.", cleanup)
 
+    def test_pull_request_runs_mocked_openrouter_tests_without_provider_secret(self) -> None:
+        repository_root = Path(__file__).resolve().parents[2]
+        worker_workflow = (repository_root / ".github" / "workflows" / "ai-proposal-worker.yml").read_text(encoding="utf-8")
+        test_job = worker_workflow.split("  test-openrouter-worker:", 1)[1].split("\n  duplicate_guard:", 1)[0]
+
+        self.assertIn("pull_request:", worker_workflow.split("workflow_dispatch:", 1)[0])
+        self.assertIn("python -m unittest tools.ai_executor.test_openrouter_client tools.ai_executor.test_worker", test_job)
+        self.assertNotIn("OPENROUTER_API_KEY", test_job)
+        self.assertNotIn("secrets.", test_job)
+
 
 if __name__ == "__main__":
     unittest.main()
