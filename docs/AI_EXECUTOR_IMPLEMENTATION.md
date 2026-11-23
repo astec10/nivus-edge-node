@@ -53,3 +53,18 @@ A etapa final usa `gh pr create --draft` com o `GITHUB_TOKEN`. Confira **Setting
 O cadastro de perfis de IA e o endpoint de inferência do runtime são distintos do worker GitHub Actions documentado acima. O endpoint runtime exige administrador e usa um perfil explicitamente selecionado; não executa o código/texto gerado, não faz fallback e não compartilha GEMINI_API_KEY.
 
 A integração da issue #74 foi integrada pelo PR #82 e está na `main` atual. A chave de provedor é descriptografada em memória; budgets/quota são reservados antes da chamada; prompt e resposta não são persistidos; e a auditoria registra apenas metadados sanitizados. Os checks CI usam mocks; nenhum provedor real foi chamado. A implantação no notebook não foi confirmada. A estimativa local depende das tarifas manuais verificadas pelo administrador e deve ser acompanhada por teto de gasto configurado no próprio serviço.
+
+## Transição do provedor de desenvolvimento — 2026-11-23
+
+A execução da Issue #137 falhou na etapa Gemini com o código sanitizado `interaction_failed`. A Issue #137 foi desarmada: `ai:ready` foi removida e não houve nova chamada. A Issue #138 e o PR de bootstrap substituem o adaptador Gemini do **worker GitHub Actions** por OpenRouter Free. Isso não altera o runtime de inferência do Nivus nem o chat local-first da dashboard.
+
+O candidato usa somente o endpoint fixo `https://openrouter.ai/api/v1/chat/completions` e o modelo de rota `openrouter/free`; não recebe uma lista de modelos pagos, não habilita fallback da aplicação e não repete a requisição após erro, timeout, limite ou resposta inválida. O cliente pede saída JSON estruturada, valida cada caminho contra a allowlist e registra apenas metadados sanitizados. Em falha, o workflow remove `ai:ready` e comenta o link do run. A CI usa respostas simuladas; nenhuma inferência real é feita pelo PR.
+
+Para habilitar depois de revisar/mesclar o PR, o mantenedor cria uma chave em [OpenRouter API Keys](https://openrouter.ai/settings/keys) e salva diretamente em **Settings → Secrets and variables → Actions** como `OPENROUTER_API_KEY`. Não envie a chave no chat, Issue, código ou logs. O workflow também exige a variável `NIVUS_AI_BUDGET_MODE=free-tier`. Sem a chave, o worker para em preflight antes de chamar a rede.
+
+A documentação oficial consultada em 23/11/2026 anuncia `openrouter/free` com preço de modelo zero e cadastro sem cartão; o roteador escolhe entre modelos gratuitos disponíveis, então a qualidade e disponibilidade podem variar. A coleção de modelos gratuitos informa limites atuais de 20 requisições por minuto e 50 por dia; chamadas com falha também contam no limite diário. Esses limites podem mudar. **Não compre créditos para aumentar a cota e não configure modelo pago/fallback.** Veja [OpenRouter Free Models](https://openrouter.ai/collections/free-models/) e [Free Models Router](https://openrouter.ai/openrouter/free).
+
+Envie somente código público e dados sintéticos. O OpenRouter encaminha cada solicitação ao modelo gratuito disponível; revise as políticas e retenção dos provedores listados antes de enviar qualquer outro dado. Não inclua segredos, código privado, telemetria real, dados domésticos ou pessoais. A key antiga `GEMINI_API_KEY` deixa de ser lida pelo workflow após a integração; a remoção do segredo antigo no GitHub fica a cargo do mantenedor.
+
+**Estado:** até o PR ser revisado/mesclado e a chave `OPENROUTER_API_KEY` ser cadastrada, a `main` continua no código anterior e o worker permanece sem uso para a Issue #137. Depois da configuração, uma única autorização é necessária para a próxima chamada gratuita. O PR não faz deploy no notebook.
+
