@@ -122,3 +122,12 @@ Nuvem exige HTTPS público e aceita somente dados públicos/sintéticos. Endpoin
 ## Canal SSH de manutenção — registro de evidência — 2026-11-23
 
 O operador relata que uma consulta de diagnóstico `status` respondeu por um canal SSH restrito. Uma tentativa independente nesta sessão não autenticou; a disponibilidade e a configuração atuais não foram verificadas independentemente. Este registro não contém dados de conexão ou credenciais e não concede autorização para conectar ou operar. Toda tarefa futura exige autorização específica, validação da identidade/chave de host e confirmação das operações permitidas. Não presumir shell, sudo, acesso Docker, atualização ou deploy. A issue #130 continua aberta e cobre o desenho mais amplo, incluindo ciclo de vida das credenciais, auditoria e ações de manutenção.
+
+
+## Credencial SSH temporária por sessão — direção preferida — 2026-11-23
+
+O operador prefere substituir, no desenho futuro, a chave cliente persistente por um par de chaves efêmero e um certificado de usuário OpenSSH de curta validade para cada sessão de manutenção autenticada e aprovada. O certificado deve ser vinculado ao usuário/sessão, a um nó e a operações em allowlist; os nós devem confiar na chave pública de uma CA protegida fora do repositório e dos próprios nós. Um serviço de autorização deve controlar emissão, uso único quando exigido, auditoria, revogação e encerramento das conexões abertas no logout. A expiração do certificado, por si só, não encerra uma conexão já autenticada.
+
+Esta é uma direção de arquitetura, não implementação. O canal diagnóstico atualmente relatado continua usando credencial cliente persistente, não foi convertido e não foi auditado independentemente. Não alterar o SSH do notebook sem tarefa específica, backup e validação. A issue #130 permanece aberta.
+
+Referências: [OpenBSD sshd_config(5)](https://man.openbsd.org/sshd_config) e [OpenBSD ssh-keygen(1)](https://man.openbsd.org/ssh-keygen).
