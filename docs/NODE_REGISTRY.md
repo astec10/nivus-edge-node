@@ -3,7 +3,7 @@
 **Estado:** Cadastro/heartbeat (#66), lista read-only (#96), ingestão/histórico API (#97) e interface gráfica de histórico por nó (#99) estão integrados à `main`. Quatro workflows hospedados passaram após o merge #99 e novamente na `main` consultada. Smoke TLS em dois dispositivos, reboot, revogação e backup/restore físico continuam pendentes.
 **Issue:** [#65 concluída](https://github.com/astec10/nivus-edge-node/issues/65) pelo PR #66.
 **Próxima validação:** executar smoke com dois dispositivos independentes, incluindo TLS confiável, amostras no histórico gráfico, reboot, revogação e backup/restore.
-**Situação do notebook:** o último update informado pelo operador aponta a release `2dfcbc0c2029723e44ff507857c72e7e8b83dfa3`. PRs #96/#97/#99 foram integrados à `main`, mas não há evidência de que tenham sido instalados no notebook.
+**Situação do notebook (23/11):** checagem somente leitura via SSH confirmou a release `5a7ebd0b3e99895b4aa1c92461a0a89069cf6030`, serviço Compose ativo, health HTTPS local 200 e telemetria sem token 401. Portanto, PRs #96/#97/#99 estão instalados. Essa checagem não comprova reboot completo, TLS confiável ou operação com dois dispositivos físicos.
 
 **Implementação do PR #97:** a branch integrou ao agente e à API amostras versionadas de CPU, memória e disco, além de contrato para outras métricas. A API retém e pagina dados por nó; o agente não executa comandos.
 
@@ -168,7 +168,7 @@ Evidências disponíveis para PRs integrados:
 5. [ ] Parear e executar dois agentes em dispositivos independentes, incluindo reboot e revogação.
 6. [ ] Backup/restore com nós pareados precisa ser demonstrado operacionalmente.
 
-**Histórico de implantação relatado:** o notebook permanece na release `2dfcbc0c2029723e44ff507857c72e7e8b83dfa3`, com health HTTPS 200 e telemetria sem token 401 na última confirmação. Esta sequência altera a `main`, não o notebook; não há evidência de implantação dos PRs #96/#97/#99.
+**Histórico de implantação relatado:** em 23/11, a release ativa `5a7ebd0b3e99895b4aa1c92461a0a89069cf6030` e o health local foram confirmados por SSH; PRs #96/#97/#99 estão implantados. A sequência de testes físicos ainda está pendente.
 
 ## Próximas entregas separadas
 
