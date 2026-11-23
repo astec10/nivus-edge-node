@@ -165,8 +165,9 @@ class WorkerTests(unittest.TestCase):
             issue_file.write_text(json.dumps(issue_payload()), encoding="utf-8")
             usage_file = root / "usage.json"
             stderr = io.StringIO()
-            with patch.object(worker, "GeminiClient", FailedClient), redirect_stderr(stderr):
-                result = worker.run(issue_file, root, usage_file)
+            with patch.dict(os.environ, {"NIVUS_AI_PROVIDER": "gemini"}, clear=False):
+                with patch.object(worker, "GeminiClient", FailedClient), redirect_stderr(stderr):
+                    result = worker.run(issue_file, root, usage_file)
 
             report = json.loads(usage_file.read_text(encoding="utf-8"))
             self.assertEqual(result, 1)
