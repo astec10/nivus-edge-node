@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
+import AIProviderExecutorPanel from './AIProviderExecutorPanel';
 import { Activity, KeyRound, Plus, RefreshCw, ShieldCheck, Trash2 } from 'lucide-react';
 
 const API = '/api/settings/ai-providers';
@@ -615,6 +616,7 @@ export default function ProviderSettingsPanel({ token }) {
         )}
       </details>
       <p className="display-preference-save-status" role="status" aria-live="polite">{message}</p>
+      <AIProviderExecutorPanel token={token} />
     </section>
   );
 }
