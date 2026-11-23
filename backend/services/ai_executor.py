@@ -55,6 +55,9 @@ class _RequestContext:
 
 _ACTIVE_LOCK = threading.RLock()
 _ACTIVE: dict[str, _RequestContext] = {}
+_PARALLEL_LOCK = threading.Lock()
+_ACTIVE_PARALLEL_CALLS = 0
+_MAX_PARALLEL_CALLS = 3
 
 
 def _micro_usd(value: float | int | str | Decimal) -> int:
@@ -893,6 +896,7 @@ def execute(payload, actor: str) -> dict:
 
 def execute_parallel(payload, actor: str) -> dict:
     """Run up to three selected profiles with one shared task budget and no retries."""
+    global _ACTIVE_PARALLEL_CALLS
     provider_ids = list(payload.provider_ids)
     conn = get_db_connection()
     try:
@@ -947,16 +951,25 @@ def execute_parallel(payload, actor: str) -> dict:
                 },
             }
 
-    completed: dict[str, dict] = {}
-    with ThreadPoolExecutor(max_workers=min(3, len(provider_ids)), thread_name_prefix="nivus-ai") as pool:
-        futures = {pool.submit(run_one, provider_id): provider_id for provider_id in provider_ids}
-        for future in as_completed(futures):
-            provider_id = futures[future]
-            completed[provider_id] = future.result()
-    results = [completed[provider_id] for provider_id in provider_ids]
-    success_count = sum(1 for item in results if item["status"] == "succeeded")
-    failure_count = len(results) - success_count
-    return {
+    with _PARALLEL_LOCK:
+        if _ACTIVE_PARALLEL_CALLS + len(provider_ids) > _MAX_PARALLEL_CALLS:
+            _raise(
+                "parallel_capacity", 429,
+                "O executor paralelo está ocupado. Aguarde a conclusão do lote ativo e tente novamente.",
+            )
+        _ACTIVE_PARALLEL_CALLS += len(provider_ids)
+
+    try:
+        completed: dict[str, dict] = {}
+        with ThreadPoolExecutor(max_workers=min(3, len(provider_ids)), thread_name_prefix="nivus-ai") as pool:
+            futures = {pool.submit(run_one, provider_id): provider_id for provider_id in provider_ids}
+            for future in as_completed(futures):
+                provider_id = futures[future]
+                completed[provider_id] = future.result()
+        results = [completed[provider_id] for provider_id in provider_ids]
+        success_count = sum(1 for item in results if item["status"] == "succeeded")
+        failure_count = len(results) - success_count
+        return {
         "request_id": str(payload.request_id),
         "task_id": payload.task_id,
         "status": (
@@ -967,8 +980,11 @@ def execute_parallel(payload, actor: str) -> dict:
         "results": results,
         "success_count": success_count,
         "failure_count": failure_count,
-        "note": "Chamadas paralelas sem retry ou fallback; cada provedor usa o mesmo teto agregado de tarefa.",
-    }
+            "note": "Chamadas paralelas sem retry ou fallback; cada provedor usa o mesmo teto agregado de tarefa.",
+        }
+    finally:
+        with _PARALLEL_LOCK:
+            _ACTIVE_PARALLEL_CALLS -= len(provider_ids)
 
 
 def cancel_request(request_id: str, actor: str) -> bool:
