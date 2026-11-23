@@ -141,7 +141,7 @@ class WorkerTests(unittest.TestCase):
                 return original_replace(source, destination)
 
             with patch.object(worker.os, "replace", side_effect=fail_second_replace):
-                with self.assertRaisesRegex(WorkerError, "proposal_write_failed"):
+                with self.assertRaisesRegex(worker.WorkerError, "proposal_write_failed"):
                     worker._apply_proposal(
                         root,
                         proposal,
