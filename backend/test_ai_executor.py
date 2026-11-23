@@ -9,7 +9,7 @@ from unittest.mock import patch
 from uuid import uuid4
 
 import database
-from api.schemas import AIExecutorRequest, AIProviderCreate
+from api.schemas import AIExecutorParallelRequest, AIExecutorRequest, AIProviderCreate
 from pydantic import SecretStr
 from services import ai_executor, ai_providers
 
@@ -381,6 +381,92 @@ class AIExecutorTests(unittest.TestCase):
         joined = "\\n".join(captured.output)
         self.assertNotIn("synthetic prompt must not appear in logs", joined)
         self.assertNotIn("synthetic-test-key", joined)
+
+
+    def test_openrouter_free_body_disables_fallback_and_data_collection(self):
+        body = ai_executor._request_body(
+            "openai-compatible", "openrouter/free", "synthetic prompt", 64, "openrouter"
+        )
+        self.assertEqual(body["model"], "openrouter/free")
+        self.assertEqual(body["provider"], {
+            "data_collection": "deny",
+            "allow_fallbacks": False,
+        })
+        with self.assertRaises(ValueError):
+            ai_executor._request_body(
+                "openai-compatible", "paid-model", "synthetic prompt", 64, "openrouter"
+            )
+
+    def test_openrouter_target_rejects_non_free_model(self):
+        connection = {
+            "provider_type": "openrouter",
+            "protocol": "openai-compatible",
+            "model_name": "paid-model",
+            "base_url": "https://openrouter.ai/api/v1",
+            "endpoint_scope": "cloud",
+        }
+        with self.assertRaises(ValueError):
+            ai_executor._target(connection)
+
+    def test_parallel_calls_share_budget_and_run_concurrently(self):
+        providers = [self.create_provider(), self.create_provider()]
+        payload = AIExecutorParallelRequest(
+            request_id=uuid4(),
+            task_id="synthetic-parallel-001",
+            provider_ids=[item["id"] for item in providers],
+            prompt="Return a synthetic status.",
+            data_class="synthetic",
+            task_budget_usd=1.0,
+            max_output_tokens=16,
+        )
+        barrier = threading.Barrier(2)
+        observed = []
+        lock = threading.Lock()
+
+        def fake_execute(child, actor):
+            barrier.wait(timeout=2)
+            with lock:
+                observed.append((child, actor))
+            return {
+                "request_id": str(child.request_id),
+                "status": "succeeded",
+                "output": "synthetic result",
+            }
+
+        with patch.object(ai_executor, "execute", side_effect=fake_execute):
+            result = ai_executor.execute_parallel(payload, "admin")
+        self.assertEqual(result["status"], "succeeded")
+        self.assertEqual(result["success_count"], 2)
+        self.assertEqual(len({str(item[0].request_id) for item in observed}), 2)
+        self.assertTrue(all(item[0].task_id == payload.task_id for item in observed))
+        self.assertTrue(all(item[0].task_budget_usd == payload.task_budget_usd for item in observed))
+        self.assertTrue(all(actor == "admin" for _, actor in observed))
+
+    def test_parallel_calls_reject_two_local_profiles(self):
+        providers = [self.create_provider(), self.create_provider()]
+        conn = database.get_db_connection()
+        try:
+            conn.executemany(
+                "UPDATE ai_provider_connections SET endpoint_scope='local' WHERE id=?",
+                [(item["id"],) for item in providers],
+            )
+            conn.commit()
+        finally:
+            conn.close()
+        payload = AIExecutorParallelRequest(
+            request_id=uuid4(),
+            task_id="synthetic-parallel-002",
+            provider_ids=[item["id"] for item in providers],
+            prompt="Synthetic status only.",
+            data_class="synthetic",
+            task_budget_usd=1.0,
+            max_output_tokens=16,
+        )
+        with patch.object(ai_executor, "execute") as execute:
+            with self.assertRaises(ai_executor.InferenceRequestError) as caught:
+                ai_executor.execute_parallel(payload, "admin")
+        self.assertEqual(caught.exception.code, "parallel_local_limit")
+        execute.assert_not_called()
 
 if __name__ == "__main__":
     unittest.main()
