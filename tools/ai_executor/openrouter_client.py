@@ -216,6 +216,7 @@ class OpenRouterClient:
 
     def _request_json(self, body: dict[str, Any]) -> dict[str, Any]:
         encoded = json.dumps(body, ensure_ascii=False).encode("utf-8")
+        retry_after: str | None = None
         request = urllib.request.Request(
             API_URL,
             data=encoded,
