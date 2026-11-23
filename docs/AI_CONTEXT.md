@@ -26,6 +26,10 @@ Criar uma plataforma local-first, modular e econômica para monitorar nós x86_6
 - Issue #29: Ubuntu Server completo instalado no USB, com raiz e `NIVUS_DATA` persistentes. O PR #34 foi integrado à `main` no commit `703efa4128f60460910b05ab344b60b082006a7e`; os checks hospedados passaram no head `3a1621dc11d2532853ef83b9ab5ea47f64cfaca5`. A seleção do alvo, seed Subiquity e bootstrap pós-boot estão no código, mas ainda faltam instalar e reiniciar por um USB físico, verificar dados e serviços e testar recuperação. Não há ISO Ubuntu customizada nem qualificação física.
 - Acesso atual usa senha/JWT. USB e biometria são opcionais e não estão implementadas.
 
+## Canal SSH de manutenção
+
+Relato do operador em 23/11/2026: uma consulta de diagnóstico `status` respondeu pelo canal restrito. Uma tentativa independente nesta sessão não autenticou; disponibilidade e configuração atuais não estão verificadas. A existência do canal não autoriza conexão ou operação. Exija autorização específica por tarefa, valide identidade e chave de host e use somente operações explicitamente autorizadas. Não presuma shell, sudo, Docker, atualização ou deploy. Mantenha identificadores de conexão e credenciais fora do repositório. A issue #130 continua aberta para o desenho completo do canal.
+
 ## Regras invariáveis
 
 1. Preserve autenticação, isolamento, dados persistentes, backup e rollback.
