@@ -65,7 +65,10 @@ function presetForm(providerType, catalog) {
     endpoint_scope: item.scope,
     base_url: item.base_url,
     auth_method: item.auth_method,
-    model_name: item.id === 'openrouter' ? 'openrouter/free' : '',
+    model_name: item.id === 'openrouter'
+      ? 'openrouter/free'
+      : item.id === 'llama_cpp' ? 'nivus-local-qwen3.5-0.8b' : '',
+    timeout_seconds: item.id === 'llama_cpp' ? '60' : EMPTY_FORM.timeout_seconds,
     input_cost_per_million_usd: item.id === 'openrouter' ? '0' : '',
     output_cost_per_million_usd: item.id === 'openrouter' ? '0' : '',
   };
