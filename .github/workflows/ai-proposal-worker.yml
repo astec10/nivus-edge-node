@@ -3,6 +3,10 @@ name: AI proposal worker
 on:
   issues:
     types: [labeled]
+  pull_request:
+    paths:
+      - "tools/ai_executor/**"
+      - ".github/workflows/ai-proposal-worker.yml"
   workflow_dispatch:
     inputs:
       issue_number:
@@ -22,6 +26,26 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  test-openrouter-worker:
+    if: >-
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'workflow_dispatch' && inputs.reviewed_and_authorized == false)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the pull request
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Run mocked OpenRouter worker tests
+        run: python -m unittest tools.ai_executor.test_openrouter_client tools.ai_executor.test_worker
+
   duplicate_guard:
     if: >-
       github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
@@ -114,7 +138,7 @@ jobs:
         shell: bash
         env:
           NIVUS_AI_BUDGET_MODE: ${{ vars.NIVUS_AI_BUDGET_MODE }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           MAX_RUNTIME_MINUTES: ${{ steps.validate_issue.outputs.runtime_minutes }}
         run: |
           set -Eeuo pipefail
@@ -150,6 +174,59 @@ jobs:
           git commit -m "ai: propose changes for issue #${ISSUE_NUMBER}"
           git push --set-upstream origin "$branch"
           echo "branch=$branch" >> "$GITHUB_OUTPUT"
+
+  clear-ready-on-failure:
+    needs: [propose, validate-proposal, open-draft-pr]
+    if: >-
+      always() &&
+      (
+        needs.propose.result == 'failure' ||
+        needs.validate-proposal.result == 'failure' ||
+        needs.open-draft-pr.result == 'failure'
+      )
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      issues: write
+    env:
+      ISSUE_NUMBER: ${{ inputs.issue_number || github.event.issue.number }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      USAGE_REPORT: ${{ runner.temp }}/nivus-ai-usage/nivus-ai-usage.json
+    steps:
+      - name: Download sanitized usage report
+        uses: actions/download-artifact@v7
+        with:
+          name: nivus-ai-usage-${{ github.run_id }}
+          path: ${{ runner.temp }}/nivus-ai-usage
+        continue-on-error: true
+
+      - name: Clear ready label and report the failure
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          [[ "$ISSUE_NUMBER" =~ ^[1-9][0-9]*$ ]] || exit 0
+          error_code="$(python - <<'PY'
+          import json
+          import os
+          import re
+
+          error_code = "worker_or_validation_failed"
+          try:
+              with open(os.environ["USAGE_REPORT"], encoding="utf-8") as stream:
+                  report = json.load(stream)
+              candidate = report.get("error_code") if isinstance(report, dict) else None
+              if isinstance(candidate, str) and re.fullmatch(r"[a-z0-9_]{1,64}", candidate):
+                  error_code = candidate
+          except (OSError, ValueError):
+              pass
+          print(error_code)
+          PY
+          )"
+          gh api --method DELETE "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/labels/ai%3Aready" >/dev/null 2>&1 || true
+          gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --body "AI proposal stopped safely (error: $error_code). No automatic retry was started. Run: $RUN_URL"
 
   validate-proposal:
     needs: propose

@@ -7,15 +7,16 @@ import json
 import os
 import stat
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any
 
 from scripts.validate_ai_task import sections, validate
-from tools.ai_executor.gemini_client import (
+from tools.ai_executor.openrouter_client import (
     DEFAULT_MODEL,
-    GeminiAPIError,
-    GeminiClient,
+    OpenRouterAPIError,
+    OpenRouterClient,
 )
 
 
@@ -131,7 +132,7 @@ def _build_repository_context(repo_root: Path, allowed_paths: list[str]) -> tupl
 
 def _apply_proposal(repo_root: Path, proposal: Any, allowed_paths: list[str], exists_by_path: dict[str, bool]) -> list[str]:
     allowed = set(allowed_paths)
-    prepared: list[tuple[str, Path, Path, str, int]] = []
+    prepared: list[tuple[str, Path, Path, str, int, bytes | None]] = []
     for item in proposal.changes:
         if item.path not in allowed:
             raise WorkerError("proposal_path_outside_allowlist")
@@ -150,30 +151,80 @@ def _apply_proposal(repo_root: Path, proposal: Any, allowed_paths: list[str], ex
         if temporary.exists() or temporary.is_symlink():
             raise WorkerError("temporary_output_path_exists")
         mode = stat.S_IMODE(target.stat().st_mode) if exists_now else 0o644
-        prepared.append((item.path, target, temporary, item.content, mode))
+        try:
+            original_content = target.read_bytes() if exists_now else None
+        except OSError:
+            raise WorkerError("proposal_read_failed") from None
+        prepared.append((item.path, target, temporary, item.content, mode, original_content))
 
     if not prepared:
         raise WorkerError("proposal_has_no_changes")
 
     staged: list[Path] = []
+    applied: list[tuple[Path, bytes | None, int]] = []
     try:
-        for _path, _target, temporary, content, mode in prepared:
+        for _path, _target, temporary, content, mode, _original in prepared:
             descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, mode)
             staged.append(temporary)
             with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as stream:
                 stream.write(content)
             os.chmod(temporary, mode)
-        for _path, target, temporary, _content, _mode in prepared:
+        for _path, target, temporary, _content, mode, original_content in prepared:
             os.replace(temporary, target)
+            applied.append((target, original_content, mode))
     except OSError:
         for temporary in staged:
             try:
                 temporary.unlink(missing_ok=True)
             except OSError:
                 pass
+
+        rollback_failed = False
+        for target, original_content, mode in reversed(applied):
+            if original_content is None:
+                try:
+                    target.unlink(missing_ok=True)
+                except OSError:
+                    rollback_failed = True
+                continue
+            rollback_path: Path | None = None
+            try:
+                descriptor, rollback_name = tempfile.mkstemp(
+                    prefix=f".{target.name}.nivus-ai-rollback-",
+                    dir=target.parent,
+                )
+                rollback_path = Path(rollback_name)
+                with os.fdopen(descriptor, "wb") as stream:
+                    stream.write(original_content)
+                os.chmod(rollback_path, mode)
+                os.replace(rollback_path, target)
+            except OSError:
+                rollback_failed = True
+                if rollback_path is not None:
+                    try:
+                        rollback_path.unlink(missing_ok=True)
+                    except OSError:
+                        pass
+
+        if rollback_failed:
+            raise WorkerError("proposal_rollback_failed") from None
         raise WorkerError("proposal_write_failed") from None
 
-    return [path for path, _target, _temporary, _content, _mode in prepared]
+    return [path for path, _target, _temporary, _content, _mode, _original in prepared]
+
+def _safe_error_code(exc: Exception) -> str:
+    """Return stable codes only; never echo filesystem or provider error details."""
+    if isinstance(exc, OpenRouterAPIError):
+        return exc.error_code
+    if isinstance(exc, WorkerError):
+        return str(exc)
+    if isinstance(exc, json.JSONDecodeError):
+        return "issue_payload_invalid"
+    if isinstance(exc, ValueError):
+        return "preflight_validation_failed"
+    if isinstance(exc, OSError):
+        return "worker_io_error"
+    return "worker_failed"
 
 
 def _write_report(path: Path | None, report: dict[str, Any]) -> None:
@@ -188,7 +239,7 @@ def _write_report(path: Path | None, report: dict[str, Any]) -> None:
 def run(issue_file: Path, repo_root: Path, usage_report_path: Path | None) -> int:
     started_at = datetime.now(timezone.utc)
     report: dict[str, Any] = {
-        "provider": "google-gemini",
+        "provider": "openrouter",
         "model": DEFAULT_MODEL,
         "status": "preflight_failed",
         "budget_mode": os.getenv("NIVUS_AI_BUDGET_MODE", "not_enabled"),
@@ -200,7 +251,7 @@ def run(issue_file: Path, repo_root: Path, usage_report_path: Path | None) -> in
         "http_status": None,
         "retry_after": None,
     }
-    client: GeminiClient | None = None
+    client: OpenRouterClient | None = None
     try:
         issue = json.loads(issue_file.read_text(encoding="utf-8"))
         if not isinstance(issue, dict):
@@ -208,7 +259,7 @@ def run(issue_file: Path, repo_root: Path, usage_report_path: Path | None) -> in
         values, allowed_paths, acceptance = _read_issue(issue)
         repo_root = repo_root.resolve(strict=True)
         repository_context, exists_by_path = _build_repository_context(repo_root, allowed_paths)
-        client = GeminiClient()
+        client = OpenRouterClient()
         proposal = client.propose_changes(
             task_title=str(issue.get("title", "")),
             task_description="\n\n".join(
@@ -226,21 +277,20 @@ def run(issue_file: Path, repo_root: Path, usage_report_path: Path | None) -> in
         for item in changed:
             print(f"Changed: {item}")
         return 0
-    except (WorkerError, GeminiAPIError, ValueError, OSError, json.JSONDecodeError) as exc:
+    except (WorkerError, OpenRouterAPIError, ValueError, OSError, json.JSONDecodeError) as exc:
         if client is not None and client.last_usage_report is not None:
             report = client.last_usage_report.to_dict()
         if isinstance(report, dict):
             report["worker_status"] = "failed"
             if client is None:
                 report["status"] = "preflight_failed"
-            elif client.last_usage_report is None:
+            elif client.last_usage_report is None or not isinstance(exc, OpenRouterAPIError):
                 report["status"] = "worker_failed"
-            report["error_code"] = exc.error_code if isinstance(exc, GeminiAPIError) else type(exc).__name__
+            report["error_code"] = _safe_error_code(exc)
             if client is None or client.last_usage_report is None:
                 report["duration_ms"] = round((datetime.now(timezone.utc) - started_at).total_seconds() * 1000)
         _write_report(usage_report_path, report)
-        code = exc.error_code if isinstance(exc, GeminiAPIError) else str(exc)
-        print(f"AI worker stopped safely: {code}", file=sys.stderr)
+        print(f"AI worker stopped safely: {_safe_error_code(exc)}", file=sys.stderr)
         return 1
     finally:
         _write_report(usage_report_path, report)
