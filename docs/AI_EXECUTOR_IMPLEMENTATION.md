@@ -21,6 +21,12 @@ Este executor é infraestrutura de desenvolvimento do repositório. Não roda no
 - O intake autorizado inicia o worker somente pelo evento de adicionar a label `ai:ready`. Ele não chama também `workflow_dispatch`, evitando duas chamadas acidentais para uma autorização. O despacho manual do workflow do worker continua sendo um caminho independente e requer a confirmação explícita `reviewed_and_authorized=true`.
 - O worker não executa comandos sugeridos pela Issue/modelo; valida e aplica somente arquivos completos nos caminhos exatos permitidos. CI roda em outro runner, sem a chave Gemini. Uma pessoa revisa o PR e aprova qualquer merge.
 
+## Provedores de modelo
+
+O worker aceita uma escolha explícita pela variável de repositório `NIVUS_AI_PROVIDER`: `gemini` ou `openrouter-free`. O padrão continua `gemini` para preservar a configuração existente; não há troca automática entre serviços. Para habilitar OpenRouter, cadastre o segredo `OPENROUTER_API_KEY` em **Settings → Secrets and variables → Actions → Repository secrets** e defina `NIVUS_AI_PROVIDER=openrouter-free` em Repository variables. Nunca coloque a chave em uma Issue, chat, arquivo do repositório ou variável sem sigilo.
+
+O adaptador OpenRouter usa somente `openrouter/free`, preço zero, `data_collection: deny` e `allow_fallbacks: false`. Não escolhe um modelo pago e não repete chamadas. A tabela atual informa 20 solicitações por minuto e 50 por dia para variantes gratuitas; falhas também podem consumir cota. [Limites e catálogo gratuito](https://openrouter.ai/collections/free-models). Os limites podem mudar e uma tentativa continua dependendo da disponibilidade do serviço. Nenhuma chamada real foi feita para validar a conta ou o segredo.
+
 ## Como usar a fila
 
 1. Crie uma Issue usando o formulário `AI development task`, com critérios verificáveis e caminhos específicos.
