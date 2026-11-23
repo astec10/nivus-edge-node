@@ -442,6 +442,25 @@ class AIExecutorTests(unittest.TestCase):
         self.assertTrue(all(item[0].task_budget_usd == payload.task_budget_usd for item in observed))
         self.assertTrue(all(actor == "admin" for _, actor in observed))
 
+    def test_parallel_calls_fail_fast_when_global_capacity_is_full(self):
+        providers = [self.create_provider(), self.create_provider()]
+        payload = AIExecutorParallelRequest(
+            request_id=uuid4(),
+            task_id="synthetic-parallel-003",
+            provider_ids=[item["id"] for item in providers],
+            prompt="Synthetic status only.",
+            data_class="synthetic",
+            task_budget_usd=1.0,
+            max_output_tokens=16,
+        )
+        with patch.object(ai_executor, "_ACTIVE_PARALLEL_CALLS", 3), patch.object(
+            ai_executor, "execute"
+        ) as execute:
+            with self.assertRaises(ai_executor.InferenceRequestError) as caught:
+                ai_executor.execute_parallel(payload, "admin")
+        self.assertEqual(caught.exception.code, "parallel_capacity")
+        execute.assert_not_called()
+
     def test_parallel_calls_reject_two_local_profiles(self):
         providers = [self.create_provider(), self.create_provider()]
         conn = database.get_db_connection()
