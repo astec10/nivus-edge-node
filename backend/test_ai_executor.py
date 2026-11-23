@@ -43,6 +43,17 @@ class AIExecutorTests(unittest.TestCase):
             "http://llama-cpp:9931/v1",
         )
 
+    def test_llama_cpp_request_disables_reasoning(self):
+        body = ai_executor._request_body(
+            "openai-compatible",
+            "nivus-local-qwen3.5-0.8b",
+            "synthetic prompt",
+            64,
+            "llama_cpp",
+        )
+        self.assertEqual(body["reasoning_effort"], "none")
+        self.assertEqual(body["max_completion_tokens"], 64)
+
     def create_provider(self, *, enabled=True, monthly_budget=5.0, max_requests_per_hour=30):
         today = dt.datetime.now(dt.timezone.utc).date()
         payload = AIProviderCreate(
