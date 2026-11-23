@@ -223,6 +223,7 @@ class WorkflowDispatchTests(unittest.TestCase):
 
         self.assertIn("pull_request:", worker_workflow.split("workflow_dispatch:", 1)[0])
         self.assertIn("python -m unittest tools.ai_executor.test_openrouter_client tools.ai_executor.test_worker", test_job)
+        self.assertIn("inputs.reviewed_and_authorized == false", test_job)
         self.assertNotIn("OPENROUTER_API_KEY", test_job)
         self.assertNotIn("secrets.", test_job)
 
