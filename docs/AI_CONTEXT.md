@@ -26,6 +26,17 @@ Criar uma plataforma local-first, modular e econômica para monitorar nós x86_6
 - Issue #29: Ubuntu Server completo instalado no USB, com raiz e `NIVUS_DATA` persistentes. O PR #34 foi integrado à `main` no commit `703efa4128f60460910b05ab344b60b082006a7e`; os checks hospedados passaram no head `3a1621dc11d2532853ef83b9ab5ea47f64cfaca5`. A seleção do alvo, seed Subiquity e bootstrap pós-boot estão no código, mas ainda faltam instalar e reiniciar por um USB físico, verificar dados e serviços e testar recuperação. Não há ISO Ubuntu customizada nem qualificação física.
 - Acesso atual usa senha/JWT. USB e biometria são opcionais e não estão implementadas.
 
+## Canal SSH de manutenção
+
+Relato do operador em 23/11/2026: uma consulta de diagnóstico `status` respondeu pelo canal restrito. Uma tentativa independente nesta sessão não autenticou; disponibilidade e configuração atuais não estão verificadas. A existência do canal não autoriza conexão ou operação. Exija autorização específica por tarefa, valide identidade e chave de host e use somente operações explicitamente autorizadas. Não presuma shell, sudo, Docker, atualização ou deploy. Mantenha identificadores de conexão e credenciais fora do repositório. Direção futura preferida: chave cliente efêmera e certificado de usuário OpenSSH de curta duração por sessão Nivus autenticada/aprovada, vinculados ao usuário, nó e operações autorizadas. Ainda não implementado. Expirar um certificado impede novas autenticações após a validade, mas não encerra uma conexão já autenticada; logout, revogação e encerramento precisam de controles próprios. A issue #130 continua aberta para o desenho completo do canal.
+
+
+
+## Política configurável de sessões SSH — proposta do operador — 2026-11-23
+
+O operador solicita estes valores iniciais, editáveis por administrador em **Gestão de usuários**: duração máxima de 2 horas, redução de 15 minutos a cada nova emissão dentro do período e reset após 24 horas. A janela de 24 horas a partir da primeira emissão e a negação de nova emissão quando o prazo calculado chega a zero são propostas seguras a confirmar no desenho. Aplicar limites no servidor, auditar mudanças e evitar sessões paralelas que contornem a redução.
+
+A dashboard deve oferecer logout, revogação de credencial e encerramento de sessões remotas ativas. Revogar deve impedir novas autenticações e fechar a conexão aberta; logout web não fecha SSH automaticamente sem vínculo explícito. Os logs detalhados ficam persistidos localmente e disponíveis para leitura somente a administradores autorizados; registrar ator, nó, horário, sessão/identificador de certificado, ação, resultado, motivo e validade, mas nunca chave privada, token, passphrase ou conteúdo secreto. Definir retenção e rotação. Tudo acima é requisito de projeto, ainda não implementado.
 ## Regras invariáveis
 
 1. Preserve autenticação, isolamento, dados persistentes, backup e rollback.

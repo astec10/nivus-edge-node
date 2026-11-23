@@ -118,3 +118,25 @@ Na issue #68, a interface será uma seção própria em **Configuração → Pro
 Chave de API não pode ser guardada apenas como hash, pois o processo precisa recuperá-la para autenticar chamadas. O backend usa AES-GCM com nonce aleatório de 96 bits e identificador do perfil como dado autenticado; chave mestra binária de 32 bytes fica fora do repositório e do SQLite. A resposta da API contém apenas `credential_configured`, nunca cifra ou chave. Backup SQLite sozinho não recupera o segredo; a chave mestra precisa de cópia protegida separada.
 
 Nuvem exige HTTPS público e aceita somente dados públicos/sintéticos. Endpoint local é separado, limitado a endereços privados e portas conhecidas, e não recebe chave em HTTP. O teste é GET da lista de modelos, sem prompt, redirecionamento, com timeout. Orçamento e máximo de pedidos são campos de política e permanecem informativos enquanto não existir executor de inferência; habilitar um perfil não significa que o runtime já faz chamadas. Isso continua separado de `GEMINI_API_KEY` do GitHub Actions.
+
+## Canal SSH de manutenção — registro de evidência — 2026-11-23
+
+O operador relata que uma consulta de diagnóstico `status` respondeu por um canal SSH restrito. Uma tentativa independente nesta sessão não autenticou; a disponibilidade e a configuração atuais não foram verificadas independentemente. Este registro não contém dados de conexão ou credenciais e não concede autorização para conectar ou operar. Toda tarefa futura exige autorização específica, validação da identidade/chave de host e confirmação das operações permitidas. Não presumir shell, sudo, acesso Docker, atualização ou deploy. A issue #130 continua aberta e cobre o desenho mais amplo, incluindo ciclo de vida das credenciais, auditoria e ações de manutenção.
+
+
+## Credencial SSH temporária por sessão — direção preferida — 2026-11-23
+
+O operador prefere substituir, no desenho futuro, a chave cliente persistente por um par de chaves efêmero e um certificado de usuário OpenSSH de curta validade para cada sessão de manutenção autenticada e aprovada. O certificado deve ser vinculado ao usuário/sessão, a um nó e a operações em allowlist; os nós devem confiar na chave pública de uma CA protegida fora do repositório e dos próprios nós. Um serviço de autorização deve controlar emissão, uso único quando exigido, auditoria, revogação e encerramento das conexões abertas no logout. A expiração do certificado, por si só, não encerra uma conexão já autenticada.
+
+Esta é uma direção de arquitetura, não implementação. O canal diagnóstico atualmente relatado continua usando credencial cliente persistente, não foi convertido e não foi auditado independentemente. Não alterar o SSH do notebook sem tarefa específica, backup e validação. A issue #130 permanece aberta.
+
+Referências: [OpenBSD sshd_config(5)](https://man.openbsd.org/sshd_config) e [OpenBSD ssh-keygen(1)](https://man.openbsd.org/ssh-keygen).
+
+
+## Política configurável de sessões SSH — requisito futuro — 2026-11-23
+
+O operador solicita que a Gestão de usuários permita configurar a duração máxima da credencial/sessão (padrão inicial de 2 horas), a redução do prazo por nova sessão (15 minutos) e o intervalo de reset (24 horas). A janela fixa começando na primeira emissão e o bloqueio de nova emissão quando o prazo calculado chega a zero são propostas para implementação segura; confirmar antes de codificar. O cálculo e as faixas permitidas devem ser aplicados e auditados no servidor, com controle contra sessões paralelas.
+
+A interface deve permitir logout, revogação da credencial e encerramento de sessões remotas abertas. Revogação impede reautenticação e encerra também conexões existentes; o logout web precisa chamar esse mecanismo explicitamente. Logs de acesso detalhados ficam locais, persistentes e disponíveis para leitura somente a administradores autorizados, com retenção/rotação definidas. Registrar ator, nó, horário, sessão/certificado, ação, resultado, motivo e validade; não registrar chaves privadas, passphrases, tokens nem dados secretos. O servidor da API valida e autoriza, e mudanças de política também geram auditoria.
+
+Requisitos planejados, ainda sem implementação ou teste no notebook. Consulte a issue #130 para critérios e decisões pendentes.
