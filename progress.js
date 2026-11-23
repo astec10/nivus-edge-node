@@ -54,4 +54,10 @@
  document.getElementById('check-now').addEventListener('click',checkForUpdate);
  setInterval(checkForUpdate,20000);
  checkForUpdate();
+ import("./progressStatus.js")
+   .then(({startPublicProgressStatus}) => startPublicProgressStatus(document))
+   .catch(() => {
+     const refreshStatus = document.getElementById('refresh-status');
+     if(refreshStatus) refreshStatus.textContent='Atualização do GitHub indisponível · mantendo o retrato estático.';
+   });
 })();
