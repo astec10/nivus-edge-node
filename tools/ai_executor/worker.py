@@ -166,7 +166,7 @@ def _apply_proposal(repo_root: Path, proposal: Any, allowed_paths: list[str], ex
         for _path, _target, temporary, content, mode, _original in prepared:
             descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, mode)
             staged.append(temporary)
-            with os.fdopen(descriptor, "w", encoding="utf-8", newline="\\n") as stream:
+            with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as stream:
                 stream.write(content)
             os.chmod(temporary, mode)
         for _path, target, temporary, _content, mode, original_content in prepared:
