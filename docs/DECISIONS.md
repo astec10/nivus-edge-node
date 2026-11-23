@@ -118,3 +118,10 @@ Na issue #68, a interface será uma seção própria em **Configuração → Pro
 Chave de API não pode ser guardada apenas como hash, pois o processo precisa recuperá-la para autenticar chamadas. O backend usa AES-GCM com nonce aleatório de 96 bits e identificador do perfil como dado autenticado; chave mestra binária de 32 bytes fica fora do repositório e do SQLite. A resposta da API contém apenas `credential_configured`, nunca cifra ou chave. Backup SQLite sozinho não recupera o segredo; a chave mestra precisa de cópia protegida separada.
 
 Nuvem exige HTTPS público e aceita somente dados públicos/sintéticos. Endpoint local é separado, limitado a endereços privados e portas conhecidas, e não recebe chave em HTTP. O teste é GET da lista de modelos, sem prompt, redirecionamento, com timeout. Orçamento e máximo de pedidos são campos de política e permanecem informativos enquanto não existir executor de inferência; habilitar um perfil não significa que o runtime já faz chamadas. Isso continua separado de `GEMINI_API_KEY` do GitHub Actions.
+
+## Provedor do executor de desenvolvimento — 2026-11-23
+
+Decisão: retirar o Gemini do worker GitHub Actions após a falha `interaction_failed` da Issue #137 e usar, em uma etapa de bootstrap revisada, a rota gratuita fixa `openrouter/free`. O worker faz no máximo uma requisição por autorização, não adiciona fallback pago nem retry automático, e só transmite código público/dados sintéticos. A chave `OPENROUTER_API_KEY` fica somente nos GitHub Actions Secrets. A dashboard do produto continua local-first; esta decisão é apenas para infraestrutura de desenvolvimento.
+
+A Issue #137 fica sem `ai:ready` até a mudança ser revisada/mesclada e a chave estar cadastrada. A disponibilidade, modelos subjacentes e limites do plano gratuito podem mudar; conferir as fontes oficiais antes de cada marco e interromper quando a rota gratuita não estiver disponível. Revisão humana continua obrigatória para merge e deploy.
+
