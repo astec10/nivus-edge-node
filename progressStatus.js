@@ -187,10 +187,17 @@ export function createPublicGitHubProgressController({
   let intervalId = null;
 
   async function requestJson(url) {
-    const response = await fetchImpl(url, {
-      cache: "no-cache",
-      headers: { Accept: "application/vnd.github+json" },
-    });
+    let response;
+    try {
+      response = await fetchImpl(url, {
+        cache: "no-cache",
+        headers: { Accept: "application/vnd.github+json" },
+      });
+    } catch {
+      const error = new Error("Public GitHub connection failed");
+      error.kind = "network";
+      throw error;
+    }
     const remaining = response.headers?.get?.("X-RateLimit-Remaining");
     if (!response.ok) {
       const error = new Error("Public GitHub request failed");
@@ -199,7 +206,13 @@ export function createPublicGitHubProgressController({
         : "network";
       throw error;
     }
-    return response.json();
+    try {
+      return await response.json();
+    } catch {
+      const error = new Error("Public GitHub response was invalid");
+      error.kind = "invalid-data";
+      throw error;
+    }
   }
 
   async function refresh() {
