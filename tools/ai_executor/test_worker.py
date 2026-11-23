@@ -116,6 +116,44 @@ class WorkerTests(unittest.TestCase):
             self.assertEqual(changed, ["docs/example.md"])
             self.assertEqual(target.read_text(encoding="utf-8"), "after\n")
 
+    def test_partial_proposal_write_rolls_back_already_replaced_files(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="nivus-ai-rollback-") as tmp:
+            root = Path(tmp)
+            first = root / "docs" / "first.md"
+            second = root / "docs" / "second.md"
+            first.parent.mkdir()
+            first.write_text("first before\\n", encoding="utf-8")
+            second.write_text("second before\\n", encoding="utf-8")
+            proposal = SimpleNamespace(
+                changes=(
+                    ProposedFileChange("docs/first.md", "update", "first after\\n"),
+                    ProposedFileChange("docs/second.md", "update", "second after\\n"),
+                )
+            )
+            original_replace = worker.os.replace
+            replace_calls = 0
+
+            def fail_second_replace(source, destination):
+                nonlocal replace_calls
+                replace_calls += 1
+                if replace_calls == 2:
+                    raise OSError("simulated replacement failure")
+                return original_replace(source, destination)
+
+            with patch.object(worker.os, "replace", side_effect=fail_second_replace):
+                with self.assertRaisesRegex(WorkerError, "proposal_write_failed"):
+                    worker._apply_proposal(
+                        root,
+                        proposal,
+                        ["docs/first.md", "docs/second.md"],
+                        {"docs/first.md": True, "docs/second.md": True},
+                    )
+
+            self.assertEqual(first.read_text(encoding="utf-8"), "first before\\n")
+            self.assertEqual(second.read_text(encoding="utf-8"), "second before\\n")
+            self.assertEqual(list(first.parent.glob(".*.nivus-ai*")), [])
+
+
     def test_missing_api_key_fails_before_network_and_report_contains_metadata_only(self) -> None:
         with tempfile.TemporaryDirectory(prefix="nivus-ai-no-key-") as tmp:
             root = Path(tmp)
