@@ -30,6 +30,19 @@ class AIExecutorTests(unittest.TestCase):
         self.db_patch.stop()
         self.temp_dir.cleanup()
 
+    def test_llama_cpp_preset_uses_internal_compose_dns(self):
+        preset = next(
+            item for item in ai_providers.provider_catalog()
+            if item["id"] == "llama_cpp"
+        )
+        self.assertEqual(preset["base_url"], "http://llama-cpp:9931/v1")
+        self.assertEqual(
+            ai_providers.normalize_base_url(
+                preset["base_url"], "local", preset["protocol"]
+            ),
+            "http://llama-cpp:9931/v1",
+        )
+
     def create_provider(self, *, enabled=True, monthly_budget=5.0, max_requests_per_hour=30):
         today = dt.datetime.now(dt.timezone.utc).date()
         payload = AIProviderCreate(

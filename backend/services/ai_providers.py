@@ -68,7 +68,7 @@ PRESETS = {
         "name": "llama.cpp local",
         "protocol": "openai-compatible",
         "endpoint_scope": "local",
-        "base_url": "http://host.docker.internal:9931/v1",
+        "base_url": "http://llama-cpp:9931/v1",
         "auth_method": "none",
     },
 }
