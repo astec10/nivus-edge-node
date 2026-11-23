@@ -12,10 +12,10 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from scripts.validate_ai_task import sections, validate
-from tools.ai_executor.gemini_client import (
+from tools.ai_executor.openrouter_client import (
     DEFAULT_MODEL,
-    GeminiAPIError,
-    GeminiClient,
+    OpenRouterAPIError,
+    OpenRouterClient,
 )
 
 
@@ -188,7 +188,7 @@ def _write_report(path: Path | None, report: dict[str, Any]) -> None:
 def run(issue_file: Path, repo_root: Path, usage_report_path: Path | None) -> int:
     started_at = datetime.now(timezone.utc)
     report: dict[str, Any] = {
-        "provider": "google-gemini",
+        "provider": "openrouter",
         "model": DEFAULT_MODEL,
         "status": "preflight_failed",
         "budget_mode": os.getenv("NIVUS_AI_BUDGET_MODE", "not_enabled"),
@@ -200,7 +200,7 @@ def run(issue_file: Path, repo_root: Path, usage_report_path: Path | None) -> in
         "http_status": None,
         "retry_after": None,
     }
-    client: GeminiClient | None = None
+    client: OpenRouterClient | None = None
     try:
         issue = json.loads(issue_file.read_text(encoding="utf-8"))
         if not isinstance(issue, dict):
@@ -208,7 +208,7 @@ def run(issue_file: Path, repo_root: Path, usage_report_path: Path | None) -> in
         values, allowed_paths, acceptance = _read_issue(issue)
         repo_root = repo_root.resolve(strict=True)
         repository_context, exists_by_path = _build_repository_context(repo_root, allowed_paths)
-        client = GeminiClient()
+        client = OpenRouterClient()
         proposal = client.propose_changes(
             task_title=str(issue.get("title", "")),
             task_description="\n\n".join(
@@ -226,7 +226,7 @@ def run(issue_file: Path, repo_root: Path, usage_report_path: Path | None) -> in
         for item in changed:
             print(f"Changed: {item}")
         return 0
-    except (WorkerError, GeminiAPIError, ValueError, OSError, json.JSONDecodeError) as exc:
+    except (WorkerError, OpenRouterAPIError, ValueError, OSError, json.JSONDecodeError) as exc:
         if client is not None and client.last_usage_report is not None:
             report = client.last_usage_report.to_dict()
         if isinstance(report, dict):
@@ -235,11 +235,11 @@ def run(issue_file: Path, repo_root: Path, usage_report_path: Path | None) -> in
                 report["status"] = "preflight_failed"
             elif client.last_usage_report is None:
                 report["status"] = "worker_failed"
-            report["error_code"] = exc.error_code if isinstance(exc, GeminiAPIError) else type(exc).__name__
+            report["error_code"] = exc.error_code if isinstance(exc, OpenRouterAPIError) else type(exc).__name__
             if client is None or client.last_usage_report is None:
                 report["duration_ms"] = round((datetime.now(timezone.utc) - started_at).total_seconds() * 1000)
         _write_report(usage_report_path, report)
-        code = exc.error_code if isinstance(exc, GeminiAPIError) else str(exc)
+        code = exc.error_code if isinstance(exc, OpenRouterAPIError) else str(exc)
         print(f"AI worker stopped safely: {code}", file=sys.stderr)
         return 1
     finally:
