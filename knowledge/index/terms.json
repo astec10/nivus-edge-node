@@ -1364,6 +1364,7 @@
     "doc-vision"
   ],
   "ao": [
+    "doc-ai-context",
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
@@ -1516,6 +1517,7 @@
     "doc-project-status"
   ],
   "aprovada": [
+    "doc-ai-context",
     "doc-ai-provider-connectors",
     "doc-module-map",
     "doc-project-roadmap"
@@ -2710,6 +2712,7 @@
     "doc-project-status"
   ],
   "certificado": [
+    "doc-ai-context",
     "doc-node-registry",
     "doc-project-roadmap"
   ],
@@ -3866,6 +3869,7 @@
     "doc-vision"
   ],
   "controles": [
+    "doc-ai-context",
     "doc-project-roadmap",
     "doc-vision"
   ],
@@ -4798,6 +4802,9 @@
   "din": [
     "doc-vision"
   ],
+  "dire": [
+    "doc-ai-context"
+  ],
   "direitos": [
     "doc-video-research-index",
     "doc-vision"
@@ -5144,6 +5151,7 @@
     "doc-ai-module-workplan"
   ],
   "dura": [
+    "doc-ai-context",
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
@@ -5205,6 +5213,7 @@
     "doc-ai-provider-connectors"
   ],
   "ef": [
+    "doc-ai-context",
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
     "doc-module-map"
@@ -5306,7 +5315,11 @@
     "doc-vision"
   ],
   "encerra": [
+    "doc-ai-context",
     "doc-node-registry"
+  ],
+  "encerramento": [
+    "doc-ai-context"
   ],
   "encerrar": [
     "doc-ai-development-orchestration"
@@ -6051,6 +6064,9 @@
   "expirado": [
     "doc-node-registry"
   ],
+  "expirar": [
+    "doc-ai-context"
+  ],
   "expires_at": [
     "doc-node-registry"
   ],
@@ -6703,6 +6719,7 @@
     "doc-project-status"
   ],
   "futura": [
+    "doc-ai-context",
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "doc-module-map"
@@ -7485,6 +7502,7 @@
     "ref-multipaz-developer-website"
   ],
   "impede": [
+    "doc-ai-context",
     "doc-ai-development-orchestration",
     "doc-project-roadmap"
   ],
@@ -8751,6 +8769,9 @@
     "doc-project-status",
     "doc-project-roadmap"
   ],
+  "logout": [
+    "doc-ai-context"
+  ],
   "logs": [
     "doc-ai-provider-connectors",
     "doc-ai-workflow",
@@ -9832,6 +9853,7 @@
     "doc-node-registry"
   ],
   "novas": [
+    "doc-ai-context",
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-project-status",
@@ -10131,6 +10153,9 @@
   ],
   "openhardwaremonitor": [
     "doc-hardware-telemetry"
+  ],
+  "openssh": [
+    "doc-ai-context"
   ],
   "openwallet": [
     "ref-multipaz-developer-website"
@@ -11158,6 +11183,7 @@
     "doc-vision"
   ],
   "precisam": [
+    "doc-ai-context",
     "doc-video-research-index",
     "doc-project-status",
     "doc-project-roadmap",
@@ -11187,6 +11213,7 @@
     "doc-project-roadmap"
   ],
   "preferida": [
+    "doc-ai-context",
     "doc-hardware-telemetry"
   ],
   "preferir": [
@@ -12719,6 +12746,7 @@
     "doc-ai-module-workplan"
   ],
   "revoga": [
+    "doc-ai-context",
     "doc-ai-module-workplan",
     "doc-module-map",
     "doc-node-registry",
@@ -14780,6 +14808,7 @@
     "doc-project-roadmap"
   ],
   "usu": [
+    "doc-ai-context",
     "doc-node-registry",
     "doc-hardware-telemetry",
     "doc-vision",
@@ -14850,6 +14879,7 @@
     "doc-project-roadmap"
   ],
   "validade": [
+    "doc-ai-context",
     "doc-node-registry"
   ],
   "validado": [
@@ -15095,6 +15125,7 @@
     "doc-ai-module-workplan"
   ],
   "vinculados": [
+    "doc-ai-context",
     "doc-ai-module-workplan"
   ],
   "vir": [
@@ -15538,6 +15569,7 @@
     "ref-multipaz-developer-website"
   ],
   "ário": [
+    "doc-ai-context",
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
@@ -15948,6 +15980,7 @@
     "doc-project-roadmap"
   ],
   "êmera": [
+    "doc-ai-context",
     "doc-ai-development-orchestration"
   ],
   "êmero": [
@@ -16347,6 +16380,7 @@
     "doc-project-status"
   ],
   "óprios": [
+    "doc-ai-context",
     "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-ai-module-workplan",
