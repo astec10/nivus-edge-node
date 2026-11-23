@@ -48,6 +48,16 @@ A rota `POST /api/ai/executor/requests/{request_id}/cancel` fecha a conexão aco
 
 O runtime do executor foi integrado à `main` pelo PR #82, com CI aprovada. A última versão informada no notebook é `f896de8`, anterior a esse PR; a instalação do runtime permanece pendente de atualização reversível e validação no host. Os testes usam mocks e conteúdo sintético; não fazem chamadas reais de provedor.
 
+## Provedores gratuitos e execução paralela
+
+O catálogo inclui **OpenRouter Free** e **llama.cpp local**. OpenRouter Free usa exclusivamente o modelo roteador `openrouter/free`, exige chave própria cadastrada na tela administrativa e envia `data_collection: deny` com `allow_fallbacks: false`. O cadastro rejeita outro modelo e preços diferentes de zero. A chamada continua limitada a dados públicos ou sintéticos. O serviço informa limite gratuito atual de 20 solicitações por minuto e 50 por dia; limites e disponibilidade podem mudar. [Tabela atual do OpenRouter](https://openrouter.ai/collections/free-models).
+
+O preset `llama.cpp local` aponta para `http://host.docker.internal:9931/v1`. O Nivus só aceita esse conector na porta local permitida e não publica a porta para a Internet. A API do servidor local deve permanecer em rede privada; antes de instalar um modelo no notebook, conferir RAM, CPU e espaço disponíveis e limitar os recursos do processo. O cadastro do preset não instala nem inicia o servidor.
+
+O painel **Executar tarefa de IA** permite uma chamada única ou um lote de duas a três conexões habilitadas e testadas. O endpoint administrativo `POST /api/ai/executor/parallel` usa IDs filhos determinísticos, conserva o mesmo ID de tarefa e o mesmo orçamento agregado, limita a concorrência a três e permite no máximo um perfil local por lote. Uma falha parcial não cancela nem repete as outras chamadas. Não existe retry ou fallback. A política atual de classe de dados, limites por hora, orçamento, auditoria e ausência de persistência de prompt/saída continua valendo para cada chamada. Os resultados são apresentados somente na tela aberta.
+
+Para chamar o provedor gratuito, cadastre a chave na tela **Configuração → Provedores de IA**, informe responsável/finalidade e data em que conferiu o preço zero, teste a conexão e habilite o perfil. Para usar llama.cpp, instale e inicie o servidor local separadamente, depois cadastre ou selecione o preset e teste a conexão.
+
 ## Relação com o executor GitHub Actions
 
 Esta configuração pertence ao runtime do Nivus. Ela não lê nem altera `GEMINI_API_KEY` do GitHub Actions. O executor de desenvolvimento do GitHub continua com segredos próprios, permissões próprias e aprovação humana; não copiar chaves entre esses dois ambientes.
