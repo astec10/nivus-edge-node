@@ -307,6 +307,7 @@
     "doc-project-status"
   ],
   "429": [
+    "doc-ai-provider-connectors",
     "doc-node-registry"
   ],
   "43": [
@@ -2598,6 +2599,7 @@
   ],
   "capacidade": [
     "doc-ai-context",
+    "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "doc-module-map",
@@ -3370,7 +3372,6 @@
     "doc-project-roadmap"
   ],
   "concorr": [
-    "doc-ai-provider-connectors",
     "doc-project-roadmap"
   ],
   "concorrentes": [
@@ -4742,6 +4743,7 @@
     "multimodal-assistant-demo"
   ],
   "devolve": [
+    "doc-ai-provider-connectors",
     "doc-node-registry"
   ],
   "devolvidos": [
@@ -5769,6 +5771,7 @@
   ],
   "estiver": [
     "doc-ai-context",
+    "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
@@ -6914,6 +6917,7 @@
     "doc-project-roadmap"
   ],
   "global": [
+    "doc-ai-provider-connectors",
     "doc-project-roadmap",
     "ref-multipaz-developer-website"
   ],
@@ -8825,6 +8829,7 @@
     "doc-vision"
   ],
   "lotes": [
+    "doc-ai-provider-connectors",
     "doc-module-map",
     "doc-node-registry",
     "doc-project-status"
@@ -10039,6 +10044,9 @@
   "oculto": [
     "doc-node-registry"
   ],
+  "ocupada": [
+    "doc-ai-provider-connectors"
+  ],
   "ocupadas": [
     "doc-project-roadmap"
   ],
@@ -10507,6 +10515,7 @@
   ],
   "paralelas": [
     "doc-ai-context",
+    "doc-ai-provider-connectors",
     "doc-ai-module-workplan"
   ],
   "paralelismo": [
@@ -13590,6 +13599,7 @@
     "doc-project-roadmap"
   ],
   "simult": [
+    "doc-ai-provider-connectors",
     "doc-ai-module-workplan"
   ],
   "simultaneamente": [
@@ -15729,6 +15739,7 @@
     "ref-multipaz-developer-website"
   ],
   "âneas": [
+    "doc-ai-provider-connectors",
     "doc-ai-module-workplan"
   ],
   "ântica": [
