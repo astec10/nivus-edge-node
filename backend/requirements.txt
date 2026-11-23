@@ -1,6 +1,6 @@
 # Resolved and smoke-tested in the pinned Python 3.12 image.
 cryptography==50.0.2
-annotated-doc==0.0.6
+annotated-doc==0.0.7
 annotated-types==0.8.0
 anyio==4.16.0
 click==8.5.1
