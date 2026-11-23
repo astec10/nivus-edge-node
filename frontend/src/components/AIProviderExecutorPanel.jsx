@@ -58,12 +58,16 @@ export default function AIProviderExecutorPanel({ token }) {
   );
 
   useEffect(() => {
-    const eligibleIds = new Set(eligibleProviders.map(item => item.id));
+    const eligibleProvidersForClass = providers.filter(provider =>
+      provider.allowed_data_classes?.includes(dataClass)
+      && (provider.endpoint_scope !== 'cloud' || ['public', 'synthetic'].includes(dataClass))
+    );
+    const eligibleIds = new Set(eligibleProvidersForClass.map(item => item.id));
     setProviderIds(current => {
       const next = current.filter(id => eligibleIds.has(id));
       return next.length === current.length ? current : next;
     });
-    setProviderId(current => eligibleIds.has(current) ? current : eligibleProviders[0]?.id || '');
+    setProviderId(current => eligibleIds.has(current) ? current : eligibleProvidersForClass[0]?.id || '');
   }, [dataClass, providers]);
 
   const toggleProvider = id => {
