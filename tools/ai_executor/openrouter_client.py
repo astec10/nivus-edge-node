@@ -13,9 +13,6 @@ from datetime import datetime, timezone
 from typing import Any
 
 from tools.ai_executor.gemini_client import (
-    API_REVISION,
-    MAX_CHANGES,
-    MAX_FILE_CHARS,
     MAX_INPUT_CHARS,
     MAX_RESPONSE_BYTES,
     PROPOSAL_SCHEMA,
