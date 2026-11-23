@@ -178,9 +178,16 @@ class OpenRouterClient:
         input_tokens = self._optional_int(usage.get("prompt_tokens"))
         output_tokens = self._optional_int(usage.get("completion_tokens"))
         response_id = _validated_interaction_id(response.get("id"))
+        returned_model = response.get("model")
+        reported_model = (
+            returned_model
+            if isinstance(returned_model, str)
+            and re.fullmatch(r"[A-Za-z0-9._/:+-]{1,200}", returned_model)
+            else self.model
+        )
         self.last_usage_report = UsageReport(
             provider="openrouter",
-            model=self.model,
+            model=reported_model,
             status=(
                 "proposal_ready" if failure is None else
                 "invalid_model_output" if failure.error_code.startswith(("proposal_", "response_")) else
@@ -223,7 +230,6 @@ class OpenRouterClient:
             with self._opener.open(request, timeout=self.timeout_seconds) as response:
                 raw = response.read(MAX_RESPONSE_BYTES + 1)
                 status_code = response.getcode()
-                retry_after = self._retry_after(response.headers.get("Retry-After"))
         except urllib.error.HTTPError as exc:
             retry_after = self._retry_after(exc.headers.get("Retry-After") if exc.headers else None)
             raise OpenRouterAPIError(
