@@ -122,12 +122,12 @@ class WorkerTests(unittest.TestCase):
             first = root / "docs" / "first.md"
             second = root / "docs" / "second.md"
             first.parent.mkdir()
-            first.write_text("first before\\n", encoding="utf-8")
-            second.write_text("second before\\n", encoding="utf-8")
+            first.write_text("first before\n", encoding="utf-8")
+            second.write_text("second before\n", encoding="utf-8")
             proposal = SimpleNamespace(
                 changes=(
-                    ProposedFileChange("docs/first.md", "update", "first after\\n"),
-                    ProposedFileChange("docs/second.md", "update", "second after\\n"),
+                    ProposedFileChange("docs/first.md", "update", "first after\n"),
+                    ProposedFileChange("docs/second.md", "update", "second after\n"),
                 )
             )
             original_replace = worker.os.replace
@@ -149,8 +149,8 @@ class WorkerTests(unittest.TestCase):
                         {"docs/first.md": True, "docs/second.md": True},
                     )
 
-            self.assertEqual(first.read_text(encoding="utf-8"), "first before\\n")
-            self.assertEqual(second.read_text(encoding="utf-8"), "second before\\n")
+            self.assertEqual(first.read_text(encoding="utf-8"), "first before\n")
+            self.assertEqual(second.read_text(encoding="utf-8"), "second before\n")
             self.assertEqual(list(first.parent.glob(".*.nivus-ai*")), [])
 
 
