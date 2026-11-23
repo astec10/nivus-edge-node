@@ -28,7 +28,7 @@ Criar uma plataforma local-first, modular e econômica para monitorar nós x86_6
 
 ## Canal SSH de manutenção
 
-Relato do operador em 23/11/2026: uma consulta de diagnóstico `status` respondeu pelo canal restrito. Uma tentativa independente nesta sessão não autenticou; disponibilidade e configuração atuais não estão verificadas. A existência do canal não autoriza conexão ou operação. Exija autorização específica por tarefa, valide identidade e chave de host e use somente operações explicitamente autorizadas. Não presuma shell, sudo, Docker, atualização ou deploy. Mantenha identificadores de conexão e credenciais fora do repositório. A issue #130 continua aberta para o desenho completo do canal.
+Relato do operador em 23/11/2026: uma consulta de diagnóstico `status` respondeu pelo canal restrito. Uma tentativa independente nesta sessão não autenticou; disponibilidade e configuração atuais não estão verificadas. A existência do canal não autoriza conexão ou operação. Exija autorização específica por tarefa, valide identidade e chave de host e use somente operações explicitamente autorizadas. Não presuma shell, sudo, Docker, atualização ou deploy. Mantenha identificadores de conexão e credenciais fora do repositório. Direção futura preferida: chave cliente efêmera e certificado de usuário OpenSSH de curta duração por sessão Nivus autenticada/aprovada, vinculados ao usuário, nó e operações autorizadas. Ainda não implementado. Expirar um certificado impede novas autenticações após a validade, mas não encerra uma conexão já autenticada; logout, revogação e encerramento precisam de controles próprios. A issue #130 continua aberta para o desenho completo do canal.
 
 ## Regras invariáveis
 
