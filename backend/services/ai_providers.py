@@ -25,7 +25,7 @@ KEY_FILE = Path(os.environ.get(
 ))
 LOCAL_PORTS = {
     "ollama": {11434},
-    "openai-compatible": {1234, 8000},
+    "openai-compatible": {1234, 8000, 9931},
 }
 PRESETS = {
     "openai": {
@@ -54,6 +54,21 @@ PRESETS = {
         "protocol": "ollama",
         "endpoint_scope": "local",
         "base_url": "http://host.docker.internal:11434",
+        "auth_method": "none",
+    },
+    "openrouter": {
+        "name": "OpenRouter Free",
+        "protocol": "openai-compatible",
+        "endpoint_scope": "cloud",
+        "base_url": "https://openrouter.ai/api/v1",
+        "auth_method": "bearer",
+        "fixed_model": "openrouter/free",
+    },
+    "llama_cpp": {
+        "name": "llama.cpp local",
+        "protocol": "openai-compatible",
+        "endpoint_scope": "local",
+        "base_url": "http://host.docker.internal:9931/v1",
         "auth_method": "none",
     },
 }
@@ -430,6 +445,13 @@ def create_connection(payload, actor: str) -> dict:
         base_url = spec["base_url"]
         name = spec["name"]
         auth_method = spec["auth_method"]
+        if provider_type == "openrouter":
+            if payload.model_name != spec["fixed_model"]:
+                raise ValueError("OpenRouter Free aceita somente o modelo roteador openrouter/free.")
+            if payload.input_cost_per_million_usd != 0 or payload.output_cost_per_million_usd != 0:
+                raise ValueError("Registre preço zero para o preset OpenRouter Free.")
+            if payload.pricing_verified_on is None:
+                raise ValueError("Confirme a data da tabela de preço zero do OpenRouter Free.")
     elif provider_type == "manual":
         protocol = payload.protocol
         scope = payload.endpoint_scope
@@ -530,6 +552,8 @@ def update_connection(provider_id: str, payload, actor: str) -> dict:
         }
         if any(value is None for key, value in changes.items() if key not in nullable_fields):
             raise ValueError("Um campo de configuração não pode ser apagado.")
+        if row["provider_type"] == "openrouter" and merged["model_name"] != "openrouter/free":
+            raise ValueError("OpenRouter Free aceita somente o modelo roteador openrouter/free.")
         if row["endpoint_scope"] == "cloud" and any(
             item not in {"public", "synthetic"} for item in merged["allowed_data_classes"]
         ):
