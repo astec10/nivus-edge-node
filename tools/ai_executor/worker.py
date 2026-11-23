@@ -176,6 +176,21 @@ def _apply_proposal(repo_root: Path, proposal: Any, allowed_paths: list[str], ex
     return [path for path, _target, _temporary, _content, _mode in prepared]
 
 
+def _safe_error_code(exc: Exception) -> str:
+    """Return stable codes only; never echo filesystem or provider error details."""
+    if isinstance(exc, OpenRouterAPIError):
+        return exc.error_code
+    if isinstance(exc, WorkerError):
+        return str(exc)
+    if isinstance(exc, json.JSONDecodeError):
+        return "issue_payload_invalid"
+    if isinstance(exc, ValueError):
+        return "preflight_validation_failed"
+    if isinstance(exc, OSError):
+        return "worker_io_error"
+    return "worker_failed"
+
+
 def _write_report(path: Path | None, report: dict[str, Any]) -> None:
     if path is None:
         return
@@ -233,14 +248,13 @@ def run(issue_file: Path, repo_root: Path, usage_report_path: Path | None) -> in
             report["worker_status"] = "failed"
             if client is None:
                 report["status"] = "preflight_failed"
-            elif client.last_usage_report is None:
+            elif client.last_usage_report is None or not isinstance(exc, OpenRouterAPIError):
                 report["status"] = "worker_failed"
-            report["error_code"] = exc.error_code if isinstance(exc, OpenRouterAPIError) else type(exc).__name__
+            report["error_code"] = _safe_error_code(exc)
             if client is None or client.last_usage_report is None:
                 report["duration_ms"] = round((datetime.now(timezone.utc) - started_at).total_seconds() * 1000)
         _write_report(usage_report_path, report)
-        code = exc.error_code if isinstance(exc, OpenRouterAPIError) else str(exc)
-        print(f"AI worker stopped safely: {code}", file=sys.stderr)
+        print(f"AI worker stopped safely: {_safe_error_code(exc)}", file=sys.stderr)
         return 1
     finally:
         _write_report(usage_report_path, report)

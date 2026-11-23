@@ -152,10 +152,14 @@ jobs:
           echo "branch=$branch" >> "$GITHUB_OUTPUT"
 
   clear-ready-on-failure:
-    needs: [propose]
+    needs: [propose, validate-proposal, open-draft-pr]
     if: >-
       always() &&
-      needs.propose.result == 'failure'
+      (
+        needs.propose.result == 'failure' ||
+        needs.validate-proposal.result == 'failure' ||
+        needs.open-draft-pr.result == 'failure'
+      )
     runs-on: ubuntu-24.04
     timeout-minutes: 3
     permissions:

@@ -121,7 +121,6 @@ Nuvem exige HTTPS público e aceita somente dados públicos/sintéticos. Endpoin
 
 ## Provedor do executor de desenvolvimento — 2026-11-23
 
-Decisão: retirar o Gemini do worker GitHub Actions após a falha `interaction_failed` da Issue #137 e usar, em uma etapa de bootstrap revisada, a rota gratuita fixa `openrouter/free`. O worker faz no máximo uma requisição por autorização, não adiciona fallback pago nem retry automático, e só transmite código público/dados sintéticos. A chave `OPENROUTER_API_KEY` fica somente nos GitHub Actions Secrets. A dashboard do produto continua local-first; esta decisão é apenas para infraestrutura de desenvolvimento.
+A Issue #138 e o PR #139 em rascunho propõem substituir o Gemini do worker GitHub Actions pela rota gratuita fixa `openrouter/free`. O candidato permite no máximo uma requisição por autorização, sem retry automático nem fallback pago; usa somente código público/dados sintéticos e exige `OPENROUTER_API_KEY` em Actions Secrets. Esta decisão trata apenas da infraestrutura de desenvolvimento, não da inferência da dashboard nem do scheduler dos nós.
 
-A Issue #137 fica sem `ai:ready` até a mudança ser revisada/mesclada e a chave estar cadastrada. A disponibilidade, modelos subjacentes e limites do plano gratuito podem mudar; conferir as fontes oficiais antes de cada marco e interromper quando a rota gratuita não estiver disponível. Revisão humana continua obrigatória para merge e deploy.
-
+O PR ainda não foi mesclado e nenhuma chamada real ao OpenRouter foi feita na preparação/CI. A Issue #137 permanece sem `ai:ready`; só deve ser armada após revisar/mesclar a mudança, configurar a chave diretamente no GitHub e obter nova autorização humana.

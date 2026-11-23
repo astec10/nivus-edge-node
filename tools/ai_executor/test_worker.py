@@ -14,7 +14,7 @@ from contextlib import redirect_stderr
 
 from scripts.validate_ai_task import runtime_minutes, validate
 from tools.ai_executor import openrouter_client, worker
-from tools.ai_executor.gemini_client import ProposedFileChange
+from tools.ai_executor.openrouter_client import ProposedFileChange
 
 
 SAFE_ISSUE_BODY = """### Objective
@@ -140,6 +140,24 @@ class WorkerTests(unittest.TestCase):
             self.assertIsNone(report["output_tokens"])
             self.assertFalse({"prompt", "response", "api_key", "content"}.intersection(report))
 
+    def test_io_failure_report_and_logs_do_not_echo_local_paths(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="nivus-ai-private-path-") as tmp:
+            root = Path(tmp)
+            issue_file = root / "private-directory" / "missing-issue.json"
+            usage_file = root / "usage.json"
+            stderr = io.StringIO()
+            with patch.object(openrouter_client.urllib.request, "build_opener") as network:
+                with redirect_stderr(stderr):
+                    result = worker.run(issue_file, root, usage_file)
+
+            network.assert_not_called()
+            report = json.loads(usage_file.read_text(encoding="utf-8"))
+            self.assertEqual(result, 1)
+            self.assertEqual(report["status"], "preflight_failed")
+            self.assertEqual(report["error_code"], "worker_io_error")
+            self.assertNotIn(str(root), stderr.getvalue())
+            self.assertNotIn(str(issue_file), stderr.getvalue())
+
     def test_provider_error_logs_stable_code_instead_of_none(self) -> None:
         class FailedClient:
             last_usage_report = None
@@ -186,6 +204,17 @@ class WorkflowDispatchTests(unittest.TestCase):
         self.assertNotIn("actions: write", intake)
         self.assertIn("types: [labeled]", worker_workflow)
         self.assertIn("github.event.label.name == 'ai:ready'", worker_workflow)
+
+    def test_failure_cleanup_covers_proposal_ci_and_pr_publication(self) -> None:
+        repository_root = Path(__file__).resolve().parents[2]
+        worker_workflow = (repository_root / ".github" / "workflows" / "ai-proposal-worker.yml").read_text(encoding="utf-8")
+        cleanup = worker_workflow.split("  clear-ready-on-failure:", 1)[1].split("  validate-proposal:", 1)[0]
+
+        self.assertIn("needs: [propose, validate-proposal, open-draft-pr]", cleanup)
+        self.assertIn("needs.propose.result == 'failure'", cleanup)
+        self.assertIn("needs.validate-proposal.result == 'failure'", cleanup)
+        self.assertIn("needs.open-draft-pr.result == 'failure'", cleanup)
+        self.assertIn("No automatic retry was started.", cleanup)
 
 
 if __name__ == "__main__":

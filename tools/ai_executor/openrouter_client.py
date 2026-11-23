@@ -232,11 +232,16 @@ class OpenRouterClient:
                 raw = response.read(MAX_RESPONSE_BYTES + 1)
                 status_code = response.getcode()
         except urllib.error.HTTPError as exc:
+            status_code = exc.code
             retry_after = self._retry_after(exc.headers.get("Retry-After") if exc.headers else None)
+            try:
+                exc.close()
+            except OSError:
+                pass
             raise OpenRouterAPIError(
-                f"OpenRouter API returned HTTP {exc.code}",
-                error_code=f"provider_http_{exc.code}",
-                status_code=exc.code,
+                f"OpenRouter API returned HTTP {status_code}",
+                error_code=f"provider_http_{status_code}",
+                status_code=status_code,
                 retry_after=retry_after,
             ) from None
         except urllib.error.URLError as exc:

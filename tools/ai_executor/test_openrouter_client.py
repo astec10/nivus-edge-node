@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import socket
 import unittest
 from email.message import Message
 from io import BytesIO
@@ -130,6 +131,18 @@ class OpenRouterClientTests(unittest.TestCase):
         self.assertEqual(client.last_usage_report.retry_after, "60")
         self.assertNotIn("sensitive", str(raised.exception))
         self.assertEqual(client.last_usage_report.error_code, "provider_http_429")
+
+    def test_network_timeout_is_sanitized_and_never_retried(self) -> None:
+        opener = FakeOpener(socket.timeout("sensitive local detail"))
+        client = self._client(opener)
+
+        with self.assertRaises(openrouter_client.OpenRouterAPIError) as raised:
+            client.propose_changes(**self._proposal_arguments())
+
+        self.assertEqual(opener.calls, 1)
+        self.assertEqual(raised.exception.error_code, "network_timeout")
+        self.assertNotIn("sensitive", str(raised.exception))
+        self.assertEqual(client.last_usage_report.error_code, "network_timeout")
 
     def test_json_error_envelope_is_sanitized_without_retry(self) -> None:
         payload = json.dumps(
