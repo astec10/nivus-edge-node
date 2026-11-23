@@ -7,6 +7,9 @@ automatic fallback or retry.
 from __future__ import annotations
 
 import datetime as dt
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from types import SimpleNamespace
+from uuid import uuid5
 import http.client
 import json
 import re
@@ -135,6 +138,8 @@ def _pricing_is_current(connection: dict) -> bool:
 def _target(connection: dict) -> dict:
     model = str(connection["model_name"]).strip()
     protocol = connection["protocol"]
+    if connection.get("provider_type") == "openrouter" and model != "openrouter/free":
+        raise ValueError("OpenRouter Free aceita somente o modelo roteador openrouter/free.")
     if not MODEL_PATTERN.fullmatch(model):
         raise ValueError("O nome do modelo contém caracteres não permitidos.")
 
@@ -357,14 +362,25 @@ def _reserve_request(
         conn.close()
 
 
-def _request_body(protocol: str, model: str, prompt: str, max_output_tokens: int) -> dict:
+def _request_body(
+    protocol: str, model: str, prompt: str, max_output_tokens: int,
+    provider_type: str | None = None,
+) -> dict:
     if protocol == "openai-compatible":
-        return {
+        body = {
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
             "max_completion_tokens": max_output_tokens,
             "stream": False,
         }
+        if provider_type == "openrouter":
+            if model != "openrouter/free":
+                raise ValueError("OpenRouter Free aceita somente o modelo roteador openrouter/free.")
+            body["provider"] = {
+                "data_collection": "deny",
+                "allow_fallbacks": False,
+            }
+        return body
     if protocol == "anthropic":
         return {
             "model": model,
@@ -519,7 +535,10 @@ def _perform_provider_request(
 ) -> dict:
     protocol = connection["protocol"]
     body = json.dumps(
-        _request_body(protocol, connection["model_name"], prompt, max_output_tokens),
+        _request_body(
+            protocol, connection["model_name"], prompt, max_output_tokens,
+            connection.get("provider_type"),
+        ),
         separators=(",", ":"),
         ensure_ascii=False,
     ).encode("utf-8")
@@ -869,6 +888,87 @@ def execute(payload, actor: str) -> dict:
                     except OSError:
                         pass
                 _ACTIVE.pop(request_id, None)
+
+
+
+def execute_parallel(payload, actor: str) -> dict:
+    """Run up to three selected profiles with one shared task budget and no retries."""
+    provider_ids = list(payload.provider_ids)
+    conn = get_db_connection()
+    try:
+        placeholders = ",".join("?" for _ in provider_ids)
+        rows = conn.execute(
+            f"SELECT id, endpoint_scope FROM ai_provider_connections WHERE id IN ({placeholders})",
+            provider_ids,
+        ).fetchall()
+        local_count = sum(1 for row in rows if row["endpoint_scope"] == "local")
+    finally:
+        conn.close()
+    if local_count > 1:
+        _raise(
+            "parallel_local_limit", 422,
+            "Selecione no máximo um provedor local por lote para proteger os recursos do notebook.",
+        )
+
+    def run_one(provider_id: str) -> dict:
+        child_id = uuid5(payload.request_id, "nivus-provider:" + provider_id)
+        child = SimpleNamespace(
+            request_id=child_id,
+            task_id=payload.task_id,
+            provider_id=provider_id,
+            prompt=payload.prompt,
+            data_class=payload.data_class,
+            task_budget_usd=payload.task_budget_usd,
+            max_output_tokens=payload.max_output_tokens,
+        )
+        try:
+            result = execute(child, actor)
+            return {
+                "provider_id": provider_id,
+                "request_id": str(child_id),
+                "status": "succeeded",
+                "result": result,
+            }
+        except InferenceRequestError as error:
+            return {
+                "provider_id": provider_id,
+                "request_id": str(child_id),
+                "status": "failed",
+                "error": {"code": error.code, "message": error.public_message},
+            }
+        except Exception:
+            return {
+                "provider_id": provider_id,
+                "request_id": str(child_id),
+                "status": "failed",
+                "error": {
+                    "code": "internal_error",
+                    "message": "O provedor encontrou um erro; detalhes foram omitidos.",
+                },
+            }
+
+    completed: dict[str, dict] = {}
+    with ThreadPoolExecutor(max_workers=min(3, len(provider_ids)), thread_name_prefix="nivus-ai") as pool:
+        futures = {pool.submit(run_one, provider_id): provider_id for provider_id in provider_ids}
+        for future in as_completed(futures):
+            provider_id = futures[future]
+            completed[provider_id] = future.result()
+    results = [completed[provider_id] for provider_id in provider_ids]
+    success_count = sum(1 for item in results if item["status"] == "succeeded")
+    failure_count = len(results) - success_count
+    return {
+        "request_id": str(payload.request_id),
+        "task_id": payload.task_id,
+        "status": (
+            "succeeded" if failure_count == 0
+            else "partial" if success_count > 0
+            else "failed"
+        ),
+        "results": results,
+        "success_count": success_count,
+        "failure_count": failure_count,
+        "note": "Chamadas paralelas sem retry ou fallback; cada provedor usa o mesmo teto agregado de tarefa.",
+    }
 
 
 def cancel_request(request_id: str, actor: str) -> bool:
