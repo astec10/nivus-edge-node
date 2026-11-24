@@ -192,7 +192,7 @@ def _write_report(path: Path | None, report: dict[str, Any]) -> None:
 
 def run(issue_file: Path, repo_root: Path, usage_report_path: Path | None) -> int:
     started_at = datetime.now(timezone.utc)
-    provider_choice = os.getenv("NIVUS_AI_PROVIDER", "gemini").strip().lower()
+    provider_choice = os.getenv("NIVUS_AI_PROVIDER", "").strip().lower()
     if provider_choice == "openrouter-free":
         default_provider, default_model = "openrouter", FREE_MODEL
     elif provider_choice == "gemini":
