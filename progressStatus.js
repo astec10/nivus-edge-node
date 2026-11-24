@@ -219,10 +219,14 @@ export function createPublicGitHubProgressController({
     if (inFlight) return { status: "skipped" };
     inFlight = true;
     try {
-      const [issue, commits] = await Promise.all([
+      const [issueResult, commitsResult] = await Promise.allSettled([
         requestJson(`${API_ROOT}/issues/${PLAN_ISSUE_NUMBER}`),
         requestJson(`${API_ROOT}/commits?sha=main&per_page=1`),
       ]);
+      if (issueResult.status === "rejected") throw issueResult.reason;
+      if (commitsResult.status === "rejected") throw commitsResult.reason;
+      const issue = issueResult.value;
+      const commits = commitsResult.value;
       if (!Array.isArray(commits) || !commits[0]) {
         const error = new Error("No public commit found");
         error.kind = "invalid-data";
