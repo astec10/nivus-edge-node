@@ -592,7 +592,10 @@ class AIExecutorTests(unittest.TestCase):
         self.assertEqual(result["success_count"], 1)
         self.assertEqual(result["failure_count"], 1)
         self.assertEqual(perform.call_count, 1)
-        self.assertEqual(result["results"][1]["error"]["code"], "task_budget_exceeded")
+        errors_by_code = [
+            item["error"]["code"] for item in result["results"] if item["status"] == "failed"
+        ]
+        self.assertEqual(errors_by_code, ["task_budget_exceeded"])
         rows = [row for row in self.execution_rows() if row["task_id"] == payload.task_id]
         reserved = sum(
             row["settled_cost_micro_usd"] or row["reserved_cost_micro_usd"]
