@@ -251,3 +251,44 @@ test("prevents overlapping refreshes and schedules only the bounded interval", a
   assert.equal(firstResult.status, "fresh");
   controller.stop();
 });
+test("keeps a failed round in flight until its other request settles", async () => {
+  const ui = createDocument();
+  let issueCalls = 0;
+  let commitCalls = 0;
+  let resolveCommit;
+  let signalIssueStarted;
+  const issueStarted = new Promise((resolve) => { signalIssueStarted = resolve; });
+  const commitPending = new Promise((resolve) => { resolveCommit = resolve; });
+  const fetchImpl = async (url) => {
+    if (url.endsWith("/issues/125")) {
+      issueCalls += 1;
+      signalIssueStarted();
+      return response({}, 429);
+    }
+    commitCalls += 1;
+    return commitPending;
+  };
+  const controller = createPublicGitHubProgressController({
+    document: ui.document,
+    fetchImpl,
+    storage: makeStorage(snapshot()),
+    now: () => new Date(checkedAt),
+  });
+
+  const first = controller.refresh();
+  await issueStarted;
+  await new Promise((resolve) => setImmediate(resolve));
+  const second = controller.refresh();
+  const secondBeforeCommitSettles = await Promise.race([
+    second,
+    new Promise((resolve) => setImmediate(() => resolve(null))),
+  ]);
+
+  resolveCommit(response([commitPayload()]));
+  const results = await Promise.all([first, second]);
+
+  assert.deepEqual(secondBeforeCommitSettles, { status: "skipped" });
+  assert.equal(issueCalls, 1);
+  assert.equal(commitCalls, 1);
+  assert.equal(results[0].status, "stale");
+});
