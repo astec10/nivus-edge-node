@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import json
 import os
 import urllib.error
@@ -68,15 +69,18 @@ class OpenRouterClientTests(unittest.TestCase):
         self.env.start()
         self.addCleanup(self.env.stop)
 
-    def call_client(self, opener):
-        client = OpenRouterClient()
-        proposal = client.propose_changes(
+    def invoke_client(self, client):
+        return client.propose_changes(
             task_title="Synthetic documentation task",
             task_description="Add a public note.",
             acceptance_criteria=["The note explains the feature."],
             allowed_paths=["docs/example.md"],
             repository_context="Public synthetic repository context.",
         )
+
+    def call_client(self, opener):
+        client = OpenRouterClient()
+        proposal = self.invoke_client(client)
         return client, proposal, opener
 
     def test_sends_only_free_route_and_no_fallback(self):
@@ -91,6 +95,7 @@ class OpenRouterClientTests(unittest.TestCase):
         self.assertEqual(body["provider"], {
             "data_collection": "deny",
             "allow_fallbacks": False,
+            "require_parameters": True,
         })
         self.assertEqual(len(opener.requests), 1)
         self.assertGreater(timeout, 0)
@@ -109,6 +114,54 @@ class OpenRouterClientTests(unittest.TestCase):
         self.assertEqual(caught.exception.error_code, "provider_http_503")
         self.assertEqual(caught.exception.status_code, 503)
         self.assertEqual(len(opener.requests), 1)
+
+    def test_malformed_output_is_sanitized_and_not_retried(self):
+        marker = "synthetic-model-output-marker"
+        response = completed_response()
+        response["choices"][0]["message"]["content"] = marker
+        opener = FakeOpener([response])
+        client = OpenRouterClient()
+        with patch("tools.ai_executor.openrouter_client.urllib.request.build_opener", return_value=opener):
+            with self.assertRaises(OpenRouterAPIError) as caught:
+                self.invoke_client(client)
+        self.assertTrue(caught.exception.error_code.startswith("proposal_"))
+        self.assertEqual(len(opener.requests), 1)
+        self.assertNotIn(marker, str(caught.exception))
+        report = client.last_usage_report.to_dict()
+        self.assertEqual(report["status"], "invalid_model_output")
+        self.assertNotIn(marker, json.dumps(report))
+        self.assertNotIn("synthetic-openrouter-key", json.dumps(report))
+
+    def test_rate_limit_is_sanitized_and_not_retried(self):
+        marker = "synthetic-provider-error-marker"
+        headers = Message()
+        headers["Retry-After"] = "45"
+        error = urllib.error.HTTPError(API_URL, 429, marker, headers, io.BytesIO(marker.encode()))
+        opener = FakeOpener([error])
+        client = OpenRouterClient()
+        with patch("tools.ai_executor.openrouter_client.urllib.request.build_opener", return_value=opener):
+            with self.assertRaises(OpenRouterAPIError) as caught:
+                self.invoke_client(client)
+        self.assertEqual(caught.exception.error_code, "provider_http_429")
+        self.assertEqual(caught.exception.status_code, 429)
+        self.assertEqual(caught.exception.retry_after, "45")
+        self.assertEqual(len(opener.requests), 1)
+        self.assertNotIn(marker, str(caught.exception))
+        self.assertNotIn(marker, json.dumps(client.last_usage_report.to_dict()))
+
+    def test_network_failure_is_sanitized_and_not_retried(self):
+        marker = "synthetic-network-error-marker"
+        opener = FakeOpener([urllib.error.URLError(marker)])
+        client = OpenRouterClient()
+        with patch("tools.ai_executor.openrouter_client.urllib.request.build_opener", return_value=opener):
+            with self.assertRaises(OpenRouterAPIError) as caught:
+                self.invoke_client(client)
+        self.assertEqual(caught.exception.error_code, "network_error")
+        self.assertEqual(len(opener.requests), 1)
+        self.assertNotIn(marker, str(caught.exception))
+        report = client.last_usage_report.to_dict()
+        self.assertEqual(report["error_code"], "network_error")
+        self.assertNotIn(marker, json.dumps(report))
 
     def test_missing_key_fails_before_network(self):
         with patch.dict(os.environ, {"OPENROUTER_API_KEY": ""}, clear=False):
