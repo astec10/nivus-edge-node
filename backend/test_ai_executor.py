@@ -6,7 +6,7 @@ import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-from uuid import uuid4
+from uuid import uuid4, uuid5
 
 import database
 from api.schemas import AIExecutorParallelRequest, AIExecutorRequest, AIProviderCreate
@@ -510,6 +510,164 @@ class AIExecutorTests(unittest.TestCase):
                 ai_executor.execute_parallel(payload, "admin")
         self.assertEqual(caught.exception.code, "parallel_local_limit")
         execute.assert_not_called()
+
+
+    def parallel_request(self, providers, *, request_id=None, task_id="synthetic-parallel-task", budget=1.0):
+        return AIExecutorParallelRequest(
+            request_id=request_id or uuid4(),
+            task_id=task_id,
+            provider_ids=[item["id"] for item in providers],
+            prompt="Return a synthetic status.",
+            data_class="synthetic",
+            task_budget_usd=budget,
+            max_output_tokens=16,
+        )
+
+    def test_parallel_child_ids_are_deterministic_and_replay_does_not_call_providers(self):
+        providers = [self.create_provider(), self.create_provider()]
+        payload = self.parallel_request(providers, task_id="synthetic-parallel-replay")
+        calls = []
+
+        def complete(_connection, _secret, _target, _prompt, _limit, _context, request_id):
+            calls.append(request_id)
+            return self.fake_completion()
+
+        with patch.object(ai_executor, "_target", side_effect=self.fake_target), patch.object(
+            ai_executor, "_perform_provider_request", side_effect=complete
+        ) as perform:
+            first = ai_executor.execute_parallel(payload, "admin")
+            replay = ai_executor.execute_parallel(payload, "admin")
+
+        expected = [
+            str(uuid5(payload.request_id, "nivus-provider:" + provider["id"]))
+            for provider in providers
+        ]
+        self.assertEqual([item["request_id"] for item in first["results"]], expected)
+        self.assertEqual([item["request_id"] for item in replay["results"]], expected)
+        self.assertEqual(first["success_count"], 2)
+        self.assertEqual(replay["failure_count"], 2)
+        self.assertTrue(all(item["error"]["code"] == "duplicate_request" for item in replay["results"]))
+        self.assertEqual(perform.call_count, 2)
+        self.assertEqual(set(calls), set(expected))
+
+    def test_parallel_isolates_one_provider_failure(self):
+        providers = [self.create_provider(), self.create_provider()]
+        failed_id = providers[0]["id"]
+        payload = self.parallel_request(providers, task_id="synthetic-parallel-partial")
+
+        def execute_one(child, _actor):
+            if child.provider_id == failed_id:
+                raise ai_executor.InferenceRequestError(
+                    "provider_rate_limited", 429, "Synthetic rate limit."
+                )
+            return {
+                "request_id": str(child.request_id),
+                "provider_id": child.provider_id,
+                "status": "succeeded",
+                "output": "synthetic result",
+            }
+
+        with patch.object(ai_executor, "execute", side_effect=execute_one):
+            result = ai_executor.execute_parallel(payload, "admin")
+
+        self.assertEqual(result["status"], "partial")
+        self.assertEqual(result["success_count"], 1)
+        self.assertEqual(result["failure_count"], 1)
+        self.assertEqual(result["results"][0]["error"]["code"], "provider_rate_limited")
+        self.assertEqual(result["results"][1]["status"], "succeeded")
+
+    def test_parallel_reserves_shared_budget_before_concurrent_provider_calls(self):
+        providers = [
+            self.create_provider(monthly_budget=5.0),
+            self.create_provider(monthly_budget=5.0),
+        ]
+        payload = self.parallel_request(
+            providers, task_id="synthetic-parallel-budget", budget=0.003
+        )
+        with patch.object(ai_executor, "_target", side_effect=self.fake_target), patch.object(
+            ai_executor, "_perform_provider_request", side_effect=self.fake_completion
+        ) as perform:
+            result = ai_executor.execute_parallel(payload, "admin")
+
+        self.assertEqual(result["success_count"], 1)
+        self.assertEqual(result["failure_count"], 1)
+        self.assertEqual(perform.call_count, 1)
+        self.assertEqual(result["results"][1]["error"]["code"], "task_budget_exceeded")
+        rows = [row for row in self.execution_rows() if row["task_id"] == payload.task_id]
+        reserved = sum(
+            row["settled_cost_micro_usd"] or row["reserved_cost_micro_usd"]
+            for row in rows if row["status"] != "blocked"
+        )
+        self.assertLessEqual(reserved, 3000)
+
+    def test_parallel_enforces_each_provider_hourly_quota(self):
+        providers = [
+            self.create_provider(max_requests_per_hour=1),
+            self.create_provider(max_requests_per_hour=1),
+        ]
+        first_payload = self.parallel_request(
+            providers, task_id="synthetic-parallel-quota-first"
+        )
+        second_payload = self.parallel_request(
+            providers, task_id="synthetic-parallel-quota-second"
+        )
+        with patch.object(ai_executor, "_target", side_effect=self.fake_target), patch.object(
+            ai_executor, "_perform_provider_request", side_effect=self.fake_completion
+        ) as perform:
+            first = ai_executor.execute_parallel(first_payload, "admin")
+            second = ai_executor.execute_parallel(second_payload, "admin")
+
+        self.assertEqual(first["success_count"], 2)
+        self.assertEqual(second["failure_count"], 2)
+        self.assertTrue(all(item["error"]["code"] == "hourly_limit" for item in second["results"]))
+        self.assertEqual(perform.call_count, 2)
+
+    def test_parallel_cancellation_targets_only_one_child_request(self):
+        providers = [self.create_provider(), self.create_provider()]
+        payload = self.parallel_request(providers, task_id="synthetic-parallel-cancel")
+        cancelled_id = str(uuid5(payload.request_id, "nivus-provider:" + providers[0]["id"]))
+        started = threading.Event()
+        finished = threading.Event()
+        result_box = []
+        errors = []
+
+        def provider_call(_connection, _secret, _target, _prompt, _limit, context, request_id):
+            if request_id == cancelled_id:
+                context.request_sent = True
+                started.set()
+                if not context.cancelled.wait(3):
+                    raise AssertionError("child cancellation was not observed")
+                raise ai_executor._CancelledDuringCall()
+            return self.fake_completion()
+
+        def run_batch():
+            try:
+                result_box.append(ai_executor.execute_parallel(payload, "admin"))
+            except Exception as error:
+                errors.append(error)
+            finally:
+                finished.set()
+
+        with patch.object(ai_executor, "_target", side_effect=self.fake_target), patch.object(
+            ai_executor, "_perform_provider_request", side_effect=provider_call
+        ):
+            thread = threading.Thread(target=run_batch, daemon=True)
+            thread.start()
+            self.assertTrue(started.wait(2))
+            self.assertTrue(ai_executor.cancel_request(cancelled_id, "admin"))
+            self.assertTrue(finished.wait(3))
+            thread.join(timeout=1)
+
+        self.assertFalse(errors)
+        self.assertEqual(len(result_box), 1)
+        result = result_box[0]
+        self.assertEqual(result["status"], "partial")
+        self.assertEqual(result["success_count"], 1)
+        self.assertEqual(result["failure_count"], 1)
+        self.assertEqual(result["results"][0]["error"]["code"], "cancelled")
+        self.assertEqual(result["results"][1]["status"], "succeeded")
+        rows = {row["request_id"]: row for row in self.execution_rows()}
+        self.assertEqual(rows[cancelled_id]["status"], "cancelled")
 
 if __name__ == "__main__":
     unittest.main()
