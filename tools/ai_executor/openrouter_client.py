@@ -29,7 +29,7 @@ from tools.ai_executor.gemini_client import (
 
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 FREE_MODEL = "openrouter/free"
-FREE_ROUTING_POLICY = {"data_collection": "deny", "allow_fallbacks": False}
+FREE_ROUTING_POLICY = {"data_collection": "deny", "allow_fallbacks": False, "require_parameters": True}
 MODEL_ID_PATTERN = re.compile(r"[A-Za-z0-9._:/-]{1,160}")
 
 
