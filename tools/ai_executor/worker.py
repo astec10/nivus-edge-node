@@ -17,6 +17,11 @@ from tools.ai_executor.gemini_client import (
     GeminiAPIError,
     GeminiClient,
 )
+from tools.ai_executor.openrouter_client import (
+    FREE_MODEL,
+    OpenRouterAPIError,
+    OpenRouterClient,
+)
 
 
 MAX_CONTEXT_FILE_BYTES = 12_000
@@ -187,9 +192,16 @@ def _write_report(path: Path | None, report: dict[str, Any]) -> None:
 
 def run(issue_file: Path, repo_root: Path, usage_report_path: Path | None) -> int:
     started_at = datetime.now(timezone.utc)
+    provider_choice = os.getenv("NIVUS_AI_PROVIDER", "").strip().lower()
+    if provider_choice == "openrouter-free":
+        default_provider, default_model = "openrouter", FREE_MODEL
+    elif provider_choice == "gemini":
+        default_provider, default_model = "google-gemini", DEFAULT_MODEL
+    else:
+        default_provider, default_model = "unconfigured", "unknown"
     report: dict[str, Any] = {
-        "provider": "google-gemini",
-        "model": DEFAULT_MODEL,
+        "provider": default_provider,
+        "model": default_model,
         "status": "preflight_failed",
         "budget_mode": os.getenv("NIVUS_AI_BUDGET_MODE", "not_enabled"),
         "started_at_utc": started_at.isoformat(),
@@ -200,15 +212,24 @@ def run(issue_file: Path, repo_root: Path, usage_report_path: Path | None) -> in
         "http_status": None,
         "retry_after": None,
     }
-    client: GeminiClient | None = None
+    client: GeminiClient | OpenRouterClient | None = None
+    provider_error_types = (GeminiAPIError, OpenRouterAPIError)
     try:
+        if provider_choice not in {"gemini", "openrouter-free"}:
+            raise WorkerError("provider_selection_invalid")
         issue = json.loads(issue_file.read_text(encoding="utf-8"))
         if not isinstance(issue, dict):
             raise WorkerError("issue_payload_invalid")
         values, allowed_paths, acceptance = _read_issue(issue)
         repo_root = repo_root.resolve(strict=True)
         repository_context, exists_by_path = _build_repository_context(repo_root, allowed_paths)
-        client = GeminiClient()
+        if provider_choice == "openrouter-free":
+            try:
+                client = OpenRouterClient()
+            except ValueError as exc:
+                raise WorkerError("openrouter_configuration_missing_or_invalid") from exc
+        else:
+            client = GeminiClient()
         proposal = client.propose_changes(
             task_title=str(issue.get("title", "")),
             task_description="\n\n".join(
@@ -226,7 +247,7 @@ def run(issue_file: Path, repo_root: Path, usage_report_path: Path | None) -> in
         for item in changed:
             print(f"Changed: {item}")
         return 0
-    except (WorkerError, GeminiAPIError, ValueError, OSError, json.JSONDecodeError) as exc:
+    except (WorkerError, GeminiAPIError, OpenRouterAPIError, ValueError, OSError, json.JSONDecodeError) as exc:
         if client is not None and client.last_usage_report is not None:
             report = client.last_usage_report.to_dict()
         if isinstance(report, dict):
@@ -235,16 +256,20 @@ def run(issue_file: Path, repo_root: Path, usage_report_path: Path | None) -> in
                 report["status"] = "preflight_failed"
             elif client.last_usage_report is None:
                 report["status"] = "worker_failed"
-            report["error_code"] = exc.error_code if isinstance(exc, GeminiAPIError) else type(exc).__name__
+            report["error_code"] = (
+                exc.error_code if isinstance(exc, provider_error_types) else str(exc)
+            )
+            if isinstance(exc, provider_error_types):
+                report["http_status"] = exc.status_code
+                report["retry_after"] = exc.retry_after
             if client is None or client.last_usage_report is None:
                 report["duration_ms"] = round((datetime.now(timezone.utc) - started_at).total_seconds() * 1000)
         _write_report(usage_report_path, report)
-        code = exc.error_code if isinstance(exc, GeminiAPIError) else str(exc)
+        code = exc.error_code if isinstance(exc, provider_error_types) else str(exc)
         print(f"AI worker stopped safely: {code}", file=sys.stderr)
         return 1
     finally:
         _write_report(usage_report_path, report)
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)

@@ -114,7 +114,9 @@ jobs:
         shell: bash
         env:
           NIVUS_AI_BUDGET_MODE: ${{ vars.NIVUS_AI_BUDGET_MODE }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          NIVUS_AI_PROVIDER: ${{ vars.NIVUS_AI_PROVIDER }}
+          GEMINI_API_KEY: ${{ vars.NIVUS_AI_PROVIDER == 'gemini' && secrets.GEMINI_API_KEY || '' }}
+          OPENROUTER_API_KEY: ${{ vars.NIVUS_AI_PROVIDER == 'openrouter-free' && secrets.OPENROUTER_API_KEY || '' }}
           MAX_RUNTIME_MINUTES: ${{ steps.validate_issue.outputs.runtime_minutes }}
         run: |
           set -Eeuo pipefail
