@@ -1,5 +1,7 @@
 # Configuração revisável do Ubuntu instalado em USB
 
+Este procedimento Ubuntu/Subiquity é separado do procedimento para USB comercial de 25 GB. Para essa capacidade, use Debian 13 enxuto e siga [DEBIAN_USB.md](DEBIAN_USB.md); o fluxo daqui continua exigindo pelo menos 40 GiB.
+
 Esta etapa gera um seed NoCloud para o instalador Subiquity. Com `--build-seed-iso`, também cria uma ISO NoCloud de configuração usando `cloud-localds`; essa ISO não inicia o instalador Ubuntu. A etapa não cria mídia Ubuntu inicializável, não instala o Nivus e não grava em discos. O Subiquity fará a gravação após a revisão da tela de armazenamento.
 
 O fluxo requer Ubuntu Server 24.04 LTS ou mais recente. A configuração mantém a seleção de armazenamento interativa; Subiquity mostra a tela para revisão antes de executar o plano. O instalador também roda uma validação antecipada do dispositivo selecionado.

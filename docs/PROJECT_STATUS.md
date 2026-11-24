@@ -1,5 +1,5 @@
 # Estado do projeto Nivus
-Atualizado: 2026-11-21 (`main` inclui PRs #96/#97; notebook ainda na release `2dfcbc0c2029723e44ff507857c72e7e8b83dfa3`, sem implantação desta sequência)
+Atualizado: 2026-11-24 (`main` inclui PRs #96/#97; candidato USB está em branch separado; notebook ainda na release `2dfcbc0c2029723e44ff507857c72e7e8b83dfa3`, sem implantação desta sequência)
 Licença: AGPL-3.0-only
 ## Resumo verificado
 O projeto tem API modular FastAPI, autenticação por senha/JWT, telemetria MQTT, SQLite persistente, dashboard React e uma stack Docker Compose paralela em operação no notebook de teste. O alvo Ubuntu Server minimal x86_64 continua em validação; não há certificação para qualquer computador.
@@ -7,6 +7,9 @@ A arquitetura, módulos e limites estão descritos em [ARCHITECTURE.md](ARCHITEC
 ## CI de instalação e recuperação
 O run 43662375766 passou nos dois jobs Ubuntu 22.04 amd64: build/smoke Compose e instalação limpa em runner descartável. A integração cobriu MQTT→SQLite, backup consistente, validação sem mutação, rollback induzido por falha de health, restauração normal, HTTPS 200, API sem token 401, `quick_check` e retomada da telemetria. Isso valida o fluxo de software no runner; não substitui reboot em hardware, sensores físicos ou a matriz Intel/AMD.
 O operador decidiu não usar VMs no computador pessoal. Os testes repetíveis usam runners descartáveis hospedados pelo GitHub Actions. CI cobre o fluxo de software; não certifica hardware físico nem sensores.
+## Pacote portátil Debian 13 para USB de 25 GB
+
+A branch `codex/issue-142-usb-installer-bundle-20261124` está sendo ampliada para aceitar Debian 13 Trixie no pacote Master/Worker. O layout documentado usa 1 GiB para EFI, 8 GiB para raiz e o restante em `NIVUS_DATA` ext4, com pelo menos 8 GiB livres exigidos pelo Master. O script Subiquity Ubuntu continua separado com mínimo de 40 GiB. Ainda não há CI hospedada nem instalação física Debian confirmada para esta ampliação; consulte [DEBIAN_USB.md](../deploy/portable_usb/DEBIAN_USB.md).
 ## Ubuntu instalado em USB
 A decisão da issue #29 está fechada: Ubuntu Server completo instalado no pendrive, com raiz ext4 e uma partição ext4 separada \`NIVUS_DATA\` para dados persistentes. O objetivo é iniciar outro computador x86_64 sem alterar o disco interno. Não é Casper Live.
 O PR #34 foi integrado à `main` no commit `703efa4128f60460910b05ab344b60b082006a7e`. Todos os checks hospedados passaram no head `3a1621dc11d2532853ef83b9ab5ea47f64cfaca5`: seletor USB, seed/schema Subiquity, bootstrap pós-boot, integração ext4, smoke Compose, workflows gerais, índice e CodeQL. `deploy/portable_usb/install_nivus.sh` valida raiz e `NIVUS_DATA` no mesmo dispositivo USB, verifica ext4/rótulo/fstab/montagem e configura caminhos e guard persistentes antes de chamar o instalador Compose.

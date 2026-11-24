@@ -24,10 +24,10 @@ O certificado local é autoassinado; o script confirma que seu SAN contém o IP,
 
 ## Pré-requisitos e alvo
 
-- Ubuntu Server 22.04 ou posterior, systemd 247+ e arquitetura x86_64/amd64.
+- Ubuntu Server 22.04 ou posterior, ou Debian 13 Trixie; systemd 247+ e arquitetura x86_64/amd64.
 - Acesso à Internet no primeiro build para APT, imagens e pacotes Python/npm.
 - Containers limitados a 512 MiB agregados por padrão, mais o processo leve de telemetria do host e memória temporária do build do frontend. Confira a RAM disponível antes de construir no notebook antigo.
-- Quando Docker/Compose faltarem, o instalador tenta instalar docker.io e docker-compose-v2 pelos repositórios Ubuntu.
+- Quando Docker/Compose faltarem, o instalador usa `docker.io`/`docker-compose-v2` no Ubuntu e `docker.io`/`docker-cli`/`docker-compose` no Debian 13.
 
 ## Validar configuração sem iniciar serviços
 

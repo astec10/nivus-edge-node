@@ -53,9 +53,32 @@ rollback_install() {
   exit "$rc"
 }
 trap rollback_install ERR INT TERM
-[[ -r /etc/os-release ]] || { echo "Ubuntu não identificado." >&2; exit 2; }
+[[ -r /etc/os-release ]] || { echo "Distribuição Linux não identificada." >&2; exit 2; }
 . /etc/os-release
-[[ ${ID:-} == ubuntu ]] || { echo "Suporte inicial somente a Ubuntu Server." >&2; exit 2; }
+DOCKER_ENGINE_PACKAGES=()
+DOCKER_COMPOSE_PACKAGES=()
+case "${ID:-}" in
+  ubuntu)
+    if ! dpkg --compare-versions "${VERSION_ID:-0}" ge 22.04; then
+      echo "Ubuntu Server 22.04 ou mais recente é necessário." >&2
+      exit 2
+    fi
+    DOCKER_ENGINE_PACKAGES=(docker.io)
+    DOCKER_COMPOSE_PACKAGES=(docker-compose-v2)
+    ;;
+  debian)
+    if [[ "${VERSION_ID:-}" != 13 || ( -n "${VERSION_CODENAME:-}" && "${VERSION_CODENAME}" != trixie ) ]]; then
+      echo "Somente Debian 13 Trixie é suportado." >&2
+      exit 2
+    fi
+    DOCKER_ENGINE_PACKAGES=(docker.io docker-cli)
+    DOCKER_COMPOSE_PACKAGES=(docker-cli docker-compose)
+    ;;
+  *)
+    echo "Sistemas aceitos: Ubuntu Server 22.04+ ou Debian 13 Trixie." >&2
+    exit 2
+    ;;
+esac
 [[ $(uname -m) == x86_64 ]] || { echo "Este pacote inicial foi preparado para x86_64/amd64." >&2; exit 2; }
 if systemctl cat nivus-time-sync.service >/dev/null 2>&1 || [[ -e /etc/systemd/system/nivus-time-sync.service || -L /etc/systemd/system/nivus-time-sync.service ]]; then
   echo "A unidade nivus-time-sync.service já existe; instalação interrompida sem substituí-la." >&2
@@ -76,8 +99,8 @@ if ! command -v openssl >/dev/null 2>&1 || ! command -v ss >/dev/null 2>&1 || ! 
 if [[ $NEED_APT -eq 1 ]]; then
   export DEBIAN_FRONTEND=noninteractive
   apt-get update
-  if ! command -v docker >/dev/null 2>&1; then apt-get install -y docker.io; fi
-  if ! docker compose version >/dev/null 2>&1; then apt-get install -y docker-compose-v2; fi
+  if ! command -v docker >/dev/null 2>&1; then apt-get install -y "${DOCKER_ENGINE_PACKAGES[@]}"; fi
+  if ! docker compose version >/dev/null 2>&1; then apt-get install -y "${DOCKER_COMPOSE_PACKAGES[@]}"; fi
   apt-get install -y python3 python3-venv python3-pip openssl iproute2 curl
 fi
 command -v docker >/dev/null

@@ -6,7 +6,8 @@ usage() {
 Uso:
   sudo bash install_nivus.sh [--profile master|worker] [--mode online|offline] [--check-only]
 
-Master instala a stack Nivus no Ubuntu persistente do USB. No momento, Master exige
+Master instala a stack Nivus no Linux persistente do USB. São aceitos Ubuntu Server
+24.04+ e Debian 13 Trixie, amd64/x86_64. No momento, Master exige
 internet para APT, imagens Docker e dependências Python/npm; o modo offline falha
 antes de alterar o host e lista os artefatos ainda ausentes.
 
@@ -62,7 +63,7 @@ if [[ -z "$MODE" ]]; then
 fi
 [[ "$MODE" == online || "$MODE" == offline ]] || fail "modo deve ser online ou offline."
 
-((EUID == 0)) || fail "execute no Ubuntu alvo com sudo: sudo bash install_nivus.sh --profile master|worker."
+((EUID == 0)) || fail "execute no Linux alvo com sudo: sudo bash install_nivus.sh --profile master|worker."
 
 BUNDLE_DIR=$(cd -- "$(dirname -- "$0")" && pwd -P)
 PAYLOAD_ROOT="$BUNDLE_DIR/payload"
@@ -80,35 +81,27 @@ BUNDLE_VERSION=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], 
 BUNDLE_COMMIT=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["source_commit"])' "$BUNDLE_DIR/bundle_manifest.json")
 
 preflight_worker() {
-  python3 - "$BUNDLE_VERSION" "$BUNDLE_COMMIT" "$PAYLOAD_ROOT/deploy/nivus-node-agent.service.example" <<'PY'
+  PYTHONPATH="$PAYLOAD_ROOT" python3 - "$BUNDLE_VERSION" "$BUNDLE_COMMIT" "$PAYLOAD_ROOT/deploy/nivus-node-agent.service.example" <<'PY'
 import os
 import platform
 import shutil
 import subprocess
 import sys
 from pathlib import Path
+from deploy.portable_usb.platform_support import describe_supported_platforms, identify_supported_platform, read_os_release
 
 def stop(message):
     raise SystemExit("Pré-verificação Worker: " + message)
 
 if os.geteuid() != 0:
     stop("execute com sudo.")
-release = {}
 try:
-    for line in Path("/etc/os-release").read_text(encoding="utf-8").splitlines():
-        if "=" in line:
-            key, value = line.split("=", 1)
-            release[key] = value.strip().strip('"')
+    release = read_os_release()
 except OSError:
-    stop("Ubuntu não identificado.")
-if release.get("ID") != "ubuntu":
-    stop("esta primeira versão aceita Ubuntu Server.")
-try:
-    version = tuple(int(part) for part in release.get("VERSION_ID", "0").split(".")[:2])
-except ValueError:
-    version = (0, 0)
-if version < (24, 4):
-    stop("Ubuntu Server 24.04 ou mais recente é necessário.")
+    stop("não foi possível identificar a distribuição Linux.")
+supported = identify_supported_platform(release)
+if supported is None:
+    stop(f"sistemas aceitos: {describe_supported_platforms()} x86_64/amd64.")
 if platform.machine() != "x86_64":
     stop("esta versão do pacote aceita somente x86_64/amd64.")
 if any(shutil.which(command) is None for command in ("systemctl", "runuser", "useradd", "getent", "install", "cmp", "stat", "od", "tr", "chown", "chmod", "cp", "mv")):
@@ -184,7 +177,7 @@ if shutil.disk_usage("/opt").free < 256 * 1024**2:
     stop("menos de 256 MiB livres em /opt; libere espaço antes da instalação.")
 if shutil.disk_usage("/var/lib").free < 64 * 1024**2:
     stop("menos de 64 MiB livres em /var/lib; libere espaço antes da instalação.")
-print("Pré-verificação Worker aprovada: Ubuntu x86_64, systemd e espaço disponíveis.")
+print(f"Pré-verificação Worker aprovada: {supported.display_name}, x86_64, systemd e espaço disponíveis.")
 print("Nenhuma verificação de pareamento ou execução de tarefas distribuídas foi presumida.")
 PY
 }
@@ -199,28 +192,20 @@ import sys
 from pathlib import Path
 
 from deploy.portable_usb import configure_runtime as runtime
+from deploy.portable_usb.platform_support import describe_supported_platforms, identify_supported_platform, read_os_release
 
 def stop(message):
     raise SystemExit("Pré-verificação Master: " + message)
 
 if os.geteuid() != 0:
     stop("execute com sudo.")
-release = {}
 try:
-    for line in Path("/etc/os-release").read_text(encoding="utf-8").splitlines():
-        if "=" in line:
-            key, value = line.split("=", 1)
-            release[key] = value.strip().strip('"')
+    release = read_os_release()
 except OSError:
-    stop("Ubuntu não identificado.")
-if release.get("ID") != "ubuntu":
-    stop("esta primeira versão aceita Ubuntu Server.")
-try:
-    version = tuple(int(part) for part in release.get("VERSION_ID", "0").split(".")[:2])
-except ValueError:
-    version = (0, 0)
-if version < (24, 4):
-    stop("Ubuntu Server 24.04 ou mais recente é necessário.")
+    stop("não foi possível identificar a distribuição Linux.")
+supported = identify_supported_platform(release)
+if supported is None:
+    stop(f"sistemas aceitos: {describe_supported_platforms()} x86_64/amd64.")
 if platform.machine() != "x86_64":
     stop("esta versão do pacote aceita somente x86_64/amd64.")
 if shutil.which("systemctl") is None or shutil.which("python3") is None:
@@ -259,7 +244,7 @@ for link_path, target in runtime.LINKS.items():
     runtime._validate_link(Path("/"), link_path, target)
 if shutil.disk_usage(data_root).free < 8 * 1024**3:
     stop("NIVUS_DATA tem menos de 8 GiB livres para imagens e builds; libere espaço e tente novamente.")
-print(f"Pré-verificação Master aprovada: raiz e dados em USB/ext4; {shutil.disk_usage(data_root).free // 1024**3} GiB livres.")
+print(f"Pré-verificação Master aprovada: {supported.display_name}, raiz e dados em USB/ext4; {shutil.disk_usage(data_root).free // 1024**3} GiB livres.")
 print("O instalador usará APT, Docker Hub, PyPI e npm; nenhum serviço foi iniciado nesta etapa.")
 PY
 }
@@ -304,7 +289,7 @@ pair_worker() {
     [[ -n "$master_url" ]] || fail "URL do Master obrigatória; o agente foi instalado sem iniciar serviço."
     read -r -p "Nome inicial único [$suggested]: " node_name
     node_name=${node_name:-$suggested}
-    read -r -p 'Caminho do certificado CA público (Enter se já confiável no Ubuntu): ' ca_file
+    read -r -p 'Caminho do certificado CA público (Enter se já confiável no sistema): ' ca_file
     local -a command=(python3 -m node_agent.agent pair --master-url "$master_url" --name "$node_name" --credentials "$credentials")
     if [[ -n "$ca_file" ]]; then
       [[ -f "$ca_file" && ! -L "$ca_file" ]] || fail "arquivo CA não existe ou não é regular; o agente continua instalado sem serviço."
@@ -358,7 +343,7 @@ Artefatos que ainda faltam no pacote para instalar sem rede:
   - imagens Docker pré-construídas e verificadas para API, dashboard e Mosquitto;
   - dependências Python e npm incorporadas ao build (ou imagens completas exportadas);
   - procedimento de carga offline com SHA-256 e validação do conjunto de versões.
-Use --mode online quando o Ubuntu tiver acesso a APT, Docker Hub, PyPI e npm.
+Use --mode online quando o Linux tiver acesso a APT, Docker Hub, PyPI e npm.
 EOF
     exit 3
   fi
@@ -367,9 +352,9 @@ EOF
     printf 'Verificação concluída para Master. Nenhuma configuração foi escrita.\n'
     exit 0
   fi
-  read -r -p 'Continuar com a instalação Master no Ubuntu persistente deste USB? [s/N] ' confirm
+  read -r -p 'Continuar com a instalação Master no Linux persistente deste USB? [s/N] ' confirm
   [[ "$confirm" == s || "$confirm" == S || "$confirm" == sim || "$confirm" == SIM ]] || fail "cancelado sem iniciar a instalação."
-  python3 "$PAYLOAD_ROOT/deploy/portable_usb/configure_runtime.py" --repository-root "$PAYLOAD_ROOT"
+  PYTHONPATH="$PAYLOAD_ROOT" python3 "$PAYLOAD_ROOT/deploy/portable_usb/configure_runtime.py" --repository-root "$PAYLOAD_ROOT"
   exec bash "$PAYLOAD_ROOT/deploy/install.sh"
 fi
 
@@ -382,7 +367,7 @@ if ((CHECK_ONLY)); then
   fi
   exit 0
 fi
-read -r -p 'Continuar com a instalação do agente Worker neste Ubuntu? [s/N] ' confirm
+read -r -p 'Continuar com a instalação do agente Worker neste Linux? [s/N] ' confirm
 [[ "$confirm" == s || "$confirm" == S || "$confirm" == sim || "$confirm" == SIM ]] || fail "cancelado sem iniciar a instalação."
 install_worker_app
 if [[ "$MODE" == offline ]]; then

@@ -5,12 +5,14 @@ on:
     branches: [main]
     paths:
       - "deploy/portable_usb/**"
+      - "deploy/install.sh"
       - "tests/test_portable_usb_*.py"
       - ".github/workflows/portable-usb-autoinstall.yml"
   pull_request:
     branches: [main]
     paths:
       - "deploy/portable_usb/**"
+      - "deploy/install.sh"
       - "tests/test_portable_usb_*.py"
       - ".github/workflows/portable-usb-autoinstall.yml"
   workflow_dispatch:
@@ -38,8 +40,9 @@ jobs:
 
       - name: Compile USB preparation tools
         run: |
-          python -m py_compile deploy/portable_usb/select_target.py deploy/portable_usb/generate_autoinstall.py deploy/portable_usb/configure_runtime.py
+          python -m py_compile deploy/portable_usb/select_target.py deploy/portable_usb/generate_autoinstall.py deploy/portable_usb/configure_runtime.py deploy/portable_usb/platform_support.py
           bash -n deploy/portable_usb/install_nivus.sh
+          bash -n deploy/install.sh
 
       - name: Run synthetic USB tests
         run: python -m unittest discover -s tests -p 'test_portable_usb_*.py' -v

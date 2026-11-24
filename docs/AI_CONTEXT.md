@@ -4,7 +4,7 @@ Este arquivo é a entrada curta para qualquer ferramenta de IA que trabalhe nest
 
 ## Objetivo
 
-Criar uma plataforma local-first, modular e econômica para monitorar nós x86_64 com Ubuntu Server minimal, integrar automação residencial com limites explícitos e, em fases futuras, distribuir dados e tarefas entre nós com identidade e capacidade declaradas.
+Criar uma plataforma local-first, modular e econômica para monitorar nós x86_64 com Ubuntu Server minimal; Debian 13 Trixie minimal é uma rota candidata para o pacote USB de 25 GB. Integrar automação residencial com limites explícitos e, em fases futuras, distribuir dados e tarefas entre nós com identidade e capacidade declaradas.
 
 ## Estado e escopo
 
@@ -24,6 +24,7 @@ Criar uma plataforma local-first, modular e econômica para monitorar nós x86_6
 - Issue #70: a release ativa `2dfcbc0c2029723e44ff507857c72e7e8b83dfa3` confirmou HTTPS 200 e API sem token 401; o painel autenticado mostrou telemetria recente e gráficos móveis separados por unidade. A porta `8443` foi preservada; reboot completo e inspeção física no Android continuam pendentes.
 - O operador não usará VMs no computador pessoal. Use CI hospedada ou simulações; não solicite instalação local de VM.
 - Issue #29: Ubuntu Server completo instalado no USB, com raiz e `NIVUS_DATA` persistentes. O PR #34 foi integrado à `main` no commit `703efa4128f60460910b05ab344b60b082006a7e`; os checks hospedados passaram no head `3a1621dc11d2532853ef83b9ab5ea47f64cfaca5`. A seleção do alvo, seed Subiquity e bootstrap pós-boot estão no código, mas ainda faltam instalar e reiniciar por um USB físico, verificar dados e serviços e testar recuperação. Não há ISO Ubuntu customizada nem qualificação física.
+- Issue #142: pacote de instalação Master/Worker em branch de revisão, com Debian 13 Trixie minimal como caminho candidato para USB comercial de 25 GB. O autoinstall Ubuntu/Subiquity permanece separado com mínimo de 40 GiB; CI e validação física Debian ainda são necessárias. Issue `ai:queued` não dispara chamada de modelo.
 - Acesso atual usa senha/JWT. USB e biometria são opcionais e não estão implementadas.
 
 ## Regras invariáveis

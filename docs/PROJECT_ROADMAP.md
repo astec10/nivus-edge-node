@@ -6,7 +6,7 @@ Este roteiro transforma a visão de [`VISION.md`](VISION.md) numa sequência de 
 
 Construir uma plataforma local-first, modular e de baixo consumo que monitore computadores e dispositivos de uma casa, integre automações com controles explícitos e, no futuro, distribua tarefas de dados/IA entre nós que anunciam suas capacidades.
 
-O alvo de distribuição é Ubuntu Server minimal x86_64/amd64. “Alvo” não é “compatibilidade universal”: a compatibilidade precisa ser medida por versão de Ubuntu, CPU, RAM, armazenamento, rede e periféricos.
+O alvo primário é Ubuntu Server minimal x86_64/amd64; Debian 13 Trixie minimal x86_64 é a rota candidata para USB comercial de 25 GB. “Alvo” não é “compatibilidade universal”: cada combinação de distro, CPU, RAM, armazenamento, rede e periféricos precisa ser medida.
 
 ## Onde estamos
 
@@ -38,6 +38,7 @@ Critérios já observados: login funcional; API exige token; health HTTPS respon
 
 **Issue #29 — Ubuntu instalado em USB com dados persistentes:** Ubuntu Server completo, não Casper Live. O PR #31 integrou `NIVUS_DATA` ext4 em `/var/lib/nivus` e guard antes do Docker/coletor. O PR #34 foi integrado à `main` e acrescenta seleção/revalidação do USB, seed Subiquity com confirmação humana de armazenamento e instalação pós-boot do Compose. Os checks hospedados passaram no head `3a1621dc11d2532853ef83b9ab5ea47f64cfaca5`. Ainda não existe ISO customizada ou validação física; faltam instalação interativa até o primeiro boot, primeiro login, reboot e verificação de persistência/recuperação, além da matriz UEFI/BIOS Intel/AMD.
 
+**Rota candidata de 25 GB — Debian 13 Trixie:** instalação persistente sem desktop; ESP 1 GiB, raiz 8 GiB, restante ext4 `NIVUS_DATA` montado em `/var/lib/nivus`; pacote instala Master ou Worker. O autoinstall Ubuntu continua exigindo 40 GiB. Validar CI, USB físico, primeiro login, reboot, armazenamento pós-build e boot UEFI em mais de um computador antes de chamar a rota de pronta.
 Siga [`VM_VALIDATION.md`](VM_VALIDATION.md) como roteiro executável e registre a evidência em [`PROJECT_STATUS.md`](PROJECT_STATUS.md). O script de restauração está implementado; só declare a etapa concluída após teste real em clone descartável com backup, restore, validação e rollback.
 
 1. Formato decidido: Ubuntu Server completo instalado no USB, com raiz e dados persistentes; usar mídia Ubuntu inicializável separada, seed NoCloud privado e confirmação humana do destino. Não é Casper Live.

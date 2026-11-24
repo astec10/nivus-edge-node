@@ -78,6 +78,7 @@ REQUIRED_PAYLOAD_FILES = (
     "deploy/install.sh",
     "deploy/nivus-node-agent.service.example",
     "deploy/portable_usb/configure_runtime.py",
+    "deploy/portable_usb/platform_support.py",
     "deploy/portable_usb/install_nivus.sh",
     "deploy/live-usb/nivus-data-volume-guard",
     "node_agent/agent.py",

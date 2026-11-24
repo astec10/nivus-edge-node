@@ -12,13 +12,16 @@ Usar senha e JWT. USB e biometria continuam opcionais. Não conceder admin com b
 
 Decisão do operador: instalar Ubuntu Server completo no pendrive, não usar Casper Live. A raiz do sistema e os dados do Nivus devem persistir após reboot. O layout usa NIVUS_DATA ext4 separado em /var/lib/nivus no mesmo dispositivo USB da raiz. A mídia do instalador é separada, e Subiquity mantém a confirmação manual do alvo. O instalador pós-boot valida que raiz e dados estão no mesmo USB e recusa formatar ou mover dados. O fluxo de instalação inicial requer Internet; operação local após instalação não deve depender de serviços de nuvem.
 
+## Debian 13 no USB de 25 GB — 2026-11-24
+
+Decisão do operador: preparar uma rota persistente para pendrive comercial de 25 GB usando Debian 13 Trixie minimal x86_64 e o pacote Nivus Master/Worker. Layout proposto: ESP 1 GiB, raiz ext4 8 GiB e `NIVUS_DATA` ext4 no restante montado em `/var/lib/nivus`; o Master mantém a exigência de pelo menos 8 GiB livres de dados. O instalador Ubuntu/Subiquity original conserva o mínimo de 40 GiB e não deve ter sua verificação reduzida. Debian USB e boot UEFI/BIOS precisam de validação física antes de serem anunciados como compatíveis.
 ## Persistência
 
 Manter SQLite até plano de backup, migração e restauração testado. Não converter banco de produção sem backup consistente.
 
 ## Plataforma
 
-Alvo declarado: Ubuntu Server minimal amd64. Compatibilidade será anunciada somente após instalação limpa e medições em hardware de baixa capacidade.
+Alvo primário: Ubuntu Server minimal amd64. Debian 13 Trixie amd64 é a rota candidata para USB de 25 GB. Compatibilidade de qualquer uma será anunciada somente após instalação limpa e medições em hardware.
 
 ## Interface
 

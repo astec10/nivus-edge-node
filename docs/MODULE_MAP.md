@@ -6,7 +6,7 @@ Este mapa distingue o que existe do que está planejado. Os caminhos são relati
 
 ```mermaid
 flowchart TD
-  Host[Ubuntu host] --> Agent[telemetry/agent.py]
+  Host[Ubuntu/Debian candidate host] --> Agent[telemetry/agent.py]
   Agent --> MQTT[Mosquitto MQTT]
   MQTT --> Worker[backend/mqtt_worker.py]
   Worker --> DB[(SQLite persistente)]

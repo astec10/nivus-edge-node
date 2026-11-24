@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Configure a freshly installed Ubuntu USB root and NIVUS_DATA partition."""
+"""Configure a supported Linux USB root and NIVUS_DATA partition."""
 
 from __future__ import annotations
 
@@ -14,6 +14,8 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
+
+from deploy.portable_usb.platform_support import describe_supported_platforms, identify_supported_platform, read_os_release
 
 
 DATA_MOUNT = "/var/lib/nivus"
@@ -64,7 +66,7 @@ def validate_storage_layout(
     data_label: str,
     label_sources: Sequence[str],
 ) -> None:
-    """Validate that Ubuntu root and NIVUS_DATA are persistent partitions on one USB."""
+    """Validate that the system root and NIVUS_DATA are persistent partitions on one USB."""
     if root_mount.target != "/" or data_mount.target != DATA_MOUNT:
         raise RuntimeSetupError("os pontos de montagem ativos não correspondem ao layout USB esperado.")
     if root_mount.fstype != "ext4" or data_mount.fstype != "ext4":
@@ -72,13 +74,13 @@ def validate_storage_layout(
     if "rw" not in data_mount.options.split(","):
         raise RuntimeSetupError("NIVUS_DATA está montado somente para leitura.")
     if root_mount.source == data_mount.source:
-        raise RuntimeSetupError("a raiz do Ubuntu e NIVUS_DATA precisam ser partições separadas.")
+        raise RuntimeSetupError("a raiz do sistema e NIVUS_DATA precisam ser partições separadas.")
     if root_block.kind != "part" or data_block.kind != "part":
         raise RuntimeSetupError("a raiz e NIVUS_DATA precisam estar em partições de bloco.")
     if not root_block.parent or root_block.parent != data_block.parent:
-        raise RuntimeSetupError("Ubuntu e NIVUS_DATA não estão no mesmo dispositivo USB.")
+        raise RuntimeSetupError("a raiz e NIVUS_DATA não estão no mesmo dispositivo USB.")
     if root_block.transport.lower() != "usb" or data_block.transport.lower() != "usb":
-        raise RuntimeSetupError("o dispositivo que contém o Ubuntu não foi identificado como USB.")
+        raise RuntimeSetupError("o dispositivo que contém o sistema não foi identificado como USB.")
     if data_label != DATA_LABEL:
         raise RuntimeSetupError(f"rótulo esperado {DATA_LABEL}; encontrado {data_label or 'nenhum'}.")
     if list(label_sources) != [data_mount.source]:
@@ -337,13 +339,17 @@ def _require_fresh_install() -> None:
 def configure_live_system(repository_root: Path) -> None:
     if os.geteuid() != 0:
         raise RuntimeSetupError("execute com sudo.")
-    if not Path("/etc/os-release").is_file():
-        raise RuntimeSetupError("Ubuntu não identificado.")
-    release = Path("/etc/os-release").read_text(encoding="utf-8", errors="replace")
-    if 'ID="ubuntu"' not in release and "ID=ubuntu" not in release:
-        raise RuntimeSetupError("somente Ubuntu Server é suportado nesta etapa.")
+    try:
+        release = read_os_release()
+    except OSError as exc:
+        raise RuntimeSetupError("não foi possível identificar a distribuição Linux.") from exc
+    supported = identify_supported_platform(release)
+    if supported is None:
+        raise RuntimeSetupError(
+            f"sistemas aceitos: {describe_supported_platforms()} x86_64/amd64."
+        )
     if platform.machine() != "x86_64":
-        raise RuntimeSetupError("esta etapa suporta Ubuntu x86_64/amd64.")
+        raise RuntimeSetupError("esta etapa suporta somente x86_64/amd64.")
     if shutil.which("systemctl") is None:
         raise RuntimeSetupError("systemd/systemctl é necessário.")
     _require_fresh_install()
@@ -363,14 +369,14 @@ def configure_live_system(repository_root: Path) -> None:
     _run(["systemctl", "enable", "--now", "var-lib-nivus.mount"])
     _run(["systemctl", "enable", "--now", "nivus-data-volume-guard.service"])
     _run(["/usr/local/libexec/nivus-data-volume-guard"])
-    print("Persistência NIVUS_DATA validada: sistema e dados estão no mesmo USB.")
+    print(f"Persistência NIVUS_DATA validada em {supported.display_name}: sistema e dados estão no mesmo USB.")
     print("Integração persistente instalada. Iniciando o instalador Compose do Nivus.")
 
 
 def main(argv: list[str] | None = None) -> int:
     default_root = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser(
-        description="Configura os dados persistentes de uma instalação Ubuntu iniciada pelo USB."
+        description="Configura os dados persistentes de uma instalação Linux iniciada pelo USB."
     )
     parser.add_argument("--repository-root", type=Path, default=default_root)
     args = parser.parse_args(argv)

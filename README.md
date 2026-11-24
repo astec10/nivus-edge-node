@@ -1,5 +1,9 @@
 # Nivus Edge Node
 
+## Pendrive de 25 GB
+
+O fluxo Ubuntu/Subiquity integrado à `main` requer um USB de pelo menos 40 GiB. Para um pendrive comercial de 25 GB, existe uma rota candidata com Debian 13 minimal e pacote de instalação Master/Worker: [guia de Debian no USB](deploy/portable_usb/DEBIAN_USB.md). O código precisa passar CI e validação em USB físico antes de ser considerado pronto para uso geral.
+
 O Nivus é um projeto aberto para construir uma plataforma de borda local-first, modular e de baixo consumo. Telemetria é um módulo da plataforma; sua agregação entre nós não é pré-requisito para o executor nem para a biblioteca compartilhada e será mais útil quando o Nó Master estiver operacional.
 
 O alvo planejado é **Ubuntu Server minimal x86_64/amd64**. Isso ainda não significa compatibilidade comprovada com qualquer computador. O stack Compose está instalado em paralelo num notebook Ubuntu CCE U25. Em 21/11/2026, a release `2dfcbc0c2029723e44ff507857c72e7e8b83dfa3` foi aplicada com backup consistente; health HTTPS 200 e telemetria sem token 401 passaram. O navegador em largura móvel mostrou API online, telemetria recente e gráficos separados por unidade como padrão. A revisão foi em viewport móvel do navegador, não em Android físico. Consulte [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md); ainda faltam smoke entre dois dispositivos, instalação limpa, reboot, restauração e validação de outros hardwares.

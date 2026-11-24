@@ -1,10 +1,12 @@
-# Persistência do Ubuntu instalado em USB
+# Persistência do Nivus instalado em USB
 
-O nome histórico desta pasta é \`live-usb\`, mas a mídia definida para o Nivus é **Ubuntu Server instalado integralmente no pendrive**, não Casper Live. A raiz do sistema e os dados sobrevivem a reinicializações.
+O layout persistente abaixo também é usado pela rota Debian 13 minimal para USB de 25 GB; veja [portable_usb/DEBIAN_USB.md](../portable_usb/DEBIAN_USB.md). A preparação Ubuntu/Subiquity permanece separada e requer 40 GiB.
+
+O nome histórico desta pasta é \`live-usb\`. O layout persistente é usado pelo Ubuntu Server instalado integralmente no pendrive e pela rota candidata Debian 13 minimal; não é Casper Live. A raiz do sistema e os dados sobrevivem a reinicializações.
 
 ## Layout persistente
 
-O instalador Subiquity prepara no mesmo USB uma raiz Ubuntu ext4 e a partição ext4 \`NIVUS_DATA\`, montada em \`/var/lib/nivus\`. O instalador Compose usa os caminhos persistentes por links:
+O Subiquity Ubuntu ou a instalação manual Debian prepara no mesmo USB uma raiz ext4 e a partição ext4 \`NIVUS_DATA\`, montada em \`/var/lib/nivus\`. O instalador Compose usa os caminhos persistentes por links:
 
 - \`/var/lib/nivus-compose\` → \`/var/lib/nivus/compose\` (SQLite e estado Mosquitto).
 - \`/etc/nivus-compose\` → \`/var/lib/nivus/config\` (segredos, TLS e configuração).
@@ -13,11 +15,11 @@ O instalador Subiquity prepara no mesmo USB uma raiz Ubuntu ext4 e a partição 
 
 O marcador \`.nivus-data-volume\` identifica o volume como \`nivus-data-volume-v1\`. O guard systemd verifica a montagem real, ext4, rótulo, marcador e diretórios antes de permitir Docker ou o coletor. Se o volume estiver ausente ou inválido, os serviços que gravam dados não iniciam.
 
-## Instalar Nivus após instalar Ubuntu
+## Instalar Nivus após instalar o sistema
 
-A configuração do USB e do seed está em [portable_usb/AUTOINSTALL.md](../portable_usb/AUTOINSTALL.md). A ISO NoCloud é apenas mídia de configuração; use uma mídia Ubuntu Server inicializável separada e mantenha a confirmação de armazenamento do Subiquity ativa. O instalador apaga o USB selecionado. Confira caminho, modelo, serial e capacidade antes de confirmar.
+A configuração automática Ubuntu/seed está em [portable_usb/AUTOINSTALL.md](../portable_usb/AUTOINSTALL.md); a rota Debian 13 para USB comercial de 25 GB está em [portable_usb/DEBIAN_USB.md](../portable_usb/DEBIAN_USB.md). Use uma mídia de instalação separada e confira o disco de destino antes de particionar ou formatar.
 
-Depois do primeiro boot do Ubuntu instalado no USB, clone o repositório e execute o instalador portátil como root:
+Depois do primeiro boot do Linux instalado no USB, copie o pacote ou clone o repositório e execute o instalador portátil como root:
 
     sudo bash deploy/portable_usb/install_nivus.sh
 
@@ -44,4 +46,4 @@ Ainda exigem validação: instalar por Subiquity até o primeiro boot, executar 
 
 ## Recuperação
 
-Mantenha uma mídia Ubuntu de recuperação separada. Se \`NIVUS_DATA\` não for reconhecido, não formate nem substitua o marcador. Preserve a partição e investigue rótulo, UUID, sistema de arquivos e conteúdo offline. Use o procedimento de backup/restore documentado em [deploy/README.md](../README.md) somente depois de preservar o estado atual.
+Mantenha uma mídia de recuperação separada. Se \`NIVUS_DATA\` não for reconhecido, não formate nem substitua o marcador. Preserve a partição e investigue rótulo, UUID, sistema de arquivos e conteúdo offline. Use o procedimento de backup/restore documentado em [deploy/README.md](../README.md) somente depois de preservar o estado atual.

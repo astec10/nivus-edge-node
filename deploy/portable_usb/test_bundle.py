@@ -20,6 +20,7 @@ REQUIRED_FILES = (
     "deploy/install.sh",
     "deploy/nivus-node-agent.service.example",
     "deploy/portable_usb/configure_runtime.py",
+    "deploy/portable_usb/platform_support.py",
     "deploy/portable_usb/install_nivus.sh",
     "deploy/portable_usb/bundle_manifest.schema.json",
     "deploy/live-usb/nivus-data-volume-guard",
