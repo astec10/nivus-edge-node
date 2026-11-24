@@ -1,22 +1,32 @@
 {
   "0": [
     "doc-ai-development-orchestration",
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "ai-gateway-security-boundaries",
     "nivus-mobile-battery-relay"
   ],
   "00": [
+    "doc-video-research-index",
     "doc-node-registry"
   ],
   "00z": [
     "doc-node-registry"
   ],
+  "01": [
+    "doc-video-research-index"
+  ],
+  "02": [
+    "doc-video-research-index"
+  ],
   "04": [
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-project-status"
   ],
@@ -26,17 +36,27 @@
   "05": [
     "video-yc5sg321g0y"
   ],
+  "06": [
+    "doc-video-research-index"
+  ],
   "0600": [
     "doc-node-registry",
     "doc-project-status"
   ],
   "07": [
     "doc-ai-provider-connectors",
+    "doc-video-research-index",
     "doc-vision"
   ],
   "0700": [
     "doc-node-registry",
     "doc-project-status"
+  ],
+  "08": [
+    "doc-video-research-index"
+  ],
+  "09": [
+    "doc-video-research-index"
   ],
   "1": [
     "doc-ai-context",
@@ -44,14 +64,20 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-node-registry",
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit"
   ],
   "10": [
-    "doc-node-registry"
+    "doc-video-research-index",
+    "doc-node-registry",
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
   ],
   "100": [
     "doc-vision",
@@ -82,13 +108,19 @@
   ],
   "12": [
     "doc-ai-context",
+    "doc-video-research-index",
     "doc-project-status",
     "doc-project-roadmap"
   ],
   "1234": [
     "doc-ai-provider-connectors"
   ],
+  "127": [
+    "doc-video-research-index",
+    "ai-gateway-security-boundaries"
+  ],
   "13": [
+    "doc-video-research-index",
     "doc-vision"
   ],
   "133": [
@@ -103,7 +135,6 @@
   ],
   "15": [
     "doc-ai-development-orchestration",
-    "doc-video-research-index",
     "doc-hardware-telemetry"
   ],
   "16": [
@@ -111,8 +142,13 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-module-map",
-    "doc-project-status"
+    "doc-project-status",
+    "local-inference-hardware-fit"
+  ],
+  "16gb": [
+    "video-o6d15v1zy0"
   ],
   "17": [
     "doc-ai-context",
@@ -123,6 +159,9 @@
     "doc-ai-module-workplan",
     "doc-module-map"
   ],
+  "19": [
+    "doc-video-research-index"
+  ],
   "2": [
     "doc-ai-context",
     "doc-ai-provider-connectors",
@@ -130,11 +169,13 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-node-registry",
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "local-inference-hardware-fit",
     "ref-multipaz-developer-website"
   ],
   "20": [
@@ -186,6 +227,7 @@
     "doc-project-roadmap"
   ],
   "23": [
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-project-status",
     "doc-project-roadmap"
@@ -206,6 +248,9 @@
     "doc-project-status",
     "doc-project-roadmap"
   ],
+  "27": [
+    "doc-video-research-index"
+  ],
   "28": [
     "doc-ai-context",
     "doc-project-status",
@@ -223,6 +268,9 @@
     "doc-project-status",
     "doc-project-roadmap"
   ],
+  "2gb": [
+    "video-o6d15v1zy0"
+  ],
   "3": [
     "doc-ai-context",
     "doc-ai-provider-connectors",
@@ -234,7 +282,8 @@
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "local-inference-hardware-fit"
   ],
   "30": [
     "doc-ai-context",
@@ -266,10 +315,18 @@
   "344s": [
     "doc-video-research-index"
   ],
+  "35": [
+    "doc-video-research-index"
+  ],
   "36": [
     "doc-project-status"
   ],
+  "3676": [
+    "doc-video-research-index",
+    "local-inference-hardware-fit"
+  ],
   "37": [
+    "doc-video-research-index",
     "doc-project-status",
     "doc-project-roadmap"
   ],
@@ -278,6 +335,9 @@
   ],
   "387c8ddb7a72078825da941758b811b9153c71e8": [
     "doc-ai-development-orchestration"
+  ],
+  "39": [
+    "doc-video-research-index"
   ],
   "3a1621dc11d2532853ef83b9ab5ea47f64cfaca5": [
     "doc-ai-context",
@@ -295,11 +355,16 @@
     "doc-node-registry",
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "local-inference-hardware-fit"
   ],
   "40": [
     "doc-node-registry",
     "doc-project-status"
+  ],
+  "4000": [
+    "doc-video-research-index",
+    "ai-gateway-security-boundaries"
   ],
   "401": [
     "doc-ai-context",
@@ -318,6 +383,7 @@
     "doc-node-registry"
   ],
   "43": [
+    "doc-video-research-index",
     "doc-project-status"
   ],
   "43662375766": [
@@ -333,10 +399,14 @@
   ],
   "45": [
     "doc-ai-context",
+    "doc-video-research-index",
     "doc-project-status"
   ],
   "46": [
     "doc-project-status"
+  ],
+  "47": [
+    "doc-video-research-index"
   ],
   "48": [
     "doc-node-registry",
@@ -357,6 +427,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "local-inference-hardware-fit",
     "ref-multipaz-developer-website"
   ],
   "50": [
@@ -570,6 +641,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "ai-gateway-security-boundaries",
     "nivus-mobile-battery-relay",
     "local-inference-hardware-fit",
     "ref-multipaz-developer-website",
@@ -580,11 +652,13 @@
     "video-cfdoXn6yvE4",
     "video-q-yobcyc71a",
     "video-yc5sg321g0y",
-    "video-wgqdaqqto90"
+    "video-wgqdaqqto90",
+    "video-o6d15v1zy0"
   ],
   "abaixo": [
     "doc-ai-context",
     "doc-ai-development-orchestration",
+    "doc-video-research-index",
     "doc-node-registry"
   ],
   "abas": [
@@ -639,12 +713,20 @@
     "doc-project-roadmap"
   ],
   "accelerate": [
+    "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation"
+  ],
+  "accelerator": [
+    "local-inference-hardware-fit"
+  ],
+  "accelerators": [
+    "local-inference-hardware-fit"
   ],
   "accept": [
     "ai-development-persistent-worker"
   ],
   "access": [
+    "ai-gateway-security-boundaries",
     "networked-gpu-versus-task-federation"
   ],
   "accessing": [
@@ -698,6 +780,7 @@
     "doc-vision"
   ],
   "acessa": [
+    "doc-video-research-index",
     "doc-vision"
   ],
   "acessar": [
@@ -710,6 +793,7 @@
     "doc-ai-context",
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision"
@@ -779,6 +863,7 @@
     "doc-project-roadmap"
   ],
   "across": [
+    "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation",
     "video-rpgjhrunbxo"
   ],
@@ -797,7 +882,9 @@
     "ai-development-persistent-worker"
   ],
   "actuator": [
-    "nivus-mobile-battery-relay"
+    "ai-gateway-security-boundaries",
+    "nivus-mobile-battery-relay",
+    "local-inference-hardware-fit"
   ],
   "actuators": [
     "multimodal-assistant-demo"
@@ -825,8 +912,8 @@
   "adapting": [
     "multimodal-assistant-demo"
   ],
-  "adding": [
-    "local-inference-hardware-fit"
+  "add": [
+    "ai-gateway-security-boundaries"
   ],
   "adiado": [
     "doc-ai-provider-connectors"
@@ -932,8 +1019,7 @@
   ],
   "afirma": [
     "doc-ai-workflow",
-    "doc-ai-development-orchestration",
-    "doc-video-research-index"
+    "doc-ai-development-orchestration"
   ],
   "afirmar": [
     "doc-ai-context"
@@ -1028,6 +1114,7 @@
     "doc-module-map",
     "doc-project-status",
     "doc-vision",
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "ref-multipaz-developer-website",
     "ai-development-persistent-worker",
@@ -1036,7 +1123,8 @@
     "video-q-yobcyc71a",
     "video-vqxbftjq0m4",
     "video-gq3bewdjeos",
-    "video-wgqdaqqto90"
+    "video-wgqdaqqto90",
+    "video-o6d15v1zy0"
   ],
   "ai_development_orchestration": [
     "doc-ai-context",
@@ -1149,6 +1237,7 @@
   ],
   "alerta": [
     "doc-ai-development-orchestration",
+    "doc-video-research-index",
     "doc-vision"
   ],
   "alertas": [
@@ -1179,7 +1268,11 @@
     "doc-module-map",
     "doc-node-registry",
     "doc-project-roadmap",
+    "ai-gateway-security-boundaries",
     "nivus-mobile-battery-relay"
+  ],
+  "already": [
+    "ai-gateway-security-boundaries"
   ],
   "alta": [
     "doc-node-registry"
@@ -1264,6 +1357,15 @@
     "doc-project-roadmap",
     "doc-vision"
   ],
+  "aml": [
+    "doc-video-research-index",
+    "local-inference-hardware-fit"
+  ],
+  "amlogic": [
+    "doc-video-research-index",
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
+  ],
   "amostra": [
     "doc-ai-module-workplan",
     "doc-hardware-telemetry",
@@ -1292,10 +1394,12 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-vision",
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "ai-development-persistent-worker",
-    "video-wgqdaqqto90"
+    "video-wgqdaqqto90",
+    "video-o6d15v1zy0"
   ],
   "analysis": [
     "ai-development-persistent-worker"
@@ -1304,6 +1408,7 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-node-registry",
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation",
@@ -1314,7 +1419,8 @@
     "video-vqxbftjq0m4",
     "video-yc5sg321g0y",
     "video-gq3bewdjeos",
-    "video-wgqdaqqto90"
+    "video-wgqdaqqto90",
+    "video-o6d15v1zy0"
   ],
   "andamento": [
     "doc-ai-executor-implementation",
@@ -1324,6 +1430,13 @@
     "doc-ai-context",
     "doc-project-status",
     "doc-project-roadmap"
+  ],
+  "another": [
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit"
+  ],
+  "answer": [
+    "local-inference-hardware-fit"
   ],
   "antecipada": [
     "doc-node-registry"
@@ -1360,9 +1473,11 @@
     "doc-ai-provider-connectors"
   ],
   "antiga": [
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-hardware-telemetry",
-    "doc-project-roadmap"
+    "doc-project-roadmap",
+    "video-o6d15v1zy0"
   ],
   "antigas": [
     "doc-module-map",
@@ -1394,11 +1509,15 @@
   "anunciar": [
     "doc-vision"
   ],
+  "any": [
+    "ai-gateway-security-boundaries"
+  ],
   "ao": [
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-hardware-telemetry",
     "doc-project-status",
@@ -1457,14 +1576,18 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-node-registry",
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
     "ref-multipaz-developer-website",
-    "multimodal-assistant-demo"
+    "multimodal-assistant-demo",
+    "video-o6d15v1zy0"
   ],
   "aplic": [
     "doc-ai-context"
@@ -1474,6 +1597,7 @@
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-hardware-telemetry",
     "doc-project-status",
@@ -1517,13 +1641,15 @@
     "doc-node-registry"
   ],
   "applies": [
-    "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation",
     "ai-development-persistent-worker"
   ],
   "approve": [
     "doc-ai-executor-implementation"
+  ],
+  "approved": [
+    "ai-gateway-security-boundaries"
   ],
   "apresenta": [
     "doc-video-research-index",
@@ -1577,6 +1703,9 @@
   "aproximadamente": [
     "doc-hardware-telemetry"
   ],
+  "aproximados": [
+    "doc-video-research-index"
+  ],
   "aps": [
     "doc-vision"
   ],
@@ -1593,23 +1722,35 @@
     "doc-ai-development-orchestration"
   ],
   "arbitrary": [
+    "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation"
   ],
   "architecture": [
     "doc-ai-context",
     "doc-module-map",
-    "doc-project-status"
+    "doc-project-status",
+    "local-inference-hardware-fit"
   ],
   "architectures": [
     "networked-gpu-versus-task-federation"
   ],
   "are": [
+    "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation",
     "ai-development-persistent-worker",
-    "video-wgqdaqqto90"
+    "video-wgqdaqqto90",
+    "video-o6d15v1zy0"
   ],
   "argumentos": [
     "doc-node-registry"
+  ],
+  "arm": [
+    "doc-video-research-index",
+    "local-inference-hardware-fit"
+  ],
+  "arm64": [
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
   ],
   "armazena": [
     "doc-module-map",
@@ -1627,6 +1768,11 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision"
+  ],
+  "armbian": [
+    "doc-video-research-index",
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
   ],
   "arquitetura": [
     "doc-ai-provider-connectors",
@@ -1686,10 +1832,13 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation",
     "video-z3wpoywp358",
     "video-vqxbftjq0m4",
-    "video-gq3bewdjeos"
+    "video-gq3bewdjeos",
+    "video-o6d15v1zy0"
   ],
   "ask": [
     "ref-multipaz-developer-website"
@@ -1731,9 +1880,6 @@
   "assistente": [
     "doc-vision"
   ],
-  "assistido": [
-    "doc-video-research-index"
-  ],
   "associa": [
     "doc-ai-provider-connectors"
   ],
@@ -1771,6 +1917,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "ai-gateway-security-boundaries",
     "ref-multipaz-developer-website",
     "video-yc5sg321g0y"
   ],
@@ -1799,6 +1946,7 @@
     "doc-project-roadmap"
   ],
   "atomic": [
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation",
@@ -1830,7 +1978,6 @@
     "doc-hardware-telemetry"
   ],
   "attached": [
-    "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation",
     "video-cfdoXn6yvE4"
   ],
@@ -1934,6 +2081,7 @@
     "doc-ai-context",
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-project-status",
     "doc-project-roadmap",
@@ -1969,8 +2117,15 @@
   "auth": [
     "doc-module-map"
   ],
+  "authenticate": [
+    "ai-gateway-security-boundaries"
+  ],
   "authenticated": [
     "networked-gpu-versus-task-federation"
+  ],
+  "authentication": [
+    "ai-gateway-security-boundaries",
+    "video-o6d15v1zy0"
   ],
   "authorization": [
     "doc-node-registry"
@@ -1981,12 +2136,17 @@
   "authorized": [
     "ai-development-persistent-worker"
   ],
+  "auto": [
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
+  ],
   "autom": [
     "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-project-status",
     "doc-project-roadmap"
@@ -2013,7 +2173,6 @@
   ],
   "automation": [
     "nivus-mobile-battery-relay",
-    "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "video-z3wpoywp358",
     "video-gq3bewdjeos",
@@ -2024,7 +2183,8 @@
   ],
   "autor": [
     "doc-ai-context",
-    "doc-ai-workflow"
+    "doc-ai-workflow",
+    "doc-video-research-index"
   ],
   "autoria": [
     "doc-ai-development-orchestration"
@@ -2038,6 +2198,7 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-node-registry",
     "doc-project-status"
@@ -2062,6 +2223,9 @@
   ],
   "autorizar": [
     "doc-ai-executor-implementation"
+  ],
+  "availability": [
+    "local-inference-hardware-fit"
   ],
   "available": [
     "video-yc5sg321g0y"
@@ -2127,6 +2291,9 @@
     "doc-project-roadmap",
     "doc-vision",
     "nivus-mobile-battery-relay"
+  ],
+  "baixos": [
+    "doc-video-research-index"
   ],
   "balanceador": [
     "doc-vision"
@@ -2204,7 +2371,7 @@
     "doc-module-map"
   ],
   "be": [
-    "local-inference-hardware-fit",
+    "ai-gateway-security-boundaries",
     "ai-development-persistent-worker",
     "video-yc5sg321g0y"
   ],
@@ -2222,7 +2389,6 @@
     "ai-development-persistent-worker"
   ],
   "been": [
-    "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation",
     "ai-development-persistent-worker",
     "video-rpgjhrunbxo",
@@ -2231,10 +2397,12 @@
     "video-gq3bewdjeos"
   ],
   "before": [
-    "local-inference-hardware-fit",
+    "ai-gateway-security-boundaries",
     "multimodal-assistant-demo"
   ],
   "behavior": [
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
     "multimodal-assistant-demo"
   ],
   "bem": [
@@ -2285,6 +2453,9 @@
   "bin": [
     "doc-ai-provider-connectors"
   ],
+  "bind": [
+    "ai-gateway-security-boundaries"
+  ],
   "biometria": [
     "doc-ai-context"
   ],
@@ -2299,6 +2470,7 @@
   "blob": [
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
+    "ai-gateway-security-boundaries",
     "ref-multipaz-developer-website"
   ],
   "blocos": [
@@ -2333,13 +2505,26 @@
   "boa": [
     "doc-ai-development-orchestration"
   ],
+  "board": [
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
+  ],
+  "boards": [
+    "doc-video-research-index",
+    "local-inference-hardware-fit"
+  ],
+  "bodies": [
+    "ai-gateway-security-boundaries"
+  ],
   "booleanos": [
     "doc-node-registry"
   ],
   "boot": [
     "doc-ai-context",
+    "doc-video-research-index",
     "doc-project-status",
-    "doc-project-roadmap"
+    "doc-project-roadmap",
+    "local-inference-hardware-fit"
   ],
   "bootstrap": [
     "doc-ai-context",
@@ -2358,18 +2543,34 @@
     "doc-project-status"
   ],
   "boundaries": [
+    "doc-video-research-index",
+    "ai-gateway-security-boundaries",
     "multimodal-assistant-demo"
+  ],
+  "boundary": [
+    "ai-gateway-security-boundaries"
   ],
   "bounded": [
     "doc-ai-development-orchestration",
     "ai-development-persistent-worker",
     "video-q-yobcyc71a"
   ],
+  "box": [
+    "doc-video-research-index",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
+  ],
+  "boxes": [
+    "doc-video-research-index",
+    "local-inference-hardware-fit"
+  ],
   "bpe": [
     "doc-ai-workflow"
   ],
   "br": [
-    "doc-project-status"
+    "doc-project-status",
+    "ai-gateway-security-boundaries"
   ],
   "branch": [
     "doc-ai-context",
@@ -2402,6 +2603,14 @@
   "browser": [
     "doc-module-map",
     "video-gq3bewdjeos"
+  ],
+  "btv": [
+    "doc-video-research-index",
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
+  ],
+  "btv10": [
+    "video-o6d15v1zy0"
   ],
   "budget": [
     "ref-multipaz-developer-website"
@@ -2437,7 +2646,16 @@
   "buscados": [
     "doc-ai-provider-connectors"
   ],
+  "but": [
+    "local-inference-hardware-fit"
+  ],
+  "bx": [
+    "doc-video-research-index",
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
+  ],
   "by": [
+    "ai-gateway-security-boundaries",
     "networked-gpu-versus-task-federation"
   ],
   "bytes": [
@@ -2523,6 +2741,12 @@
     "doc-ai-context",
     "doc-project-status"
   ],
+  "caf": [
+    "doc-video-research-index"
+  ],
+  "cafe_dados_e_gatos": [
+    "ai-gateway-security-boundaries"
+  ],
   "cai": [
     "doc-ai-context",
     "doc-vision"
@@ -2543,6 +2767,7 @@
     "doc-vision"
   ],
   "camera": [
+    "ai-gateway-security-boundaries",
     "multimodal-assistant-demo",
     "video-wgqdaqqto90"
   ],
@@ -2573,6 +2798,7 @@
   "can": [
     "doc-node-registry",
     "doc-project-roadmap",
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "ai-development-persistent-worker"
   ],
@@ -2652,6 +2878,10 @@
     "networked-gpu-versus-task-federation",
     "video-rpgjhrunbxo",
     "video-cfdoXn6yvE4"
+  ],
+  "captions": [
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
   ],
   "caracteres": [
     "ref-multipaz-developer-website"
@@ -2792,6 +3022,9 @@
     "doc-ai-executor-implementation",
     "doc-project-status"
   ],
+  "change": [
+    "ai-gateway-security-boundaries"
+  ],
   "changes": [
     "doc-ai-provider-connectors",
     "ai-development-persistent-worker"
@@ -2821,8 +3054,15 @@
   "cheaper": [
     "doc-ai-development-orchestration"
   ],
+  "checagem": [
+    "doc-video-research-index"
+  ],
   "check": [
-    "doc-project-roadmap"
+    "doc-project-roadmap",
+    "video-o6d15v1zy0"
+  ],
+  "checked": [
+    "ai-gateway-security-boundaries"
   ],
   "checklist": [
     "local-inference-hardware-fit"
@@ -2865,6 +3105,9 @@
   "chipset": [
     "doc-hardware-telemetry",
     "doc-project-roadmap"
+  ],
+  "choose": [
+    "local-inference-hardware-fit"
   ],
   "chunks": [
     "doc-video-research-index",
@@ -2933,10 +3176,10 @@
     "ref-multipaz-developer-website"
   ],
   "claim": [
+    "ai-gateway-security-boundaries",
     "video-vqxbftjq0m4"
   ],
   "claims": [
-    "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation",
     "video-z3wpoywp358"
   ],
@@ -2970,6 +3213,10 @@
   "cli": [
     "doc-ai-development-orchestration",
     "doc-module-map"
+  ],
+  "client": [
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit"
   ],
   "cliente": [
     "doc-ai-context",
@@ -3005,6 +3252,7 @@
     "doc-vision"
   ],
   "cobertura": [
+    "doc-video-research-index",
     "doc-hardware-telemetry",
     "doc-vision"
   ],
@@ -3084,7 +3332,9 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "ai-gateway-security-boundaries",
     "nivus-mobile-battery-relay",
+    "local-inference-hardware-fit",
     "ref-multipaz-developer-website",
     "ai-development-persistent-worker",
     "video-q-yobcyc71a",
@@ -3252,6 +3502,7 @@
     "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
+    "doc-video-research-index",
     "doc-vision"
   ],
   "compatibilidade": [
@@ -3265,10 +3516,12 @@
     "doc-vision"
   ],
   "compatibility": [
-    "local-inference-hardware-fit"
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
   ],
   "compatible": [
-    "doc-ai-provider-connectors"
+    "doc-ai-provider-connectors",
+    "video-o6d15v1zy0"
   ],
   "completa": [
     "doc-ai-context",
@@ -3508,6 +3761,7 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-project-status",
     "doc-vision",
@@ -3538,6 +3792,7 @@
   ],
   "configurar": [
     "doc-ai-provider-connectors",
+    "doc-video-research-index",
     "doc-project-status",
     "ref-multipaz-developer-website"
   ],
@@ -3645,6 +3900,9 @@
     "doc-ai-provider-connectors",
     "doc-ai-module-workplan"
   ],
+  "connectivity": [
+    "local-inference-hardware-fit"
+  ],
   "consegue": [
     "doc-project-roadmap",
     "doc-vision"
@@ -3725,7 +3983,8 @@
     "doc-ai-development-orchestration"
   ],
   "consultadas": [
-    "doc-ai-executor-implementation"
+    "doc-ai-executor-implementation",
+    "doc-video-research-index"
   ],
   "consultados": [
     "ref-multipaz-developer-website"
@@ -3742,6 +4001,7 @@
     "doc-ai-context",
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-hardware-telemetry",
     "doc-project-status",
@@ -3774,10 +4034,14 @@
   "contadores": [
     "ref-multipaz-developer-website"
   ],
+  "contain": [
+    "local-inference-hardware-fit"
+  ],
   "container": [
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
-    "doc-project-status"
+    "doc-project-status",
+    "ai-gateway-security-boundaries"
   ],
   "contas": [
     "doc-ai-development-orchestration",
@@ -3810,9 +4074,11 @@
   ],
   "conter": [
     "doc-ai-development-orchestration",
+    "doc-video-research-index",
     "doc-node-registry"
   ],
   "context": [
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "ref-multipaz-developer-website"
   ],
@@ -3892,6 +4158,10 @@
   "contributing": [
     "doc-ai-context"
   ],
+  "control": [
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit"
+  ],
   "controla": [
     "doc-ai-executor-implementation",
     "doc-project-status",
@@ -3954,6 +4224,9 @@
   "coordenar": [
     "doc-ai-context"
   ],
+  "copiada": [
+    "doc-video-research-index"
+  ],
   "copiar": [
     "doc-ai-provider-connectors",
     "doc-project-status",
@@ -3961,9 +4234,6 @@
   ],
   "copie": [
     "doc-ai-workflow"
-  ],
-  "copied": [
-    "local-inference-hardware-fit"
   ],
   "core": [
     "doc-project-roadmap"
@@ -4031,11 +4301,17 @@
   "corte": [
     "doc-vision"
   ],
+  "cost": [
+    "local-inference-hardware-fit"
+  ],
   "cota": [
     "doc-ai-provider-connectors"
   ],
   "could": [
     "video-yc5sg321g0y"
+  ],
+  "covers": [
+    "local-inference-hardware-fit"
   ],
   "cpp": [
     "doc-ai-provider-connectors"
@@ -4047,7 +4323,8 @@
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "local-inference-hardware-fit"
   ],
   "cpu_hotspot_source": [
     "doc-hardware-telemetry"
@@ -4060,6 +4337,7 @@
     "doc-module-map"
   ],
   "cpus": [
+    "doc-video-research-index",
     "doc-hardware-telemetry",
     "doc-vision"
   ],
@@ -4071,6 +4349,9 @@
   ],
   "create": [
     "doc-ai-executor-implementation"
+  ],
+  "creator": [
+    "ai-gateway-security-boundaries"
   ],
   "credenciais": [
     "doc-ai-provider-connectors",
@@ -4090,7 +4371,8 @@
     "doc-ai-provider-connectors"
   ],
   "credentials": [
-    "doc-node-registry"
+    "doc-node-registry",
+    "ai-gateway-security-boundaries"
   ],
   "crescente": [
     "doc-node-registry"
@@ -4145,7 +4427,8 @@
     "doc-node-registry"
   ],
   "cross": [
-    "ai-development-persistent-worker"
+    "ai-development-persistent-worker",
+    "video-o6d15v1zy0"
   ],
   "cryptography": [
     "doc-ai-provider-connectors"
@@ -4243,7 +4526,6 @@
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
-    "doc-video-research-index",
     "doc-hardware-telemetry",
     "doc-vision",
     "ref-multipaz-developer-website"
@@ -4264,7 +4546,10 @@
     "doc-ai-workflow",
     "doc-project-status",
     "doc-vision",
-    "ref-multipaz-developer-website"
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
+    "ref-multipaz-developer-website",
+    "video-o6d15v1zy0"
   ],
   "data_collection": [
     "doc-ai-provider-connectors"
@@ -4299,7 +4584,8 @@
     "doc-project-roadmap",
     "doc-vision",
     "nivus-mobile-battery-relay",
-    "ref-multipaz-developer-website"
+    "ref-multipaz-developer-website",
+    "video-o6d15v1zy0"
   ],
   "debug": [
     "doc-ai-development-orchestration"
@@ -4349,6 +4635,9 @@
   "declarado": [
     "doc-vision"
   ],
+  "declarar": [
+    "doc-video-research-index"
+  ],
   "declare": [
     "doc-project-roadmap",
     "networked-gpu-versus-task-federation"
@@ -4366,7 +4655,8 @@
     "doc-ai-context"
   ],
   "default": [
-    "doc-vision"
+    "doc-vision",
+    "ai-gateway-security-boundaries"
   ],
   "defina": [
     "doc-ai-provider-connectors",
@@ -4410,6 +4700,7 @@
   ],
   "demais": [
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-project-roadmap"
   ],
@@ -4432,6 +4723,9 @@
   ],
   "demonstrarem": [
     "doc-project-roadmap"
+  ],
+  "demonstrates": [
+    "video-o6d15v1zy0"
   ],
   "demonstration": [
     "local-inference-hardware-fit",
@@ -4491,6 +4785,10 @@
   "depender": [
     "doc-ai-workflow",
     "doc-project-status"
+  ],
+  "depends": [
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit"
   ],
   "deploy": [
     "doc-ai-context",
@@ -4613,9 +4911,11 @@
     "video-q-yobcyc71a"
   ],
   "description": [
-    "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "video-wgqdaqqto90"
+  ],
+  "descriptions": [
+    "ai-gateway-security-boundaries"
   ],
   "descriptografada": [
     "doc-ai-executor-implementation"
@@ -4652,6 +4952,12 @@
     "doc-ai-module-workplan",
     "doc-module-map",
     "doc-project-status"
+  ],
+  "design": [
+    "ai-gateway-security-boundaries"
+  ],
+  "designated": [
+    "ai-gateway-security-boundaries"
   ],
   "desktop": [
     "multimodal-assistant-demo",
@@ -4704,6 +5010,12 @@
     "doc-ai-workflow",
     "doc-project-status"
   ],
+  "destination": [
+    "ai-gateway-security-boundaries"
+  ],
+  "destinations": [
+    "ai-gateway-security-boundaries"
+  ],
   "destino": [
     "doc-project-roadmap",
     "nivus-mobile-battery-relay"
@@ -4715,7 +5027,8 @@
     "doc-node-registry"
   ],
   "details": [
-    "video-wgqdaqqto90"
+    "video-wgqdaqqto90",
+    "video-o6d15v1zy0"
   ],
   "detalhes": [
     "doc-hardware-telemetry",
@@ -4800,6 +5113,9 @@
   "diagn": [
     "doc-hardware-telemetry"
   ],
+  "diagnostic": [
+    "ai-gateway-security-boundaries"
+  ],
   "diagrama": [
     "doc-ai-development-orchestration",
     "doc-vision",
@@ -4845,6 +5161,7 @@
     "doc-ai-executor-implementation"
   ],
   "different": [
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation"
   ],
@@ -4873,7 +5190,6 @@
   ],
   "direta": [
     "doc-ai-context",
-    "doc-video-research-index",
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-project-roadmap"
@@ -4885,7 +5201,8 @@
     "doc-vision"
   ],
   "disable": [
-    "doc-module-map"
+    "doc-module-map",
+    "ai-gateway-security-boundaries"
   ],
   "disco": [
     "doc-module-map",
@@ -4965,6 +5282,9 @@
     "doc-video-research-index",
     "doc-module-map"
   ],
+  "distinguish": [
+    "local-inference-hardware-fit"
+  ],
   "distinta": [
     "doc-project-status"
   ],
@@ -4988,6 +5308,7 @@
   "distribui": [
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-project-roadmap",
     "doc-vision"
@@ -5020,6 +5341,12 @@
   "diy": [
     "video-wgqdaqqto90"
   ],
+  "diz": [
+    "doc-video-research-index"
+  ],
+  "djeannie29": [
+    "ai-gateway-security-boundaries"
+  ],
   "dns": [
     "doc-ai-provider-connectors",
     "doc-vision"
@@ -5038,9 +5365,12 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "ai-gateway-security-boundaries",
     "nivus-mobile-battery-relay",
+    "local-inference-hardware-fit",
     "ref-multipaz-developer-website",
-    "ai-development-persistent-worker"
+    "ai-development-persistent-worker",
+    "video-o6d15v1zy0"
   ],
   "docker": [
     "doc-ai-provider-connectors",
@@ -5061,6 +5391,7 @@
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-vision",
+    "ai-gateway-security-boundaries",
     "nivus-mobile-battery-relay",
     "local-inference-hardware-fit",
     "ref-multipaz-developer-website",
@@ -5122,6 +5453,9 @@
     "doc-vision",
     "ref-multipaz-developer-website"
   ],
+  "documents": [
+    "ai-gateway-security-boundaries"
+  ],
   "docusaurus": [
     "ref-multipaz-developer-website"
   ],
@@ -5177,7 +5511,8 @@
     "doc-project-status"
   ],
   "drivers": [
-    "doc-hardware-telemetry"
+    "doc-hardware-telemetry",
+    "local-inference-hardware-fit"
   ],
   "duas": [
     "doc-ai-provider-connectors",
@@ -5225,10 +5560,15 @@
   "durante": [
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
-    "doc-video-research-index",
     "doc-hardware-telemetry",
     "doc-project-roadmap",
     "doc-vision"
+  ],
+  "duration": [
+    "ai-gateway-security-boundaries"
+  ],
+  "during": [
+    "ai-gateway-security-boundaries"
   ],
   "e": [
     "doc-ai-context",
@@ -5249,6 +5589,9 @@
     "video-z3wpoywp358",
     "video-gq3bewdjeos"
   ],
+  "each": [
+    "ai-gateway-security-boundaries"
+  ],
   "econ": [
     "doc-ai-context"
   ],
@@ -5257,7 +5600,6 @@
     "doc-module-map",
     "doc-node-registry",
     "doc-project-status",
-    "local-inference-hardware-fit",
     "ai-development-persistent-worker"
   ],
   "edi": [
@@ -5276,6 +5618,10 @@
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
     "doc-module-map"
+  ],
+  "egress": [
+    "ai-gateway-security-boundaries",
+    "video-o6d15v1zy0"
   ],
   "el": [
     "doc-project-status",
@@ -5317,7 +5663,8 @@
     "doc-project-roadmap",
     "doc-vision",
     "nivus-mobile-battery-relay",
-    "ref-multipaz-developer-website"
+    "ref-multipaz-developer-website",
+    "video-o6d15v1zy0"
   ],
   "embarcado": [
     "doc-video-research-index"
@@ -5342,6 +5689,11 @@
     "doc-ai-executor-implementation",
     "nivus-mobile-battery-relay"
   ],
+  "emmc": [
+    "doc-video-research-index",
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
+  ],
   "empacotadas": [
     "doc-hardware-telemetry"
   ],
@@ -5361,7 +5713,8 @@
     "doc-project-status"
   ],
   "encaminha": [
-    "doc-ai-development-orchestration"
+    "doc-ai-development-orchestration",
+    "doc-video-research-index"
   ],
   "encaminhada": [
     "doc-vision"
@@ -5370,6 +5723,7 @@
     "doc-project-status"
   ],
   "encaminhar": [
+    "doc-video-research-index",
     "doc-project-status",
     "doc-vision"
   ],
@@ -5402,12 +5756,16 @@
     "doc-ai-provider-connectors",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
-    "doc-node-registry"
+    "doc-video-research-index",
+    "doc-node-registry",
+    "ai-gateway-security-boundaries"
   ],
   "endpoints": [
     "doc-ai-provider-connectors",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-node-registry",
+    "ai-gateway-security-boundaries",
     "ref-multipaz-developer-website"
   ],
   "energia": [
@@ -5463,6 +5821,7 @@
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-hardware-telemetry",
     "doc-project-status",
@@ -5498,6 +5857,9 @@
   ],
   "entropia": [
     "doc-node-registry"
+  ],
+  "entry": [
+    "ai-gateway-security-boundaries"
   ],
   "envelope": [
     "doc-ai-module-workplan",
@@ -5558,9 +5920,6 @@
     "doc-project-status",
     "doc-vision"
   ],
-  "equipment": [
-    "local-inference-hardware-fit"
-  ],
   "equivale": [
     "doc-ai-provider-connectors"
   ],
@@ -5576,7 +5935,11 @@
     "doc-ai-module-workplan",
     "doc-project-roadmap"
   ],
+  "errors": [
+    "local-inference-hardware-fit"
+  ],
   "erros": [
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-project-roadmap"
   ],
@@ -5650,6 +6013,7 @@
   "espec": [
     "doc-ai-workflow",
     "doc-ai-executor-implementation",
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-project-status",
     "doc-vision"
@@ -5686,6 +6050,7 @@
     "doc-ai-workflow",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-project-roadmap"
@@ -5700,6 +6065,7 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-hardware-telemetry",
     "doc-project-status",
@@ -5733,7 +6099,6 @@
   "esta": [
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
-    "doc-video-research-index",
     "doc-node-registry",
     "doc-hardware-telemetry",
     "doc-project-status",
@@ -5743,10 +6108,14 @@
     "doc-node-registry"
   ],
   "establish": [
-    "multimodal-assistant-demo"
+    "multimodal-assistant-demo",
+    "video-o6d15v1zy0"
   ],
   "established": [
     "video-yc5sg321g0y"
+  ],
+  "establishes": [
+    "local-inference-hardware-fit"
   ],
   "estado": [
     "doc-ai-context",
@@ -5754,6 +6123,7 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-node-registry",
     "doc-hardware-telemetry",
@@ -5864,6 +6234,9 @@
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation"
   ],
+  "evaluation": [
+    "ai-gateway-security-boundaries"
+  ],
   "evento": [
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
@@ -5875,6 +6248,7 @@
   ],
   "every": [
     "doc-video-research-index",
+    "ai-gateway-security-boundaries",
     "video-rpgjhrunbxo"
   ],
   "evid": [
@@ -5890,6 +6264,7 @@
     "ref-multipaz-developer-website"
   ],
   "evidence": [
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation",
@@ -5907,6 +6282,7 @@
     "doc-ai-development-orchestration"
   ],
   "exact": [
+    "local-inference-hardware-fit",
     "ai-development-persistent-worker",
     "video-q-yobcyc71a",
     "video-vqxbftjq0m4"
@@ -5915,7 +6291,8 @@
     "doc-node-registry"
   ],
   "examples": [
-    "doc-ai-development-orchestration"
+    "doc-ai-development-orchestration",
+    "local-inference-hardware-fit"
   ],
   "exata": [
     "doc-ai-development-orchestration",
@@ -5973,6 +6350,7 @@
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-node-registry",
     "doc-hardware-telemetry",
@@ -6005,6 +6383,7 @@
     "doc-ai-context",
     "doc-ai-development-orchestration",
     "doc-node-registry",
+    "local-inference-hardware-fit",
     "ai-development-persistent-worker"
   ],
   "execution": [
@@ -6138,6 +6517,9 @@
     "doc-vision",
     "ref-multipaz-developer-website"
   ],
+  "explain": [
+    "local-inference-hardware-fit"
+  ],
   "explica": [
     "doc-ai-development-orchestration"
   ],
@@ -6146,7 +6528,9 @@
     "doc-ai-module-workplan"
   ],
   "explicit": [
-    "doc-module-map"
+    "doc-module-map",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit"
   ],
   "explicitamente": [
     "doc-ai-context",
@@ -6170,12 +6554,25 @@
   ],
   "expor": [
     "doc-ai-development-orchestration",
+    "doc-video-research-index",
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-vision"
   ],
+  "expose": [
+    "ai-gateway-security-boundaries"
+  ],
+  "exposed": [
+    "ai-gateway-security-boundaries"
+  ],
+  "exposes": [
+    "local-inference-hardware-fit"
+  ],
   "exposi": [
     "doc-vision"
+  ],
+  "exposing": [
+    "ai-gateway-security-boundaries"
   ],
   "expostas": [
     "doc-vision"
@@ -6206,6 +6603,11 @@
     "doc-project-status",
     "doc-vision"
   ],
+  "external": [
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
+  ],
   "externas": [
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
@@ -6216,10 +6618,12 @@
     "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
+    "doc-video-research-index",
     "doc-module-map"
   ],
   "externos": [
     "doc-ai-context",
+    "doc-video-research-index",
     "doc-vision"
   ],
   "extra": [
@@ -6281,10 +6685,15 @@
   "facilita": [
     "ref-multipaz-developer-website"
   ],
+  "fail": [
+    "ai-gateway-security-boundaries"
+  ],
   "failover": [
     "doc-project-status"
   ],
   "failure": [
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation"
   ],
   "faixa": [
@@ -6333,6 +6742,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "ref-multipaz-developer-website"
   ],
@@ -6361,7 +6771,8 @@
     "doc-vision"
   ],
   "fan": [
-    "doc-ai-provider-connectors"
+    "doc-ai-provider-connectors",
+    "ai-gateway-security-boundaries"
   ],
   "far": [
     "doc-vision"
@@ -6446,7 +6857,8 @@
   "ferramentas": [
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
-    "doc-video-research-index"
+    "doc-video-research-index",
+    "ai-gateway-security-boundaries"
   ],
   "fff64a68": [
     "doc-ai-context",
@@ -6458,6 +6870,7 @@
     "doc-project-roadmap"
   ],
   "fi": [
+    "doc-video-research-index",
     "doc-vision"
   ],
   "fibra": [
@@ -6487,9 +6900,6 @@
   "ficou": [
     "doc-project-status",
     "doc-vision"
-  ],
-  "figure": [
-    "local-inference-hardware-fit"
   ],
   "fila": [
     "doc-ai-provider-connectors",
@@ -6579,6 +6989,7 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
@@ -6594,6 +7005,7 @@
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-hardware-telemetry",
     "doc-project-status",
@@ -6636,7 +7048,8 @@
     "networked-gpu-versus-task-federation",
     "ai-development-persistent-worker",
     "video-rpgjhrunbxo",
-    "video-cfdoXn6yvE4"
+    "video-cfdoXn6yvE4",
+    "video-o6d15v1zy0"
   ],
   "fora": [
     "doc-ai-provider-connectors",
@@ -6700,6 +7113,13 @@
   "fornecido": [
     "doc-video-research-index"
   ],
+  "forward": [
+    "ai-gateway-security-boundaries"
+  ],
+  "forwards": [
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
+  ],
   "fotografia": [
     "doc-ai-development-orchestration"
   ],
@@ -6719,7 +7139,14 @@
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
-    "doc-project-status"
+    "doc-project-status",
+    "ai-gateway-security-boundaries"
+  ],
+  "freelm": [
+    "doc-video-research-index",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
   ],
   "frescor": [
     "doc-hardware-telemetry",
@@ -6729,6 +7156,8 @@
     "doc-vision"
   ],
   "from": [
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation",
     "ai-development-persistent-worker",
     "video-yc5sg321g0y"
@@ -6810,6 +7239,7 @@
     "doc-project-roadmap"
   ],
   "futuros": [
+    "doc-video-research-index",
     "doc-project-roadmap"
   ],
   "g": [
@@ -6819,6 +7249,9 @@
   "garante": [
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration"
+  ],
+  "garantem": [
+    "doc-video-research-index"
   ],
   "garantia": [
     "doc-ai-provider-connectors",
@@ -6842,10 +7275,19 @@
     "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
-    "ai-development-persistent-worker"
+    "doc-video-research-index",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
+    "ai-development-persistent-worker",
+    "video-o6d15v1zy0"
+  ],
+  "gatos": [
+    "doc-video-research-index"
   ],
   "gb": [
-    "doc-ai-development-orchestration"
+    "doc-ai-development-orchestration",
+    "doc-video-research-index",
+    "local-inference-hardware-fit"
   ],
   "gcm": [
     "doc-ai-context",
@@ -6869,6 +7311,7 @@
     "doc-ai-executor-implementation"
   ],
   "gen": [
+    "doc-video-research-index",
     "doc-hardware-telemetry",
     "doc-vision"
   ],
@@ -6878,7 +7321,12 @@
   "generate": [
     "doc-ai-provider-connectors"
   ],
+  "generated": [
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
+  ],
   "generic": [
+    "local-inference-hardware-fit",
     "video-cfdoXn6yvE4"
   ],
   "genericamente": [
@@ -6968,6 +7416,8 @@
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-project-roadmap",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
     "ref-multipaz-developer-website",
     "ai-development-persistent-worker",
     "video-q-yobcyc71a"
@@ -6986,6 +7436,9 @@
   ],
   "gmt": [
     "doc-project-status"
+  ],
+  "go": [
+    "local-inference-hardware-fit"
   ],
   "google": [
     "doc-ai-provider-connectors",
@@ -7044,12 +7497,14 @@
   ],
   "gr": [
     "doc-ai-context",
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-project-roadmap"
   ],
   "grande": [
+    "doc-video-research-index",
     "doc-vision"
   ],
   "graphics": [
@@ -7081,6 +7536,9 @@
   ],
   "grupo": [
     "doc-ai-provider-connectors"
+  ],
+  "guarantee": [
+    "local-inference-hardware-fit"
   ],
   "guaranteed": [
     "ai-development-persistent-worker"
@@ -7118,10 +7576,12 @@
     "doc-vision"
   ],
   "guidance": [
-    "doc-vision"
+    "doc-vision",
+    "ai-gateway-security-boundaries"
   ],
   "guide": [
     "doc-ai-development-orchestration",
+    "ai-gateway-security-boundaries",
     "ai-development-persistent-worker"
   ],
   "h": [
@@ -7187,7 +7647,6 @@
     "doc-hardware-telemetry"
   ],
   "has": [
-    "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation",
     "ai-development-persistent-worker",
     "video-rpgjhrunbxo",
@@ -7205,7 +7664,7 @@
     "doc-vision"
   ],
   "have": [
-    "local-inference-hardware-fit",
+    "ai-gateway-security-boundaries",
     "video-z3wpoywp358",
     "video-gq3bewdjeos"
   ],
@@ -7333,7 +7792,8 @@
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "video-o6d15v1zy0"
   ],
   "host_battery": [
     "doc-node-registry"
@@ -7352,6 +7812,7 @@
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
     "doc-module-map",
+    "local-inference-hardware-fit",
     "ai-development-persistent-worker",
     "video-vqxbftjq0m4"
   ],
@@ -7365,6 +7826,9 @@
   "hotspots": [
     "doc-hardware-telemetry",
     "doc-project-status"
+  ],
+  "household": [
+    "ai-gateway-security-boundaries"
   ],
   "houve": [
     "doc-ai-executor-implementation",
@@ -7408,6 +7872,8 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
     "ref-multipaz-developer-website",
     "ai-development-persistent-worker"
   ],
@@ -7460,7 +7926,9 @@
     "doc-video-research-index",
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "ai-gateway-security-boundaries",
+    "video-o6d15v1zy0"
   ],
   "iana": [
     "doc-project-status"
@@ -7475,8 +7943,10 @@
   "id": [
     "doc-ai-provider-connectors",
     "doc-ai-executor-implementation",
+    "doc-video-research-index",
     "doc-node-registry",
-    "doc-hardware-telemetry"
+    "doc-hardware-telemetry",
+    "ai-gateway-security-boundaries"
   ],
   "idade": [
     "doc-project-status"
@@ -7520,6 +7990,7 @@
     "doc-node-registry"
   ],
   "identifica": [
+    "doc-video-research-index",
     "doc-hardware-telemetry",
     "doc-project-roadmap"
   ],
@@ -7546,8 +8017,14 @@
   "identification": [
     "multimodal-assistant-demo"
   ],
+  "identify": [
+    "local-inference-hardware-fit"
+  ],
   "identity": [
     "doc-module-map"
+  ],
+  "idle": [
+    "local-inference-hardware-fit"
   ],
   "ids": [
     "doc-ai-provider-connectors",
@@ -7555,6 +8032,10 @@
     "doc-module-map",
     "doc-project-roadmap",
     "doc-vision"
+  ],
+  "if": [
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit"
   ],
   "ignorada": [
     "doc-project-status"
@@ -7651,6 +8132,9 @@
   "implementaram": [
     "doc-project-roadmap"
   ],
+  "implemented": [
+    "ai-gateway-security-boundaries"
+  ],
   "importadas": [
     "ref-multipaz-developer-website"
   ],
@@ -7666,7 +8150,7 @@
     "doc-video-research-index",
     "doc-module-map",
     "doc-project-status",
-    "local-inference-hardware-fit",
+    "ai-gateway-security-boundaries",
     "ai-development-persistent-worker",
     "video-rpgjhrunbxo"
   ],
@@ -7685,6 +8169,9 @@
   "inclua": [
     "doc-ai-executor-implementation",
     "doc-node-registry"
+  ],
+  "include": [
+    "ai-gateway-security-boundaries"
   ],
   "inclui": [
     "doc-ai-context",
@@ -7723,6 +8210,7 @@
     "doc-project-roadmap"
   ],
   "independent": [
+    "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation"
   ],
@@ -7748,6 +8236,7 @@
   "index": [
     "doc-ai-workflow",
     "doc-node-registry",
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation"
@@ -7773,6 +8262,7 @@
     "doc-hardware-telemetry"
   ],
   "indicado": [
+    "doc-video-research-index",
     "doc-project-status"
   ],
   "indique": [
@@ -7821,12 +8311,12 @@
   "inferir": [
     "doc-hardware-telemetry"
   ],
+  "inferred": [
+    "local-inference-hardware-fit"
+  ],
   "infinito": [
     "doc-ai-development-orchestration",
     "doc-node-registry"
-  ],
-  "inform": [
-    "local-inference-hardware-fit"
   ],
   "informa": [
     "doc-ai-provider-connectors",
@@ -7918,6 +8408,9 @@
   "inscrito": [
     "doc-video-research-index"
   ],
+  "inside": [
+    "ai-gateway-security-boundaries"
+  ],
   "inspe": [
     "doc-ai-context",
     "doc-ai-development-orchestration",
@@ -7941,6 +8434,7 @@
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-node-registry",
     "doc-hardware-telemetry",
@@ -7980,6 +8474,13 @@
   ],
   "install_nivus": [
     "doc-project-status"
+  ],
+  "installation": [
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
+  ],
+  "installed": [
+    "local-inference-hardware-fit"
   ],
   "instru": [
     "doc-ai-provider-connectors",
@@ -8065,6 +8566,7 @@
     "doc-project-status"
   ],
   "integration": [
+    "ai-gateway-security-boundaries",
     "ai-development-persistent-worker",
     "video-wgqdaqqto90"
   ],
@@ -8157,6 +8659,7 @@
   ],
   "interna": [
     "doc-ai-provider-connectors",
+    "doc-video-research-index",
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-project-roadmap",
@@ -8172,7 +8675,8 @@
     "doc-ai-development-orchestration",
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "ai-gateway-security-boundaries"
   ],
   "interno": [
     "doc-ai-provider-connectors",
@@ -8210,9 +8714,6 @@
   ],
   "interven": [
     "doc-ai-context"
-  ],
-  "into": [
-    "local-inference-hardware-fit"
   ],
   "inutiliza": [
     "doc-ai-provider-connectors"
@@ -8262,6 +8763,7 @@
     "doc-vision"
   ],
   "is": [
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation",
@@ -8334,13 +8836,16 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-node-registry",
     "doc-project-status",
-    "doc-project-roadmap"
+    "doc-project-roadmap",
+    "local-inference-hardware-fit"
   ],
   "it": [
     "doc-video-research-index",
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation",
@@ -8351,7 +8856,11 @@
     "doc-ai-development-orchestration",
     "doc-video-research-index"
   ],
+  "itens": [
+    "doc-video-research-index"
+  ],
   "its": [
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "ai-development-persistent-worker",
     "video-yc5sg321g0y"
@@ -8386,6 +8895,7 @@
   ],
   "jobs": [
     "doc-project-status",
+    "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation"
   ],
   "js": [
@@ -8416,12 +8926,19 @@
     "doc-node-registry"
   ],
   "keep": [
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "ai-development-persistent-worker"
   ],
   "kernel": [
     "doc-hardware-telemetry",
     "doc-project-status"
+  ],
+  "key": [
+    "ai-gateway-security-boundaries"
+  ],
+  "keyless": [
+    "ai-gateway-security-boundaries"
   ],
   "knowledge": [
     "doc-ai-context",
@@ -8471,10 +8988,14 @@
   "lan": [
     "doc-module-map",
     "doc-project-status",
-    "doc-vision"
+    "doc-vision",
+    "ai-gateway-security-boundaries"
   ],
   "langgraph": [
     "doc-ai-provider-connectors"
+  ],
+  "large": [
+    "video-o6d15v1zy0"
   ],
   "largura": [
     "doc-project-status"
@@ -8539,6 +9060,9 @@
     "doc-video-research-index",
     "doc-module-map"
   ],
+  "legendas": [
+    "doc-video-research-index"
+  ],
   "leia": [
     "doc-ai-context",
     "doc-ai-workflow"
@@ -8548,7 +9072,6 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
-    "doc-video-research-index",
     "doc-module-map",
     "doc-node-registry",
     "doc-hardware-telemetry",
@@ -8649,7 +9172,9 @@
     "networked-gpu-versus-task-federation"
   ],
   "limit": [
-    "doc-node-registry"
+    "doc-node-registry",
+    "ai-gateway-security-boundaries",
+    "video-o6d15v1zy0"
   ],
   "limita": [
     "doc-ai-provider-connectors",
@@ -8698,6 +9223,7 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-project-status",
     "doc-project-roadmap",
@@ -8710,6 +9236,7 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-hardware-telemetry",
     "doc-project-status",
@@ -8718,10 +9245,8 @@
     "nivus-mobile-battery-relay",
     "ref-multipaz-developer-website"
   ],
-  "limitou": [
-    "doc-video-research-index"
-  ],
   "limits": [
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "ref-multipaz-developer-website",
     "multimodal-assistant-demo",
@@ -8766,7 +9291,6 @@
     "video-yc5sg321g0y"
   ],
   "linked": [
-    "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation"
   ],
   "links": [
@@ -8785,6 +9309,7 @@
     "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-project-status",
     "doc-project-roadmap",
@@ -8800,6 +9325,9 @@
   ],
   "listener": [
     "doc-ai-provider-connectors"
+  ],
+  "listing": [
+    "local-inference-hardware-fit"
   ],
   "litellm": [
     "doc-ai-provider-connectors"
@@ -8860,20 +9388,30 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "ref-multipaz-developer-website",
     "video-rpgjhrunbxo",
     "video-cfdoXn6yvE4",
-    "video-vqxbftjq0m4"
+    "video-vqxbftjq0m4",
+    "video-o6d15v1zy0"
+  ],
+  "locally": [
+    "local-inference-hardware-fit"
   ],
   "localmente": [
     "doc-ai-workflow",
+    "doc-video-research-index",
     "doc-project-status",
     "doc-vision"
   ],
   "log": [
     "doc-ai-provider-connectors",
-    "doc-node-registry"
+    "doc-node-registry",
+    "ai-gateway-security-boundaries"
+  ],
+  "logging": [
+    "ai-gateway-security-boundaries"
   ],
   "login": [
     "doc-module-map",
@@ -8886,7 +9424,8 @@
     "doc-ai-development-orchestration",
     "doc-module-map",
     "doc-node-registry",
-    "doc-project-roadmap"
+    "doc-project-roadmap",
+    "ai-gateway-security-boundaries"
   ],
   "longo": [
     "doc-ai-provider-connectors"
@@ -8898,7 +9437,9 @@
     "doc-vision"
   ],
   "loopback": [
-    "doc-ai-provider-connectors"
+    "doc-ai-provider-connectors",
+    "ai-gateway-security-boundaries",
+    "video-o6d15v1zy0"
   ],
   "lote": [
     "doc-ai-provider-connectors",
@@ -8911,6 +9452,9 @@
     "doc-module-map",
     "doc-node-registry",
     "doc-project-status"
+  ],
+  "low": [
+    "video-o6d15v1zy0"
   ],
   "lr": [
     "doc-ai-provider-connectors",
@@ -8947,6 +9491,7 @@
     "doc-node-registry",
     "doc-project-status",
     "doc-project-roadmap",
+    "ai-gateway-security-boundaries",
     "ref-multipaz-developer-website"
   ],
   "mains": [
@@ -8972,6 +9517,7 @@
     "doc-vision"
   ],
   "make": [
+    "ai-gateway-security-boundaries",
     "ai-development-persistent-worker"
   ],
   "maliciosas": [
@@ -9121,6 +9667,8 @@
   ],
   "may": [
     "doc-ai-provider-connectors",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
     "ai-development-persistent-worker"
   ],
   "mcp": [
@@ -9137,6 +9685,7 @@
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-project-roadmap",
+    "ai-gateway-security-boundaries",
     "nivus-mobile-battery-relay",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
@@ -9154,6 +9703,7 @@
     "local-inference-hardware-fit"
   ],
   "measurements": [
+    "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation"
   ],
   "mecanismo": [
@@ -9307,9 +9857,6 @@
     "doc-project-status",
     "doc-project-roadmap"
   ],
-  "metadado": [
-    "doc-video-research-index"
-  ],
   "metadados": [
     "doc-ai-context",
     "doc-ai-provider-connectors",
@@ -9403,11 +9950,13 @@
     "doc-vision"
   ],
   "model": [
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation",
     "video-rpgjhrunbxo",
     "video-q-yobcyc71a",
-    "video-vqxbftjq0m4"
+    "video-vqxbftjq0m4",
+    "video-o6d15v1zy0"
   ],
   "modelo": [
     "doc-ai-context",
@@ -9434,8 +9983,7 @@
     "doc-vision"
   ],
   "models": [
-    "doc-ai-provider-connectors",
-    "local-inference-hardware-fit"
+    "doc-ai-provider-connectors"
   ],
   "modo": [
     "doc-ai-provider-connectors",
@@ -9589,10 +10137,11 @@
     "ref-multipaz-developer-website"
   ],
   "multiple": [
+    "ai-gateway-security-boundaries",
     "networked-gpu-versus-task-federation"
   ],
   "must": [
-    "local-inference-hardware-fit"
+    "ai-gateway-security-boundaries"
   ],
   "muta": [
     "doc-project-status"
@@ -9644,6 +10193,7 @@
     "doc-hardware-telemetry"
   ],
   "nas": [
+    "doc-video-research-index",
     "doc-module-map",
     "doc-node-registry",
     "doc-project-roadmap"
@@ -9658,6 +10208,7 @@
   "navegador": [
     "doc-ai-context",
     "doc-ai-provider-connectors",
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-project-status",
     "doc-vision",
@@ -9680,6 +10231,7 @@
   ],
   "needs": [
     "doc-ai-workflow",
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "video-z3wpoywp358",
     "video-vqxbftjq0m4",
@@ -9718,6 +10270,9 @@
     "doc-project-roadmap",
     "doc-vision"
   ],
+  "nessa": [
+    "doc-video-research-index"
+  ],
   "nesse": [
     "doc-hardware-telemetry",
     "doc-vision"
@@ -9734,9 +10289,11 @@
     "ref-multipaz-developer-website"
   ],
   "network": [
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation",
-    "video-cfdoXn6yvE4"
+    "video-cfdoXn6yvE4",
+    "video-o6d15v1zy0"
   ],
   "networkchuck": [
     "doc-video-research-index",
@@ -9744,11 +10301,21 @@
     "networked-gpu-versus-task-federation"
   ],
   "networked": [
+    "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation",
     "video-cfdoXn6yvE4"
   ],
+  "networks": [
+    "ai-gateway-security-boundaries"
+  ],
   "neutro": [
     "doc-vision"
+  ],
+  "never": [
+    "ai-gateway-security-boundaries"
+  ],
+  "new": [
+    "doc-video-research-index"
   ],
   "nfc": [
     "doc-node-registry"
@@ -9774,13 +10341,15 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "ai-gateway-security-boundaries",
     "nivus-mobile-battery-relay",
     "local-inference-hardware-fit",
     "ref-multipaz-developer-website",
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation",
     "ai-development-persistent-worker",
-    "video-rpgjhrunbxo"
+    "video-rpgjhrunbxo",
+    "video-o6d15v1zy0"
   ],
   "nivus_ai_budget_mode": [
     "doc-ai-development-orchestration",
@@ -9808,6 +10377,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "ai-gateway-security-boundaries",
     "nivus-mobile-battery-relay",
     "local-inference-hardware-fit",
     "ref-multipaz-developer-website",
@@ -9856,6 +10426,7 @@
   "nodes": [
     "doc-module-map",
     "doc-node-registry",
+    "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation"
   ],
   "nodesrouter": [
@@ -9879,7 +10450,8 @@
     "doc-ai-development-orchestration"
   ],
   "none": [
-    "doc-ai-executor-implementation"
+    "doc-ai-executor-implementation",
+    "local-inference-hardware-fit"
   ],
   "normal": [
     "doc-ai-provider-connectors",
@@ -9912,6 +10484,7 @@
     "ref-multipaz-developer-website"
   ],
   "not": [
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation",
@@ -9921,7 +10494,8 @@
     "video-z3wpoywp358",
     "video-yc5sg321g0y",
     "video-gq3bewdjeos",
-    "video-wgqdaqqto90"
+    "video-wgqdaqqto90",
+    "video-o6d15v1zy0"
   ],
   "nota": [
     "doc-ai-workflow",
@@ -9936,6 +10510,7 @@
     "doc-project-roadmap"
   ],
   "note": [
+    "ai-gateway-security-boundaries",
     "multimodal-assistant-demo"
   ],
   "notebook": [
@@ -10061,6 +10636,9 @@
     "ref-multipaz-developer-website",
     "video-z3wpoywp358"
   ],
+  "o6_d15v1zy0": [
+    "doc-video-research-index"
+  ],
   "oauth": [
     "doc-ai-development-orchestration"
   ],
@@ -10082,6 +10660,7 @@
     "doc-project-status"
   ],
   "observa": [
+    "doc-video-research-index",
     "doc-hardware-telemetry",
     "ref-multipaz-developer-website"
   ],
@@ -10166,6 +10745,8 @@
     "doc-module-map",
     "doc-node-registry",
     "doc-project-roadmap",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
     "ref-multipaz-developer-website",
     "multimodal-assistant-demo",
     "ai-development-persistent-worker",
@@ -10210,6 +10791,7 @@
     "doc-ai-context",
     "doc-module-map",
     "doc-project-status",
+    "ai-gateway-security-boundaries",
     "nivus-mobile-battery-relay",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
@@ -10223,7 +10805,8 @@
     "doc-project-roadmap"
   ],
   "one": [
-    "doc-module-map"
+    "doc-module-map",
+    "local-inference-hardware-fit"
   ],
   "one_508c": [
     "doc-vision"
@@ -10241,6 +10824,7 @@
     "doc-module-map",
     "doc-node-registry",
     "doc-project-status",
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "video-z3wpoywp358",
     "video-vqxbftjq0m4",
@@ -10277,7 +10861,9 @@
     "ai-development-persistent-worker"
   ],
   "openai": [
-    "doc-ai-provider-connectors"
+    "doc-ai-provider-connectors",
+    "doc-video-research-index",
+    "video-o6d15v1zy0"
   ],
   "openhands": [
     "doc-ai-provider-connectors"
@@ -10332,6 +10918,7 @@
     "doc-project-roadmap"
   ],
   "operation": [
+    "ai-gateway-security-boundaries",
     "video-wgqdaqqto90"
   ],
   "operational": [
@@ -10339,6 +10926,7 @@
   ],
   "operator": [
     "doc-module-map",
+    "ai-gateway-security-boundaries",
     "ai-development-persistent-worker",
     "video-q-yobcyc71a",
     "video-z3wpoywp358",
@@ -10346,10 +10934,17 @@
     "video-yc5sg321g0y",
     "video-gq3bewdjeos"
   ],
+  "ophub": [
+    "doc-video-research-index",
+    "local-inference-hardware-fit"
+  ],
   "opt": [
     "doc-ai-context",
     "doc-module-map",
     "doc-project-status"
+  ],
+  "option": [
+    "ai-gateway-security-boundaries"
   ],
   "optional": [
     "ai-development-persistent-worker"
@@ -10363,6 +10958,7 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "ref-multipaz-developer-website",
     "multimodal-assistant-demo",
@@ -10443,6 +11039,9 @@
     "doc-vision",
     "ref-multipaz-developer-website"
   ],
+  "other": [
+    "local-inference-hardware-fit"
+  ],
   "ou": [
     "doc-ai-context",
     "doc-ai-provider-connectors",
@@ -10461,7 +11060,11 @@
     "ref-multipaz-developer-website"
   ],
   "out": [
-    "doc-ai-provider-connectors"
+    "doc-ai-provider-connectors",
+    "ai-gateway-security-boundaries"
+  ],
+  "output": [
+    "ai-gateway-security-boundaries"
   ],
   "outputs": [
     "networked-gpu-versus-task-federation"
@@ -10472,6 +11075,7 @@
   ],
   "outras": [
     "doc-ai-provider-connectors",
+    "doc-video-research-index",
     "doc-node-registry"
   ],
   "outro": [
@@ -10485,6 +11089,9 @@
     "doc-ai-module-workplan",
     "doc-node-registry",
     "doc-project-roadmap"
+  ],
+  "outside": [
+    "ai-gateway-security-boundaries"
   ],
   "over": [
     "networked-gpu-versus-task-federation"
@@ -10521,6 +11128,11 @@
     "doc-vision",
     "ref-multipaz-developer-website"
   ],
+  "p212": [
+    "doc-video-research-index",
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
+  ],
   "p2p": [
     "doc-ai-context",
     "doc-video-research-index",
@@ -10549,6 +11161,7 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-project-status",
     "doc-project-roadmap",
@@ -10556,6 +11169,9 @@
   ],
   "pagas": [
     "doc-project-status"
+  ],
+  "page": [
+    "local-inference-hardware-fit"
   ],
   "pagina": [
     "doc-module-map",
@@ -10640,7 +11256,9 @@
     "doc-ai-module-workplan"
   ],
   "parallel": [
-    "doc-ai-provider-connectors"
+    "doc-ai-provider-connectors",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit"
   ],
   "parallelism": [
     "networked-gpu-versus-task-federation"
@@ -10680,7 +11298,6 @@
     "doc-project-status"
   ],
   "partial": [
-    "local-inference-hardware-fit",
     "video-rpgjhrunbxo"
   ],
   "partir": [
@@ -10690,6 +11307,7 @@
     "ref-multipaz-developer-website"
   ],
   "party": [
+    "ai-gateway-security-boundaries",
     "video-rpgjhrunbxo"
   ],
   "passa": [
@@ -10720,6 +11338,7 @@
     "doc-ai-development-orchestration"
   ],
   "passos": [
+    "doc-video-research-index",
     "doc-node-registry"
   ],
   "passou": [
@@ -10732,6 +11351,9 @@
   ],
   "patches": [
     "doc-ai-development-orchestration"
+  ],
+  "path": [
+    "local-inference-hardware-fit"
   ],
   "patrocinada": [
     "doc-video-research-index",
@@ -10775,6 +11397,9 @@
     "doc-ai-module-workplan",
     "doc-video-research-index"
   ],
+  "peak": [
+    "local-inference-hardware-fit"
+  ],
   "pede": [
     "doc-node-registry"
   ],
@@ -10784,6 +11409,9 @@
   "pedido": [
     "doc-ai-development-orchestration",
     "doc-project-status"
+  ],
+  "pedidos": [
+    "doc-video-research-index"
   ],
   "pedir": [
     "doc-ai-development-orchestration",
@@ -10895,6 +11523,9 @@
     "doc-ai-executor-implementation",
     "doc-project-roadmap"
   ],
+  "perform": [
+    "local-inference-hardware-fit"
+  ],
   "performance": [
     "doc-module-map",
     "local-inference-hardware-fit",
@@ -10910,6 +11541,9 @@
   "perif": [
     "doc-project-roadmap",
     "doc-vision"
+  ],
+  "peripheral": [
+    "local-inference-hardware-fit"
   ],
   "permanece": [
     "doc-ai-context",
@@ -11035,6 +11669,9 @@
   "personagem": [
     "doc-vision"
   ],
+  "personal": [
+    "ai-gateway-security-boundaries"
+  ],
   "pertence": [
     "doc-ai-provider-connectors"
   ],
@@ -11089,6 +11726,7 @@
     "doc-node-registry"
   ],
   "placa": [
+    "doc-video-research-index",
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-project-roadmap",
@@ -11096,6 +11734,7 @@
   ],
   "placas": [
     "doc-ai-workflow",
+    "doc-video-research-index",
     "doc-hardware-telemetry",
     "doc-vision"
   ],
@@ -11143,6 +11782,7 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-hardware-telemetry",
     "doc-project-status",
@@ -11179,10 +11819,14 @@
     "doc-vision"
   ],
   "policies": [
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
     "video-vqxbftjq0m4"
   ],
   "policy": [
     "doc-module-map",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
     "video-vqxbftjq0m4"
   ],
   "polling": [
@@ -11204,6 +11848,7 @@
     "doc-vision"
   ],
   "pool": [
+    "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation"
   ],
   "por": [
@@ -11232,7 +11877,8 @@
   ],
   "port": [
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "ai-gateway-security-boundaries"
   ],
   "porta": [
     "doc-ai-context",
@@ -11258,6 +11904,7 @@
     "doc-vision"
   ],
   "portugu": [
+    "doc-video-research-index",
     "ref-multipaz-developer-website"
   ],
   "positivos": [
@@ -11268,6 +11915,9 @@
   ],
   "possibilidade": [
     "doc-ai-context"
+  ],
+  "possible": [
+    "ai-gateway-security-boundaries"
   ],
   "post": [
     "doc-ai-provider-connectors",
@@ -11290,7 +11940,8 @@
     "doc-ai-module-workplan"
   ],
   "power": [
-    "doc-node-registry"
+    "doc-node-registry",
+    "video-o6d15v1zy0"
   ],
   "power_policy": [
     "doc-ai-context",
@@ -11332,6 +11983,7 @@
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-project-status",
     "doc-project-roadmap",
@@ -11415,6 +12067,9 @@
   "preservado": [
     "doc-ai-provider-connectors"
   ],
+  "preservam": [
+    "doc-video-research-index"
+  ],
   "preservando": [
     "doc-project-roadmap",
     "ref-multipaz-developer-website"
@@ -11444,7 +12099,8 @@
     "ref-multipaz-developer-website"
   ],
   "primary": [
-    "doc-ai-workflow"
+    "doc-ai-workflow",
+    "video-o6d15v1zy0"
   ],
   "primeira": [
     "doc-ai-executor-implementation",
@@ -11485,8 +12141,11 @@
     "doc-vision"
   ],
   "privacy": [
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
     "multimodal-assistant-demo",
-    "video-wgqdaqqto90"
+    "video-wgqdaqqto90",
+    "video-o6d15v1zy0"
   ],
   "privada": [
     "doc-ai-provider-connectors",
@@ -11500,6 +12159,9 @@
   "privados": [
     "doc-ai-context",
     "doc-ai-provider-connectors"
+  ],
+  "private": [
+    "ai-gateway-security-boundaries"
   ],
   "privil": [
     "doc-hardware-telemetry"
@@ -11629,7 +12291,14 @@
     "doc-node-registry",
     "doc-project-status",
     "doc-project-roadmap",
-    "ref-multipaz-developer-website"
+    "ai-gateway-security-boundaries",
+    "ref-multipaz-developer-website",
+    "video-o6d15v1zy0"
+  ],
+  "prompts": [
+    "doc-video-research-index",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit"
   ],
   "pronta": [
     "doc-ai-development-orchestration",
@@ -11674,6 +12343,9 @@
     "doc-vision",
     "ref-multipaz-developer-website"
   ],
+  "protect": [
+    "ai-gateway-security-boundaries"
+  ],
   "protegida": [
     "doc-ai-workflow"
   ],
@@ -11704,7 +12376,6 @@
     "doc-project-status"
   ],
   "prove": [
-    "local-inference-hardware-fit",
     "video-cfdoXn6yvE4"
   ],
   "provedor": [
@@ -11712,6 +12383,7 @@
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-project-status",
     "doc-project-roadmap",
@@ -11722,6 +12394,7 @@
     "doc-ai-context",
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
+    "doc-video-research-index",
     "doc-project-status",
     "doc-project-roadmap"
   ],
@@ -11735,13 +12408,21 @@
     "doc-ai-workflow"
   ],
   "provider": [
-    "doc-module-map"
+    "doc-module-map",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
   ],
   "provider_encryption_key": [
     "doc-ai-provider-connectors"
   ],
   "providerprofiles": [
     "doc-module-map"
+  ],
+  "providers": [
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
   ],
   "provis": [
     "doc-video-research-index"
@@ -11769,8 +12450,12 @@
     "doc-hardware-telemetry",
     "doc-project-status"
   ],
+  "pt": [
+    "ai-gateway-security-boundaries"
+  ],
   "public": [
-    "doc-ai-provider-connectors"
+    "doc-ai-provider-connectors",
+    "ai-gateway-security-boundaries"
   ],
   "publica": [
     "doc-ai-context",
@@ -11792,6 +12477,9 @@
   ],
   "publique": [
     "doc-ai-context"
+  ],
+  "publish": [
+    "ai-gateway-security-boundaries"
   ],
   "publisher": [
     "nivus-mobile-battery-relay"
@@ -11946,9 +12634,6 @@
   "query": [
     "doc-ai-workflow"
   ],
-  "questions": [
-    "local-inference-hardware-fit"
-  ],
   "queue": [
     "ai-development-persistent-worker",
     "video-q-yobcyc71a"
@@ -11978,6 +12663,8 @@
     "doc-module-map",
     "doc-project-status",
     "doc-vision",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation"
   ],
   "r": [
@@ -12011,7 +12698,8 @@
     "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation",
     "video-rpgjhrunbxo",
-    "video-cfdoXn6yvE4"
+    "video-cfdoXn6yvE4",
+    "video-o6d15v1zy0"
   ],
   "ranking": [
     "ref-multipaz-developer-website"
@@ -12030,6 +12718,10 @@
   ],
   "rastreio": [
     "doc-vision"
+  ],
+  "rate": [
+    "ai-gateway-security-boundaries",
+    "video-o6d15v1zy0"
   ],
   "re": [
     "doc-ai-provider-connectors"
@@ -12052,8 +12744,11 @@
     "doc-ai-context",
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
+    "doc-video-research-index",
     "doc-project-status",
     "doc-project-roadmap",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
     "ref-multipaz-developer-website"
   ],
   "ready": [
@@ -12148,6 +12843,9 @@
   "received_at": [
     "doc-node-registry"
   ],
+  "receives": [
+    "local-inference-hardware-fit"
+  ],
   "recente": [
     "doc-ai-context",
     "doc-ai-development-orchestration",
@@ -12156,6 +12854,9 @@
     "doc-project-status",
     "doc-project-roadmap",
     "nivus-mobile-battery-relay"
+  ],
+  "recognition": [
+    "local-inference-hardware-fit"
   ],
   "recolhe": [
     "doc-vision"
@@ -12183,6 +12884,10 @@
   ],
   "reconstru": [
     "ref-multipaz-developer-website"
+  ],
+  "record": [
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit"
   ],
   "records": [
     "doc-ai-workflow"
@@ -12214,6 +12919,7 @@
   "recursos": [
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision"
@@ -12245,6 +12951,9 @@
   "redis": [
     "ref-multipaz-developer-website"
   ],
+  "reduce": [
+    "local-inference-hardware-fit"
+  ],
   "reduzido": [
     "doc-project-status"
   ],
@@ -12270,6 +12979,7 @@
     "doc-ai-executor-implementation"
   ],
   "references": [
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation",
@@ -12302,6 +13012,7 @@
   ],
   "registrar": [
     "doc-ai-workflow",
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-hardware-telemetry",
     "doc-project-roadmap",
@@ -12401,6 +13112,9 @@
     "doc-project-status",
     "doc-project-roadmap"
   ],
+  "relata": [
+    "doc-video-research-index"
+  ],
   "relatado": [
     "doc-ai-development-orchestration",
     "doc-node-registry"
@@ -12410,6 +13124,7 @@
   ],
   "relato": [
     "doc-ai-development-orchestration",
+    "doc-video-research-index",
     "doc-project-status"
   ],
   "relay1": [
@@ -12439,6 +13154,7 @@
     "doc-project-status"
   ],
   "remain": [
+    "local-inference-hardware-fit",
     "video-vqxbftjq0m4"
   ],
   "remains": [
@@ -12458,6 +13174,7 @@
     "doc-module-map"
   ],
   "remote": [
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation",
     "video-cfdoXn6yvE4"
@@ -12541,6 +13258,7 @@
     "doc-project-status"
   ],
   "report": [
+    "local-inference-hardware-fit",
     "video-q-yobcyc71a"
   ],
   "reportada": [
@@ -12553,7 +13271,11 @@
     "doc-hardware-telemetry"
   ],
   "reported": [
-    "ai-development-persistent-worker"
+    "ai-development-persistent-worker",
+    "video-o6d15v1zy0"
+  ],
+  "reports": [
+    "local-inference-hardware-fit"
   ],
   "reposit": [
     "doc-ai-context",
@@ -12603,6 +13325,8 @@
   ],
   "request": [
     "doc-ai-development-orchestration",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
     "ref-multipaz-developer-website",
     "ai-development-persistent-worker",
     "video-q-yobcyc71a"
@@ -12617,7 +13341,16 @@
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
-    "doc-node-registry"
+    "doc-node-registry",
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
+  ],
+  "require": [
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit"
+  ],
+  "required": [
+    "ai-gateway-security-boundaries"
   ],
   "requiring": [
     "networked-gpu-versus-task-federation"
@@ -12639,6 +13372,7 @@
     "doc-hardware-telemetry"
   ],
   "research": [
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation"
@@ -12695,6 +13429,12 @@
   "responsabilidade": [
     "doc-ai-module-workplan",
     "doc-module-map"
+  ],
+  "response": [
+    "ai-gateway-security-boundaries"
+  ],
+  "responses": [
+    "ai-gateway-security-boundaries"
   ],
   "responsive": [
     "local-inference-hardware-fit"
@@ -12756,6 +13496,9 @@
     "doc-video-research-index",
     "video-vqxbftjq0m4"
   ],
+  "restrict": [
+    "ai-gateway-security-boundaries"
+  ],
   "restringe": [
     "doc-ai-executor-implementation",
     "doc-module-map"
@@ -12771,6 +13514,9 @@
     "doc-project-status",
     "doc-vision"
   ],
+  "result": [
+    "ai-gateway-security-boundaries"
+  ],
   "resultado": [
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
@@ -12784,6 +13530,9 @@
     "doc-ai-development-orchestration",
     "doc-ai-module-workplan",
     "doc-project-roadmap"
+  ],
+  "results": [
+    "local-inference-hardware-fit"
   ],
   "resume": [
     "doc-ai-provider-connectors"
@@ -12801,9 +13550,6 @@
   "ret": [
     "doc-node-registry"
   ],
-  "retain": [
-    "local-inference-hardware-fit"
-  ],
   "reten": [
     "doc-ai-context",
     "doc-ai-provider-connectors",
@@ -12813,6 +13559,7 @@
     "doc-vision"
   ],
   "retention": [
+    "ai-gateway-security-boundaries",
     "multimodal-assistant-demo"
   ],
   "retido": [
@@ -12850,6 +13597,7 @@
     "doc-module-map",
     "doc-node-registry",
     "doc-project-status",
+    "ai-gateway-security-boundaries",
     "ai-development-persistent-worker"
   ],
   "reunir": [
@@ -12866,8 +13614,14 @@
     "doc-ai-executor-implementation",
     "ref-multipaz-developer-website"
   ],
+  "reutilize": [
+    "doc-video-research-index"
+  ],
   "revalida": [
     "doc-project-roadmap"
+  ],
+  "reveal": [
+    "ai-gateway-security-boundaries"
   ],
   "revers": [
     "doc-ai-provider-connectors",
@@ -12879,10 +13633,12 @@
   "review": [
     "doc-ai-development-orchestration",
     "doc-module-map",
-    "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "ai-development-persistent-worker",
     "video-q-yobcyc71a"
+  ],
+  "reviewed": [
+    "video-o6d15v1zy0"
   ],
   "reviewed_and_authorized": [
     "doc-ai-executor-implementation"
@@ -12912,6 +13668,9 @@
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan"
   ],
+  "revisadas": [
+    "doc-video-research-index"
+  ],
   "revisado": [
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
@@ -12924,6 +13683,9 @@
   "revise": [
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan"
+  ],
+  "revision": [
+    "local-inference-hardware-fit"
   ],
   "revoga": [
     "doc-ai-module-workplan",
@@ -13042,12 +13804,23 @@
   "rotulava": [
     "doc-hardware-telemetry"
   ],
+  "route": [
+    "ai-gateway-security-boundaries"
+  ],
   "router": [
     "doc-ai-module-workplan"
   ],
   "routers": [
     "doc-ai-provider-connectors",
     "doc-module-map"
+  ],
+  "routes": [
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit"
+  ],
+  "routing": [
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit"
   ],
   "rpgjhrunbxo": [
     "doc-video-research-index"
@@ -13117,10 +13890,25 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision",
+    "ai-gateway-security-boundaries",
     "nivus-mobile-battery-relay",
+    "local-inference-hardware-fit",
     "ref-multipaz-developer-website",
     "networked-gpu-versus-task-federation",
     "video-cfdoXn6yvE4"
+  ],
+  "s905x": [
+    "doc-video-research-index",
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
+  ],
+  "s9xx": [
+    "doc-video-research-index",
+    "local-inference-hardware-fit"
+  ],
+  "s9xxx": [
+    "doc-video-research-index",
+    "local-inference-hardware-fit"
   ],
   "sa": [
     "doc-ai-context",
@@ -13141,6 +13929,12 @@
     "multimodal-assistant-demo",
     "video-wgqdaqqto90"
   ],
+  "safeguards": [
+    "local-inference-hardware-fit"
+  ],
+  "safely": [
+    "ai-gateway-security-boundaries"
+  ],
   "safety": [
     "nivus-mobile-battery-relay",
     "multimodal-assistant-demo",
@@ -13160,6 +13954,9 @@
   ],
   "salvo": [
     "doc-ai-provider-connectors"
+  ],
+  "same": [
+    "ai-gateway-security-boundaries"
   ],
   "samples": [
     "doc-node-registry"
@@ -13193,6 +13990,7 @@
     "networked-gpu-versus-task-federation"
   ],
   "scheduling": [
+    "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation"
   ],
   "schema": [
@@ -13236,13 +14034,15 @@
   ],
   "secondary": [
     "doc-ai-workflow",
-    "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation",
     "video-rpgjhrunbxo",
     "video-cfdoXn6yvE4"
   ],
   "seconds": [
     "video-yc5sg321g0y"
+  ],
+  "secret": [
+    "ai-gateway-security-boundaries"
   ],
   "secrets": [
     "doc-ai-provider-connectors",
@@ -13256,7 +14056,9 @@
   ],
   "security": [
     "doc-ai-development-orchestration",
-    "doc-module-map"
+    "doc-video-research-index",
+    "doc-module-map",
+    "ai-gateway-security-boundaries"
   ],
   "seed": [
     "doc-ai-context",
@@ -13374,11 +14176,9 @@
   "selecione": [
     "doc-ai-provider-connectors"
   ],
-  "select": [
-    "local-inference-hardware-fit"
-  ],
   "selected": [
-    "doc-module-map"
+    "doc-module-map",
+    "ai-gateway-security-boundaries"
   ],
   "selectedprovider": [
     "doc-module-map"
@@ -13419,6 +14219,9 @@
     "doc-ai-development-orchestration",
     "doc-node-registry"
   ],
+  "send": [
+    "ai-gateway-security-boundaries"
+  ],
   "sendo": [
     "doc-ai-executor-implementation",
     "doc-node-registry",
@@ -13453,7 +14256,8 @@
     "doc-vision"
   ],
   "sensors": [
-    "doc-hardware-telemetry"
+    "doc-hardware-telemetry",
+    "local-inference-hardware-fit"
   ],
   "sensors_temperatures": [
     "doc-hardware-telemetry"
@@ -13511,10 +14315,13 @@
     "doc-project-roadmap"
   ],
   "separate": [
+    "local-inference-hardware-fit",
     "networked-gpu-versus-task-federation",
     "ai-development-persistent-worker"
   ],
   "separately": [
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
     "ai-development-persistent-worker"
   ],
   "separe": [
@@ -13565,6 +14372,9 @@
   "serializar": [
     "doc-ai-module-workplan"
   ],
+  "serve": [
+    "doc-video-research-index"
+  ],
   "servem": [
     "doc-hardware-telemetry"
   ],
@@ -13583,6 +14393,7 @@
     "doc-ai-context",
     "doc-ai-provider-connectors",
     "doc-ai-executor-implementation",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-project-status",
     "doc-project-roadmap",
@@ -13593,11 +14404,13 @@
   "service": [
     "doc-module-map",
     "doc-node-registry",
+    "ai-gateway-security-boundaries",
     "ai-development-persistent-worker"
   ],
   "services": [
     "doc-ai-provider-connectors",
-    "doc-module-map"
+    "doc-module-map",
+    "local-inference-hardware-fit"
   ],
   "servida": [
     "doc-project-status"
@@ -13664,6 +14477,9 @@
     "doc-node-registry",
     "doc-project-status"
   ],
+  "share": [
+    "local-inference-hardware-fit"
+  ],
   "shared": [
     "video-yc5sg321g0y"
   ],
@@ -13675,10 +14491,17 @@
     "doc-ai-module-workplan",
     "doc-node-registry"
   ],
+  "shihabshahrier": [
+    "doc-video-research-index",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit"
+  ],
   "should": [
+    "ai-gateway-security-boundaries",
     "networked-gpu-versus-task-federation"
   ],
   "show": [
+    "ai-gateway-security-boundaries",
     "networked-gpu-versus-task-federation"
   ],
   "si": [
@@ -13705,6 +14528,9 @@
   ],
   "silenciosamente": [
     "doc-project-roadmap"
+  ],
+  "silently": [
+    "ai-gateway-security-boundaries"
   ],
   "sim": [
     "doc-ai-module-workplan"
@@ -13793,6 +14619,7 @@
   ],
   "size": [
     "doc-video-research-index",
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "video-rpgjhrunbxo"
   ],
@@ -13800,6 +14627,7 @@
     "doc-ai-provider-connectors"
   ],
   "small": [
+    "local-inference-hardware-fit",
     "ai-development-persistent-worker"
   ],
   "smart": [
@@ -13821,6 +14649,9 @@
   "snapshot_until": [
     "doc-node-registry"
   ],
+  "so": [
+    "local-inference-hardware-fit"
+  ],
   "sob": [
     "doc-ai-development-orchestration",
     "doc-node-registry",
@@ -13837,6 +14668,9 @@
   ],
   "sobreviver": [
     "doc-ai-development-orchestration"
+  ],
+  "soc": [
+    "local-inference-hardware-fit"
   ],
   "software": [
     "doc-video-research-index",
@@ -13889,6 +14723,7 @@
     "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-hardware-telemetry",
+    "ai-gateway-security-boundaries",
     "multimodal-assistant-demo",
     "video-z3wpoywp358",
     "video-vqxbftjq0m4",
@@ -13896,7 +14731,8 @@
     "video-gq3bewdjeos"
   ],
   "sources": [
-    "doc-module-map"
+    "doc-module-map",
+    "local-inference-hardware-fit"
   ],
   "sozinha": [
     "doc-project-roadmap"
@@ -13906,10 +14742,13 @@
     "doc-vision"
   ],
   "specific": [
-    "networked-gpu-versus-task-federation"
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
+    "networked-gpu-versus-task-federation",
+    "video-o6d15v1zy0"
   ],
-  "speed": [
-    "local-inference-hardware-fit"
+  "specifically": [
+    "ai-gateway-security-boundaries"
   ],
   "split": [
     "networked-gpu-versus-task-federation"
@@ -13937,8 +14776,10 @@
     "ref-multipaz-developer-website"
   ],
   "ssh": [
+    "doc-video-research-index",
     "doc-project-status",
-    "doc-vision"
+    "doc-vision",
+    "video-o6d15v1zy0"
   ],
   "stack": [
     "doc-project-status",
@@ -13959,10 +14800,14 @@
   ],
   "state": [
     "doc-module-map",
+    "ai-gateway-security-boundaries",
     "ai-development-persistent-worker"
   ],
   "stateless": [
     "doc-ai-provider-connectors"
+  ],
+  "statement": [
+    "local-inference-hardware-fit"
   ],
   "status": [
     "doc-ai-context",
@@ -13970,11 +14815,25 @@
     "doc-module-map",
     "doc-hardware-telemetry",
     "doc-project-status",
-    "doc-project-roadmap"
+    "doc-project-roadmap",
+    "ai-gateway-security-boundaries"
+  ],
+  "still": [
+    "local-inference-hardware-fit"
+  ],
+  "stop": [
+    "ai-gateway-security-boundaries"
+  ],
+  "storage": [
+    "local-inference-hardware-fit"
   ],
   "store": [
     "doc-ai-provider-connectors",
-    "doc-ai-executor-implementation"
+    "doc-ai-executor-implementation",
+    "ai-gateway-security-boundaries"
+  ],
+  "storing": [
+    "ai-gateway-security-boundaries"
   ],
   "stp": [
     "doc-vision"
@@ -14075,6 +14934,7 @@
     "doc-vision"
   ],
   "summary": [
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation",
@@ -14106,6 +14966,7 @@
   "suporte": [
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
+    "doc-video-research-index",
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-project-roadmap",
@@ -14113,6 +14974,10 @@
   ],
   "supplied": [
     "video-q-yobcyc71a"
+  ],
+  "support": [
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
   ],
   "survey": [
     "video-rpgjhrunbxo"
@@ -14130,7 +14995,8 @@
     "doc-vision"
   ],
   "synthetic": [
-    "doc-ai-provider-connectors"
+    "doc-ai-provider-connectors",
+    "ai-gateway-security-boundaries"
   ],
   "sysfs": [
     "doc-hardware-telemetry"
@@ -14180,6 +15046,7 @@
     "doc-ai-provider-connectors",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
+    "doc-video-research-index",
     "doc-hardware-telemetry",
     "doc-project-status",
     "doc-vision",
@@ -14255,6 +15122,9 @@
     "doc-hardware-telemetry",
     "nivus-mobile-battery-relay"
   ],
+  "telegram": [
+    "doc-video-research-index"
+  ],
   "telemetria": [
     "doc-ai-context",
     "doc-ai-development-orchestration",
@@ -14272,6 +15142,8 @@
     "doc-node-registry",
     "doc-hardware-telemetry",
     "doc-project-status",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
     "ai-development-persistent-worker"
   ],
   "tem": [
@@ -14331,6 +15203,9 @@
   "temporais": [
     "doc-vision"
   ],
+  "tempos": [
+    "doc-video-research-index"
+  ],
   "tenha": [
     "doc-ai-provider-connectors"
   ],
@@ -14387,7 +15262,8 @@
     "doc-project-status"
   ],
   "terms": [
-    "doc-ai-workflow"
+    "doc-ai-workflow",
+    "ai-gateway-security-boundaries"
   ],
   "test": [
     "multimodal-assistant-demo"
@@ -14427,6 +15303,9 @@
     "doc-project-status",
     "doc-project-roadmap"
   ],
+  "tests": [
+    "local-inference-hardware-fit"
+  ],
   "teto": [
     "doc-ai-executor-implementation",
     "doc-project-status"
@@ -14442,10 +15321,14 @@
     "doc-ai-executor-implementation"
   ],
   "that": [
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
     "multimodal-assistant-demo",
-    "networked-gpu-versus-task-federation"
+    "networked-gpu-versus-task-federation",
+    "video-o6d15v1zy0"
   ],
   "the": [
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation",
@@ -14454,20 +15337,32 @@
     "video-z3wpoywp358",
     "video-vqxbftjq0m4",
     "video-yc5sg321g0y",
-    "video-gq3bewdjeos"
+    "video-gq3bewdjeos",
+    "video-o6d15v1zy0"
+  ],
+  "them": [
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit"
+  ],
+  "thermal": [
+    "local-inference-hardware-fit"
   ],
   "thermal_zone0": [
     "doc-hardware-telemetry"
+  ],
+  "these": [
+    "local-inference-hardware-fit"
   ],
   "they": [
     "doc-video-research-index",
     "video-cfdoXn6yvE4"
   ],
   "third": [
+    "ai-gateway-security-boundaries",
     "video-rpgjhrunbxo"
   ],
   "this": [
-    "local-inference-hardware-fit",
+    "ai-gateway-security-boundaries",
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation",
     "ai-development-persistent-worker",
@@ -14479,8 +15374,7 @@
     "ai-development-persistent-worker"
   ],
   "throughput": [
-    "doc-video-research-index",
-    "local-inference-hardware-fit"
+    "doc-video-research-index"
   ],
   "tickets": [
     "doc-ai-development-orchestration"
@@ -14553,15 +15447,18 @@
     "doc-ai-context",
     "doc-node-registry",
     "doc-project-status",
-    "doc-project-roadmap"
+    "doc-project-roadmap",
+    "ai-gateway-security-boundaries"
   ],
   "to": [
     "doc-ai-workflow",
     "doc-ai-executor-implementation",
     "doc-project-status",
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
-    "ai-development-persistent-worker"
+    "ai-development-persistent-worker",
+    "video-o6d15v1zy0"
   ],
   "todas": [
     "doc-hardware-telemetry"
@@ -14578,6 +15475,9 @@
     "doc-project-status",
     "doc-project-roadmap",
     "doc-vision"
+  ],
+  "together": [
+    "local-inference-hardware-fit"
   ],
   "token": [
     "doc-ai-context",
@@ -14614,6 +15514,9 @@
     "doc-vision",
     "ref-multipaz-developer-website"
   ],
+  "tool": [
+    "ai-gateway-security-boundaries"
+  ],
   "tools": [
     "doc-ai-provider-connectors",
     "doc-ai-workflow",
@@ -14632,6 +15535,7 @@
   ],
   "topics": [
     "doc-ai-workflow",
+    "doc-video-research-index",
     "doc-module-map"
   ],
   "topologia": [
@@ -14651,9 +15555,6 @@
   ],
   "totalmente": [
     "ref-multipaz-developer-website"
-  ],
-  "tour": [
-    "local-inference-hardware-fit"
   ],
   "tr": [
     "doc-ai-context",
@@ -14684,6 +15585,12 @@
   "tracking": [
     "video-wgqdaqqto90"
   ],
+  "traffic": [
+    "ai-gateway-security-boundaries"
+  ],
+  "training": [
+    "ai-gateway-security-boundaries"
+  ],
   "transa": [
     "doc-node-registry"
   ],
@@ -14697,18 +15604,22 @@
   ],
   "transcript": [
     "doc-ai-workflow",
-    "local-inference-hardware-fit",
     "ai-development-persistent-worker",
     "video-rpgjhrunbxo",
     "video-cfdoXn6yvE4",
     "video-z3wpoywp358",
     "video-vqxbftjq0m4",
     "video-yc5sg321g0y",
-    "video-gq3bewdjeos"
+    "video-gq3bewdjeos",
+    "video-o6d15v1zy0"
+  ],
+  "transcrito": [
+    "doc-video-research-index"
   ],
   "transfer": [
     "doc-video-research-index",
-    "doc-vision"
+    "doc-vision",
+    "local-inference-hardware-fit"
   ],
   "transforma": [
     "doc-project-roadmap"
@@ -14718,6 +15629,10 @@
   ],
   "transforme": [
     "doc-video-research-index"
+  ],
+  "transformei": [
+    "doc-video-research-index",
+    "video-o6d15v1zy0"
   ],
   "transmite": [
     "doc-node-registry",
@@ -14729,8 +15644,12 @@
   "transporte": [
     "doc-node-registry"
   ],
+  "transports": [
+    "local-inference-hardware-fit"
+  ],
   "trata": [
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-project-status"
   ],
   "tratado": [
@@ -14743,6 +15662,10 @@
   ],
   "trate": [
     "ref-multipaz-developer-website"
+  ],
+  "treat": [
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit"
   ],
   "treats": [
     "networked-gpu-versus-task-federation"
@@ -14772,11 +15695,24 @@
   "true": [
     "doc-ai-executor-implementation"
   ],
+  "trusted": [
+    "ai-gateway-security-boundaries"
+  ],
   "tudo": [
     "doc-vision"
   ],
+  "tunnel": [
+    "ai-gateway-security-boundaries",
+    "video-o6d15v1zy0"
+  ],
   "turnos": [
     "ref-multipaz-developer-website"
+  ],
+  "tv": [
+    "doc-video-research-index",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
   ],
   "type": [
     "doc-node-registry"
@@ -14808,7 +15744,8 @@
     "doc-ai-context",
     "doc-ai-provider-connectors",
     "doc-module-map",
-    "doc-hardware-telemetry"
+    "doc-hardware-telemetry",
+    "ai-gateway-security-boundaries"
   ],
   "ultrapassado": [
     "doc-project-roadmap"
@@ -14845,10 +15782,16 @@
     "doc-project-roadmap",
     "doc-vision",
     "nivus-mobile-battery-relay",
-    "ref-multipaz-developer-website"
+    "ref-multipaz-developer-website",
+    "video-o6d15v1zy0"
+  ],
+  "unapproved": [
+    "ai-gateway-security-boundaries"
   ],
   "unavailable": [
-    "doc-node-registry"
+    "doc-node-registry",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit"
   ],
   "unclassified": [
     "video-yc5sg321g0y"
@@ -14860,6 +15803,7 @@
   "unidade": [
     "doc-ai-context",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-project-status",
     "doc-project-roadmap",
@@ -14874,11 +15818,16 @@
     "ai-development-persistent-worker"
   ],
   "unit": [
-    "doc-node-registry"
+    "doc-node-registry",
+    "local-inference-hardware-fit",
+    "video-o6d15v1zy0"
   ],
   "universal": [
     "doc-project-status",
     "doc-project-roadmap"
+  ],
+  "unless": [
+    "ai-gateway-security-boundaries"
   ],
   "unrestricted": [
     "video-vqxbftjq0m4"
@@ -14912,7 +15861,10 @@
     "ref-multipaz-developer-website"
   ],
   "upstream": [
+    "doc-video-research-index",
     "doc-hardware-telemetry",
+    "ai-gateway-security-boundaries",
+    "local-inference-hardware-fit",
     "ref-multipaz-developer-website"
   ],
   "url": [
@@ -14940,6 +15892,7 @@
   ],
   "usada": [
     "doc-ai-development-orchestration",
+    "doc-video-research-index",
     "doc-hardware-telemetry"
   ],
   "usado": [
@@ -14972,9 +15925,11 @@
   ],
   "usb": [
     "doc-ai-context",
+    "doc-video-research-index",
     "doc-project-status",
     "doc-project-roadmap",
-    "doc-vision"
+    "doc-vision",
+    "local-inference-hardware-fit"
   ],
   "use": [
     "doc-ai-context",
@@ -14982,6 +15937,7 @@
     "doc-ai-executor-implementation",
     "doc-module-map",
     "doc-project-status",
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation",
@@ -14989,6 +15945,7 @@
     "video-cfdoXn6yvE4"
   ],
   "useful": [
+    "local-inference-hardware-fit",
     "ai-development-persistent-worker"
   ],
   "user": [
@@ -14997,6 +15954,7 @@
     "doc-ai-development-orchestration",
     "doc-node-registry",
     "doc-project-status",
+    "local-inference-hardware-fit",
     "ai-development-persistent-worker",
     "video-q-yobcyc71a",
     "video-z3wpoywp358",
@@ -15055,7 +16013,9 @@
   ],
   "v1": [
     "doc-ai-provider-connectors",
-    "doc-node-registry"
+    "doc-video-research-index",
+    "doc-node-registry",
+    "ai-gateway-security-boundaries"
   ],
   "vale": [
     "doc-node-registry",
@@ -15142,6 +16102,7 @@
     "doc-ai-executor-implementation"
   ],
   "varia": [
+    "doc-video-research-index",
     "doc-hardware-telemetry"
   ],
   "variou": [
@@ -15200,7 +16161,6 @@
   ],
   "verificada": [
     "doc-ai-executor-implementation",
-    "doc-video-research-index",
     "doc-project-status"
   ],
   "verificadas": [
@@ -15272,6 +16232,9 @@
   "versione": [
     "doc-ai-workflow"
   ],
+  "versus": [
+    "doc-video-research-index"
+  ],
   "vertex": [
     "doc-ai-development-orchestration"
   ],
@@ -15292,6 +16255,7 @@
   ],
   "video": [
     "doc-vision",
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation",
@@ -15299,20 +16263,19 @@
     "video-q-yobcyc71a",
     "video-z3wpoywp358",
     "video-yc5sg321g0y",
-    "video-wgqdaqqto90"
+    "video-wgqdaqqto90",
+    "video-o6d15v1zy0"
   ],
   "video_research_index": [
     "doc-ai-context",
     "doc-project-status",
+    "ai-gateway-security-boundaries",
     "local-inference-hardware-fit",
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation"
   ],
   "video_sources": [
     "doc-video-research-index"
-  ],
-  "videos": [
-    "local-inference-hardware-fit"
   ],
   "view": [
     "doc-ai-development-orchestration",
@@ -15435,7 +16398,8 @@
   ],
   "vpn": [
     "doc-project-status",
-    "doc-vision"
+    "doc-vision",
+    "ai-gateway-security-boundaries"
   ],
   "vps": [
     "doc-ai-development-orchestration",
@@ -15466,6 +16430,9 @@
   "wan": [
     "doc-vision"
   ],
+  "warns": [
+    "ai-gateway-security-boundaries"
+  ],
   "watch": [
     "doc-ai-development-orchestration",
     "doc-video-research-index",
@@ -15490,20 +16457,33 @@
   "websocket": [
     "doc-vision"
   ],
+  "weights": [
+    "local-inference-hardware-fit"
+  ],
   "wgqdaqqto90": [
     "doc-video-research-index",
     "doc-vision"
   ],
+  "what": [
+    "local-inference-hardware-fit"
+  ],
   "when": [
-    "local-inference-hardware-fit",
+    "ai-gateway-security-boundaries",
     "multimodal-assistant-demo",
     "networked-gpu-versus-task-federation",
     "ai-development-persistent-worker"
+  ],
+  "where": [
+    "local-inference-hardware-fit"
+  ],
+  "which": [
+    "local-inference-hardware-fit"
   ],
   "while": [
     "ai-development-persistent-worker"
   ],
   "wi": [
+    "doc-video-research-index",
     "doc-vision"
   ],
   "wici": [
@@ -15511,6 +16491,9 @@
     "doc-vision",
     "networked-gpu-versus-task-federation",
     "video-cfdoXn6yvE4"
+  ],
+  "wide": [
+    "local-inference-hardware-fit"
   ],
   "widget": [
     "ref-multipaz-developer-website"
@@ -15526,13 +16509,18 @@
     "doc-vision"
   ],
   "with": [
+    "local-inference-hardware-fit",
     "ai-development-persistent-worker",
     "video-q-yobcyc71a",
     "video-z3wpoywp358",
     "video-gq3bewdjeos",
     "video-wgqdaqqto90"
   ],
+  "without": [
+    "ai-gateway-security-boundaries"
+  ],
   "work": [
+    "local-inference-hardware-fit",
     "ai-development-persistent-worker"
   ],
   "worker": [
@@ -15569,6 +16557,12 @@
     "doc-node-registry",
     "doc-project-status",
     "doc-project-roadmap"
+  ],
+  "workload": [
+    "local-inference-hardware-fit"
+  ],
+  "workloads": [
+    "local-inference-hardware-fit"
   ],
   "workspace": [
     "ai-development-persistent-worker"
@@ -15686,6 +16680,7 @@
   ],
   "áfico": [
     "doc-ai-context",
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-hardware-telemetry",
     "doc-project-status",
@@ -15700,6 +16695,7 @@
   "ágina": [
     "doc-ai-workflow",
     "doc-ai-development-orchestration",
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-hardware-telemetry",
     "doc-project-status",
@@ -15707,7 +16703,6 @@
     "doc-vision"
   ],
   "áginas": [
-    "doc-video-research-index",
     "doc-node-registry",
     "doc-vision"
   ],
@@ -15820,6 +16815,7 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-project-status"
   ],
@@ -15977,6 +16973,7 @@
   "ço": [
     "doc-ai-provider-connectors",
     "doc-ai-executor-implementation",
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-project-status",
     "doc-project-roadmap",
@@ -16080,6 +17077,7 @@
     "ref-multipaz-developer-website"
   ],
   "érica": [
+    "doc-video-research-index",
     "doc-vision"
   ],
   "érico": [
@@ -16195,6 +17193,7 @@
     "doc-vision"
   ],
   "êm": [
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-project-roadmap"
   ],
@@ -16242,6 +17241,7 @@
   "ês": [
     "doc-ai-context",
     "doc-ai-provider-connectors",
+    "doc-video-research-index",
     "doc-project-status",
     "ref-multipaz-developer-website"
   ],
@@ -16340,6 +17340,7 @@
     "doc-node-registry"
   ],
   "ífica": [
+    "doc-video-research-index",
     "doc-project-status"
   ],
   "íficas": [
@@ -16351,6 +17352,7 @@
   ],
   "íficos": [
     "doc-ai-executor-implementation",
+    "doc-video-research-index",
     "doc-vision"
   ],
   "ígitos": [
@@ -16468,6 +17470,7 @@
     "doc-ai-provider-connectors",
     "doc-ai-workflow",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-project-roadmap",
     "doc-vision"
@@ -16520,6 +17523,7 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-node-registry",
     "doc-hardware-telemetry",
@@ -16598,6 +17602,7 @@
     "doc-ai-context",
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
+    "doc-video-research-index",
     "doc-project-status"
   ],
   "óprios": [
@@ -16717,6 +17722,7 @@
     "nivus-mobile-battery-relay"
   ],
   "óximos": [
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-project-roadmap"
   ],
@@ -16758,6 +17764,7 @@
     "doc-ai-workflow",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-module-map",
     "doc-project-status",
     "ref-multipaz-developer-website"
@@ -16776,7 +17783,8 @@
   ],
   "úblicos": [
     "doc-ai-provider-connectors",
-    "doc-ai-development-orchestration"
+    "doc-ai-development-orchestration",
+    "doc-video-research-index"
   ],
   "úcleo": [
     "doc-hardware-telemetry",
@@ -16818,6 +17826,9 @@
   "úmeros": [
     "doc-video-research-index"
   ],
+  "únel": [
+    "doc-video-research-index"
+  ],
   "única": [
     "doc-ai-context",
     "doc-ai-provider-connectors",
@@ -16831,12 +17842,14 @@
     "doc-ai-development-orchestration",
     "doc-ai-executor-implementation",
     "doc-ai-module-workplan",
+    "doc-video-research-index",
     "doc-node-registry",
     "doc-project-roadmap",
     "doc-vision"
   ],
   "úteis": [
     "doc-ai-workflow",
+    "doc-video-research-index",
     "doc-vision"
   ],
   "útil": [

@@ -1,8 +1,8 @@
 # Índice de pesquisa dos vídeos
 
-Atualizado em 2026-11-15. Este índice é o catálogo legível por pessoas e agentes. O registro estruturado e os termos de busca estão em [`../knowledge/catalog/video_sources.jsonl`](../knowledge/catalog/video_sources.jsonl).
+Atualizado em 2026-11-24. Este índice é o catálogo legível por pessoas e agentes. O registro estruturado e os termos de busca estão em [`../knowledge/catalog/video_sources.jsonl`](../knowledge/catalog/video_sources.jsonl).
 
-O YouTube limitou a leitura direta das páginas durante esta revisão. Por isso, cada item distingue legenda secundária, metadado de descrição, rótulo enviado pelo operador e afirmação verificada em documentação primária. **“Catalogado” não significa “conteúdo integral assistido e verificado”.**
+A cobertura varia por fonte: para o vídeo de gateway de IA abaixo, a página pública e as legendas automáticas em português foram consultadas; os demais itens preservam o estado de verificação indicado em cada entrada. Cada item distingue demonstração, legenda/descrição, rótulo do operador e documentação primária. **“Catalogado” não significa “conteúdo integral transcrito ou verificado”.**
 
 ## Execução de software e paralelismo
 
@@ -28,6 +28,18 @@ O YouTube limitou a leitura direta das páginas durante esta revisão. Por isso,
 
 ## IA local e hardware
 
+### Transformei uma TV Box Antiga em Gateway de IA! | Armbian + FreeLM — Café com Dados & Gatos
+
+- [Vídeo](https://www.youtube.com/watch?v=O6_d15v1Zy0)
+- **Tema/tags:** gateway de IA, FreeLM, API compatível com OpenAI, túnel SSH, TV Box ARM, privacidade de prompts.
+- **Estado da fonte:** página pública e descrição consultadas; legendas automáticas em português revisadas no navegador. Os tempos abaixo são aproximados e a transcrição automática pode conter erros. Nenhuma transcrição integral foi copiada.
+- **Demonstração do vídeo:** a BTV é usada como gateway para encaminhar pedidos a provedores externos; a descrição diz que a TV Box não executa um modelo grande localmente. A demonstração configura uma API local compatível com OpenAI e acessa o serviço por túnel SSH.
+- **Tempos úteis nas legendas:** 00:43–01:00 (gateway versus inferência local); 02:08–04:27 (endpoint FreeLM e túnel); 09:07–10:16 (teste por USB e observação de Wi-Fi); 12:06–13:45 (instalação interna específica da placa); 16:47–19:35 (FreeLM e acesso gráfico); 23:39–24:37 (teste do endpoint e próximos passos).
+- **Checagem primária:** o README do FreeLM descreve `freelm serve` em `127.0.0.1:4000/v1` por padrão e recomenda configurar autenticação ao expor o serviço. A documentação também alerta que endpoints públicos sem chave podem registrar prompts e têm limites baixos. Consulte [FreeLM](https://github.com/shihabshahrier/freelm).
+- **Limite de hardware:** o relato upstream identifica uma BTV 10 BX, Amlogic S905X, placa p212, 2 GB de RAM e 16 GB eMMC; o autor relata boot USB e instalação eMMC para essa unidade. A lista genérica [Armbian aml-s9xx-box](https://armbian.com/boards/aml-s9xx-box) e esse único relato não garantem compatibilidade de outras TV Boxes nem suporte do Nivus. Consulte [relato upstream da BTV 10 BX](https://github.com/ophub/amlogic-s9xxx-armbian/issues/3676).
+- **Aplicação ao Nivus:** gateway encaminha pedidos; inferência local executa o modelo no próprio nó. O primeiro não combina CPUs/RAM nem prova distribuição P2P. Qualquer uso de provedor externo precisa declarar o fluxo dos prompts, limites, autorização e política de dados.
+- **Limites da demonstração:** o vídeo trata o New API e a integração Telegram como passos futuros, não como recursos confirmados nessa instalação. O ID de instalação e os arquivos de boot são específicos do hardware; não os reutilize em outras placas.
+- **Nota de segurança:** [`ai-gateway-security-boundaries.md`](../knowledge/topics/ai-gateway-security-boundaries.md).
 ### Every Size Local AI In 24 Minutes — Tina Huang
 
 - [Vídeo](https://www.youtube.com/watch?v=rPGJhrunbxo)
