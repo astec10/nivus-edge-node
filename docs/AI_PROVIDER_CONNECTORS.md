@@ -48,6 +48,44 @@ A rota `POST /api/ai/executor/requests/{request_id}/cancel` fecha a conexão aco
 
 O runtime do executor foi integrado à `main` pelo PR #82, com CI aprovada. A última versão informada no notebook é `f896de8`, anterior a esse PR; a instalação do runtime permanece pendente de atualização reversível e validação no host. Os testes usam mocks e conteúdo sintético; não fazem chamadas reais de provedor.
 
+## Provedores gratuitos e execução paralela
+
+O catálogo propõe dois perfis novos: **OpenRouter Free** e **llama.cpp local**. A tabela resume o que foi pesquisado e o que fica ativo quando este PR for revisado, mesclado e implantado:
+
+| Serviço | Tipo | Estado no Nivus |
+| --- | --- | --- |
+| Ollama | Inferência local; já existe no catálogo, porta 11434 | Preservado |
+| llama.cpp server | Servidor open source com API compatível com OpenAI e modelos quantizados em CPU/GPU | Preset em `llama-cpp:9931` na rede interna do Compose; candidato local limitado aguarda smoke no notebook |
+| OpenRouter Free | API de nuvem que roteia para modelos gratuitos, com chave; não garante que todo modelo escolhido tenha licença open source | Perfil fixo `openrouter/free`; sem modelo pago nem fallback |
+| vLLM | Servidor open source de inferência | Adiado: medir CPU/RAM e arquitetura primeiro |
+| LangGraph | Framework open source para fluxos multi-etapas e aprovação humana | Adiado; o fan-out limitado atual resolve a comparação simples sem nova dependência |
+| LiteLLM | Proxy open source de provedores e roteamento | Adiado; adiciona outra camada de chaves, orçamento e operação que duplica o controle do executor existente |
+| OpenHands | Agente open source de desenvolvimento | Adiado; sobreporia o worker GitHub atual e ainda precisaria de uma chave de modelo |
+| GitHub Models | API de modelos do GitHub | Não usar; o serviço foi encerrado em 30/07/2026 |
+
+O preset **OpenRouter Free** usa somente `openrouter/free`, registra preço de entrada e saída zero e envia `data_collection: deny` com `allow_fallbacks: false`. O cadastro rejeita outro modelo e preços diferentes de zero. O roteador gratuito pode escolher modelos diferentes ao longo do tempo; confirme a licença do modelo servido se isso for requisito. A política de coleta do provedor não é uma garantia geral de retenção zero, por isso chamadas em nuvem continuam limitadas a dados públicos ou sintéticos. A tabela do serviço informa limite gratuito atual de 20 solicitações por minuto e 50 por dia; limites e disponibilidade podem mudar. [Catálogo e limites do OpenRouter](https://openrouter.ai/collections/free-models).
+
+O preset `llama.cpp local` aponta para `http://llama-cpp:9931/v1`, nome DNS do container na rede interna `web_private` compartilhada com a API. O container não publica portas no host e não precisa de rota para o gateway do host; o listener fica acessível somente por serviços conectados à rede privada do Compose. A instalação candidata é separada, tem limites de CPU/RAM e usa um slot de inferência. O primeiro teste no notebook confirmou que `host.docker.internal` não é alcançável a partir da rede interna da API; o container candidato foi removido pelo rollback e o modelo verificado foi preservado. A nova configuração usa DNS interno do Compose. [API server do llama.cpp](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md).
+
+O painel **Executar tarefa de IA** permite uma chamada única ou um lote de duas a três conexões habilitadas e testadas. O endpoint administrativo `POST /api/ai/executor/parallel` usa IDs filhos determinísticos, conserva o mesmo ID de tarefa e o mesmo orçamento agregado, limita a três chamadas paralelas simultâneas entre todos os lotes, devolve HTTP 429 se a capacidade global estiver ocupada e permite no máximo um perfil local por lote. Uma falha parcial não cancela nem repete as outras chamadas. Não existe retry ou fallback. A política atual de classe de dados, limites por hora, orçamento, auditoria e ausência de persistência de prompt/saída continua valendo para cada chamada. Os resultados são apresentados somente na tela aberta.
+
+```mermaid
+flowchart LR
+  UI[Dashboard administrativa] --> S[Chamada única]
+  UI --> P[Lote paralelo 2–3]
+  S --> E[Executor runtime]
+  P --> E
+  E --> B[Orçamento agregado e auditoria SQLite]
+  E --> C[OpenRouter Free / outros provedores cloud]
+  E --> L[Ollama / llama.cpp locais]
+  C --> D[Somente dados públicos ou sintéticos]
+  L --> N[No máximo um modelo local por lote]
+  W[Worker GitHub Actions] --> G[Gemini ou OpenRouter Free]
+  W -. credenciais e fila separadas .- E
+```
+
+Para chamar o provedor gratuito, cadastre a chave na tela **Configuração → Provedores de IA**, informe responsável/finalidade e data em que conferiu o preço zero, teste a conexão e habilite o perfil. Para usar llama.cpp no notebook, siga a operação isolada da [Issue #133](https://github.com/astec10/nivus-edge-node/issues/133); depois selecione o preset `llama.cpp local`, defina o alias do modelo, teste a conexão e habilite o perfil. A instalação do servidor e o seu smoke local ainda aguardam validação final.
+
 ## Relação com o executor GitHub Actions
 
 Esta configuração pertence ao runtime do Nivus. Ela não lê nem altera `GEMINI_API_KEY` do GitHub Actions. O executor de desenvolvimento do GitHub continua com segredos próprios, permissões próprias e aprovação humana; não copiar chaves entre esses dois ambientes.

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
+import AIProviderExecutorPanel from './AIProviderExecutorPanel';
 import { Activity, KeyRound, Plus, RefreshCw, ShieldCheck, Trash2 } from 'lucide-react';
 
 const API = '/api/settings/ai-providers';
@@ -64,6 +65,12 @@ function presetForm(providerType, catalog) {
     endpoint_scope: item.scope,
     base_url: item.base_url,
     auth_method: item.auth_method,
+    model_name: item.id === 'openrouter'
+      ? 'openrouter/free'
+      : item.id === 'llama_cpp' ? 'nivus-local-qwen3.5-0.8b' : '',
+    timeout_seconds: item.id === 'llama_cpp' ? '60' : EMPTY_FORM.timeout_seconds,
+    input_cost_per_million_usd: item.id === 'openrouter' ? '0' : '',
+    output_cost_per_million_usd: item.id === 'openrouter' ? '0' : '',
   };
 }
 
@@ -377,7 +384,7 @@ export default function ProviderSettingsPanel({ token }) {
               </div>
               <p className="provider-inline-note">
                 {form.endpoint_scope === 'local'
-                  ? 'Endpoint local: HTTP privado, portas permitidas para Ollama (11434), LM Studio (1234) ou vLLM (8000).'
+                  ? 'Endpoint local: HTTP privado, portas permitidas para Ollama (11434), LM Studio (1234), vLLM (8000) ou llama.cpp (9931).'
                   : 'Endpoint manual de nuvem: HTTPS na porta 443. Confira o domínio antes de enviar uma chave.'}
               </p>
             </>
@@ -386,8 +393,13 @@ export default function ProviderSettingsPanel({ token }) {
           <div className="provider-fields-grid">
             <label className="display-preference-field">
               <span>Modelo</span>
-              <input value={form.model_name} maxLength={128} required placeholder="Ex.: modelo disponível na sua conta" onChange={event => setForm({ ...form, model_name: event.target.value })} />
+              <input value={form.model_name} maxLength={128} required readOnly={form.provider_type === 'openrouter'} placeholder="Ex.: modelo disponível na sua conta" onChange={event => setForm({ ...form, model_name: event.target.value })} />
             </label>
+            {form.provider_type === 'openrouter' && (
+              <p className="provider-inline-note provider-wide-field">
+                Este preset aceita apenas openrouter/free, com preço zero, dados com coleta negada e sem fallback. Informe sua chave OpenRouter no cadastro e confira a data da tabela de preços antes de habilitar.
+              </p>
+            )}
             <label className="display-preference-field">
               <span>Responsável pelo serviço / cobrança</span>
               <input value={form.responsible} maxLength={80} required placeholder="Pessoa, equipe ou conta responsável" onChange={event => setForm({ ...form, responsible: event.target.value })} />
@@ -532,7 +544,7 @@ export default function ProviderSettingsPanel({ token }) {
                   </label>
                   <label className="display-preference-field">
                     <span>Modelo</span>
-                    <input value={editForm.model_name} maxLength={128} required onChange={event => setEditForm({ ...editForm, model_name: event.target.value })} />
+                    <input value={editForm.model_name} maxLength={128} required readOnly={provider.provider_type === 'openrouter'} onChange={event => setEditForm({ ...editForm, model_name: event.target.value })} />
                   </label>
                   <label className="display-preference-field">
                     <span>Responsável pelo serviço / cobrança</span>
@@ -615,6 +627,7 @@ export default function ProviderSettingsPanel({ token }) {
         )}
       </details>
       <p className="display-preference-save-status" role="status" aria-live="polite">{message}</p>
+      <AIProviderExecutorPanel token={token} />
     </section>
   );
 }

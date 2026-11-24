@@ -96,7 +96,7 @@ ProviderDataClass = Literal[
 class AIProviderCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    provider_type: Literal["openai", "anthropic", "gemini", "ollama", "manual"]
+    provider_type: Literal["openai", "anthropic", "gemini", "ollama", "openrouter", "llama_cpp", "manual"]
     name: str = Field(min_length=1, max_length=80)
     protocol: Literal["openai-compatible", "anthropic", "gemini", "ollama"] = "openai-compatible"
     endpoint_scope: Literal["cloud", "local"] = "cloud"
@@ -177,6 +177,34 @@ class AIProviderEnabled(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     enabled: bool
+
+
+class AIExecutorParallelRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    request_id: UUID
+    task_id: str = Field(min_length=8, max_length=64, pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]{7,63}$")
+    provider_ids: list[str] = Field(min_length=2, max_length=3)
+    prompt: str = Field(min_length=1, max_length=12000)
+    data_class: ProviderDataClass
+    task_budget_usd: float = Field(default=0, ge=0, le=100000)
+    max_output_tokens: int = Field(default=1024, ge=1, le=2048)
+
+    @field_validator("provider_ids")
+    @classmethod
+    def provider_ids_must_be_distinct(cls, value: list[str]) -> list[str]:
+        if len(set(value)) != len(value):
+            raise ValueError("Selecione provedores diferentes para a execução paralela.")
+        if any(not re.fullmatch(r"[a-f0-9]{32}", item) for item in value):
+            raise ValueError("Um identificador de provedor é inválido.")
+        return value
+
+    @field_validator("prompt")
+    @classmethod
+    def prompt_must_contain_text(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("A instrução não pode ficar vazia.")
+        return value
 
 
 class AIExecutorRequest(BaseModel):
