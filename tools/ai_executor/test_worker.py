@@ -9,7 +9,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from contextlib import redirect_stderr
 
 from scripts.validate_ai_task import runtime_minutes, validate
@@ -128,7 +128,7 @@ class WorkerTests(unittest.TestCase):
             issue_file = root / "issue.json"
             issue_file.write_text(json.dumps(issue_payload()), encoding="utf-8")
             usage_file = root / "usage.json"
-            with patch.dict(os.environ, {"NIVUS_AI_BUDGET_MODE": "free-tier"}, clear=True):
+            with patch.dict(os.environ, {"NIVUS_AI_PROVIDER": "gemini", "NIVUS_AI_BUDGET_MODE": "free-tier"}, clear=True):
                 with patch.object(gemini_client.urllib.request, "build_opener") as network:
                     result = worker.run(issue_file, root, usage_file)
                 network.assert_not_called()
@@ -139,6 +139,54 @@ class WorkerTests(unittest.TestCase):
             self.assertIsNone(report["input_tokens"])
             self.assertIsNone(report["output_tokens"])
             self.assertFalse({"prompt", "response", "api_key", "content"}.intersection(report))
+
+    def test_provider_selection_is_required_and_fails_before_network(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="nivus-ai-provider-selection-") as tmp:
+            root = Path(tmp)
+            usage_file = root / "usage.json"
+            issue_file = root / "issue.json"
+            issue_file.write_text("{}", encoding="utf-8")
+            with patch.dict(os.environ, {"NIVUS_AI_BUDGET_MODE": "free-tier"}, clear=True):
+                with patch.object(worker, "GeminiClient") as gemini, patch.object(worker, "OpenRouterClient") as openrouter:
+                    result = worker.run(issue_file, root, usage_file)
+                gemini.assert_not_called()
+                openrouter.assert_not_called()
+            self.assertEqual(result, 1)
+            report = json.loads(usage_file.read_text(encoding="utf-8"))
+            self.assertEqual(report["error_code"], "provider_selection_invalid")
+            self.assertEqual(report["status"], "preflight_failed")
+
+    def test_openrouter_failure_never_falls_back_to_gemini(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="nivus-ai-no-provider-fallback-") as tmp:
+            root = Path(tmp)
+            for relative in worker.PROJECT_CONTEXT_PATHS:
+                target = root / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text("public synthetic context\n", encoding="utf-8")
+            (root / "docs" / "example.md").write_text("public synthetic source\n", encoding="utf-8")
+            issue_file = root / "issue.json"
+            issue_file.write_text(json.dumps(issue_payload()), encoding="utf-8")
+            usage_file = root / "usage.json"
+            failed_client = SimpleNamespace(
+                last_usage_report=None,
+                propose_changes=Mock(side_effect=worker.OpenRouterAPIError(
+                    "OpenRouter connection failed", error_code="network_error"
+                )),
+            )
+            with patch.dict(os.environ, {
+                "NIVUS_AI_PROVIDER": "openrouter-free",
+                "NIVUS_AI_BUDGET_MODE": "free-tier",
+                "OPENROUTER_API_KEY": "synthetic-openrouter-key",
+            }, clear=True):
+                with patch.object(worker, "OpenRouterClient", return_value=failed_client) as openrouter, patch.object(worker, "GeminiClient") as gemini:
+                    result = worker.run(issue_file, root, usage_file)
+                openrouter.assert_called_once_with()
+                failed_client.propose_changes.assert_called_once()
+                gemini.assert_not_called()
+            self.assertEqual(result, 1)
+            report = json.loads(usage_file.read_text(encoding="utf-8"))
+            self.assertEqual(report["error_code"], "network_error")
+            self.assertNotIn("synthetic-openrouter-key", json.dumps(report))
 
     def test_provider_error_logs_stable_code_instead_of_none(self) -> None:
         class FailedClient:
@@ -187,6 +235,10 @@ class WorkflowDispatchTests(unittest.TestCase):
         self.assertNotIn("actions: write", intake)
         self.assertIn("types: [labeled]", worker_workflow)
         self.assertIn("github.event.label.name == 'ai:ready'", worker_workflow)
+        self.assertIn("NIVUS_AI_PROVIDER: ${{ vars.NIVUS_AI_PROVIDER }}", worker_workflow)
+        self.assertNotIn("vars.NIVUS_AI_PROVIDER || 'gemini'", worker_workflow)
+        self.assertIn("vars.NIVUS_AI_PROVIDER == 'gemini' && secrets.GEMINI_API_KEY", worker_workflow)
+        self.assertIn("vars.NIVUS_AI_PROVIDER == 'openrouter-free' && secrets.OPENROUTER_API_KEY", worker_workflow)
 
 
 if __name__ == "__main__":
