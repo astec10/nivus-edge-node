@@ -22,9 +22,9 @@ body:
       label: Acceptance criteria
       description: Observable checks that define completion.
       placeholder: |
-        - Given ...
-        - When ...
-        - Then ...
+        - Online: time since the node heartbeat (last_seen) is 60 seconds or less.
+        - Offline: time since the node heartbeat (last_seen) is greater than 60 seconds.
+        - Determine presence only from last_seen; never use a telemetry sample timestamp.
     validations:
       required: true
 
