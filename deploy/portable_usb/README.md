@@ -1,58 +1,87 @@
-# Ubuntu + Nivus persistentes no USB
+# Pacote de instalação Nivus para USB
 
-Este pacote prepara um Ubuntu Server instalado integralmente no pendrive. A raiz do Ubuntu e os dados Nivus persistem após reinicializações. Não é uma edição Casper Live nem uma ISO Ubuntu personalizada pronta.
+O pacote reúne um snapshot público do repositório, o instalador, um manifesto de arquivos com SHA-256 e dois perfis selecionáveis. Ele evita clonar o GitHub no computador de destino. A instalação Master ainda precisa de internet para instalar dependências e construir imagens Docker. O perfil Worker pode instalar o agente sem internet; para parear e enviar telemetria, o Master precisa estar acessível por HTTPS.
 
-## Etapas disponíveis
+Este pacote instala o Nivus num Ubuntu Server já iniciado. Ele não particiona, formata nem instala o Ubuntu. Para preparar o pendrive de boot persistente, siga primeiro [AUTOINSTALL.md](AUTOINSTALL.md), mantendo a mídia de origem, o seed e o USB de destino identificáveis e separados.
 
-### 1. Selecionar o pendrive de destino
+## Gerar o pacote
 
-Em um Ubuntu de preparação, conecte o pendrive e execute:
+Use uma cópia limpa e commitada do repositório. A saída precisa ficar fora da pasta Git; o gerador recusa árvores modificadas e nomes de arquivos de dados ou credenciais:
 
-    sudo python3 deploy/portable_usb/select_target.py
+```bash
+python3 deploy/portable_usb/create_bundle.py build \
+  --source-root . \
+  --output-dir /caminho/seguro/nivus-bundle-release \
+  --version 0.1.0
+```
 
-O helper lista modelo, caminho, serial e capacidade. Exige serial único, USB gravável e partições desmontadas; também exclui o disco que contém a raiz quando consegue identificá-lo. Não seleciona discos automaticamente.
+O gerador cria uma pasta instalável, um arquivo `.tar.gz` e um arquivo lateral `.sha256`. Copie a pasta ou o arquivo para o **volume raiz do Ubuntu instalado no USB**, por exemplo para `/home/USUARIO/`; não coloque o pacote dentro de `/var/lib/nivus` antes da primeira instalação, pois esse volume precisa estar vazio ou já ter um marcador Nivus válido. Se copiar o `.tar.gz`, extraia-o antes de chamar o instalador:
 
-Registre o serial exato:
+```bash
+mkdir -p "$HOME/nivus-package"
+tar -xzf /caminho/nivus-install-bundle-0.1.0.tar.gz -C "$HOME/nivus-package"
+```
 
-    sudo python3 deploy/portable_usb/select_target.py \
-      --serial 'SERIAL-EXATO-DO-USB' \
-      --output /var/tmp/nivus-usb-selection.json
+O SHA-256 detecta corrupção acidental do artefato. Como manifesto e checksum acompanham o pacote, eles não são uma assinatura de autoria; compare o hash com um valor publicado por um canal confiável antes de instalar em produção.
 
-### 2. Gerar a configuração privada do instalador
+## Instalar com um comando
 
-    sudo python3 deploy/portable_usb/generate_autoinstall.py \
-      --selection /var/tmp/nivus-usb-selection.json \
-      --output /var/tmp/nivus-usb-seed \
-      --build-seed-iso
+Na pasta copiada para o Ubuntu, rode:
 
-A geração pede usuário, hostname e senha do Ubuntu, sem exibir a senha; somente o hash entra no seed. A pasta e os arquivos são privados. Não publique nem envie esses arquivos para chats. Para criar a ISO NoCloud, instale \`cloud-image-utils\` (\`sudo apt install cloud-image-utils\`).
+```bash
+sudo bash ./install_nivus.sh
+```
 
-A ISO \`nivus-autoinstall-seed.iso\` é mídia de configuração; não contém o instalador Ubuntu e não inicia o computador. Use três mídias ou dispositivos identificáveis: uma mídia Ubuntu Server inicializável, o USB de destino e a ISO/USB do seed NoCloud. A mídia instaladora e o alvo precisam ser diferentes.
+O instalador pede o perfil e o modo se houver terminal interativo. Também aceita argumentos diretos:
 
-### 3. Instalar Ubuntu no USB
+```bash
+sudo bash ./install_nivus.sh --profile master --mode online
+sudo bash ./install_nivus.sh --profile worker --mode online
+sudo bash ./install_nivus.sh --profile worker --mode offline
+sudo bash ./install_nivus.sh --profile master --mode offline --check-only
+```
 
-Inicie a mídia oficial Ubuntu Server 24.04 LTS ou mais recente sem adicionar o parâmetro de kernel \`autoinstall\`. Disponibilize \`user-data\` e \`meta-data\` ao Subiquity pela ISO seed e mantenha a tela de armazenamento interativa. Confira o caminho, modelo, serial e capacidade do USB comparando com \`TARGET-IDENTITY.txt\`. Cancele se houver qualquer divergência. A instalação formata o USB de destino e apaga o conteúdo existente nele.
+Acrescente `--check-only` a qualquer perfil para validar o pacote e os pré-requisitos sem instalar. O instalador exige confirmação antes de modificar o host.
 
-O layout usa BIOS/GRUB, EFI FAT32, uma raiz Ubuntu ext4 e a partição ext4 \`NIVUS_DATA\` no restante do USB, montada em \`/var/lib/nivus\`. O dispositivo precisa ter pelo menos 40 GiB. O instalador revalida a identidade do alvo antes de apresentar a confirmação do armazenamento.
+### Perfil Master
 
-### 4. Instalar Nivus após o primeiro boot
+- Ubuntu Server 24.04 ou mais recente, amd64/x86_64, systemd e Python 3.10+.
+- Exige que `/` e `/var/lib/nivus` sejam partições ext4 do mesmo USB, com o rótulo `NIVUS_DATA`, uma entrada `fstab` válida e no mínimo 8 GiB livres no volume de dados.
+- Recusa uma instalação Nivus existente, Docker ativo, arquivos conflitantes, volume desconhecido ou armazenamento não comprovado. Não formata discos.
+- Configura a persistência já existente do Nivus e chama `deploy/install.sh`, que instala dependências, cria segredos no host e inicia a dashboard/API/MQTT local.
+- **Online obrigatório nesta versão.** APT, imagens do Docker Hub, PyPI e npm são usados durante a instalação. `--mode offline` lista os artefatos que faltam e termina antes de alterar o host.
 
-Após iniciar no Ubuntu instalado no próprio USB, obtenha uma cópia do repositório e execute:
+Master significa o servidor local do painel/API nesta versão. Descoberta, classificação de hardware e scheduler de tarefas entre nós ainda não estão implementados só por instalar esse perfil.
 
-    sudo apt update
-    sudo apt install -y git python3
-    git clone https://github.com/astec10/nivus-edge-node.git
-    cd nivus-edge-node
-    sudo bash deploy/portable_usb/install_nivus.sh
+### Perfil Worker
 
-O comando recusa continuar se raiz e dados não forem partições ext4 do mesmo USB, se \`NIVUS_DATA\` não estiver montado com escrita e registrado uma única vez no \`/etc/fstab\`, se o rótulo estiver duplicado, se Docker já estiver ativo ou se houver uma instalação Nivus existente. Ele não formata discos nem move diretórios com dados. Em seguida prepara a persistência e chama o instalador Compose existente, que pede o primeiro administrador no terminal.
+- Ubuntu Server 24.04 ou mais recente, amd64/x86_64, systemd 247+ e Python 3.10+.
+- Instala somente o agente em `/opt/nivus/node-agent` e cria o estado privado em `/var/lib/nivus-node-agent`, usando conta de serviço sem login.
+- Online, pede URL HTTPS do Master, sugere um nome inicial aleatório editável e solicita o código de pareamento de uso único em entrada oculta. Você pode fornecer a CA pública do Master; ela fica no estado privado do próprio Worker. Depois ativa `nivus-node-agent.service`.
+- Offline, prepara o agente sem parear nem iniciar serviço. Quando o Master estiver acessível, rode novamente com `--profile worker --mode online`.
+- O agente envia heartbeat e uso de CPU, memória e disco. Ele não executa comandos ou tarefas remotas, não usa MQTT e não transfere arquivos.
+- Instalação reexecutável: se o pareamento falhar, o código não substitui uma instalação nem credenciais existentes; execute o mesmo pacote novamente após corrigir a causa.
 
-A instalação inicial precisa de internet para APT e construção/obtenção das dependências. Depois de concluída, o Nivus pode operar na LAN sem depender de serviços na nuvem; os módulos de IA local, VPN e coordenação de vários nós continuam separados no roadmap.
+O token de nó é emitido pelo Master e fica somente em `/var/lib/nivus-node-agent/credentials.json`, com permissões restritas. Não copie esse arquivo entre computadores nem o inclua no pacote ou GitHub. Cada Worker precisa de pareamento próprio. A troca do token/revogação deve ser feita pelo painel Master e por novo pareamento.
 
-## Limites de validação
+## Segurança e suporte
 
-A CI valida os seletores com inventários sintéticos e o seed contra o schema oficial Subiquity fixado no workflow. A integração ext4 é exercitada em loop device no runner hospedado. A CI não formata um pendrive físico nem executa o instalador interativamente.
+- O snapshot inclui apenas arquivos commitados. O gerador exclui diretórios de dados/desenvolvimento e recusa arquivos versionados com nomes de credenciais, chaves, bancos ou logs.
+- SHA-256 detecta alterações desde que o manifesto de origem seja confiável; o manifesto do próprio pacote não autentica quem o publicou.
+- O pacote não contém segredos, banco de produção, telemetria real, chave privada, CA privada, credenciais ou estado de nó.
+- Não use um clone privado do notebook como imagem de frota. Segredos, hostname, identidade, banco e credenciais devem ser únicos por máquina.
+- Para a primeira instalação persistente do Ubuntu em USB, o projeto requer dispositivo de pelo menos **40 GiB**. Isso é diferente de um pendrive comercial de 32 GB; não reduza a verificação nem confirme particionamento num dispositivo menor.
+- Escopo inicial: Ubuntu Server x86_64. Outras distros, ARM/ARM32, Raspberry Pi, Android, tablets, ESP32 e Arduino não são suportados por este pacote.
+- Falha do `deploy/install.sh` pode deixar as unidades de persistência do USB configuradas; a instalação Compose tem seu rollback próprio e os dados permanecem. Corrija a causa e execute novamente. Não remova manualmente `/var/lib/nivus`, segredos ou o volume persistente.
 
-Ainda não há ISO bootável customizada. O processo usa a mídia oficial do Ubuntu Server e um seed em mídia separada. Boot real UEFI/BIOS, primeiro login, Compose, reboot com verificação do SQLite/segredos/containers, recuperação e a matriz física Intel/AMD ainda precisam de validação.
+## Verificações
 
-Veja [AUTOINSTALL.md](AUTOINSTALL.md) para parâmetros do seed e [../live-usb/README.md](../live-usb/README.md) para o guard e detalhes do volume persistente.
+Na cópia de desenvolvimento:
+
+```bash
+python3 -m unittest deploy.portable_usb.test_bundle -v
+python3 -m py_compile deploy/portable_usb/create_bundle.py deploy/portable_usb/test_bundle.py
+bash -n deploy/portable_usb/install_nivus.sh
+```
+
+Essas verificações validam o artefato e o fluxo de pré-requisitos com dados sintéticos; não formatam USB nem comprovam instalação física, reboot ou hardware. Para critérios de validação no runner hospedado e limites dos testes, veja [VM_VALIDATION.md](../../docs/VM_VALIDATION.md) e o workflow de USB.
