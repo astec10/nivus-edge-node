@@ -26,8 +26,13 @@ def init_db():
                 node TEXT,
                 timestamp INTEGER,
                 cpu_percent REAL,
+                cpu_source TEXT,
+                cpu_per_core_json TEXT,
+                cpu_per_core_source TEXT,
                 memory_percent REAL,
+                memory_source TEXT,
                 disk_percent REAL,
+                disk_source TEXT,
                 host_battery_percent REAL,
                 host_battery_power_plugged INTEGER,
                 host_battery_source TEXT,
@@ -268,6 +273,11 @@ def init_db():
             row["name"] for row in conn.execute("PRAGMA table_info(telemetry)")
         }
         for column, definition in (
+            ("cpu_source", "TEXT"),
+            ("cpu_per_core_json", "TEXT"),
+            ("cpu_per_core_source", "TEXT"),
+            ("memory_source", "TEXT"),
+            ("disk_source", "TEXT"),
             ("host_battery_percent", "REAL"),
             ("host_battery_power_plugged", "INTEGER"),
             ("host_battery_source", "TEXT"),

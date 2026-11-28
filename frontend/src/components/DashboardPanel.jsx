@@ -4,6 +4,70 @@ import MetricCard from './MetricCard';
 import { describeTelemetryFreshness, formatMetric, getGraphicsLabel, selectTelemetryWindow, summarizeMetric } from '../utils/telemetry';
 
 const TelemetryChart = lazy(() => import('./TelemetryChart'));
+export const MAX_LOGICAL_CPUS = 256;
+
+function isPercentReading(value) {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 100;
+}
+
+export function parseCpuPerCoreUsage(value) {
+  let readings = value;
+  if (typeof readings === 'string') {
+    try {
+      readings = JSON.parse(readings);
+    } catch {
+      return [];
+    }
+  }
+  if (!Array.isArray(readings) || readings.length < 1 || readings.length > MAX_LOGICAL_CPUS) return [];
+  return readings.map(reading => isPercentReading(reading) ? reading : null);
+}
+
+export function summarizeCpuPerCore(samples) {
+  const parsed = (Array.isArray(samples) ? samples : []).map(sample =>
+    parseCpuPerCoreUsage(sample?.cpu_per_core_json)
+  );
+  const coreCount = Math.max(0, ...parsed.map(readings => readings.length));
+  return Array.from({ length: coreCount }, (_, index) => {
+    const values = parsed.map(readings => readings[index]).filter(isPercentReading);
+    const latest = parsed.at(-1);
+    const current = latest?.[index];
+    return {
+      index,
+      current: isPercentReading(current) ? current : null,
+      minimum: values.length ? Math.min(...values) : null,
+      maximum: values.length ? Math.max(...values) : null,
+      count: values.length,
+    };
+  });
+}
+
+export function CpuDetails({ samples = [] }) {
+  const aggregate = summarizeMetric(samples, 'cpu_percent');
+  const latest = samples.at(-1);
+  const cores = summarizeCpuPerCore(samples);
+  return (
+    <div className="metric-details-list">
+      <div className="metric-details-item">
+        <strong>Uso agregado</strong><strong>{formatMetric(aggregate.current, '%')}</strong>
+        <small>Mín {formatMetric(aggregate.minimum, '%')} · Máx {formatMetric(aggregate.maximum, '%')}</small>
+        <small>Fonte: {latest?.cpu_source || 'N/D'}</small>
+      </div>
+      {cores.length ? cores.map(core => (
+        <div className="metric-details-item" key={core.index}>
+          <strong>CPU {core.index}</strong><strong>{formatMetric(core.current, '%')}</strong>
+          <small>Mín {formatMetric(core.minimum, '%')} · Máx {formatMetric(core.maximum, '%')}</small>
+          <small>{core.count} amostras válidas · Fonte: {latest?.cpu_per_core_source || 'N/D'}</small>
+        </div>
+      )) : (
+        <div className="metric-details-item">
+          <strong>Uso por CPU lógico</strong><strong>N/D</strong>
+          <small>Fonte: {latest?.cpu_per_core_source || 'N/D'}</small>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function MetricDetails({ samples, metrics }) {
   return (
@@ -24,14 +88,16 @@ function MetricDetails({ samples, metrics }) {
   );
 }
 
-function RangeDetails({ samples, metric, unit }) {
+function RangeDetails({ samples, metric, unit, source }) {
   const summary = summarizeMetric(samples, metric);
+  const latest = samples.at(-1);
   return (
     <div className="metric-details-list">
       <div className="metric-details-item">
         <strong>Atual</strong><strong>{formatMetric(summary.current, unit)}</strong>
         <small>Mín {formatMetric(summary.minimum, unit)} · Máx {formatMetric(summary.maximum, unit)}</small>
         <small>{summary.count} amostras válidas no período</small>
+        {source && <small>Fonte: {latest?.[source] || 'N/D'}</small>}
       </div>
     </div>
   );
@@ -140,9 +206,9 @@ export default function DashboardPanel({
           )}
 
           <div className="dashboard-metric-grid">
-            <MetricCard label="CPU" metricId="cpu" primary sparklineValues={chartRows.map(sample => sample.cpu_percent)} gaugeValue={latest?.cpu_percent} gaugeMax={100} value={formatMetric(latest?.cpu_percent, '%')} details={<RangeDetails samples={chartRows} metric="cpu_percent" unit="%" />} />
-            <MetricCard label="Memória" metricId="memory" primary sparklineValues={chartRows.map(sample => sample.memory_percent)} gaugeValue={latest?.memory_percent} gaugeMax={100} value={formatMetric(latest?.memory_percent, '%')} details={<RangeDetails samples={chartRows} metric="memory_percent" unit="%" />} />
-            <MetricCard label="Disco" metricId="disk" gaugeValue={latest?.disk_percent} gaugeMax={100} value={formatMetric(latest?.disk_percent, '%')} details={<RangeDetails samples={chartRows} metric="disk_percent" unit="%" />} />
+            <MetricCard label="CPU" metricId="cpu" primary sparklineValues={chartRows.map(sample => sample.cpu_percent)} gaugeValue={latest?.cpu_percent} gaugeMax={100} value={formatMetric(latest?.cpu_percent, '%')} details={<CpuDetails samples={chartRows} />} />
+            <MetricCard label="Memória" metricId="memory" primary sparklineValues={chartRows.map(sample => sample.memory_percent)} gaugeValue={latest?.memory_percent} gaugeMax={100} value={formatMetric(latest?.memory_percent, '%')} details={<RangeDetails samples={chartRows} metric="memory_percent" unit="%" source="memory_source" />} />
+            <MetricCard label="Disco" metricId="disk" gaugeValue={latest?.disk_percent} gaugeMax={100} value={formatMetric(latest?.disk_percent, '%')} details={<RangeDetails samples={chartRows} metric="disk_percent" unit="%" source="disk_source" />} />
             <MetricCard
               label="Bateria do nó"
               metricId="host-battery"

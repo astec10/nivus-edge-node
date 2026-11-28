@@ -16,6 +16,7 @@ logger = logging.getLogger("nivus.worker")
 
 MQTT_BROKER = os.environ.get("NIVUS_MQTT_BROKER", "localhost")
 MQTT_PORT = int(os.environ.get("NIVUS_MQTT_PORT", "1883"))
+MAX_LOGICAL_CPUS = 256
 
 
 def _mqtt_password():
@@ -38,10 +39,46 @@ def _number(payload, name, minimum, maximum, nullable=False):
     value = payload.get(name)
     if value is None and nullable:
         return None
+    if isinstance(value, bool):
+        raise ValueError(name)
     value = float(value)
     if not math.isfinite(value) or not minimum <= value <= maximum:
         raise ValueError(name)
     return value
+
+
+def _source(payload, name):
+    value = payload.get(name)
+    if value is None:
+        return None
+    if (
+        not isinstance(value, str)
+        or not 1 <= len(value) <= 128
+        or any(ord(character) < 32 for character in value)
+    ):
+        raise ValueError(name)
+    return value
+
+
+def _cpu_per_core(payload):
+    values = payload.get("cpu_per_core_percent")
+    if values is None:
+        return None
+    if not isinstance(values, list) or not 1 <= len(values) <= MAX_LOGICAL_CPUS:
+        raise ValueError("cpu_per_core_percent")
+
+    validated = []
+    for value in values:
+        if value is None:
+            validated.append(None)
+            continue
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise ValueError("cpu_per_core_percent")
+        value = float(value)
+        if not math.isfinite(value) or not 0 <= value <= 100:
+            raise ValueError("cpu_per_core_percent")
+        validated.append(value)
+    return json.dumps(validated, separators=(",", ":"))
 
 
 def on_message(client, userdata, msg):
@@ -55,8 +92,15 @@ def on_message(client, userdata, msg):
             raise ValueError("node")
         timestamp = int(payload["timestamp"])
         cpu = _number(payload, "cpu_percent", 0, 100)
+        cpu_source = _source(payload, "cpu_source")
+        cpu_per_core_json = _cpu_per_core(payload)
+        cpu_per_core_source = _source(payload, "cpu_per_core_source")
+        if cpu_per_core_json is None:
+            cpu_per_core_source = None
         memory = _number(payload, "memory_percent", 0, 100)
+        memory_source = _source(payload, "memory_source")
         disk = _number(payload, "disk_percent", 0, 100)
+        disk_source = _source(payload, "disk_source")
         host_battery_percent = _number(payload, "host_battery_percent", 0, 100, nullable=True)
         host_battery_power_plugged = payload.get("host_battery_power_plugged")
         if host_battery_power_plugged is not None and not isinstance(host_battery_power_plugged, bool):
@@ -124,19 +168,25 @@ def on_message(client, userdata, msg):
         previous = cursor.fetchone()
         cursor.execute(
             """INSERT INTO telemetry
-               (node, timestamp, cpu_percent, memory_percent, disk_percent,
+               (node, timestamp, cpu_percent, cpu_source, cpu_per_core_json, cpu_per_core_source,
+                memory_percent, memory_source, disk_percent, disk_source,
                 host_battery_percent, host_battery_power_plugged, host_battery_source, temperature,
                 temperature_source, cpu_hotspot_temperature, cpu_hotspot_source,
                 motherboard_temperature, motherboard_temperature_source,
                 gpu_temperature, gpu_temperature_source,
                 gpu_hotspot_temperature, gpu_hotspot_source, power_consumption)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 node,
                 timestamp,
                 cpu,
+                cpu_source,
+                cpu_per_core_json,
+                cpu_per_core_source,
                 memory,
+                memory_source,
                 disk,
+                disk_source,
                 host_battery_percent,
                 int(host_battery_power_plugged) if host_battery_power_plugged is not None else None,
                 host_battery_source,
