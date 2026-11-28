@@ -1,4 +1,5 @@
 import json
+import math
 import os
 import sys
 import time
@@ -27,6 +28,7 @@ def _mqtt_password():
     return os.environ.get("NIVUS_MQTT_PASSWORD")
 TOPIC = os.environ.get("NIVUS_TELEMETRY_TOPIC", "nivus/edge/telemetry")
 NODE_NAME = os.environ.get("NIVUS_NODE_NAME", "nivus-edge-node")
+MAX_LOGICAL_CPUS = 256
 from hardware_sensors import get_host_battery_metrics, get_thermal_metrics
 from services.maintenance import maintenance_enabled
 
@@ -36,6 +38,35 @@ def estimate_power_consumption_watts(cpu_percent):
     idle_estimate = 15.0
     cpu_component_estimate = 50.0 * (cpu_percent / 100.0)
     return round(idle_estimate + cpu_component_estimate, 1)
+
+
+def collect_cpu_usage():
+    """Return aggregate and per-logical-CPU usage from the same sample window."""
+    try:
+        # Prime psutil's per-CPU counters before the existing aggregate wait.
+        psutil.cpu_percent(interval=None, percpu=True)
+    except (psutil.Error, OSError):
+        pass
+
+    aggregate = psutil.cpu_percent(interval=1)
+    try:
+        readings = psutil.cpu_percent(interval=None, percpu=True)
+    except (psutil.Error, OSError):
+        return aggregate, None, None
+
+    if not isinstance(readings, (list, tuple)) or not 1 <= len(readings) <= MAX_LOGICAL_CPUS:
+        return aggregate, None, None
+
+    per_core = []
+    for value in readings:
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            per_core.append(None)
+            continue
+        value = float(value)
+        per_core.append(value if math.isfinite(value) and 0 <= value <= 100 else None)
+
+    source = "psutil.cpu_percent(percpu=True)" if any(value is not None for value in per_core) else None
+    return aggregate, per_core, source
 
 
 def main():
@@ -62,13 +93,18 @@ def main():
             if maintenance_was_enabled:
                 print("Modo de manutenção desativado; coleta retomada.")
                 maintenance_was_enabled = False
-            cpu = psutil.cpu_percent(interval=1)
+            cpu, cpu_per_core, cpu_per_core_source = collect_cpu_usage()
             payload = {
                 "node": NODE_NAME,
                 "timestamp": int(time.time()),
                 "cpu_percent": cpu,
+                "cpu_source": "psutil.cpu_percent",
+                "cpu_per_core_percent": cpu_per_core,
+                "cpu_per_core_source": cpu_per_core_source,
                 "memory_percent": psutil.virtual_memory().percent,
+                "memory_source": "psutil.virtual_memory",
                 "disk_percent": psutil.disk_usage(DISK_PATH).percent,
+                "disk_source": "psutil.disk_usage",
                 **get_thermal_metrics(),
                 **get_host_battery_metrics(),
                 "power_consumption": estimate_power_consumption_watts(cpu),

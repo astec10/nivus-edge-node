@@ -14,12 +14,16 @@ No Windows, LibreHardwareMonitor e o fork mantido de Open Hardware Monitor podem
 - `motherboard_temperature`/`motherboard_temperature_source` e `gpu_temperature`/`gpu_temperature_source` são valores independentes e opcionais.
 - `gpu_hotspot_temperature`/`gpu_hotspot_source` representam somente uma leitura explicitamente rotulada `hotspot` ou `junction` pelo driver da GPU. Não são inferidos a partir da temperatura comum da GPU.
 - `host_battery_percent`, `host_battery_power_plugged` e `host_battery_source` representam somente a bateria interna do nó que o sistema operacional expõe via psutil. Em desktops ou sistemas sem esse sensor, os campos ficam `null` e o painel mostra `N/D`.
+- `cpu_percent` continua sendo o uso agregado compatível com alertas e estimativa de potência; `cpu_source`, `memory_source` e `disk_source` identificam os coletores psutil, sem alegar que sejam sensores físicos.
+- `cpu_per_core_json` armazena a série opcional de CPU lógica como JSON, limitada a 256 valores; `cpu_per_core_source` identifica `psutil.cpu_percent(percpu=True)`. Payloads antigos sem estes campos continuam válidos.
 - A bateria interna do nó não é a bateria de um telefone nem do inversor; ela não é associada automaticamente ao relé MQTT nem altera a regra da issue #22.
 - Sensor ausente, inacessível ou sem identificação confiável permanece `null`; a UI apresenta `N/D`. Não usar zero, ACPI genérico nem a última amostra antiga como substituto.
 - Para Intel, preferir o pacote `coretemp` a sensores ACPI genéricos. Para AMD, preferir `Tdie` quando disponível; `Tctl` só deve ser rotulado conforme a semântica fornecida pelo driver. Uma APU pode não expor uma leitura térmica separada da CPU ou GPU.
 - Identificar placa/GPU pelo driver e label. Uma zona `acpitz` ou `thermal_zone0` isolada não prova que a leitura seja CPU ou placa-mãe.
 
 As colunas de origem, hotspots, placa-mãe e GPU são adicionadas por migração SQLite aditiva. Registros antigos sem `temperature_source` são mantidos, mas não são plotados como temperatura da CPU.
+
+Uso por CPU lógica é obtido sem uma segunda espera: o agente prepara as contagens por núcleo, faz a espera agregada já existente de um segundo e lê as contagens por núcleo de forma não bloqueante. A quantidade pode variar entre nós; valores ausentes, booleanos, não finitos ou fora de 0–100 são descartados. A dashboard mostra agregado e `CPU 0`, `CPU 1` etc. nos detalhes do cartão após três segundos, com mínimo/máximo limitados ao período selecionado. Se a origem ou os dados não existirem, a interface apresenta `N/D`.
 
 ## Gráficos e detalhes na interface
 
@@ -37,7 +41,7 @@ Esta observação comprova o bug e a fonte no CCE U25. Não demonstra suporte a 
 
 ## Implementação e limites
 
-`telemetry/hardware_sensors.py` classifica fontes conhecidas e labels; falha de API ou leitura inválida não interrompe o restante da coleta. `telemetry/agent.py` publica os campos opcionais; `backend/mqtt_worker.py` valida e grava os campos; `backend/database.py` migra o schema sem apagar histórico; os componentes em `frontend/src/components/` diferenciam CPU/APU, placa-mãe, GPU e hotspots identificados. A interface mostra também frescor da amostra, alertas registrados e auditoria MQTT; o aceite do broker não confirma o estado físico do atuador.
+`telemetry/hardware_sensors.py` classifica fontes conhecidas e labels; falha de API ou leitura inválida não interrompe o restante da coleta. `telemetry/agent.py` publica os campos opcionais; `backend/mqtt_worker.py` valida e grava os campos; `backend/database.py` migra o schema sem apagar histórico; os componentes em `frontend/src/components/` diferenciam CPU/APU, placa-mãe, GPU, hotspots identificados e uso por CPU lógica. A interface mostra também frescor da amostra, alertas registrados e auditoria MQTT; o aceite do broker não confirma o estado físico do atuador.
 
 O pacote não instala `lm-sensors`, não executa `sensors-detect` automaticamente e não carrega módulos do kernel. Se uma placa não expõe o sensor, a correção apropriada é registrar essa limitação ou acrescentar suporte explícito ao driver, não adivinhar o componente.
 
