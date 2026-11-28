@@ -57,7 +57,7 @@ try {
   assert.match(details, /Uso agregado/);
   assert.match(details, /CPU 0/);
   assert.match(details, /CPU 2/);
-  assert.match(details, /Fonte: psutil\.cpu_percent\(percpu=true\)/);
+  assert.ok(details.includes('Fonte: psutil.cpu_percent(percpu=True)'));
   assert.match(renderToStaticMarkup(React.createElement(CpuDetails, { samples: [{ cpu_percent: 25 }] })), /Uso por CPU lógico/);
 } finally {
   await vite.close();
